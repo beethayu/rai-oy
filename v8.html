@@ -202,8 +202,10 @@
     .prow-new { color: var(--green-d); font-weight: 600; }
     .prow-rat { color: #6B4A1F; font-weight: 600; }
     .prow-doing { box-shadow: inset 4px 0 0 #2F5BB7; }
-    .prow-card { padding: 0 8px 8px; }
-    .prow-card .pc { margin: 0; box-shadow: none; }
+    .pq-line { font-size: 14px; line-height: 1.45; margin-bottom: 4px; }
+    .pq-k { display: inline-block; min-width: 52px; font-size: 12px; font-weight: 700; color: #6B736E; }
+    .pq-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .pq-btns .bigbtn { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: 15px; padding: 0 6px; white-space: nowrap; }
     .hrow { display: flex; gap: 12px; width: 100%; padding: 11px 14px; border: 0; background: transparent; color: inherit; text-align: left; }
     .hrow + .hrow { border-top: 1px solid #EEF1EF; }
     .hrow-d { flex-shrink: 0; width: 84px; font-size: 13px; font-weight: 600; color: #4A524D; padding-top: 2px; }
@@ -1474,9 +1476,7 @@
       const kd = kindOf(st), open = plotOpen === p.plot_id;
       const pDays = calcDays(p.plant_date), wDays = calcDays(p.last_water_date);
       const isNew = p.cane_type === 'อ้อยใหม่';
-      const loc = plotLoc(p.plot_name);
-      let sub = p.plot_name.slice(loc.length).replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
-      if (!sub) sub = p.plot_name; else if (/^\d+$/.test(sub)) sub = 'แปลง ' + sub;
+      const sub = p.plot_name;
       const age = pDays === null ? (isNew ? 'ยังไม่ปลูก' : '') : `${Math.floor(pDays / 30)} ด.`;
       const wc = waterChip(p, st, pDays, wDays);
       const wTxt = !wc ? '' : wc.c === 'red' ? `<span style="color:#A3271B;font-weight:600">ขาดน้ำ ${wDays} วัน</span>`
@@ -1490,9 +1490,24 @@
             <span class="srow-s">${esc(p.area_rai)} ไร่ · <span class="${isNew ? 'prow-new' : 'prow-rat'}">${isNew ? 'อ้อยใหม่' : 'ตอ'}${age ? ' ' + age : ''}</span>${wTxt ? ' · ' + wTxt : ''}</span>
           </span>${right}
         </button>
-        ${open ? `<div class="prow-card">${plotCard(p, st, logs)}</div>` : ''}
+        ${open ? plotQuick(p, st, logs) : ''}
       </div>`;
     }
+    // กางสั้น ๆ: ตอนนี้/งานล่าสุด + ขั้นต่อไป + ปุ่ม (รายละเอียด/ประวัติอยู่ในหน้า ดูแปลง)
+    function plotQuick(p, st, logs) {
+      const note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')) : '';
+      const next = st.isOngoing ? 'ทำให้จบ แล้วกด "งานเสร็จ"' : plain(st.next);
+      const pn = qa(p.plot_name);
+      return `<div class="srow-act">
+        ${note ? `<div class="pq-line"><span class="pq-k">${st.isOngoing ? 'กำลังทำ' : 'ล่าสุด'}</span>${esc(note)}</div>` : ''}
+        <div class="pq-line"><span class="pq-k">ต่อไป</span>${esc(next)}</div>
+        <div class="pq-btns">
+          ${st.isOngoing ? `<button type="button" class="bigbtn bigbtn-main flex-fill" onclick="openAct('${p.plot_id}','${pn}','finish')">${ICON_CHECK}งานเสร็จ</button>` : ''}
+          <button type="button" class="bigbtn ${st.isOngoing ? 'bigbtn-out' : 'bigbtn-main'} flex-fill" onclick="openAct('${p.plot_id}','${pn}','new')">+ บันทึกงาน</button>
+          <button type="button" class="bigbtn bigbtn-out flex-fill" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>
+        </div></div>`;
+    }
+
     function plotListHtml(list, logsBy) {
       const groups = [], idx = {};
       list.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });

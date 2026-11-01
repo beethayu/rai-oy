@@ -976,11 +976,11 @@
       const nowKey = st.isOngoing ? 'ตอนนี้กำลังทำ' : 'งานล่าสุด';
       const latest = logs.length ? logs[0].log_id : '';
       const nowClick = latest ? `openLogInspect('${latest}')` : `openDossier('${p.plot_id}')`;
-      const next = st.isOngoing ? 'ทำให้จบ แล้วกด "งานเสร็จ"' : plain(st.next);
+      const next = st.isOngoing ? 'ยังไม่เสร็จ ทำต่อให้จบ แล้วค่อยกดปุ่มด้านล่าง' : plain(st.next);
       const pn = qa(p.plot_name);
 
       const btns = st.isOngoing
-        ? `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn}','finish')">${ICON_CHECK}งานเสร็จ</button>
+        ? `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn}','finish')">กดเมื่อทำเสร็จ</button>
            <button type="button" class="bigbtn bigbtn-out" onclick="openAct('${p.plot_id}','${pn}','new')">+ บันทึก</button>`
         : `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn}','new')">+ บันทึกงาน</button>
            <button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`;

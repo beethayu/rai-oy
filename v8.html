@@ -159,6 +159,10 @@
     .pill-done { background: var(--done-soft); color: #3E4742; }
     .pill-normal { background: var(--green-soft); color: var(--green-d); }
     .pc-meta { font-size: 15px; color: var(--muted); margin: 0; }
+    .rmk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .rmk-lbl { font-size: 13px; color: var(--muted); width: 82px; flex-shrink: 0; }
+    .rtag { font-size: 14px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line2); background: #fff; }
+    .rtag.on { background: var(--green); border-color: var(--green); color: #fff; font-weight: 600; }
     .pc.edge-red { box-shadow: inset 6px 0 0 var(--red); }
     .pc.edge-urg { box-shadow: inset 6px 0 0 var(--urg); }
     .pc.edge-doing { box-shadow: inset 6px 0 0 var(--doing); }
@@ -483,16 +487,19 @@
           <div class="row g-2 mb-2">
             <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt">
               <div id="act_dt2_wrap"><small class="fw-bold">ถึงวันที่ <span class="fw-normal text-muted">(ถ้าทำหลายวัน)</span></small><input type="date" class="form-control form-control-sm" id="act_dt2"></div></div>
-            <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="act_rmk" placeholder="เช่น ล็อก 1, ครึ่งแปลง"></div>
+            <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="act_rmk" placeholder="พิมพ์เพิ่มได้" oninput="syncTags()"></div>
           </div>
-          <div class="d-flex gap-1 flex-wrap">
-            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ล็อก 1'">ล็อก 1</button>
-            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ล็อก 2'">ล็อก 2</button>
-            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ได้ครึ่งแปลง'">ครึ่งแปลง</button>
-            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='เสร็จสมบูรณ์'">เสร็จสมบูรณ์</button>
-            <button type="button" class="btn btn-sm btn-light border py-0" onclick="addRmk('ค้างคืน')">ค้างคืน</button>
-            <button type="button" class="btn btn-sm btn-light border py-0" onclick="addRmk('เลิกเที่ยง')">เลิกเที่ยง</button>
+          <div class="rmk-row"><span class="rmk-lbl">ทำได้แค่ไหน</span>
+            <button type="button" class="rtag" data-g="area" onclick="tglTag(this)">ล็อก 1</button>
+            <button type="button" class="rtag" data-g="area" onclick="tglTag(this)">ล็อก 2</button>
+            <button type="button" class="rtag" data-g="area" onclick="tglTag(this)">ครึ่งแปลง</button>
+            <button type="button" class="rtag" data-g="area" onclick="tglTag(this)">ทั้งแปลง</button>
           </div>
+          <div class="rmk-row"><span class="rmk-lbl">คนงาน</span>
+            <button type="button" class="rtag" data-g="time" onclick="tglTag(this)">ค้างคืน</button>
+            <button type="button" class="rtag" data-g="time" onclick="tglTag(this)">เลิกเที่ยง</button>
+          </div>
+          <div class="small text-muted">กดอีกครั้งเพื่อเอาออก · เลือกได้กลุ่มละ 1</div>
         </div>
         <div class="modal-footer p-2">
           <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitAct()" id="btnSaveAct">💾 บันทึกข้อมูล</button>
@@ -889,7 +896,19 @@
     function isoToBE(s) { if (!s) return ''; const [y, m, d] = s.split('-'); return `${d}/${m}/${+y + 543}`; }
     function todayISO() { const n = new Date(); return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`; }
     // ต่อท้ายหมายเหตุ (ค้างคืน / เลิกเที่ยง ใช้คู่กับคำอื่นได้)
-    function addRmk(t) { const el = document.getElementById('act_rmk'); if (!el.value.includes(t)) el.value = el.value.trim() ? el.value.trim() + ' ' + t : t; }
+    // ปุ่มหมายเหตุ: กด = ใส่, กดซ้ำ = เอาออก, กลุ่มเดียวกันเลือกได้อันเดียว (สลับให้เอง)
+    function tglTag(btn) {
+      const el = $('act_rmk'), t = btn.textContent.trim(), was = btn.classList.contains('on');
+      let v = ' ' + el.value + ' ';
+      document.querySelectorAll(`.rtag[data-g="${btn.dataset.g}"]`).forEach(b => { v = v.split(' ' + b.textContent.trim() + ' ').join(' '); });
+      v = v.replace(/\s+/g, ' ').trim();
+      el.value = was ? v : (v ? v + ' ' + t : t);
+      syncTags();
+    }
+    function syncTags() {
+      const v = ' ' + $('act_rmk').value.replace(/\s+/g, ' ') + ' ';
+      document.querySelectorAll('.rtag').forEach(b => b.classList.toggle('on', v.includes(' ' + b.textContent.trim() + ' ')));
+    }
 
     function checkDate(iso) {
       if (iso && iso > todayISO()) return confirm(`⚠️ วันที่ ${isoToBE(iso)} เลยวันนี้ไปแล้ว\nยืนยันจะบันทึกวันที่นี้ใช่ไหม?`);
@@ -1933,7 +1952,7 @@
       selGrp(log.activity_group);
       document.querySelectorAll('.w-chk').forEach(c => c.checked = (log.operator || '').includes(c.value));
       $('act_dt').value = beToISO(log.timestamp) || todayISO();
-      $('act_rmk').value = cleanRmk(log.remark);
+      $('act_rmk').value = cleanRmk(log.remark); syncTags();
       const det = log.activity_detail || '';
       if (log.activity_group === 'ขึ้นน้ำ') {
         document.querySelectorAll('.pm-chk').forEach(c => c.checked = (log.equipment || '').includes(c.value));
@@ -1960,7 +1979,7 @@
 
     function resetActForm() {
       $('edit_log_id').value = '';
-      $('act_rmk').value = ''; $('act_dt').value = todayISO(); $('act_dt2').value = ''; $('act_dt2_wrap').style.display = '';
+      $('act_rmk').value = ''; $('act_dt').value = todayISO(); $('act_dt2').value = ''; $('act_dt2_wrap').style.display = ''; syncTags();
       document.querySelectorAll('.c-chk, .w-chk, .tr-chk, .pm-chk').forEach(c => c.checked = false);
       document.querySelectorAll('.f-qty').forEach(i => i.value = '');
       ['chem_qty', 'gen_det', 'gen_qty', 'harv_qty', 'fert_total'].forEach(id => $(id).value = '');
@@ -1983,7 +2002,7 @@
           $('act_dt2_wrap').style.display = 'none';
           let rm = cleanRmk(og.remark);
           if (!rm.includes('เริ่ม')) rm = (rm ? rm + ' ' : '') + 'เริ่ม ' + og.timestamp;
-          $('act_rmk').value = rm;
+          $('act_rmk').value = rm; syncTags();
         } else selGrp('ขึ้นน้ำ');
         $('act_dt').value = todayISO();
         $('mode_done').checked = true;

@@ -1036,7 +1036,7 @@
     </div>
   </div>
 
-  <input type="file" accept=".kml,.xml,application/vnd.google-earth.kml+xml,text/xml" id="kmlFile" style="display:none" onchange="onKmlFile(this)">
+  <input type="file" id="kmlFile" style="display:none" onchange="onKmlFile(this)">
   <div class="modal fade" id="farmMapModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
@@ -3656,6 +3656,8 @@
     function onKmlFile(inp) {
       const f = inp.files && inp.files[0]; if (!f) return;
       f.text().then(t => {
+        if (/^PK/.test(t)) throw new Error('ไฟล์นี้เป็น .kmz (บีบอัด) · ใน Ling เลือกส่งออกเป็น .kml');
+        if (!/<kml|<Placemark/i.test(t)) throw new Error('ไฟล์นี้ไม่ใช่ KML · เลือกไฟล์ที่ลงท้ายด้วย .kml จากอีเมลของ Ling');
         const doc = new DOMParser().parseFromString(t, 'text/xml');
         if (doc.getElementsByTagName('parsererror').length) throw new Error('ไฟล์นี้ไม่ใช่ KML');
         const out = [];

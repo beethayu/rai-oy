@@ -259,6 +259,7 @@ function readAll_(ss) {
     stockLogs: sortDesc_(readSheet_(ss, SH.SLOG, true)),
     watches: readSheet_(ss, 'Watch').filter(w => w.status === 'open'),
     expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
+    ...readRock_(ss),
     settings: pub
   };
 }

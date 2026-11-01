@@ -239,6 +239,19 @@
     .card-sec h6 { font-weight: 700; font-size: 16px; color: #1F5E3B; margin: 0 0 8px; }
     .grp-all { border: 0; background: transparent; color: #1F5E3B; font-size: 13px; font-weight: 600; padding: 0; }
     .opt-chip { display: inline-flex; align-items: center; gap: 6px; background: #EEF1EF; color: inherit; border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 14px; font-weight: 600; }
+    .rk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .rk-th { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #E6EBE7; border: 0; padding: 0; }
+    .rk-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .rk-th.pair { box-shadow: 0 0 0 3px #1F5E3B; }
+    .rk-th .rk-tag { position: absolute; left: 4px; top: 4px; background: #1F5E3B; color: #fff; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 5px; }
+    .rk-th .rk-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #6B736E; }
+    .rk-pt { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+    .rk-pt + .rk-pt { border-top: 1px solid #EEF1EF; }
+    .rk-pt .rk-l { flex: 1; min-width: 0; }
+    .rk-dot { width: 26px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; flex-shrink: 0; }
+    .rk-trip { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; font-size: 14px; }
+    .rk-trip + .rk-trip { border-top: 1px solid #EEF1EF; }
+    .rk-x { border: 0; background: transparent; color: #A3271B; font-size: 13px; font-weight: 600; padding: 2px 4px; }
     .opt-chip button { border: 0; background: #fff; color: #A3271B; width: 24px; height: 24px; border-radius: 999px; font-size: 13px; line-height: 1; padding: 0; }
     .sec-h { display: flex; justify-content: space-between; align-items: center; margin: 12px 2px 6px; }
     .sec-h:first-child { margin-top: 4px; }
@@ -944,6 +957,37 @@
   </div>
 
   
+  <input type="file" accept="image/*" multiple id="rockFile" style="display:none" onchange="onRockFile(this)">
+  <div class="modal fade" id="rockModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title" id="rockTitle">จุดหินคลุก</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="rock-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="rockPairModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">รูปคู่ ก่อน / หลัง</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody">
+          <img id="rockPairImg" style="width:100%;border-radius:12px;display:block;" alt="รูปคู่ก่อนหลัง">
+          <div class="msub mt-2 mb-0">ถ้าปุ่มแชร์ไม่ขึ้น LINE กดค้างที่รูป แล้วเลือก "บันทึกรูป" หรือ "แชร์"</div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="rockShare()">แชร์ไป LINE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="rainModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1111,7 +1155,7 @@
       } catch (e) {}
     }
     function init(d, fromCache) {
-      gData = d; if (!gData.watches) gData.watches = [];
+      gData = d; if (!gData.watches) gData.watches = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
       if (!uiRestored) { uiRestored = true; uiRestore(); }
       if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
     }
@@ -1659,6 +1703,14 @@
         return row('u:' + p.plot_id, 'srow-bad', p, esc(wc && wc.c === 'red' ? wc.t : plain(st.next)), '<span class="pill pill-urgent">ถึงคิว</span>',
           `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`);
       }).join('')}</div>` : none('ไม่มีแปลงถึงคิว (พ.ย.–ธ.ค. ช่วงใกล้ตัด งดเตือนน้ำ)');
+      const rk = (gData.rockPoints || []).filter(r => r.status !== 'ลงเสร็จ');
+      if (rk.length) {
+        const wait = rk.filter(r => r.status !== 'กำลังลง').length, doing = rk.length - wait;
+        h += head('งานหินคลุก', rk.length) + `<div class="srow-box"><div class="srow"><button type="button" class="srow-main" onclick="goRock()">
+          <span class="srow-l"><span class="srow-n">${[...new Set(rk.map(r => r.member))].length} สมาชิก · ${rk.length} จุด ยังไม่เสร็จ</span>
+          <span class="srow-s">${[wait ? 'รอลง ' + wait : '', doing ? 'กำลังลง ' + doing : ''].filter(Boolean).join(' · ')}</span></span>
+          <span class="pill pill-urgent">ดูงาน</span></button></div></div>`;
+      }
       return h;
     }
 
@@ -2202,8 +2254,11 @@
       let html = `<div class="seg mb-2">
           <button type="button" class="${fleetPane === 'mach' ? 'on' : ''}" onclick="setFleetPane('mach')">รถ / เครื่อง${mIssue ? ` <span class="seg-dot">${mIssue}</span>` : ''}</button>
           <button type="button" class="${fleetPane === 'work' ? 'on' : ''}" onclick="setFleetPane('work')">คนงาน${wIssue ? ` <span class="seg-dot">${wIssue}</span>` : ''}</button>
+          <button type="button" class="${fleetPane === 'rock' ? 'on' : ''}" onclick="setFleetPane('rock')">หินคลุก${rockOpenN() ? ` <span class="seg-dot" style="background:#C77700">${rockOpenN()}</span>` : ''}</button>
         </div>`;
-      if (fleetPane === 'work') {
+      if (fleetPane === 'rock') {
+        html += rockPaneHtml();
+      } else if (fleetPane === 'work') {
         html += grp('คนงาน', workers, '👤') + `<div class="bg-white p-3 rounded border mt-3" id="wsum-box">${workSumHtml()}</div>`;
       } else {
         html += grp('พญานาค', pumps, '🐍') + grp('รถไถ', tractors, '🚜') + grp('สิบล้อ', trucks, '🚛');
@@ -2241,6 +2296,13 @@
         const iso = beToISO(l.timestamp); return iso && iso >= wsFrom && iso <= wsTo;
       }).map(l => ({ ...l, iso: beToISO(l.timestamp), plot: pName[l.plot_id] || l.plot_id,
         people: String(l.operator || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ') }));
+      const rpt = {}; (gData.rockPoints || []).forEach(r => rpt[r.point_id] = r);
+      (gData.rockLogs || []).filter(l => l.type === 'trip' && l.driver).forEach(l => {
+        const iso = beToISO(l.timestamp), r = rpt[l.point_id];
+        if (!iso || iso < wsFrom || iso > wsTo) return;
+        logs.push({ iso, timestamp: l.timestamp, plot: 'หินคลุก ' + (r ? r.member + ' ' + r.name : ''), activity_group: 'ขนหินคลุก',
+          activity_detail: `${l.trips} เที่ยว${l.truck ? ' ' + l.truck : ''}`, remark: l.note || '', people: [l.driver] });
+      });
       const per = {};
       logs.forEach(l => l.people.forEach(w => { (per[w] = per[w] || {})[l.iso] = (per[w][l.iso] || []).concat(l); }));
       const order = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);
@@ -2823,6 +2885,336 @@
         return next();
       }
       call('saveActivities', [base], d => { hideModal('actModal'); pkAfterSave(); init(d); }, $('btnSaveAct'));
+    }
+
+
+    // ================= งานหินคลุก (สมาชิก → จุด → รูปก่อน/หลัง + เที่ยวสิบล้อ) =================
+    let rockSel = '', rockCur = '', rockEdit = false, rockNew = null, rockStage = 'before', rockPairData = null;
+    const rockThumbCache = {};
+    const RK_ST = { 'รอลง': 'urgent', 'กำลังลง': 'doing', 'ลงเสร็จ': 'normal' };
+    const rockPt = id => (gData.rockPoints || []).find(r => r.point_id === id);
+    const rockLogsOf = id => (gData.rockLogs || []).filter(l => l.point_id === id);
+    const rockTrips = id => rockLogsOf(id).filter(l => l.type === 'trip').reduce((t, l) => t + num(l.trips), 0);
+    const rockOpenN = () => (gData && gData.rockPoints || []).filter(r => r.status !== 'ลงเสร็จ').length;
+    const hasXY = (a, b) => num(a) && num(b);
+    const fmtDist = m => !num(m) ? '' : num(m) >= 1000 ? (num(m) / 1000).toFixed(1) + ' กม.' : Math.round(num(m)) + ' ม.';
+    const gmNav = (la, ln) => `https://www.google.com/maps/dir/?api=1&destination=${la},${ln}&travelmode=driving`;
+    const gmPin = (la, ln) => `https://www.google.com/maps/search/?api=1&query=${la},${ln}`;
+
+    function goRock() { fleetPane = 'rock'; switchTab('fleet'); renderFleet(); uiSave(); }
+
+    function rockPaneHtml() {
+      const pts = gData.rockPoints || [];
+      let h = `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-2" style="font-size:18px;border-radius:14px;" onclick="openRockNew('')">+ เพิ่มจุดลงหินคลุก</button>`;
+      if (!pts.length) return h + `<div class="msub mt-2">สมาชิกบอกจุดมา กด "+ เพิ่มจุด" ใส่ชื่อสมาชิกกับชื่อจุด ไปถึงหน้างานแล้วปักพิกัดต้นทาง/ปลายทาง ถ่ายรูปก่อนลง หลังลง ในหน้าจุดนั้นได้เลย รูปไม่ปนกัน</div>`;
+      const trips = (gData.rockLogs || []).filter(l => l.type === 'trip').reduce((t, l) => t + num(l.trips), 0);
+      const done = pts.filter(r => r.status === 'ลงเสร็จ').length;
+      h += `<div class="msub">${[...new Set(pts.map(r => r.member))].length} สมาชิก · ${pts.length} จุด · เสร็จ ${done} · รวม ${trips} เที่ยว</div>`;
+      const groups = {};
+      pts.forEach(r => (groups[r.member] = groups[r.member] || []).push(r));
+      const order = Object.keys(groups).sort((a, b) => {
+        const pa = groups[a].every(r => r.status === 'ลงเสร็จ') ? 1 : 0, pb = groups[b].every(r => r.status === 'ลงเสร็จ') ? 1 : 0;
+        return pa - pb || a.localeCompare(b, 'th');
+      });
+      order.forEach(m => {
+        const list = groups[m].slice().sort((a, b) => (a.status === 'ลงเสร็จ' ? 1 : 0) - (b.status === 'ลงเสร็จ' ? 1 : 0));
+        const phone = (list.find(r => r.phone) || {}).phone;
+        h += `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(m)}</span>
+          <span>${phone ? `<a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B;font-size:13px;font-weight:600;text-decoration:none;">โทร ${esc(phone)}</a>` : ''}
+          <button type="button" class="grp-all ms-2" onclick="openRockNew('${qa(m)}')">+ จุด</button></span></div>
+          <div class="srow-box">${list.map(r => {
+            const lg = rockLogsOf(r.point_id), t = rockTrips(r.point_id);
+            const nb = lg.filter(l => l.type === 'before').length, na = lg.filter(l => l.type === 'after').length;
+            const sub = [num(r.quota) ? `${t}/${num(r.quota)} เที่ยว` : t ? `${t} เที่ยว` : '', fmtDist(r.dist_m),
+              nb || na ? `รูป ก่อน ${nb} · หลัง ${na}` : 'ยังไม่มีรูป', !hasXY(r.start_lat, r.start_lng) ? 'ยังไม่ปักพิกัด' : ''].filter(Boolean).join(' · ');
+            return `<div class="srow"><button type="button" class="srow-main" onclick="openRock('${qa(r.point_id)}')">
+              <span class="srow-l"><span class="srow-n">${esc(r.name)}</span><span class="srow-s">${esc(sub)}</span></span>
+              <span class="pill pill-${RK_ST[r.status] || 'urgent'}">${esc(r.status || 'รอลง')}</span></button></div>`;
+          }).join('')}</div>`;
+      });
+      return h;
+    }
+
+    function openRockNew(member) {
+      const last = (gData.rockPoints || []).find(r => r.member === member) || {};
+      rockCur = ''; rockEdit = true; rockNew = { member: member || '', phone: last.phone || '', name: '', quota: '', note: '' };
+      renderRock(); showM('rockModal');
+    }
+    function openRock(id) {
+      rockCur = id; rockEdit = false; rockNew = null; rockSel = '';
+      renderRock(); showM('rockModal'); rockLoadThumbs(id);
+    }
+
+    function rockLoadThumbs(id) {
+      const need = rockLogsOf(id).some(l => l.has_thumb && !rockThumbCache[l.log_id]);
+      if (!need) return;
+      callApi('rockThumbs', [id]).then(m => { Object.assign(rockThumbCache, m); if (rockCur === id) renderRock(); }).catch(() => {});
+    }
+
+    function rockFormHtml(r) {
+      const members = [...new Set((gData.rockPoints || []).map(x => x.member))];
+      return `<div class="card-sec">
+        <h6>${rockCur ? 'แก้ข้อมูลจุด' : 'จุดใหม่'}</h6>
+        <div class="bill-lbl">สมาชิก (เจ้าของไร่)</div>
+        <input class="form-control mb-2" id="rk_member" list="rk_members" value="${esc(r.member)}" placeholder="ชื่อสมาชิก" oninput="rockFillPhone()">
+        <datalist id="rk_members">${members.map(m => `<option value="${esc(m)}">`).join('')}</datalist>
+        <div class="bill-lbl">เบอร์โทร</div>
+        <input class="form-control mb-2" id="rk_phone" type="tel" inputmode="tel" value="${esc(r.phone)}" placeholder="ไม่ใส่ก็ได้">
+        <div class="bill-lbl">ชื่อจุด (ให้จำได้ว่าที่ไหน)</div>
+        <input class="form-control mb-2" id="rk_name" value="${esc(r.name)}" placeholder="เช่น ทางเข้าไร่หนองเฝ้า หน้าบ้าน">
+        <div class="row g-2 mb-2">
+          <div class="col-5"><div class="bill-lbl">โควต้า (เที่ยว)</div><input class="form-control" id="rk_quota" type="number" inputmode="numeric" value="${esc(r.quota)}" placeholder="ไม่รู้ก็เว้น"></div>
+        </div>
+        <div class="bill-lbl">ทางไป / จุดสังเกต</div>
+        <textarea class="form-control mb-3" id="rk_note" rows="2" placeholder="เช่น เลี้ยวซ้ายที่ศาลา ผ่านบ่อปลา ทางขวามือ">${esc(r.note)}</textarea>
+        <div class="d-flex gap-2">
+          ${rockCur ? `<button type="button" class="btn btn-outline-secondary flex-fill" onclick="rockEdit=false;renderRock()">ยกเลิก</button>` : ''}
+          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnRockSave" onclick="saveRockInfo()">${rockCur ? 'บันทึกที่แก้' : 'สร้างจุด'}</button>
+        </div>
+      </div>`;
+    }
+    function rockFillPhone() {
+      const m = $('rk_member').value.trim(), hit = (gData.rockPoints || []).find(r => r.member === m && r.phone);
+      if (hit && !$('rk_phone').value) $('rk_phone').value = hit.phone;
+    }
+    function saveRockInfo() {
+      const o = { member: $('rk_member').value.trim(), phone: $('rk_phone').value.trim(), name: $('rk_name').value.trim(),
+        quota: $('rk_quota').value.trim(), note: $('rk_note').value.trim() };
+      if (!o.member) return alert('ใส่ชื่อสมาชิกก่อนครับ');
+      if (!o.name) return alert('ตั้งชื่อจุดก่อนครับ เช่น ทางเข้าไร่หนองเฝ้า');
+      if (rockCur) o.point_id = rockCur;
+      call('saveRockPoint', [o], d => { init(d); rockCur = d.savedPoint || rockCur; rockEdit = false; rockNew = null; renderRock(); }, $('btnRockSave'));
+    }
+
+    function rockXYHtml(r, k, label) {
+      const la = r[k + '_lat'], ln = r[k + '_lng'], ok = hasXY(la, ln);
+      return `<div class="rk-pt">
+        <span class="rk-dot" style="background:${k === 'start' ? '#1F5E3B' : '#C77700'}">${k === 'start' ? 'A' : 'B'}</span>
+        <div class="rk-l"><div class="fw-bold">${label}</div><div class="srow-s">${ok ? `${num(la).toFixed(5)}, ${num(ln).toFixed(5)}` : 'ยังไม่ปัก'}</div></div>
+        ${ok ? `<a class="btn btn-sm btn-success fw-bold" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>` : ''}
+      </div>
+      <div class="d-flex gap-2 mb-2">
+        <button type="button" class="btn btn-sm btn-outline-success flex-fill" id="btnXY_${k}" onclick="rockHere('${k}')">${ok ? 'ปักใหม่ตรงนี้' : 'ปักตรงที่ยืนอยู่'}</button>
+        <button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="rockPaste('${k}')">วางลิงก์ Google Maps</button>
+        ${ok ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="rockClearXY('${k}')">ลบ</button>` : ''}
+      </div>`;
+    }
+
+    function rockThumbHtml(l, r) {
+      const pp = rockPairIds(r), t = rockThumbCache[l.log_id], pair = [pp.b && pp.b.log_id, pp.a && pp.a.log_id].includes(l.log_id);
+      return `<button type="button" class="rk-th ${pair ? 'pair' : ''}" style="${rockSel === l.log_id ? 'outline:3px solid #C77700;outline-offset:2px;' : ''}" onclick="rockSel=rockSel==='${qa(l.log_id)}'?'':'${qa(l.log_id)}';renderRock()">
+        ${t ? `<img src="data:image/jpeg;base64,${t}" alt="">` : `<span class="rk-ph">${l.has_thumb ? 'กำลังโหลด' : 'รูป'}</span>`}
+        ${pair ? '<span class="rk-tag">รูปคู่</span>' : ''}</button>`;
+    }
+
+    function rockPairIds(r) {
+      const lg = rockLogsOf(r.point_id), b = lg.filter(l => l.type === 'before'), a = lg.filter(l => l.type === 'after');
+      const pb = b.find(l => l.log_id === r.pair_before) || b[b.length - 1], pa = a.find(l => l.log_id === r.pair_after) || a[0];
+      return { b: pb, a: pa };
+    }
+
+    function renderRock() {
+      const r = rockCur ? rockPt(rockCur) : rockNew;
+      if (!r) { hideModal('rockModal'); return; }
+      $('rockTitle').innerText = rockCur ? r.name : 'เพิ่มจุดลงหินคลุก';
+      if (!rockCur || rockEdit) { $('rock-body').innerHTML = rockFormHtml(r); return; }
+      const lg = rockLogsOf(r.point_id);
+      const bef = lg.filter(l => l.type === 'before'), aft = lg.filter(l => l.type === 'after'), trips = lg.filter(l => l.type === 'trip');
+      const tSum = trips.reduce((t, l) => t + num(l.trips), 0), q = num(r.quota);
+      const { b: pb, a: pa } = rockPairIds(r);
+      const trucks = (gData.assets || []).filter(a => a.category === 'Truck').map(a => a.name);
+      const workers = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);
+      const lastTrip = trips[trips.length - 1] || {};
+      const opt = (v, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(v)}</option>`;
+      const both = hasXY(r.start_lat, r.start_lng) && hasXY(r.end_lat, r.end_lng);
+      $('rock-body').innerHTML = `
+        <div class="card-sec">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div><div class="fw-bold fs-6">${esc(r.member)}</div>
+              <div class="srow-s">${r.phone ? `<a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B;font-weight:600;">โทร ${esc(r.phone)}</a> · ` : ''}เพิ่มเมื่อ ${esc(r.created)}</div></div>
+            <span class="pill pill-${RK_ST[r.status] || 'urgent'}">${esc(r.status || 'รอลง')}</span>
+          </div>
+          ${r.note ? `<div class="mt-2" style="font-size:15px;">${esc(r.note)}</div>` : ''}
+          <button type="button" class="grp-all mt-2" onclick="rockEdit=true;renderRock()">แก้ชื่อ / เบอร์ / ทางไป / โควต้า</button>
+        </div>
+
+        <div class="card-sec">
+          <h6>พิกัด${r.dist_m ? ` · ระยะ ${fmtDist(r.dist_m)}` : ''}</h6>
+          ${rockXYHtml(r, 'start', 'ต้นทาง (จุดเริ่มลงหิน)')}
+          ${rockXYHtml(r, 'end', 'ปลายทาง (ลงถึงตรงไหน)')}
+          ${both ? `<a class="btn btn-sm btn-outline-success w-100" href="https://www.google.com/maps/dir/?api=1&origin=${r.start_lat},${r.start_lng}&destination=${r.end_lat},${r.end_lng}" target="_blank" rel="noopener">ดูช่วงที่ลงหินบนแผนที่ (A → B)</a>` : ''}
+          <div class="msub mt-2 mb-0">ไปถึงหน้างานแล้วกด "ปักตรงที่ยืนอยู่" · หรือกดค้างที่จุดใน Google Maps ก๊อปลิงก์/พิกัดมาวาง · ถ่ายรูปก่อนลงรูปแรก ถ้ายังไม่มีต้นทาง จะปักให้เอง</div>
+        </div>
+
+        <div class="card-sec">
+          <h6>รูป</h6>
+          <div class="bill-lbl">ก่อนลง (${bef.length})</div>
+          <div class="rk-grid mb-2">${bef.map(l => rockThumbHtml(l, r)).join('')}</div>${rockSelHtml('before')}
+          <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="pickRock('before')">ถ่ายรูปก่อนลง</button>
+          <div class="bill-lbl">หลังลง (${aft.length})</div>
+          <div class="rk-grid mb-2">${aft.map(l => rockThumbHtml(l, r)).join('')}</div>${rockSelHtml('after')}
+          <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="pickRock('after')">ถ่ายรูปหลังลง</button>
+          <button type="button" class="btn btn-success w-100 fw-bold" id="btnRockPair" ${pb && pa ? '' : 'disabled'} onclick="rockMakePair()">ทำรูปคู่ ก่อน/หลัง ส่ง LINE</button>
+          <div class="msub mt-2 mb-0">${pb && pa ? 'แตะรูปเพื่อเลือกรูปที่จะใช้ทำรูปคู่ (มีกรอบเขียว)' : 'ต้องมีรูปก่อนลงและหลังลงอย่างละ 1 รูป'}</div>
+        </div>
+
+        <div class="card-sec">
+          <h6>เที่ยวสิบล้อ · ${tSum}${q ? '/' + q : ''} เที่ยว</h6>
+          ${trips.length ? `<div class="mb-2">${trips.map(l => `<div class="rk-trip"><span><b>${esc(l.timestamp)}</b> · ${esc(l.trips)} เที่ยว${l.driver ? ' · ' + esc(l.driver) : ''}${l.truck ? ' · ' + esc(l.truck) : ''}${l.note ? ' · ' + esc(l.note) : ''}</span>
+            <button type="button" class="rk-x" onclick="rockDelLog('${qa(l.log_id)}','เที่ยวนี้')">ลบ</button></div>`).join('')}</div>` : ''}
+          <div class="row g-2">
+            <div class="col-7"><div class="bill-lbl">วันที่</div><input type="date" class="form-control" id="rk_tdate" value="${todayISO()}"></div>
+            <div class="col-5"><div class="bill-lbl">กี่เที่ยว</div><input type="number" inputmode="numeric" class="form-control" id="rk_trips" value="1" min="1"></div>
+            <div class="col-6"><div class="bill-lbl">คนขับ</div><select class="form-select" id="rk_driver">${opt('', !lastTrip.driver)}${workers.map(w => opt(w, w === lastTrip.driver)).join('')}</select></div>
+            <div class="col-6"><div class="bill-lbl">สิบล้อ</div><select class="form-select" id="rk_truck">${opt('', !lastTrip.truck && trucks.length !== 1)}${trucks.map(t => opt(t, t === lastTrip.truck || trucks.length === 1)).join('')}</select></div>
+          </div>
+          <button type="button" class="btn btn-outline-success w-100 fw-bold mt-2" id="btnRockTrip" onclick="rockAddTrip()">+ บันทึกเที่ยว</button>
+          <div class="msub mt-2 mb-0">คนขับจะไปขึ้นใน "สรุปงานคนงาน" ด้วย</div>
+        </div>
+
+        ${r.status === 'ลงเสร็จ'
+          ? `<button type="button" class="btn btn-outline-secondary w-100 mb-2" id="btnRockSt" onclick="rockSetSt('กำลังลง')">ยังไม่เสร็จ (เปิดงานใหม่)</button>`
+          : `<button type="button" class="btn btn-success w-100 fw-bold mb-2" style="height:52px;" id="btnRockSt" onclick="rockSetSt('ลงเสร็จ')">จุดนี้ลงเสร็จแล้ว</button>`}
+        <button type="button" class="btn btn-outline-danger w-100 mb-3" id="btnRockDel" onclick="rockDelPoint()">ลบจุดนี้</button>`;
+    }
+
+    function rockGPS(timeout) {
+      return new Promise(ok => {
+        if (!navigator.geolocation) return ok(null);
+        navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
+          () => ok(null), { enableHighAccuracy: true, timeout: timeout || 15000, maximumAge: 0 });
+      });
+    }
+    function rockSaveXY(k, la, ln, btn) {
+      call('saveRockPoint', [{ point_id: rockCur, [k + '_lat']: la, [k + '_lng']: ln }], d => { init(d); renderRock(); }, btn);
+    }
+    function rockHere(k) {
+      const btn = $('btnXY_' + k); btn.disabled = true; btn.innerText = 'กำลังหาตำแหน่ง…';
+      rockGPS().then(g => {
+        btn.disabled = false;
+        if (!g) { renderRock(); return alert('หาตำแหน่งไม่ได้ เปิด "ตำแหน่ง" ให้ Safari/แอปนี้ก่อน แล้วลองใหม่ (หรือวางลิงก์ Google Maps แทน)'); }
+        if (g.acc > 60 && !confirm(`ตำแหน่งคลาดเคลื่อนได้ประมาณ ${Math.round(g.acc)} ม. ใช้เลยไหม? (กดยกเลิก แล้วรอสักครู่ค่อยกดใหม่จะแม่นขึ้น)`)) { renderRock(); return; }
+        rockSaveXY(k, g.lat, g.lng, btn);
+      });
+    }
+    function rockPaste(k) {
+      const t = prompt('วางลิงก์ Google Maps หรือพิกัด (เช่น 15.12345, 100.12345)');
+      if (!t || !t.trim()) return;
+      call('resolveMapLink', [t.trim()], g => rockSaveXY(k, g.lat, g.lng), null, '⏳ กำลังอ่านพิกัด...');
+    }
+    function rockClearXY(k) { if (confirm('ลบพิกัดนี้?')) rockSaveXY(k, '', ''); }
+
+    function pickRock(stage) { rockStage = stage; const f = $('rockFile'); f.value = ''; f.click(); }
+    function rockThumb(file) {
+      return new Promise((ok, bad) => {
+        const img = new Image(), url = URL.createObjectURL(file);
+        img.onload = () => {
+          const s = 240, sc = s / Math.min(img.width, img.height), c = document.createElement('canvas');
+          c.width = s; c.height = s;
+          c.getContext('2d').drawImage(img, (s - img.width * sc) / 2, (s - img.height * sc) / 2, img.width * sc, img.height * sc);
+          URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.7).split(',')[1]);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('เปิดรูปไม่ได้')); };
+        img.src = url;
+      });
+    }
+    async function onRockFile(inp) {
+      const files = [...(inp.files || [])]; if (!files.length || !rockCur) return;
+      const id = rockCur, stage = rockStage, t = $('syncToast');
+      t.style.display = 'block'; t.innerText = '⏳ กำลังหาตำแหน่ง...';
+      const g = await rockGPS(8000);
+      let d = null;
+      const known = new Set((gData.rockLogs || []).map(l => l.log_id));
+      try {
+        for (let i = 0; i < files.length; i++) {
+          t.innerText = `⏳ กำลังส่งรูป ${i + 1}/${files.length}...`;
+          const [big, th] = await Promise.all([shrinkImage(files[i]), rockThumb(files[i])]);
+          d = await callApi('addRockPhoto', [id, stage, big, { thumb: th, lat: g ? g.lat : '', lng: g ? g.lng : '' }]);
+          (d.rockLogs || []).filter(l => !known.has(l.log_id)).forEach(l => { known.add(l.log_id); if (l.point_id === id && l.type === stage) rockThumbCache[l.log_id] = th; });
+        }
+      } catch (e) { alert('❌ ส่งรูปไม่สำเร็จ: ' + e.message); }
+      t.style.display = 'none';
+      if (d) { init(d); renderRock(); }
+    }
+
+    // ปุ่มใต้รูปที่แตะเลือก: ใช้ทำรูปคู่ / ดูรูปเต็ม / ลบ
+    function rockSelHtml(stage) {
+      const l = (gData.rockLogs || []).find(x => x.log_id === rockSel && x.type === stage && x.point_id === rockCur); if (!l) return '';
+      return `<div class="d-flex gap-2 mb-2">
+        <button type="button" class="btn btn-sm btn-success flex-fill fw-bold" onclick="rockUsePair('${qa(l.log_id)}')">ใช้ทำรูปคู่</button>
+        <a class="btn btn-sm btn-outline-success flex-fill" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${encodeURIComponent(l.file_id)}/view">ดูรูปเต็ม</a>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="rockDelLog('${qa(l.log_id)}','รูปนี้')">ลบ</button></div>`;
+    }
+    function rockUsePair(logId) {
+      const l = (gData.rockLogs || []).find(x => x.log_id === logId), r = rockPt(rockCur); if (!l || !r) return;
+      call('setRockPair', [r.point_id, l.type === 'before' ? logId : r.pair_before, l.type === 'after' ? logId : r.pair_after], d => { rockSel = ''; init(d); renderRock(); });
+    }
+    function rockDelLog(logId, what) {
+      if (!confirm(`ลบ${what}?`)) return;
+      call('deleteRockLog', [logId], d => { delete rockThumbCache[logId]; init(d); renderRock(); });
+    }
+    function rockAddTrip() {
+      const n = num($('rk_trips').value); if (!(n > 0)) return alert('ใส่จำนวนเที่ยว');
+      if (!checkDate($('rk_tdate').value)) return;
+      call('addRockTrip', [rockCur, { date: isoToBE($('rk_tdate').value), trips: n, driver: $('rk_driver').value, truck: $('rk_truck').value }],
+        d => { init(d); renderRock(); }, $('btnRockTrip'));
+    }
+    function rockSetSt(st) {
+      const r = rockPt(rockCur);
+      if (st === 'ลงเสร็จ' && !rockLogsOf(rockCur).some(l => l.type === 'after') && !confirm('ยังไม่มีรูปหลังลง ปิดงานเลยไหม?')) return;
+      call('saveRockPoint', [{ point_id: r.point_id, status: st }], d => { init(d); renderRock(); }, $('btnRockSt'));
+    }
+    function rockDelPoint() {
+      const r = rockPt(rockCur);
+      if (!confirm(`ลบจุด "${r.name}" ของ ${r.member}? รูปและเที่ยวของจุดนี้จะถูกลบด้วย`)) return;
+      call('deleteRockPoint', [r.point_id], d => { hideModal('rockModal'); rockCur = ''; init(d); }, $('btnRockDel'));
+    }
+
+    // รูปคู่: ซ้าย = ก่อนลง ขวา = หลังลง หัวรูปมีชื่อสมาชิก จุด วันที่
+    function rockMakePair() {
+      const r = rockPt(rockCur), { b, a } = rockPairIds(r);
+      if (!b || !a) return;
+      call('rockPhotos', [[b.log_id, a.log_id]], m => {
+        if (!m[b.log_id] || !m[a.log_id]) return alert('ดึงรูปไม่สำเร็จ ลองใหม่อีกครั้ง');
+        const load = s => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = 'data:image/jpeg;base64,' + s; });
+        Promise.all([load(m[b.log_id]), load(m[a.log_id])]).then(([ib, ia]) => {
+          const W = 800, H = 1066, top = 132, foot = 0, c = document.createElement('canvas');
+          c.width = W * 2 + 12; c.height = top + H + foot;
+          const x = c.getContext('2d');
+          x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+          x.fillStyle = '#1F5E3B'; x.fillRect(0, 0, c.width, top);
+          const font = (w, px) => `${w} ${px}px "IBM Plex Sans Thai", "Sukhumvit Set", "Thonburi", sans-serif`;
+          x.fillStyle = '#fff'; x.font = font(700, 46); x.textBaseline = 'middle';
+          x.fillText(`หินคลุก · ${r.member}`, 28, 46);
+          x.font = font(500, 34);
+          x.fillText(`${r.name}${r.dist_m ? ' · ' + fmtDist(r.dist_m) : ''}${rockTrips(r.point_id) ? ' · ' + rockTrips(r.point_id) + ' เที่ยว' : ''}`, 28, 100);
+          const cover = (img, dx) => {
+            const sc = Math.max(W / img.width, H / img.height), sw = W / sc, sh = H / sc;
+            x.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, dx, top, W, H);
+          };
+          cover(ib, 0); cover(ia, W + 12);
+          const tag = (t, d, dx, col) => {
+            x.font = font(700, 44); const tw = x.measureText(t).width;
+            x.fillStyle = col; x.beginPath(); x.roundRect ? x.roundRect(dx + 20, top + 20, tw + 44, 72, 16) : x.rect(dx + 20, top + 20, tw + 44, 72); x.fill();
+            x.fillStyle = '#fff'; x.fillText(t, dx + 42, top + 57);
+            x.font = font(600, 30); const dw = x.measureText(d).width;
+            x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(dx + 20, top + H - 70, dw + 32, 50);
+            x.fillStyle = '#fff'; x.fillText(d, dx + 36, top + H - 45);
+          };
+          tag('ก่อนลง', b.timestamp, 0, '#C0392B'); tag('หลังลง', a.timestamp, W + 12, '#1F5E3B');
+          const url = c.toDataURL('image/jpeg', 0.86);
+          rockPairData = { url, name: `หินคลุก_${r.member}_${r.name}.jpg`.replace(/[\\/:*?"<>|\s]+/g, '_'), text: `หินคลุก ${r.member} · ${r.name}` };
+          $('rockPairImg').src = url; showM('rockPairModal');
+        }).catch(() => alert('เปิดรูปไม่ได้'));
+      }, $('btnRockPair'), '⏳ กำลังทำรูปคู่...');
+    }
+    function rockShare() {
+      if (!rockPairData) return;
+      fetch(rockPairData.url).then(r => r.blob()).then(bl => {
+        const f = new File([bl], rockPairData.name, { type: 'image/jpeg' });
+        if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], text: rockPairData.text }).catch(() => {});
+        const a = document.createElement('a'); a.href = rockPairData.url; a.download = rockPairData.name; a.click();
+      });
     }
 
     // หน้าฝนตก: จัดกลุ่มตามสถานที่ เหมือนหน้าเลือกแปลงในแท็บบันทึกงาน

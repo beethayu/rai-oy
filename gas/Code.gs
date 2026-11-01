@@ -431,6 +431,58 @@ function saveActivities(payload) {
   });
 }
 
+// ลงงานย้อนหลังจากไฟล์จดมือ: rows = [[วันที่, plot_id, กลุ่ม, รายละเอียด, รถ/ปั๊ม, จำนวน, คน, หมายเหตุ]]
+// ไม่ตัดสต็อก, หมายเหตุมีคำ HIST_MARK_ (ใช้ลบทั้งชุดได้), แถวซ้ำ (แปลง+วัน+กลุ่ม+รายละเอียด+หมายเหตุ) ข้าม
+// วันน้ำล่าสุด/งานค้าง คิดจากวันที่ล่าสุดเสมอ (syncPlots_) งานเก่าจึงไม่ทับของใหม่
+const HIST_MARK_ = 'ย้อนหลังจากไฟล์จดมือ';
+function importHistory(rows) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.ACT);
+    const cur = sh.getDataRange().getDisplayValues();
+    const key = r => [r[0], r[1], r[2], r[3], r[7]].join('|');
+    const seen = new Set(cur.slice(1).filter(r => (r[8] || '').indexOf(HIST_MARK_) !== -1)
+      .map(r => key([r[1], r[2], r[3], r[4], 0, 0, 0, r[8]])));
+    const base = Date.now(), out = [], plots = new Set();
+    (rows || []).forEach((r, i) => {
+      if (!r || !r[0] || !r[1] || !r[2]) return;
+      let rmk = String(r[7] || '').trim();
+      if (rmk.indexOf(HIST_MARK_) === -1) rmk = (rmk ? rmk + ' ' : '') + '(' + HIST_MARK_ + ')';
+      rmk = '[✅เสร็จสิ้น] ' + rmk;
+      const row = ['H' + base + '_' + i, r[0], r[1], r[2], r[3] || '-', r[4] || '-', r[5] || '-', r[6] || '-', rmk];
+      const k = key([row[1], row[2], row[3], row[4], 0, 0, 0, row[8]]);
+      if (seen.has(k)) return;
+      seen.add(k); out.push(row); plots.add(row[2]);
+    });
+    appendRows_(sh, out);
+    if (plots.size) syncPlots_(ss, [...plots]);
+    const res = readAll_(ss);
+    res.imported = out.length;
+    return res;
+  });
+}
+
+// ลบงานย้อนหลังทั้งชุด (เฉพาะแถวที่หมายเหตุมี HIST_MARK_) ถ้าใส่ plotIds = ลบเฉพาะแปลงนั้น
+function removeHistoryImport(plotIds) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.ACT);
+    const d = sh.getDataRange().getDisplayValues();
+    const only = plotIds && plotIds.length ? new Set(plotIds) : null;
+    const plots = new Set();
+    let n = 0;
+    for (let i = d.length - 1; i >= 1; i--) {
+      if ((d[i][8] || '').indexOf(HIST_MARK_) === -1) continue;
+      if (only && !only.has(d[i][2])) continue;
+      plots.add(d[i][2]); sh.deleteRow(i + 1); n++;
+    }
+    if (plots.size) syncPlots_(ss, [...plots]);
+    const res = readAll_(ss);
+    res.removed = n;
+    return res;
+  });
+}
+
 function deleteActivity(logId, plotId) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();

@@ -12,7 +12,8 @@
     • GET ?page=html → Index.html เป็น JSON (ไม่ต้องใช้รหัส)
     • GET ?fn=ชื่อ&k=รหัส หรือ POST {fn, args, k} (text/plain) → {ok, result} / {ok:false, error}
     • รหัสผิด → error ขึ้นต้นด้วย "AUTH"
-    • รหัสอยู่ใน Script Properties ชื่อ API_KEY (ยังไม่ตั้ง = เปิดให้ใช้ได้)
+    • รหัสอยู่ใน Script Properties ชื่อ API_KEY — ตั้งแล้ว 1 พ.ย. 2569 (ทดสอบแล้ว: ไม่มีรหัส = AUTH)
+      (ห้ามแตะ SETUP_VER = 7.0 ที่อยู่ในหน้าเดียวกัน)
     • บล็อกฟังก์ชันที่ลงท้าย _ และ doGet, doPost, doGetOld, setupV7
   - Index.html: หน้าจอ V7 เดิม (ใช้โดย index.html บน GitHub เท่านั้น)
 - GitHub Pages (beethayu/rai-oy) = หน้าบ้าน, Claude แก้และ push ได้เอง (ติดตั้ง GitHub App แล้ว)
@@ -43,8 +44,18 @@
 - แก้หลังบ้าน → Claude ให้ไฟล์เต็ม → วางใน Apps Script → Deploy > จัดการ > แก้ไข > เวอร์ชันใหม่
   (Claude อ่าน Code.gs ไม่ได้ ต้องแคปหน้าจอให้ดู)
 - Claude อ่านข้อมูล/หน้าจอผ่าน API ได้ ต้องอนุญาตโดเมน script.google.com และ
-  script.googleusercontent.com ในการตั้งค่า > ความสามารถ
+  script.googleusercontent.com ในการตั้งค่า > ความสามารถ (อนุญาตแล้ว)
+  และต้องบอกรหัส API ให้ Claude ในแชตนั้น
+
+== สถานะล่าสุด (1 พ.ย. 2569 19:00) ==
+✅ v8.html ใช้งานได้ ทดสอบกับข้อมูลจริงแล้ว
+✅ แถบเงาด้านบนบน iOS หายแล้ว (ตามกฎ iOS 26 ด้านบน)
+✅ หน้าโหลด + จำข้อมูลในเครื่อง + แถบ "เน็ตไม่ดี / ลองใหม่"
+✅ รหัสผ่าน API ใช้งานแล้ว ทั้ง index.html และ v8.html ถามรหัสครั้งเดียวต่อเครื่อง
+✅ Claude push GitHub ได้เอง (ติดตั้ง GitHub App ให้ repo rai-oy แล้ว)
+⏳ รอผู้ใช้ทดลองใช้ v8 ในไร่ แล้วเก็บสิ่งที่อยากปรับ
 
 == ยังไม่ได้ทำ ==
+- ส่งลิงก์ v8 พร้อมรหัส (?k=) ให้คนงาน
 - สลับลิงก์หลักให้เปิด v8 (เมื่อใช้ v8 แล้วโอเค)
 - ตั้ง GitHub → Apps Script อัตโนมัติ (clasp) ต้องใช้คอมพิวเตอร์

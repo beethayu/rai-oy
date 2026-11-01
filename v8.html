@@ -1194,7 +1194,8 @@
         <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="pickBill(true)">📷 เพิ่มหน้าบิล (บิลมีหลายใบ) · ตอนนี้ ${(b.pages || []).length || 1} หน้า</button>
         <div class="row g-2 mb-2">
           <div class="col-6"><div class="bill-lbl">วันที่ในบิล</div><input type="date" class="form-control form-control-sm" id="bl_date" value="${beToISO(b.date) || todayISO()}"></div>
-          <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm" id="bl_shop" value="${esc(b.shop)}"></div>
+          <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm" id="bl_shop" list="bl_shops" value="${esc(b.shop)}" placeholder="ชื่อร้าน">
+            <datalist id="bl_shops">${[...new Set((gData.expenses || []).map(e => e.shop).filter(x => x && x !== '-'))].map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
         </div>
         ${b.items.map(billRowHtml).join('')}
         <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="billAdd()">+ เพิ่มรายการ</button>
@@ -1267,8 +1268,20 @@
           ${String(b.photo || '').split(',').filter(Boolean).map((id, k, a) => `<a class="btn btn-outline-success flex-fill" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${encodeURIComponent(id.trim())}/view">ดูรูป${a.length > 1 ? 'หน้า ' + (k + 1) : 'บิล'}</a>`).join('')}
           <button type="button" class="btn btn-outline-danger flex-fill" id="btnBillDel" onclick="delBill('${qa(b.id)}')">ลบบิลนี้</button>
         </div>
-        <div class="small text-muted mt-2">ลบบิล = ลบค่าใช้จ่าย คืนยอดสต็อกที่รับเข้า และลบรูป</div>`;
+        <div class="small text-muted mt-2">ลบบิล = ลบค่าใช้จ่าย คืนยอดสต็อกที่รับเข้า และลบรูป</div>
+        ${billsGrouped().length > 1 ? `<div class="border-top mt-3 pt-3">
+          <div class="bill-lbl">บิลนี้เป็นหน้าเดียวกับบิลอื่นที่บันทึกแยกไว้? รวมเข้าด้วยกัน</div>
+          <select class="form-select form-select-sm mb-2" id="bv_merge">${billsGrouped().filter(x => x.id !== b.id).slice(0, 20).map(x => `<option value="${esc(x.id)}">${esc(x.date)} · ${esc(x.shop)} · ${baht(x.total)} บาท</option>`).join('')}</select>
+          <button type="button" class="btn btn-sm btn-outline-success w-100" id="btnBillMerge" onclick="mergeBill('${qa(b.id)}')">รวมบิลที่เลือกเข้ากับบิลนี้ (ใช้วันที่/ร้านของบิลนี้)</button>
+        </div>` : ''}`;
       showM('billView');
+    }
+
+    function mergeBill(id) {
+      const src = $('bv_merge').value; if (!src) return;
+      const o = billsGrouped().find(x => x.id === src);
+      if (!confirm(`รวมบิล ${o ? o.date + ' ' + baht(o.total) + ' บาท' : ''} เข้ากับบิลนี้?`)) return;
+      call('mergeBills', [id, src], d => { init(d); hideModal('billView'); setTimeout(() => openBillView(id), 300); }, $('btnBillMerge'));
     }
 
     function delBill(id) {

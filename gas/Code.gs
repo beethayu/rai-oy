@@ -963,6 +963,7 @@ function readBill(images, mime, opts) {
     (Number(i.pack_size) > 1 ? ` (1 ${i.pack_name} = ${i.pack_size} ${i.unit})` : ''));
   const assets = readSheet_(ss, SH.ASSET).filter(a => a.category !== 'Worker').map(a => `- ${a.name}`);
   const today = getTodayStr();
+  const shops = readSheet_(ss, 'Expenses').map(e => e.shop).filter((x, i, a) => x && x !== '-' && a.indexOf(x) === i);
 
   const t0 = Date.now();
   const ids = (opts.photo_ids || []).slice();
@@ -982,6 +983,8 @@ ${pages.length > 1 ? `- รูปทั้ง ${pages.length} รูปคือ
 - ผลรวม amount ทุกบรรทัดควรเท่ากับยอดรวมในบิล ถ้าไม่เท่า ให้อ่านตัวเลขแต่ละบรรทัดใหม่อย่างระวัง (เลข 0/6/9, 1/7, 4/9 เขียนมือคล้ายกัน)
 - คำย่อ/สะกดผิดที่พบบ่อย: แท้ = อะไหล่แท้, คลัทช์/ครัช, ลูกปืน, ซีล, โอริง, กรองโซล่า, กรองดักน้ำ, กรองไฮดรอลิค, กรองอากาศ, กรองน้ำมันเครื่อง, ไฟวีล = ฟลายวีล, ดุมล้อ, น้ำมันเกียร์, น้ำมันเบรก, ค่าแรง
 - ชื่อสินค้าให้เขียนเป็นคำที่ถูกต้องอ่านง่าย (ไม่ต้องลอกตัวสะกดผิดในบิล) เลขรุ่นอะไหล่ (เช่น 29685 KOYO) ใส่ต่อท้ายชื่อ
+- ชื่อร้าน (shop): มาจากหัวบิล/ตราประทับร้าน ช่อง "นาม/CUSTOMER" และ "ที่อยู่/ADDRESS" คือผู้ซื้อ (เจ้าของไร่) ไม่ใช่ร้าน ห้ามเอามาใส่ shop
+  ร้านที่เคยซื้อ: ${shops.join(', ') || '-'} ถ้าไม่มีชื่อร้านในบิลใส่ ""
 - วันที่: ปี 2 หลักคือ พ.ศ. 25xx (เช่น 68 = 2568) ปีที่เป็น ค.ศ. ให้ +543 ถ้าไม่มีวันที่ใส่ "${today}"
 หมวด category เลือกจาก: ${BILL_CATS_.join(', ')}
 - อะไหล่/ค่าเจียร/ค่ากลึง = อะไหล่, ค่าแรง/ค่าช่าง = ค่าแรง, ยาฆ่าหญ้า/ยาฉีด = ยา, ดีเซล/เบนซิน/น้ำมันเครื่อง/ไฮดรอลิก/น้ำมันเกียร์/น้ำมันเบรก = น้ำมัน
@@ -1116,4 +1119,35 @@ function billAiTest(model, think) {
     payload: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'ตอบคำเดียว: 2+2=?' }] }], generationConfig: cfg })
   });
   return { model: model, code: res.getResponseCode(), ms: Date.now() - t0, body: res.getContentText().slice(0, 400) };
+}
+
+// รวมบิล source เข้า target (บิลเดียวกันหลายหน้าที่บันทึกแยกไว้) → ใช้วันที่/ร้านของ target, รวมรูป,
+// ย้าย StockLogs (ref) และ AssetLogs ไปเป็นของ target ด้วย (ลบบิลรวมทีหลังได้ครบ)
+function mergeBills(targetId, sourceId) {
+  return withLock_(() => {
+    if (!targetId || !sourceId || targetId === sourceId) throw new Error('เลือกบิลไม่ถูก');
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('Expenses');
+    const d = sh.getDataRange().getDisplayValues();
+    const tRows = [], sRows = [];
+    for (let i = 1; i < d.length; i++) { if (d[i][2] === targetId) tRows.push(i); if (d[i][2] === sourceId) sRows.push(i); }
+    if (!tRows.length || !sRows.length) throw new Error('ไม่พบบิล');
+    const t0 = d[tRows[0]], date = t0[1], shop = t0[3];
+    const photos = [t0[12], d[sRows[0]][12]].join(',').split(',').map(x => x.trim()).filter((x, i, a) => x && a.indexOf(x) === i).join(',');
+    const txt = (r, c, v) => sh.getRange(r + 1, c + 1).setNumberFormat('@').setValue(v);
+    tRows.forEach(r => txt(r, 12, photos));
+    sRows.forEach((r, k) => {
+      txt(r, 0, targetId + '_' + (tRows.length + k)); txt(r, 1, date); txt(r, 2, targetId); txt(r, 3, shop); txt(r, 12, photos);
+    });
+    const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getDisplayValues();
+    for (let i = 1; i < sd.length; i++) if (sd[i][5] === sourceId) {
+      sl.getRange(i + 1, 2).setNumberFormat('@').setValue(date); sl.getRange(i + 1, 6).setNumberFormat('@').setValue(targetId);
+    }
+    const al = ss.getSheetByName(SH.ALOG), ad = al.getDataRange().getDisplayValues();
+    let n = ad.filter(r => String(r[0]).indexOf(targetId + '_A') === 0).length + 100;
+    for (let i = 1; i < ad.length; i++) if (String(ad[i][0]).indexOf(sourceId + '_A') === 0) {
+      al.getRange(i + 1, 1, 1, 2).setNumberFormat('@').setValues([[targetId + '_A' + (n++), date]]);
+    }
+    return readAll_(ss);
+  });
 }

@@ -1269,12 +1269,23 @@
           <button type="button" class="btn btn-outline-danger flex-fill" id="btnBillDel" onclick="delBill('${qa(b.id)}')">ลบบิลนี้</button>
         </div>
         <div class="small text-muted mt-2">ลบบิล = ลบค่าใช้จ่าย คืนยอดสต็อกที่รับเข้า และลบรูป</div>
+        <div class="border-top mt-3 pt-3">
+          <div class="bill-lbl">บิลซ่อมรถ: ทุกรายการเป็นของรถ/เครื่องคันนี้ (ใช้ไปกับการซ่อม ไม่เข้าสต็อก)</div>
+          <select class="form-select form-select-sm mb-2" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker').map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('')}</select>
+          <button type="button" class="btn btn-sm btn-outline-success w-100" id="btnBillAsset" onclick="billAsset('${qa(b.id)}')">ใช้กับทั้งบิล</button>
+        </div>
         ${billsGrouped().length > 1 ? `<div class="border-top mt-3 pt-3">
           <div class="bill-lbl">บิลนี้เป็นหน้าเดียวกับบิลอื่นที่บันทึกแยกไว้? รวมเข้าด้วยกัน</div>
           <select class="form-select form-select-sm mb-2" id="bv_merge">${billsGrouped().filter(x => x.id !== b.id).slice(0, 20).map(x => `<option value="${esc(x.id)}">${esc(x.date)} · ${esc(x.shop)} · ${baht(x.total)} บาท</option>`).join('')}</select>
           <button type="button" class="btn btn-sm btn-outline-success w-100" id="btnBillMerge" onclick="mergeBill('${qa(b.id)}')">รวมบิลที่เลือกเข้ากับบิลนี้ (ใช้วันที่/ร้านของบิลนี้)</button>
         </div>` : ''}`;
       showM('billView');
+    }
+
+    function billAsset(id) {
+      const a = $('bv_asset').value; if (!a) return alert('เลือกรถ/เครื่องก่อนครับ');
+      if (!confirm(`ทุกรายการในบิลนี้เป็นของ ${a} และไม่เข้าสต็อก (คืนยอดที่เคยรับเข้า)?`)) return;
+      call('setBillAsset', [id, a, true], d => { init(d); hideModal('billView'); setTimeout(() => openBillView(id), 300); }, $('btnBillAsset'));
     }
 
     function mergeBill(id) {

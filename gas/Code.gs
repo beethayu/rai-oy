@@ -1151,3 +1151,43 @@ function mergeBills(targetId, sourceId) {
     return readAll_(ss);
   });
 }
+
+// ทั้งบิลเป็นของรถคันเดียว (บิลซ่อม): ใส่ asset ทุกรายการ + ลงประวัติรถที่ยังขาด
+// noStock=true → เอารายการออกจากสต็อก (คืนยอดที่รับเข้า) เพราะใช้ไปกับการซ่อมแล้ว
+function setBillAsset(billId, asset, noStock) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('Expenses');
+    const d = sh.getDataRange().getDisplayValues();
+    const rows = [];
+    for (let i = 1; i < d.length; i++) if (d[i][2] === billId) rows.push(i);
+    if (!rows.length) throw new Error('ไม่พบบิล');
+    const cat = {};
+    readSheet_(ss, SH.ASSET).forEach(a => { cat[a.name] = a.category; });
+    if (asset && !cat[asset]) throw new Error('ไม่พบรถ/เครื่อง ' + asset);
+    const al = ss.getSheetByName(SH.ALOG), ad = al.getDataRange().getDisplayValues();
+    // ลบประวัติรถเดิมของบิลนี้ แล้วลงใหม่ให้ครบตรงกับรถที่เลือก
+    for (let i = ad.length - 1; i >= 1; i--) if (String(ad[i][0]).indexOf(billId + '_A') === 0) al.deleteRow(i + 1);
+    const logs = [];
+    rows.forEach((r, k) => {
+      const row = d[r];
+      sh.getRange(r + 1, 10).setNumberFormat('@').setValue(asset || '');
+      if (noStock) { sh.getRange(r + 1, 11).setValue(''); sh.getRange(r + 1, 12).setValue(''); }
+      if (asset) logs.push([billId + '_A' + k, row[1], asset, cat[asset], '🧾 ซ่อม/อะไหล่',
+        `${row[5]} ${Number(String(row[8]).replace(/,/g, '')) || 0} บาท (${row[3]})`, row[5], '-']);
+    });
+    if (logs.length) appendRows_(al, logs);
+    if (noStock) {
+      const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues();
+      const inv = ss.getSheetByName(SH.INV);
+      for (let i = sd.length - 1; i >= 1; i--) {
+        if (String(sd[i][5]) !== billId) continue;
+        const id = inv.getDataRange().getValues(), c = invCols_(id[0]);
+        const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === String(sd[i][2]));
+        if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)));
+        sl.deleteRow(i + 1);
+      }
+    }
+    return readAll_(ss);
+  });
+}

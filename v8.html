@@ -1335,11 +1335,14 @@
 
     function renderBill() {
       const b = billDraft, sum = b.items.reduce((t, it) => t + num(it.amount), 0);
+      $('billModal').querySelector('.modal-title').innerText = b.edit ? 'แก้รายการในบิล' : 'ตรวจบิลก่อนบันทึก';
+      $('btnBill').innerText = b.edit ? 'บันทึกที่แก้' : 'บันทึกบิล';
       $('bill-body').innerHTML = `
-        ${b.err ? `<div class="alert alert-warning py-2 small">AI อ่านบิลไม่สำเร็จ กรอกเองได้ (${esc(b.err).slice(0, 120)})</div>` : '<div class="small text-muted mb-2">AI อ่านให้แล้ว ลายมืออาจอ่านผิด ตรวจตัวเลขให้ตรงบิลก่อนกดบันทึก</div>'}
+        ${b.edit ? '<div class="small text-muted mb-2">แก้แล้วกดบันทึก ยอดสต็อก/ประวัติรถจะปรับตามให้เอง (รูปบิลไม่หาย)</div>'
+          : b.err ? `<div class="alert alert-warning py-2 small">AI อ่านบิลไม่สำเร็จ กรอกเองได้ (${esc(b.err).slice(0, 120)})</div>` : '<div class="small text-muted mb-2">AI อ่านให้แล้ว ลายมืออาจอ่านผิด ตรวจตัวเลขให้ตรงบิลก่อนกดบันทึก</div>'}
         <div id="bl_chk">${billChk(b, sum)}</div>
         ${b.oldNoStock ? `<div class="alert alert-secondary py-2 small mb-2">บิลนี้ผ่านมา ${b.oldNoStock} วันแล้ว ของน่าจะใช้ไปแล้ว จึง<b>ไม่รับเข้าสต็อก</b> ถ้ายังมีของเหลือ เลือก "รับเข้าสต็อก" เองได้ในแต่ละรายการ</div>` : ''}
-        <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="pickBill(true)">📷 เพิ่มหน้าบิล (บิลมีหลายใบ) · ตอนนี้ ${(b.pages || []).length || 1} หน้า</button>
+        ${b.edit ? '' : `<button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="pickBill(true)">📷 เพิ่มหน้าบิล (บิลมีหลายใบ) · ตอนนี้ ${(b.pages || []).length || 1} หน้า</button>`}
         <div class="row g-2 mb-2">
           <div class="col-6"><div class="bill-lbl">วันที่ในบิล</div><input type="date" class="form-control form-control-sm" id="bl_date" value="${beToISO(b.date) || todayISO()}"></div>
           <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm" id="bl_shop" list="bl_shops" value="${esc(b.shop)}" placeholder="ชื่อร้าน">
@@ -1383,13 +1386,19 @@
       items.filter(it => !isDisc(it)).forEach(it => { byCat[it.category] = (byCat[it.category] || 0) + num(it.amount); });
       const mainCat = Object.keys(byCat).sort((a, c) => byCat[c] - byCat[a])[0] || 'อื่นๆ';
       const clean = items.map(it => isDisc(it)
-        ? { item: /ส่วนลด/.test(it.item) ? it.item : ('ส่วนลด ' + (it.item || '')).trim(), category: mainCat, qty: 0, unit: '', amount: -Math.abs(num(it.amount)), stock_item: '', stock_qty: 0, asset: '' }
+        ? { item: /ส่วนลด/.test(it.item) ? it.item : ('ส่วนลด ' + (it.item || '')).trim(), category: mainCat, qty: num(it.qty) || 0, unit: it.unit || '', amount: -Math.abs(num(it.amount)), stock_item: '', stock_qty: 0, asset: '' }
         : { ...it, qty: num(it.qty), amount: num(it.amount), stock_qty: num(it.stock_qty) });
-      call('saveBill', [{ date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: clean }],
+      const body = { date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: clean };
+      if (b.edit) {
+        const id = b.edit;
+        return call('updateBill', [id, body], d => { billDraft = null; hideModal('billModal'); init(d); setTimeout(() => openBillView(id), 300); }, $('btnBill'));
+      }
+      call('saveBill', [body],
         d => { billDraft = null; stockPane = 'money'; hideModal('billModal'); init(d); alert('บันทึกบิลแล้ว'); }, $('btnBill'));
     }
 
     function cancelBill() {
+      if (billDraft && billDraft.edit) { const id = billDraft.edit; billDraft = null; hideModal('billModal'); setTimeout(() => openBillView(id), 300); return; }
       if (billDraft && !confirm('ยกเลิกบิลนี้? (รูปจะถูกลบ)')) return;
       const pid = billDraft && billDraft.photo_id;
       billDraft = null; hideModal('billModal');
@@ -1427,7 +1436,8 @@
       $('billview-body').innerHTML = `<div class="fw-bold fs-6">${esc(b.shop)}</div><div class="text-muted mb-2">${esc(b.date)}${b.note ? ' · ' + esc(b.note) : ''}</div>
         ${b.items.map(i => `<div class="exp-cat"><div>${esc(i.item)} <span class="small text-muted">${i.qty ? esc(i.qty) + ' ' + esc(i.unit) : ''} · ${esc(i.category)}${i.stock_item ? ' · รับเข้า ' + esc(i.stock_item) : ''}${i.asset ? ' · ' + esc(i.asset) : ''}</span></div><b class="text-nowrap">${baht(i.amount)}</b></div>`).join('')}
         <div class="d-flex justify-content-between mt-2"><b>รวม</b><span class="bill-total">${baht(b.total)} บาท</span></div>
-        <div class="d-flex gap-2 mt-3">
+        <button type="button" class="btn btn-success w-100 mt-3" onclick="editBill('${qa(b.id)}')">✏️ แก้รายการในบิล</button>
+        <div class="d-flex gap-2 mt-2">
           ${String(b.photo || '').split(',').filter(Boolean).map((id, k, a) => `<a class="btn btn-outline-success flex-fill" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${encodeURIComponent(id.trim())}/view">ดูรูป${a.length > 1 ? 'หน้า ' + (k + 1) : 'บิล'}</a>`).join('')}
           <button type="button" class="btn btn-outline-danger flex-fill" id="btnBillDel" onclick="delBill('${qa(b.id)}')">ลบบิลนี้</button>
         </div>
@@ -1447,6 +1457,17 @@
           <button type="button" class="btn btn-sm btn-outline-success w-100" id="btnBillMerge" onclick="mergeBill('${qa(b.id)}')">รวมบิลที่เลือกเข้ากับบิลนี้ (ใช้วันที่/ร้านของบิลนี้)</button>
         </div>` : ''}`;
       showM('billView');
+    }
+
+    // เปิดฟอร์มตรวจบิลเดิมกับบิลที่บันทึกแล้ว (แก้หมวด/จำนวน/ราคา/รายการ) → updateBill
+    function editBill(id) {
+      const b = billsGrouped().find(x => x.id === id); if (!b) return;
+      billDraft = { edit: id, pages: [], date: b.date, shop: b.shop === '-' ? '' : b.shop, photo_id: b.photo, note: b.note || '', total: 0, err: '', oldNoStock: 0,
+        items: b.items.slice().sort((x, y) => num(String(x.exp_id).split('_').pop()) - num(String(y.exp_id).split('_').pop())).map(e => ({
+          item: e.item === '-' ? '' : e.item, category: BILL_CATS.includes(e.category) ? e.category : 'อื่นๆ', qty: num(e.qty), unit: e.unit || '',
+          amount: num(e.amount), stock_item: e.stock_item || '', stock_qty: num(e.stock_qty), asset: e.asset || '' })) };
+      hideModal('billView');
+      setTimeout(() => { renderBill(); showM('billModal'); }, 300);
     }
 
     function billUnstock(id) {

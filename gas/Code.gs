@@ -1060,34 +1060,75 @@ function addStock_(ss, name, qty, date, ref, note) {
 function saveBill(b) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sh = getOrCreate_(ss, 'Expenses', EXP_HEADERS_);
-    const items = (b.items || []).filter(it => it && (it.item || Number(it.amount)));
-    if (!items.length) throw new Error('ไม่มีรายการในบิล');
-    const billId = 'B' + Date.now(), date = b.date || getTodayStr(), shop = String(b.shop || '').trim() || '-';
-    const now = getTodayStr();
-    const assetCat = {};
-    readSheet_(ss, SH.ASSET).forEach(a => { assetCat[a.name] = a.category; });
-    const rows = [], alog = [];
-    items.forEach((it, i) => {
-      const cat = BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ';
-      const sq = it.stock_item ? (Number(it.stock_qty) || 0) : 0;
-      rows.push([billId + '_' + i, date, billId, shop, cat, it.item || '-', Number(it.qty) || '', it.unit || '',
-        Number(it.amount) || 0, it.asset || '', it.stock_item || '', sq || '', b.photo_id || '', b.note || '', now]);
-      if (sq > 0) addStock_(ss, it.stock_item, sq, date, billId, '🧾 บิล ' + shop);
-      if (it.asset && assetCat[it.asset]) {
-        alog.push([billId + '_A' + i, date, it.asset, assetCat[it.asset], '🧾 ซื้ออะไหล่',
-          `${it.item} ${Number(it.amount) || 0} บาท (${shop})`, it.item || '-', '-']);
-      }
-    });
-    // ตัวเลข (จำนวน/เงิน/จำนวนสต็อก) เก็บเป็นตัวเลข ให้ SUM ในชีตได้ ที่เหลือเป็นข้อความกันวันที่เพี้ยน
-    const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, EXP_HEADERS_.length);
-    rg.setNumberFormat('@');
-    [6, 8, 11].forEach(c => sh.getRange(rg.getRow(), c + 1, rows.length, 1).setNumberFormat('#,##0.##'));
-    rg.setValues(rows.map(r => r.map((v, c) => [6, 8, 11].indexOf(c) !== -1 ? (v === '' ? '' : Number(v)) : String(v === null || v === undefined ? '' : v))));
-    if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
-    nameBillPhotos_(b.photo_id, date, shop);
+    writeBill_(ss, 'B' + Date.now(), b, getTodayStr(), '🧾 ซื้ออะไหล่');
     return readAll_(ss);
   });
+}
+
+// แก้บิลที่บันทึกแล้ว (หมวด/จำนวน/ราคา/รายการ/วันที่/ร้าน): ถอนผลของบิลเดิม (สต็อก, ประวัติรถ, แถวค่าใช้จ่าย)
+// แล้วลงใหม่ด้วย bill_id และรูปเดิม — รูปไม่ถูกลบ
+function updateBill(billId, b) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('Expenses');
+    if (!sh || !billId) throw new Error('ไม่พบบิล');
+    const d = sh.getDataRange().getDisplayValues();
+    const rows = [];
+    for (let i = 1; i < d.length; i++) if (d[i][2] === billId) rows.push(i);
+    if (!rows.length) throw new Error('ไม่พบบิล');
+    const items = (b.items || []).filter(it => it && (it.item || Number(it.amount)));
+    if (!items.length) throw new Error('ไม่มีรายการในบิล (ถ้าจะลบทั้งบิล ใช้ปุ่มลบบิล)');
+    const created = d[rows[0]][14] || getTodayStr(), photo = d[rows[0]][12];
+    const al = ss.getSheetByName(SH.ALOG), ad = al.getDataRange().getDisplayValues();
+    let label = '🧾 ซื้ออะไหล่';
+    for (let i = ad.length - 1; i >= 1; i--) if (String(ad[i][0]).indexOf(billId + '_A') === 0) { label = ad[i][4] || label; al.deleteRow(i + 1); }
+    unstockBill_(ss, billId);
+    for (let k = rows.length - 1; k >= 0; k--) sh.deleteRow(rows[k] + 1);
+    writeBill_(ss, billId, Object.assign({}, b, { photo_id: photo }), created, label);
+    return readAll_(ss);
+  });
+}
+
+// คืนยอดสต็อกที่บิลนี้รับเข้า + ลบ StockLogs ของบิล
+function unstockBill_(ss, billId) {
+  const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues();
+  const inv = ss.getSheetByName(SH.INV);
+  for (let i = sd.length - 1; i >= 1; i--) {
+    if (String(sd[i][5]) !== billId) continue;
+    const id = inv.getDataRange().getValues(), c = invCols_(id[0]);
+    const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === String(sd[i][2]));
+    if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)));
+    sl.deleteRow(i + 1);
+  }
+}
+
+// ลงแถวบิลในชีต Expenses + รับเข้าสต็อก + ประวัติรถ (ใช้ทั้งบิลใหม่และบิลที่แก้)
+function writeBill_(ss, billId, b, now, assetLabel) {
+  const sh = getOrCreate_(ss, 'Expenses', EXP_HEADERS_);
+  const items = (b.items || []).filter(it => it && (it.item || Number(it.amount)));
+  if (!items.length) throw new Error('ไม่มีรายการในบิล');
+  const date = b.date || getTodayStr(), shop = String(b.shop || '').trim() || '-';
+  const assetCat = {};
+  readSheet_(ss, SH.ASSET).forEach(a => { assetCat[a.name] = a.category; });
+  const rows = [], alog = [];
+  items.forEach((it, i) => {
+    const cat = BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ';
+    const sq = it.stock_item ? (Number(it.stock_qty) || 0) : 0;
+    rows.push([billId + '_' + i, date, billId, shop, cat, it.item || '-', Number(it.qty) || '', it.unit || '',
+      Number(it.amount) || 0, it.asset || '', it.stock_item || '', sq || '', b.photo_id || '', b.note || '', now]);
+    if (sq > 0) addStock_(ss, it.stock_item, sq, date, billId, '🧾 บิล ' + shop);
+    if (it.asset && assetCat[it.asset]) {
+      alog.push([billId + '_A' + i, date, it.asset, assetCat[it.asset], assetLabel,
+        `${it.item} ${Number(it.amount) || 0} บาท (${shop})`, it.item || '-', '-']);
+    }
+  });
+  // ตัวเลข (จำนวน/เงิน/จำนวนสต็อก) เก็บเป็นตัวเลข ให้ SUM ในชีตได้ ที่เหลือเป็นข้อความกันวันที่เพี้ยน
+  const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, EXP_HEADERS_.length);
+  rg.setNumberFormat('@');
+  [6, 8, 11].forEach(c => sh.getRange(rg.getRow(), c + 1, rows.length, 1).setNumberFormat('#,##0.##'));
+  rg.setValues(rows.map(r => r.map((v, c) => [6, 8, 11].indexOf(c) !== -1 ? (v === '' ? '' : Number(v)) : String(v === null || v === undefined ? '' : v))));
+  if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
+  nameBillPhotos_(b.photo_id, date, shop);
 }
 
 // ลบบิลทั้งใบ: ลบแถวค่าใช้จ่าย, คืนสต็อกที่รับเข้า, ลบประวัติรถ, ทิ้งรูป

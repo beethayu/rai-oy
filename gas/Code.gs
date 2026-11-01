@@ -257,6 +257,7 @@ function readAll_(ss) {
     assetLogs: sortDesc_(readSheet_(ss, SH.ALOG)),
     inventory: readSheet_(ss, SH.INV, true),
     stockLogs: sortDesc_(readSheet_(ss, SH.SLOG, true)),
+    watches: readSheet_(ss, 'Watch').filter(w => w.status === 'open'),
     expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
     settings: pub
   };
@@ -428,6 +429,7 @@ function saveActivities(payload) {
     appendRows_(sh, rows);
     applyUsage_(ss, payload.usage, rows[0][0], pid0, date, g);
     syncPlots_(ss, payload.plotIds);
+    try { closeWatchesFor_(ss, payload.plotIds, g, payload.activity_detail || '', rows[0][0]); } catch (e) {}
     return readAll_(ss);
   });
 }
@@ -1249,4 +1251,56 @@ function billUnstock(billId) {
     }
     return readAll_(ss);
   });
+}
+
+
+// ======================= ฝากดู =======================
+// แปลงที่ต้องไปดู/ทำ (อ้อยไม่สวย ต้องขึ้นน้ำ, น้ำท่วมขังต้องสูบออก ฯลฯ) ขึ้นหน้า "วันนี้" จนกว่าจะบันทึกงานนั้นหรือกดเสร็จ
+const WATCH_HEADERS_ = ['watch_id', 'created', 'plot_id', 'reason', 'note', 'status', 'done_at', 'done_ref'];
+// เหตุผล → งานที่ปิดฝากดูได้ (กลุ่มงาน, คำในรายละเอียดที่ต้องมี)
+const WATCH_CLOSE_ = {
+  'ขึ้นน้ำ': [['ขึ้นน้ำ', ''], ['ฝนตก', '']],
+  'หว่านปุ๋ย': [['ใส่ปุ๋ย', ''], ['รถไถเตรียมดิน/บำรุง', 'ฝังปุ๋ย']],
+  'ฉีดยา': [['ฉีดยา', '']],
+  'น้ำขัง สูบออก': [['ขึ้นน้ำ', 'สูบน้ำขัง'], ['ใส่ปุ๋ย', 'ระบายน้ำ']]
+};
+
+function addWatch(plotIds, reason, note) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = getOrCreate_(ss, 'Watch', WATCH_HEADERS_);
+    const ids = (plotIds || []).filter(Boolean);
+    if (!ids.length) throw new Error('ยังไม่ได้เลือกแปลง');
+    const r = String(reason || '').trim() || 'ไปดูอาการ';
+    const base = Date.now(), today = getTodayStr();
+    appendRows_(sh, ids.map((pid, i) => ['W' + base + '_' + i, today, pid, r, String(note || '').trim(), 'open', '', '']));
+    return readAll_(ss);
+  });
+}
+
+function closeWatch(watchId, ref) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('Watch');
+    if (!sh) throw new Error('ไม่พบรายการฝากดู');
+    const d = sh.getDataRange().getDisplayValues();
+    for (let i = 1; i < d.length; i++) if (d[i][0] === watchId) {
+      sh.getRange(i + 1, 6, 1, 3).setNumberFormat('@').setValues([['done', getTodayStr(), ref || 'กดเสร็จเอง']]);
+    }
+    return readAll_(ss);
+  });
+}
+
+function closeWatchesFor_(ss, plotIds, group, detail, logId) {
+  const sh = ss.getSheetByName('Watch');
+  if (!sh) return;
+  const d = sh.getDataRange().getDisplayValues(), want = new Set(plotIds || []);
+  for (let i = 1; i < d.length; i++) {
+    if (d[i][5] !== 'open' || !want.has(d[i][2])) continue;
+    const rules = WATCH_CLOSE_[d[i][3]];
+    if (!rules) continue; // ไปดูอาการ / อื่น ๆ → ปิดเองเท่านั้น
+    if (rules.some(([g, kw]) => g === group && (!kw || String(detail).indexOf(kw) !== -1))) {
+      sh.getRange(i + 1, 6, 1, 3).setNumberFormat('@').setValues([['done', getTodayStr(), logId]]);
+    }
+  }
 }

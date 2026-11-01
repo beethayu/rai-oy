@@ -202,6 +202,27 @@
     .prow-new { color: var(--green-d); font-weight: 600; }
     .prow-rat { color: #6B4A1F; font-weight: 600; }
     .prow-doing { box-shadow: inset 4px 0 0 #2F5BB7; }
+    .sec-h { display: flex; justify-content: space-between; align-items: center; margin: 18px 2px 8px; }
+    .sec-h:first-child { margin-top: 4px; }
+    .sec-h b { font-size: 17px; }
+    .sec-h .n { font-size: 13px; color: #6B736E; font-weight: 500; margin-left: 6px; }
+    .tcard { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+    .tcard.watch { border-left: 5px solid #6A3FA0; }
+    .tcard.doing { border-left: 5px solid #2F5BB7; }
+    .tcard.urg { border-left: 5px solid #C0392B; }
+    .tcard-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .tcard-n { font-weight: 700; font-size: 17px; line-height: 1.3; }
+    .tcard-s { font-size: 14px; color: #4A524D; margin-top: 3px; line-height: 1.45; }
+    .tcard-m { font-size: 13px; color: #6B736E; margin-top: 2px; }
+    .pill-watch { background: #EEE6F8; color: #5A2E8F; }
+    .wbtn { border: 1px solid #6A3FA0; color: #5A2E8F; background: #fff; border-radius: 999px; font-weight: 600; font-size: 14px; padding: 4px 12px; }
+    .wr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .wr-chip { border: 1px solid #CFC2E3; background: #fff; color: #5A2E8F; border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 15px; }
+    .wr-chip.on { background: #6A3FA0; color: #fff; border-color: #6A3FA0; }
+    .wp-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+    .wp-row + .wp-row { border-top: 1px solid #EEF1EF; }
+    .wp-row input { width: 22px; height: 22px; flex-shrink: 0; }
+    .prow-watch { font-size: 12px; font-weight: 700; background: #EEE6F8; color: #5A2E8F; border-radius: 999px; padding: 0 7px; vertical-align: 2px; }
     .pq-line { font-size: 14px; line-height: 1.45; margin-bottom: 4px; }
     .pq-k { display: inline-block; min-width: 52px; font-size: 12px; font-weight: 700; color: #6B736E; }
     .pq-btns { display: flex; gap: 8px; margin-top: 8px; }
@@ -775,6 +796,26 @@
     </div>
   </div>
 
+  <div class="modal fade" id="watchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background:#6A3FA0;">
+          <h6 class="modal-title fw-bold">ฝากดูแปลง</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <div class="bill-lbl">ต้องทำอะไร</div>
+          <div class="wr-chips" id="wt_reasons"></div>
+          <div class="bill-lbl mt-2">รายละเอียด (ไม่ใส่ก็ได้)</div>
+          <input class="form-control mb-3" id="wt_note" placeholder="เช่น อ้อยใบเหลือง หัวแปลงน้ำขัง">
+          <div class="bill-lbl">แปลง (เลือกได้หลายแปลง)</div>
+          <div id="wt_plots"></div>
+        </div>
+        <div class="modal-footer py-2"><button type="button" class="btn fw-bold w-100 text-white" style="background:#6A3FA0;" id="btnWatch" onclick="submitWatch()">ฝากดู</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="planModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1029,7 +1070,22 @@
     }
     function setDateMax() { document.querySelectorAll('input[type=date]').forEach(i => { if (i.id !== 'ae_bat_date') i.max = todayISO(); }); }
 
-    function init(d, fromCache) { gData = d; if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); }
+    // จำหน้าที่เปิดล่าสุด (iOS ชอบปิดแอปเบื้องหลัง เปิดใหม่จะได้กลับหน้าเดิม ภายใน 6 ชม.)
+    let uiRestored = false;
+    function uiSave() { try { lsSet('raioy_ui', JSON.stringify({ t: Date.now(), tab: curTab, fil: curFil, plot: plotOpen, sp: stockPane, fp: fleetPane })); } catch (e) {} }
+    function uiRestore() {
+      try {
+        const u = JSON.parse(lsGet('raioy_ui') || 'null');
+        if (!u || Date.now() - u.t > 6 * 3600 * 1000) return;
+        if (u.tab) curTab = u.tab; if (u.fil) curFil = u.fil; plotOpen = u.plot || ''; stockPane = u.sp || 'stock'; fleetPane = u.fp || 'mach';
+        document.querySelectorAll('.filter-chip').forEach(e => e.classList.toggle('active', (e.getAttribute('onclick') || '').indexOf(`'${curFil}'`) !== -1));
+      } catch (e) {}
+    }
+    function init(d, fromCache) {
+      gData = d; if (!gData.watches) gData.watches = [];
+      if (!uiRestored) { uiRestored = true; uiRestore(); }
+      if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
+    }
 
     function calcDays(dStr) {
       if (!dStr || dStr === '-' || dStr === 'nan') return null;
@@ -1468,10 +1524,97 @@
         </article>`;
     }
 
+    // ===== ฝากดู =====
+    const WATCH_REASONS = ['ขึ้นน้ำ', 'หว่านปุ๋ย', 'ฉีดยา', 'น้ำขัง สูบออก', 'ไปดูอาการ'];
+    const watchesOf = pid => (gData.watches || []).filter(w => w.plot_id === pid);
+    let wtReason = 'ขึ้นน้ำ', wtSel = new Set();
+    function openWatch(pid) {
+      wtReason = 'ขึ้นน้ำ'; wtSel = new Set(pid ? [pid] : []);
+      $('wt_note').value = '';
+      renderWatchForm(); showM('watchModal');
+    }
+    function renderWatchForm() {
+      $('wt_reasons').innerHTML = WATCH_REASONS.map(r => `<button type="button" class="wr-chip ${r === wtReason ? 'on' : ''}" onclick="wtReason='${r}';renderWatchForm()">${r}</button>`).join('');
+      const groups = [], idx = {};
+      gData.plots.forEach(p => { const l = plotLoc(p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, ps: [] }); } groups[idx[l]].ps.push(p); });
+      $('wt_plots').innerHTML = groups.map(g => `<div class="srow-h">${esc(g.l)}</div><div class="srow-box">${g.ps.map(p => `
+        <label class="wp-row"><input type="checkbox" ${wtSel.has(p.plot_id) ? 'checked' : ''} onchange="this.checked?wtSel.add('${p.plot_id}'):wtSel.delete('${p.plot_id}')">
+          <span><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span></label>`).join('')}</div>`).join('');
+    }
+    function submitWatch() {
+      if (!wtSel.size) return alert('เลือกแปลงก่อนครับ');
+      call('addWatch', [[...wtSel], wtReason, $('wt_note').value.trim()], d => { hideModal('watchModal'); init(d); }, $('btnWatch'));
+    }
+    function doneWatch(id) {
+      if (!confirm('ดูแล้ว / ทำแล้ว เอาออกจากฝากดู?')) return;
+      call('closeWatch', [id], d => init(d));
+    }
+    // บันทึกงานจากฝากดู: เปิดฟอร์มพร้อมเลือกหมวดให้
+    function actFromWatch(pid, reason) {
+      const p = gData.plots.find(x => x.plot_id === pid); if (!p) return;
+      openAct(pid, p.plot_name, 'new');
+      if (reason === 'ขึ้นน้ำ') selGrp('ขึ้นน้ำ');
+      else if (reason === 'หว่านปุ๋ย') selGrp('ใส่ปุ๋ย');
+      else if (reason === 'ฉีดยา') selGrp('ฉีดยา');
+      else if (reason === 'น้ำขัง สูบออก') { selGrp('ขึ้นน้ำ'); $('water_det').value = 'สูบน้ำขังออก'; }
+    }
+
+    // ===== แท็บวันนี้: ฝากดู → กำลังทำ → ถึงคิว (การ์ดสั้น) =====
+    function todayHtml(rows, logsBy) {
+      const byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
+      const ws = (gData.watches || []).filter(w => byId[w.plot_id]);
+      const doing = rows.filter(r => r.st.isOngoing), urg = rows.filter(r => !r.st.isOngoing && r.st.isUrg);
+      const pn = p => qa(p.plot_name);
+      let h = `<div class="sec-h"><span><b>ฝากดู</b><span class="n">${ws.length || ''}</span></span><button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button></div>`;
+      h += ws.length ? ws.map(w => {
+        const p = byId[w.plot_id].p, ago = calcDays(w.created);
+        return `<div class="tcard watch">
+          <div class="tcard-top"><div><div class="tcard-n">${esc(p.plot_name)}</div>
+            <div class="tcard-s">${esc(w.note || '')}</div>
+            <div class="tcard-m">${esc(p.plot_id)} · ฝากไว้${ago ? ' ' + ago + ' วันก่อน' : 'วันนี้'}</div></div>
+            <span class="pill pill-watch">${esc(w.reason)}</span></div>
+          <div class="pq-btns">
+            ${w.reason !== 'ไปดูอาการ' ? `<button type="button" class="bigbtn bigbtn-main" onclick="actFromWatch('${p.plot_id}','${qa(w.reason)}')">+ บันทึก${esc(w.reason === 'น้ำขัง สูบออก' ? 'สูบน้ำ' : w.reason)}</button>` : `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button>`}
+            <button type="button" class="bigbtn bigbtn-out" onclick="doneWatch('${qa(w.watch_id)}')">ดูแล้ว</button>
+          </div></div>`;
+      }).join('') : `<div class="tcard-m mb-2" style="padding:0 2px;">ยังไม่มี · กด "+ ฝากดู" เมื่อเห็นแปลงที่ต้องกลับไปดู เช่น อ้อยไม่สวย น้ำท่วมขัง</div>`;
+
+      h += `<div class="sec-h"><span><b>กำลังทำ</b><span class="n">${doing.length || ''}</span></span></div>`;
+      h += doing.length ? doing.map(({ p }) => {
+        const og = (logsBy[p.plot_id] || []).find(a => (a.remark || '').includes('[⏳กำลังทำ]'));
+        const what = og ? `${og.activity_group}${og.activity_detail && og.activity_detail !== '-' ? ' · ' + og.activity_detail : ''}` : plain(String(p.status_note || '').replace('[กำลังทำ]', ''));
+        const since = og ? calcDays(og.timestamp) : null;
+        const when = og ? (beToISO(og.timestamp) > todayISO() ? `ลงวันที่ล่วงหน้า ${og.timestamp}` : `เริ่ม ${og.timestamp}${since ? ' · ' + since + ' วันแล้ว' : ' · วันนี้'}`) : '';
+        return `<div class="tcard doing">
+          <div class="tcard-top"><div><div class="tcard-n">${esc(p.plot_name)}</div>
+            <div class="tcard-s">${esc(what)}${og && og.operator && og.operator !== '-' ? ' · ' + esc(og.operator) : ''}</div>
+            <div class="tcard-m">${esc(p.plot_id)}${when ? ' · ' + esc(when) : ''}</div></div></div>
+          <div class="pq-btns">
+            <button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','finish')">${ICON_CHECK}งานเสร็จ</button>
+            <button type="button" class="bigbtn bigbtn-out" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึก</button>
+            <button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>
+          </div></div>`;
+      }).join('') : '<div class="tcard-m mb-2" style="padding:0 2px;">ไม่มีงานค้าง</div>';
+
+      h += `<div class="sec-h"><span><b>ถึงคิว</b><span class="n">${urg.length || ''}</span></span></div>`;
+      h += urg.length ? urg.map(({ p, st }) => {
+        const wc = waterChip(p, st, calcDays(p.plant_date), calcDays(p.last_water_date));
+        return `<div class="tcard urg">
+          <div class="tcard-top"><div><div class="tcard-n">${esc(p.plot_name)}</div>
+            <div class="tcard-s">${esc(plain(st.next))}</div>
+            <div class="tcard-m">${esc(p.plot_id)}${wc ? ' · ' + esc(wc.t) : ''}</div></div></div>
+          <div class="pq-btns">
+            <button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button>
+            <button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>
+          </div></div>`;
+      }).join('') : '<div class="tcard-m mb-2" style="padding:0 2px;">ไม่มีแปลงถึงคิว (พ.ย.–ธ.ค. ช่วงใกล้ตัด งดเตือนน้ำ)</div>';
+      return h;
+    }
+
     // แท็บแปลง: บรรทัดเดียวต่อแปลง จัดกลุ่มตามสถานที่ (ผู้ใช้: ห้ามเรียงตามอายุ) แตะแล้วกางการ์ดเต็ม
     let plotOpen = '';
     const plotLoc = n => String(n || '').replace(/\s*\(.*\)\s*$/, '').replace(/\s*\d+$/, '').trim() || n;
-    function tglPlot(id) { plotOpen = plotOpen === id ? '' : id; render(); }
+    function tglPlot(id) { plotOpen = plotOpen === id ? '' : id; render(); uiSave(); }
     function plotRow(p, st, logs) {
       const kd = kindOf(st), open = plotOpen === p.plot_id;
       const pDays = calcDays(p.plant_date), wDays = calcDays(p.last_water_date);
@@ -1481,7 +1624,7 @@
       const wc = waterChip(p, st, pDays, wDays);
       const wTxt = !wc ? '' : wc.c === 'red' ? `<span style="color:#A3271B;font-weight:600">ขาดน้ำ ${wDays} วัน</span>`
         : wc.c === 'gray' ? (wDays !== null ? `น้ำ ${wDays} วันก่อน` : '') : `น้ำ ${wDays} วันก่อน`;
-      const sand = plotTags(p).includes(TAG_SAND) ? '<span class="prow-tag">ทราย</span>' : '';
+      const sand = (plotTags(p).includes(TAG_SAND) ? '<span class="prow-tag">ทราย</span>' : '') + (watchesOf(p.plot_id).length ? ' <span class="prow-watch">ฝากดู</span>' : '');
       const right = kd.k === 'normal' ? '' : `<span class="pill pill-${kd.k}">${kd.lbl}</span>`;
       return `<div class="srow ${kd.k === 'doing' ? 'prow-doing' : kd.k === 'urgent' ? 'srow-bad' : ''} ${open ? 'open' : ''}">
         <button type="button" class="srow-main" onclick="tglPlot('${p.plot_id}')">
@@ -1500,12 +1643,14 @@
       const pn = qa(p.plot_name);
       return `<div class="srow-act">
         ${note ? `<div class="pq-line"><span class="pq-k">${st.isOngoing ? 'กำลังทำ' : 'ล่าสุด'}</span>${esc(note)}</div>` : ''}
+        ${watchesOf(p.plot_id).map(w => `<div class="pq-line"><span class="pq-k" style="color:#5A2E8F">ฝากดู</span>${esc(w.reason)}${w.note ? ' · ' + esc(w.note) : ''}</div>`).join('')}
         <div class="pq-line"><span class="pq-k">ต่อไป</span>${esc(next)}</div>
         <div class="pq-btns">
           ${st.isOngoing ? `<button type="button" class="bigbtn bigbtn-main flex-fill" onclick="openAct('${p.plot_id}','${pn}','finish')">${ICON_CHECK}งานเสร็จ</button>` : ''}
           <button type="button" class="bigbtn ${st.isOngoing ? 'bigbtn-out' : 'bigbtn-main'} flex-fill" onclick="openAct('${p.plot_id}','${pn}','new')">+ บันทึกงาน</button>
           <button type="button" class="bigbtn bigbtn-out flex-fill" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>
-        </div></div>`;
+        </div>
+        <button type="button" class="wbtn mt-2" onclick="openWatch('${p.plot_id}')">+ ฝากดูแปลงนี้</button></div>`;
     }
 
     function plotListHtml(list, logsBy) {
@@ -1540,12 +1685,8 @@
       });
       if (curTab === 'urgent') list.sort((a, b) => (a.st.isOngoing ? 1 : 0) - (b.st.isOngoing ? 1 : 0));
 
-      let html = curTab === 'all' ? plotListHtml(list, logsBy) : list.map(({ p, st }) => plotCard(p, st, logsBy[p.plot_id] || [])).join('');
-      if (!html) {
-        html = curTab === 'urgent'
-          ? '<div class="empty"><b>วันนี้ไม่มีงานค้างหรือคิวด่วน</b>กด "บันทึกงาน" ด้านล่างเมื่อเริ่มงานใหม่</div>'
-          : '<div class="empty"><b>ไม่มีแปลงในหมวดนี้</b>ลองเลือกหมวดอื่น</div>';
-      }
+      let html = curTab === 'all' ? plotListHtml(list, logsBy) : todayHtml(rows, logsBy);
+      if (!html) html = '<div class="empty"><b>ไม่มีแปลงในหมวดนี้</b>ลองเลือกหมวดอื่น</div>';
 
       rows.forEach(({ p }) => {
         chkHtml += `<div class="form-check mb-2"><input class="form-check-input p-chk" type="checkbox" value="${p.plot_id}" id="c_${p.plot_id}"><label class="form-check-label" for="c_${p.plot_id}"><b>${p.plot_id} - ${esc(p.plot_name)}</b> (${p.area_rai} ไร่)</label></div>`;
@@ -1553,7 +1694,7 @@
 
       $('plot-list').innerHTML = html;
       $('chk-list').innerHTML = chkHtml;
-      const total = nUrg + nDoing;
+      const total = nUrg + nDoing + (gData.watches || []).length;
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
       $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
       $('sub-info').innerText = `${totRai} ไร่`;
@@ -1588,6 +1729,7 @@
       if (plotTab) render();
       if (t === 'all') $('sec-sub').innerHTML = '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>';
       if (!keep) $('app').scrollTo(0, 0);
+      if (uiRestored) uiSave();
     }
 
     function goDoing() {
@@ -1600,15 +1742,22 @@
     function renderPick() {
       const q = $('pickQ').value.trim().toLowerCase();
       const rows = gData.plots.map(p => ({ p, st: analyze(p) }))
-        .filter(({ p }) => !q || (p.plot_id + ' ' + p.plot_name).toLowerCase().includes(q))
-        .sort((a, b) => (b.st.isOngoing ? 1 : 0) - (a.st.isOngoing ? 1 : 0));
-      $('pickList').innerHTML = rows.map(({ p, st }) => {
-        const kd = kindOf(st);
-        return `<button type="button" class="pick-item" onclick="pickPlot('${p.plot_id}')">
-            <span><b>${esc(p.plot_id)} ${esc(p.plot_name)}</b><small>${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</small></span>
-            ${kd.k !== 'normal' ? `<span class="pill pill-${kd.k}">${kd.lbl}</span>` : ''}
-          </button>`;
-      }).join('') || '<div class="text-muted p-2">ไม่พบแปลงที่ค้นหา</div>';
+        .filter(({ p }) => !q || (p.plot_id + ' ' + p.plot_name).toLowerCase().includes(q));
+      const item = ({ p, st }) => {
+        const kd = kindOf(st), w = watchesOf(p.plot_id).length;
+        return `<button type="button" class="srow-main" style="border-top:1px solid #EEF1EF" onclick="pickPlot('${p.plot_id}')">
+          <span class="srow-l"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span>
+          <span class="srow-s">${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</span></span>
+          ${kd.k === 'doing' ? '<span class="pill pill-doing">กำลังทำ</span>' : w ? '<span class="pill pill-watch">ฝากดู</span>' : kd.k === 'urgent' ? '<span class="pill pill-urgent">ถึงคิว</span>' : ''}
+        </button>`;
+      };
+      let h = '';
+      const hot = q ? [] : rows.filter(r => r.st.isOngoing || r.st.isUrg || watchesOf(r.p.plot_id).length);
+      if (hot.length) h += `<div class="srow-h">ด่วน / กำลังทำ</div><div class="srow-box">${hot.map(item).join('')}</div>`;
+      const groups = [], idx = {};
+      rows.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
+      h += groups.map(g => `<div class="srow-h">${esc(g.l)}</div><div class="srow-box">${g.rows.map(item).join('')}</div>`).join('');
+      $('pickList').innerHTML = h || '<div class="text-muted p-2">ไม่พบแปลงที่ค้นหา</div>';
     }
     function pickPlot(pid) {
       const p = gData.plots.find(x => x.plot_id === pid);
@@ -1869,7 +2018,7 @@
 
     // แท็บรถ/คน: แยก 2 หน้า + รายการบรรทัดเดียว แตะแล้วค่อยมีปุ่ม (แบบเดียวกับหน้าสต็อก)
     let fleetPane = 'mach', fleetOpen = '', fleetLogOpen = false;
-    function setFleetPane(p) { fleetPane = p; fleetOpen = ''; renderFleet(); }
+    function setFleetPane(p) { fleetPane = p; fleetOpen = ''; renderFleet(); uiSave(); }
     function tglFleet(n) { fleetOpen = fleetOpen === n ? '' : n; renderFleet(); }
     function tglFleetLog() { fleetLogOpen = !fleetLogOpen; renderFleet(); }
     const okSt = a => a.status === 'พร้อมใช้' || a.status === 'ปกติ';
@@ -2151,7 +2300,7 @@
     // ================= 📦 สต็อก =================
     // แท็บสต็อก: แยก 2 หน้า (สต็อก / ค่าใช้จ่าย) + รายการบรรทัดเดียว แตะแล้วค่อยมีปุ่ม
     let stockPane = 'stock', stockOpenId = '', stockLogOpen = false;
-    function setStockPane(p) { stockPane = p; renderStock(); }
+    function setStockPane(p) { stockPane = p; renderStock(); uiSave(); }
     function tglStockRow(id) { stockOpenId = stockOpenId === id ? '' : id; renderStock(); }
     function tglStockLog() { stockLogOpen = !stockLogOpen; renderStock(); }
 

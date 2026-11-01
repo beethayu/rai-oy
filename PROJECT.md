@@ -1,4 +1,4 @@
-สรุปโปรเจกต์ "ไร่อ้อย 281 ไร่ V8" (อัปเดต 1 พ.ย. 2569 22:40)
+สรุปโปรเจกต์ "ไร่อ้อย 281 ไร่ V8" (อัปเดต 1 พ.ย. 2569 23:15)
 
 == โครงสร้าง ==
 - Google Sheets = เก็บข้อมูล (25 แปลง, งาน, รถ/คน/ปั๊ม, สต็อก, ตั้งค่า)
@@ -27,6 +27,20 @@
     • จำข้อมูลล่าสุดใน localStorage (raioy_v8_data) เปิดแล้วเห็นทันที, เน็ตไม่ดีมีแถบ "ลองใหม่"
   - รหัส API จำใน localStorage (raioy_key) ใช้ร่วมกันทั้ง index.html และ v8.html
     ลิงก์ ...?k=รหัส จำรหัสให้อัตโนมัติ (ใช้ส่งให้คนงานทาง LINE)
+
+== บิล / ค่าใช้จ่าย (1 พ.ย. 69) ==
+- แท็บสต็อก → 🧾 ถ่ายรูปบิล → resize 1600px JPEG → readBill(b64) → ฟอร์มตรวจ → saveBill / ยกเลิก = discardBillPhoto
+- GAS: readBill เก็บรูปใน Drive โฟลเดอร์ "บิลไร่อ้อย" (id ใน Script Properties BILL_FOLDER_ID) แล้วส่ง Gemini
+  รหัส GEMINI_KEY ใน Script Properties (โปรเจกต์ AI Studio "rai-oy" บัญชีผู้ใช้) — ห้ามใส่ใน repo
+  รุ่น: gemini-3.5-flash (thinkingLevel minimal) ~3 วิ, สำรอง gemini-3.5-flash-lite, เปลี่ยนได้ที่ GEMINI_MODEL
+  ⚠️ gemini-2.5-* เลิกให้บัญชีใหม่ใช้ (404), gemini-flash-latest ช้ามาก (2–3 นาที) — billAiTest(model, think) ไว้ทดสอบ
+- ชีต Expenses (สร้างเอง): exp_id, timestamp, bill_id, shop, category, item, qty, unit, amount, asset, stock_item, stock_qty, photo_id, note, created_at
+  หมวด: อะไหล่ น้ำมัน ปุ๋ย ยา ค่าแรง อื่นๆ (ผู้ใช้เลือก) / qty, amount, stock_qty เก็บเป็นตัวเลข
+- saveBill: รับเข้าสต็อก (StockLogs ref = bill_id) + อะไหล่ที่ระบุรถ → AssetLogs "🧾 ซื้ออะไหล่" (log_id = bill_id_A#)
+  deleteBill: ลบแถว + คืนสต็อก + ลบ AssetLogs + ทิ้งรูป
+- สิทธิ์ Drive: ผู้ใช้รัน authorizeBillDrive ในหน้า Apps Script แล้ว (1 พ.ย.) — เพิ่มสิทธิ์ใหม่ครั้งหน้า: clasp push (HEAD) โดยยังไม่ deploy
+  (commit [skip ci]) → ผู้ใช้รันฟังก์ชันอนุญาต → แล้วค่อย deploy ไม่งั้นแอปพังระหว่างรอ
+- สต็อกมีหมวด Fuel (⛽ น้ำมัน: ดีเซล เบนซิน น้ำมันเครื่อง ไฮดรอลิก หน่วยลิตร) + การ์ดบอกวันนับยอดจริงล่าสุด
 
 == กฎ iOS 26 โหมดไอคอน (ห้ามเปลี่ยนกลับ) ==
 1. apple-mobile-web-app-status-bar-style = default (black-translucent ทำให้ปุ่มกดไม่ติด + มีแถบเขียวล่าง)

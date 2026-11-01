@@ -916,27 +916,37 @@ function billFolder_() {
   return f;
 }
 
+var geminiUsed_ = '';
 function geminiCall_(parts) {
   const props = PropertiesService.getScriptProperties();
-  const models = [props.getProperty('GEMINI_MODEL') || 'gemini-flash-latest', 'gemini-2.5-flash']
+  // อ่านบิลไม่ต้องคิดนาน: ปิด thinking ให้เร็ว (รุ่น 2.5 ใช้ thinkingBudget, รุ่น 3 ขึ้นไปใช้ thinkingLevel)
+  // ทดสอบ 1 พ.ย. 69: 2.5 เลิกให้บัญชีใหม่ใช้แล้ว, flash-latest ช้ามาก (นาทีกว่า), 3.5-flash + minimal ~1 วิ
+  const models = [props.getProperty('GEMINI_MODEL') || 'gemini-3.5-flash', 'gemini-3.5-flash-lite']
     .filter((m, i, a) => m && a.indexOf(m) === i);
+  const think = m => /2\.5/.test(m) ? { thinkingBudget: 0 } : { thinkingLevel: 'minimal' };
   let last = '';
-  for (let i = 0; i < models.length; i++) {
-    const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent', {
+  // รุ่นหลักลอง 2 ครั้ง (ถ้าติดโควตา/คนใช้เยอะ) แล้วค่อยใช้รุ่นสำรอง
+  const tries = [];
+  models.forEach((m, k) => { tries.push(m); if (k === 0) tries.push(m); });
+  for (let i = 0; i < tries.length; i++) {
+    if (i === 1) Utilities.sleep(1500);
+    const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + tries[i] + ':generateContent', {
       method: 'post', contentType: 'application/json', muteHttpExceptions: true,
       headers: { 'x-goog-api-key': geminiKey_() },
       payload: JSON.stringify({
         contents: [{ role: 'user', parts: parts }],
-        generationConfig: { temperature: 0, responseMimeType: 'application/json' }
+        generationConfig: { temperature: 0, responseMimeType: 'application/json', thinkingConfig: think(tries[i]) }
       })
     });
     const code = res.getResponseCode(), txt = res.getContentText();
     if (code === 200) {
+      geminiUsed_ = tries[i];
       const j = JSON.parse(txt);
       const out = (((j.candidates || [])[0] || {}).content || {}).parts || [];
       return out.map(p => p.text || '').join('');
     }
     last = code + ' ' + txt.slice(0, 200);
+    if (i === 0 && code !== 429 && code < 500) i++; // ผิดแบบถาวร (เช่น 400/404) ไม่ต้องลองซ้ำ
   }
   throw new Error('อ่านบิลไม่ได้ (Gemini ' + last + ')');
 }
@@ -951,6 +961,7 @@ function readBill(b64, mime) {
   const assets = readSheet_(ss, SH.ASSET).filter(a => a.category !== 'Worker').map(a => `- ${a.name}`);
   const today = getTodayStr();
 
+  const t0 = Date.now();
   const file = billFolder_().createFile(Utilities.newBlob(Utilities.base64Decode(b64), mime,
     'บิล_' + today.replace(/\//g, '-') + '_' + Date.now() + (mime === 'image/png' ? '.png' : '.jpg')));
 
@@ -970,7 +981,9 @@ ${assets.join('\n')}`;
 
   let data;
   try {
+    var tDrive = Date.now() - t0;
     const txt = geminiCall_([{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }]);
+    var tAi = Date.now() - t0 - tDrive;
     data = JSON.parse(txt.replace(/^```json\s*|```\s*$/g, ''));
   } catch (e) {
     return { photo_id: file.getId(), error: String(e.message || e), date: today, shop: '', total: 0, items: [] };
@@ -986,6 +999,7 @@ ${assets.join('\n')}`;
     asset: asNames.has(it.asset) ? it.asset : ''
   }));
   data.photo_id = file.getId();
+  data.ms = { drive: tDrive, ai: tAi, model: geminiUsed_ };
   return data;
 }
 
@@ -1033,7 +1047,11 @@ function saveBill(b) {
           `${it.item} ${Number(it.amount) || 0} บาท (${shop})`, it.item || '-', '-']);
       }
     });
-    appendRows_(sh, rows);
+    // ตัวเลข (จำนวน/เงิน/จำนวนสต็อก) เก็บเป็นตัวเลข ให้ SUM ในชีตได้ ที่เหลือเป็นข้อความกันวันที่เพี้ยน
+    const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, EXP_HEADERS_.length);
+    rg.setNumberFormat('@');
+    [6, 8, 11].forEach(c => sh.getRange(rg.getRow(), c + 1, rows.length, 1).setNumberFormat('#,##0.##'));
+    rg.setValues(rows.map(r => r.map((v, c) => [6, 8, 11].indexOf(c) !== -1 ? (v === '' ? '' : Number(v)) : String(v === null || v === undefined ? '' : v))));
     if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
     return readAll_(ss);
   });
@@ -1062,4 +1080,16 @@ function deleteBill(billId) {
     if (photo) discardBillPhoto(photo);
     return readAll_(ss);
   });
+}
+
+// ทดสอบรุ่น Gemini (ข้อความสั้น) คืนเวลา/รหัสตอบกลับ ไม่คืนรหัส API
+function billAiTest(model, think) {
+  const t0 = Date.now();
+  const cfg = { temperature: 0 };
+  if (think) cfg.thinkingConfig = think;
+  const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true, headers: { 'x-goog-api-key': geminiKey_() },
+    payload: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'ตอบคำเดียว: 2+2=?' }] }], generationConfig: cfg })
+  });
+  return { model: model, code: res.getResponseCode(), ms: Date.now() - t0, body: res.getContentText().slice(0, 400) };
 }

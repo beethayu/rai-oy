@@ -58,14 +58,15 @@
   ผู้ใช้ปรับ (01:30): ใช้จุดเดียวพอ (ไม่ต้องมีปลายทาง — ดูด้วยตาว่าถนนเสียไกลแค่ไหน), GPS ปักตรงที่ยืนช้า/หาไม่เจอ → ปักบนแผนที่แทน,
     คนขับ/รถสิบล้อส่วนใหญ่เป็นชุดอื่น (ไม่ใช่คนงาน/รถเรา) → พิมพ์เอง + จำชื่อเดิม (datalist), สรุปคนงานนับเฉพาะชื่อที่เป็น Worker
   แผนที่ rockMapModal: Leaflet 1.9.4 (cdnjs โหลดตอนเปิดครั้งแรก) ภาพดาวเทียม Esri / สลับ OSM, จุดฟ้า = ตำแหน่งฉัน (watchPosition ไม่ต้องรอ),
-    แตะแรก = จุดเริ่ม (start_lat/lng) แตะต่อ = เส้นตามถนน → path "lat,lng;..." + dist_m (GAS rockPathLen_), ปุ่มนำทาง → Google Maps ไปจุดเริ่ม
+    แตะแรก = จุดเริ่ม (start_lat/lng, ลากย้ายได้ทุกจุด) แตะต่อ = เส้นตามถนน → path "lat,lng;..." + dist_m (GAS rockPathLen_), ปุ่มนำทาง → Google Maps ไปจุดเริ่ม
   หน้าจุด rockModal (renderRock): ข้อมูล/ทางไป, จุดลงหิน (ปักบนแผนที่ / วางลิงก์ = resolveMapLink / นำทาง),
   รูปก่อน/หลัง (rockFile → shrinkImage 1600 + rockThumb 240 → addRockPhoto ทีละรูป), แตะรูป = ใช้ทำรูปคู่/ดูเต็ม/ลบ,
   รูปคู่ rockMakePair (canvas ซ้ายก่อน ขวาหลัง หัวเขียวชื่อสมาชิก/จุด/ระยะ/เที่ยว) → rockPairModal → navigator.share
   เที่ยว: วันที่ กี่เที่ยว คนขับ สิบล้อ → workSumData นับคนขับเป็นวันทำงาน "ขนหินคลุก"
 - GAS gas/Rock.gs: ชีต RockPoints (point_id, member, phone, name, start/end lat/lng, dist_m, quota, note, status รอลง/กำลังลง/ลงเสร็จ, pair_before/after)
   RockLogs (type before/after/trip, file_id, lat/lng, truck, driver, trips, thumb base64 เล็ก) — readAll_ ส่ง rockLogs ไม่มี thumb (has_thumb) ดึงด้วย rockThumbs(pointId)
-  saveRockPoint(p) เพิ่ม/แก้ (ส่งบางช่องได้) / deleteRockPoint / addRockPhoto(id, stage, b64, {thumb,lat,lng}) รูปแรกก่อนลงปักต้นทางให้ถ้ายังไม่มี
+  ทุกฟังก์ชันหินคลุกคืนแค่ readRock_ (rockPoints/rockLogs) ไม่ใช่ readAll_ (เร็วกว่า ~6 วิ) → หน้าเว็บ rockApply(d)
+  saveRockPoint(p) เพิ่ม/แก้ (ส่งบางช่องได้) / deleteRockPoint / addRockPhoto(id, stage, b64, {thumb,lat,lng}) (ไม่ปักจุดเริ่มจากรูปแล้ว)
   addRockTrip (รอลง→กำลังลง) / deleteRockLog / setRockPair / rockPhotos(logIds) รูปเต็ม / resolveMapLink(ลิงก์สั้น maps.app.goo.gl ได้)
   Drive: โฟลเดอร์ "หินคลุก ไร่อ้อย" (ROCK_FOLDER_ID) / โฟลเดอร์ย่อยชื่อสมาชิก
 

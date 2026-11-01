@@ -24,7 +24,7 @@ function rockPathLen_(path) {
   return Math.round(m);
 }
 
-// สำหรับ readAll_: ไม่ส่ง thumb (ใหญ่) ไปกับข้อมูลหลัก ดึงทีละจุดด้วย rockThumbs
+// ฟังก์ชันหินคลุกคืนแค่ข้อมูลหินคลุก (เร็วกว่า readAll_ มาก) · readAll_ ก็ใช้อันนี้: ไม่ส่ง thumb (ใหญ่) ไปกับข้อมูลหลัก ดึงทีละจุดด้วย rockThumbs
 function readRock_(ss) {
   return {
     rockPoints: readSheet_(ss, 'RockPoints'),
@@ -84,7 +84,7 @@ function saveRockPoint(p) {
     const vals = [ROCK_PT_.map(k => o[k] === undefined || o[k] === null ? '' : String(o[k]))];
     if (row) sh.getRange(row.r, 1, 1, ROCK_PT_.length).setNumberFormat('@').setValues(vals);
     else appendRows_(sh, vals);
-    const out = readAll_(ss); out.savedPoint = o.point_id;
+    const out = readRock_(ss); out.savedPoint = o.point_id;
     return out;
   });
 }
@@ -100,12 +100,12 @@ function deleteRockPoint(pointId) {
       s.log.deleteRow(i + 1);
     }
     s.pt.deleteRow(row.r);
-    return readAll_(ss);
+    return readRock_(ss);
   });
 }
 
 // ถ่ายรูป: stage = before | after, b64 = JPEG (ย่อแล้ว), thumb = JPEG เล็ก (เก็บในชีตไว้โชว์เร็ว)
-// ถ้าจุดยังไม่มีพิกัดต้นทาง ใช้พิกัดตอนถ่ายรูปก่อนลงรูปแรก
+// (ไม่ปักจุดเริ่มจากพิกัดรูปแล้ว — ผู้ใช้อยากเลือกจุดเริ่มเองบนแผนที่)
 function addRockPhoto(pointId, stage, b64, opts) {
   opts = opts || {};
   if (['before', 'after'].indexOf(stage) === -1) throw new Error('ระบุก่อนลง/หลังลง');
@@ -121,12 +121,7 @@ function addRockPhoto(pointId, stage, b64, opts) {
     const thumb = String(opts.thumb || '').length < 45000 ? String(opts.thumb || '') : '';
     appendRows_(s.log, [['L' + Date.now() + '_' + Math.floor(Math.random() * 1000), pointId, stage, date, file.getId(),
       lat, lng, '', '', '', opts.note || '', getTodayStr(), thumb]]);
-    const r2 = rockRow_(s.pt, pointId);
-    if (stage === 'before' && lat && lng && !r2.v[5]) {
-      s.pt.getRange(r2.r, 6, 1, 2).setNumberFormat('@').setValues([[lat, lng]]);
-      s.pt.getRange(r2.r, 10).setNumberFormat('@').setValue(String(rockDist_(lat, lng, r2.v[7], r2.v[8])));
-    }
-    return readAll_(ss);
+    return readRock_(ss);
   });
 }
 
@@ -141,7 +136,7 @@ function addRockTrip(pointId, t) {
     appendRows_(s.log, [['L' + Date.now(), pointId, 'trip', t.date || getTodayStr(), '', '', '', t.truck || '', t.driver || '',
       String(trips), t.note || '', getTodayStr(), '']]);
     if (row.v[12] === 'รอลง' || !row.v[12]) s.pt.getRange(row.r, 13).setNumberFormat('@').setValue('กำลังลง');
-    return readAll_(ss);
+    return readRock_(ss);
   });
 }
 
@@ -152,7 +147,7 @@ function deleteRockLog(logId) {
     const row = rockRow_(s.log, logId); if (!row) throw new Error('ไม่พบรายการ');
     if (row.v[4]) { try { DriveApp.getFileById(row.v[4]).setTrashed(true); } catch (e) {} }
     s.log.deleteRow(row.r);
-    return readAll_(ss);
+    return readRock_(ss);
   });
 }
 
@@ -162,7 +157,7 @@ function setRockPair(pointId, beforeLog, afterLog) {
     const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = rockSheets_(ss).pt;
     const row = rockRow_(sh, pointId); if (!row) throw new Error('ไม่พบจุดนี้');
     sh.getRange(row.r, 15, 1, 2).setNumberFormat('@').setValues([[beforeLog || '', afterLog || '']]);
-    return readAll_(ss);
+    return readRock_(ss);
   });
 }
 

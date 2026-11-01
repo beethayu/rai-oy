@@ -2930,6 +2930,12 @@
     const gmNav = (la, ln) => `https://www.google.com/maps/dir/?api=1&destination=${la},${ln}&travelmode=driving`;
     const gmPin = (la, ln) => `https://www.google.com/maps/search/?api=1&query=${la},${ln}`;
 
+    // ฟังก์ชันหินคลุกในหลังบ้านคืนแค่ rockPoints/rockLogs (เร็วกว่าโหลดทั้งไร่) → ใส่กลับเข้า gData
+    function rockApply(d) {
+      if (!d) return;
+      gData.rockPoints = d.rockPoints || []; gData.rockLogs = d.rockLogs || [];
+      saveCache(gData); renderFleet(); if (curTab === 'urgent') render();
+    }
     function goRock() { fleetPane = 'rock'; switchTab('fleet'); renderFleet(); uiSave(); }
 
     function rockPaneHtml() {
@@ -3012,7 +3018,7 @@
       if (!o.member) return alert('ใส่ชื่อสมาชิกก่อนครับ');
       if (!o.name) return alert('ตั้งชื่อจุดก่อนครับ เช่น ทางเข้าไร่หนองเฝ้า');
       if (rockCur) o.point_id = rockCur;
-      call('saveRockPoint', [o], d => { init(d); rockCur = d.savedPoint || rockCur; rockEdit = false; rockNew = null; renderRock(); }, $('btnRockSave'));
+      call('saveRockPoint', [o], d => { rockApply(d); rockCur = d.savedPoint || rockCur; rockEdit = false; rockNew = null; renderRock(); }, $('btnRockSave'));
     }
 
     function rockThumbHtml(l, r) {
@@ -3111,12 +3117,12 @@
       const t = prompt('วางลิงก์ Google Maps หรือพิกัด (เช่น 15.12345, 100.12345)');
       if (!t || !t.trim()) return;
       call('resolveMapLink', [t.trim()], g => call('saveRockPoint', [{ point_id: rockCur, start_lat: g.lat, start_lng: g.lng, end_lat: '', end_lng: '', path: '' }],
-        d => { init(d); renderRock(); }), null, '⏳ กำลังอ่านพิกัด...');
+        d => { rockApply(d); renderRock(); }), null, '⏳ กำลังอ่านพิกัด...');
     }
 
     // ===== แผนที่ปักจุด (Leaflet + ภาพดาวเทียม): แตะจุดแรก = จุดเริ่ม แตะต่อ = ไล่ตามถนน ได้ระยะทาง =====
     let rkMap = null, rkPts = [], rkDraw = null, rkMe = null, rkWatch = null, rkSat = null, rkStreet = null, rkUseSat = true, rkCentered = false;
-    let rkLastPos = null;
+    let rkLastPos = null, rkLine = null;
     try { rkLastPos = JSON.parse(lsGet('raioy_lastpos') || 'null'); } catch (e) {}
     function loadLeaflet() {
       if (window.L) return Promise.resolve();
@@ -3167,7 +3173,7 @@
         lsSet('raioy_lastpos', JSON.stringify(rkLastPos));
         if (!rkMap) return;
         const ll = [rkLastPos.lat, rkLastPos.lng];
-        if (!rkMe) rkMe = L.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#1E6FD9', fillOpacity: 1 }).addTo(rkMap);
+        if (!rkMe) rkMe = L.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#1E6FD9', fillOpacity: 1, interactive: false }).addTo(rkMap);
         else rkMe.setLatLng(ll);
         if (!rkCentered && !rkPts.length) { rkCentered = true; rkMap.setView(ll, 17); }
       }, () => {}, { enableHighAccuracy: true, maximumAge: 30000, timeout: 60000 });
@@ -3175,15 +3181,20 @@
     function rkRender() {
       if (!rkDraw) return;
       rkDraw.clearLayers();
-      if (rkPts.length > 1) L.polyline(rkPts, { color: '#FFB020', weight: 6, opacity: .95 }).addTo(rkDraw);
+      rkLine = rkPts.length > 1 ? L.polyline(rkPts, { color: '#FFB020', weight: 6, opacity: .95, interactive: false }).addTo(rkDraw) : null;
       rkPts.forEach((p, i) => {
-        const m = L.circleMarker(p, { radius: i === 0 ? 10 : 6, color: '#fff', weight: 3, fillColor: i === 0 ? '#1F5E3B' : '#FFB020', fillOpacity: 1 }).addTo(rkDraw);
-        if (i === 0) m.bindTooltip('เริ่ม', { permanent: true, direction: 'top', offset: [0, -10], className: 'rk-lbl' });
+        const sz = i === 0 ? 26 : 18, col = i === 0 ? '#1F5E3B' : '#FFB020';
+        const icon = L.divIcon({ className: '', iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2],
+          html: `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${col};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>` });
+        const m = L.marker(p, { icon, draggable: true, autoPan: true }).addTo(rkDraw);
+        m.on('drag', e => { const ll = e.target.getLatLng(); rkPts[i] = [ll.lat, ll.lng]; if (rkLine) rkLine.setLatLngs(rkPts); });
+        m.on('dragend', () => rkRender());
+        if (i === 0) m.bindTooltip('เริ่ม', { permanent: true, direction: 'top', offset: [0, -14], className: 'rk-lbl' });
       });
       const len = rkLen(rkPts);
       $('rkHint').innerHTML = !rkPts.length ? 'แตะจุดที่เริ่มลงหิน แล้วแตะไล่ตามถนนไปจนสุด จะได้ระยะทาง'
-        : rkPts.length === 1 ? 'ได้จุดเริ่มแล้ว · แตะต่อไปตามถนนเพื่อวัดระยะ (ไม่วัดก็กดบันทึกได้)'
-        : `ระยะประมาณ <b>${fmtDist(len)}</b> · ${rkPts.length} จุด · แตะต่อได้อีก`;
+        : rkPts.length === 1 ? 'ได้จุดเริ่มแล้ว (ลากย้ายได้) · แตะต่อไปตามถนนเพื่อวัดระยะ หรือกดบันทึกเลย'
+        : `ระยะประมาณ <b>${fmtDist(len)}</b> · ลากจุดเพื่อย้าย · กด "ล้าง" ถ้าจะเริ่มใหม่`;
     }
     function rkUndo() { rkPts.pop(); rkRender(); }
     function rkClear() { if (!rkPts.length || confirm('ล้างจุดทั้งหมด?')) { rkPts = []; rkRender(); } }
@@ -3201,7 +3212,7 @@
       const p0 = rkPts[0] || ['', ''];
       call('saveRockPoint', [{ point_id: rockCur, start_lat: p0[0], start_lng: p0[1], end_lat: '', end_lng: '',
         path: rkPts.length > 1 ? rkPts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';') : '' }],
-        d => { hideModal('rockMapModal'); init(d); renderRock(); }, $('btnRkMapSave'));
+        d => { hideModal('rockMapModal'); rockApply(d); renderRock(); }, $('btnRkMapSave'));
     }
 
     function pickRock(stage) { rockStage = stage; const f = $('rockFile'); f.value = ''; f.click(); }
@@ -3222,7 +3233,7 @@
       const files = [...(inp.files || [])]; if (!files.length || !rockCur) return;
       const id = rockCur, stage = rockStage, t = $('syncToast');
       t.style.display = 'block'; t.innerText = '⏳ กำลังเตรียมรูป...';
-      const g = rkLastPos && Date.now() - (rkLastPos.t || 0) < 300000 ? rkLastPos : await rockGPS(4000);
+      const g = rkLastPos && Date.now() - (rkLastPos.t || 0) < 300000 ? rkLastPos : null;
       let d = null;
       const known = new Set((gData.rockLogs || []).map(l => l.log_id));
       try {
@@ -3234,7 +3245,7 @@
         }
       } catch (e) { alert('❌ ส่งรูปไม่สำเร็จ: ' + e.message); }
       t.style.display = 'none';
-      if (d) { init(d); renderRock(); }
+      if (d) { rockApply(d); renderRock(); }
     }
 
     // ปุ่มใต้รูปที่แตะเลือก: ใช้ทำรูปคู่ / ดูรูปเต็ม / ลบ
@@ -3247,27 +3258,27 @@
     }
     function rockUsePair(logId) {
       const l = (gData.rockLogs || []).find(x => x.log_id === logId), r = rockPt(rockCur); if (!l || !r) return;
-      call('setRockPair', [r.point_id, l.type === 'before' ? logId : r.pair_before, l.type === 'after' ? logId : r.pair_after], d => { rockSel = ''; init(d); renderRock(); });
+      call('setRockPair', [r.point_id, l.type === 'before' ? logId : r.pair_before, l.type === 'after' ? logId : r.pair_after], d => { rockSel = ''; rockApply(d); renderRock(); });
     }
     function rockDelLog(logId, what) {
       if (!confirm(`ลบ${what}?`)) return;
-      call('deleteRockLog', [logId], d => { delete rockThumbCache[logId]; init(d); renderRock(); });
+      call('deleteRockLog', [logId], d => { delete rockThumbCache[logId]; rockApply(d); renderRock(); });
     }
     function rockAddTrip() {
       const n = num($('rk_trips').value); if (!(n > 0)) return alert('ใส่จำนวนเที่ยว');
       if (!checkDate($('rk_tdate').value)) return;
       call('addRockTrip', [rockCur, { date: isoToBE($('rk_tdate').value), trips: n, driver: $('rk_driver').value.trim(), truck: $('rk_truck').value.trim() }],
-        d => { init(d); renderRock(); }, $('btnRockTrip'));
+        d => { rockApply(d); renderRock(); }, $('btnRockTrip'));
     }
     function rockSetSt(st) {
       const r = rockPt(rockCur);
       if (st === 'ลงเสร็จ' && !rockLogsOf(rockCur).some(l => l.type === 'after') && !confirm('ยังไม่มีรูปหลังลง ปิดงานเลยไหม?')) return;
-      call('saveRockPoint', [{ point_id: r.point_id, status: st }], d => { init(d); renderRock(); }, $('btnRockSt'));
+      call('saveRockPoint', [{ point_id: r.point_id, status: st }], d => { rockApply(d); renderRock(); }, $('btnRockSt'));
     }
     function rockDelPoint() {
       const r = rockPt(rockCur);
       if (!confirm(`ลบจุด "${r.name}" ของ ${r.member}? รูปและเที่ยวของจุดนี้จะถูกลบด้วย`)) return;
-      call('deleteRockPoint', [r.point_id], d => { hideModal('rockModal'); rockCur = ''; init(d); }, $('btnRockDel'));
+      call('deleteRockPoint', [r.point_id], d => { hideModal('rockModal'); rockCur = ''; rockApply(d); }, $('btnRockDel'));
     }
 
     // รูปคู่: ซ้าย = ก่อนลง ขวา = หลังลง หัวรูปมีชื่อสมาชิก จุด วันที่

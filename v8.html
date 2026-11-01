@@ -1079,6 +1079,7 @@
           <button type="button" class="rk-fab" style="top:120px" id="fmLayerBtn" onclick="fmToggleLayer()">แผนที่ถนน</button>
           <button type="button" class="rk-fab" style="top:166px" onclick="fmGoMe()">ไปที่ฉัน</button>
           <button type="button" class="rk-fab" style="top:212px" id="fmPoiBtn" onclick="poiToggle()">ซ่อนชื่อสถานที่</button>
+          <button type="button" class="rk-fab" style="top:258px" id="fmLandBtn" onclick="fmToggleLands()">โชว์ที่ดินดูไว้</button>
         </div>
         <div class="modal-footer py-2"><div id="fmPanel"></div></div>
       </div>
@@ -3441,6 +3442,16 @@
     // ================= แผนที่ไร่: วาดขอบแปลง + ที่ดินที่จะเช่า =================
     let fmMap = null, fmSat = null, fmStreet = null, fmUseSat = true, fmLayer = null, fmEditLayer = null, fmMe = null, fmWatch = null, fmTmp = null;
     let fmSel = null, fmEdit = null, fmBackTo = '';
+    // ที่ดินดูไว้ ซ่อนไว้ก่อน (ผู้ใช้: ค่อยโชว์ตอนอยากดู) — ที่กำลังเลือก/แก้อยู่ โชว์เสมอ
+    let fmShowLands = false;
+    try { fmShowLands = lsGet('raioy_lands') === '1'; } catch (e) {}
+    const fmLandVisible = l => fmShowLands || (fmSel && fmSel.kind === 'land' && fmSel.id === l.land_id) || (fmEdit && fmEdit.kind === 'land' && fmEdit.id === l.land_id);
+    function fmToggleLands(on) {
+      fmShowLands = on === undefined ? !fmShowLands : on; lsSet('raioy_lands', fmShowLands ? '1' : '0');
+      if (!fmShowLands && fmSel && fmSel.kind === 'land') fmSel = null;
+      fmLandBtn(); fmRender();
+    }
+    function fmLandBtn() { const b = $('fmLandBtn'), n = (gData.lands || []).length; if (!b) return; b.style.display = n ? '' : 'none'; b.innerText = fmShowLands ? `ซ่อนที่ดินดูไว้` : `โชว์ที่ดินดูไว้ (${n})`; }
     const RAI = 1600;
     const pPath = s => String(s || '').split(';').map(x => x.split(',').map(Number)).filter(x => x.length === 2 && x[0] && x[1]);
     function polyM2(pts) {
@@ -3499,7 +3510,7 @@
     }
     function fmFit(pts) { if (pts.length) fmMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 18 }); }
     function fmFitAll() {
-      const all = gData.plots.flatMap(p => pPath(p.boundary)).concat((gData.lands || []).flatMap(l => pPath(l.boundary)));
+      const all = gData.plots.flatMap(p => pPath(p.boundary)).concat((gData.lands || []).filter(fmLandVisible).flatMap(l => pPath(l.boundary)));
       if (all.length) fmFit(all);
       else if (rkLastPos) fmMap.setView([rkLastPos.lat, rkLastPos.lng], 15);
       else fmMap.setView([15.3, 100.3], 8);
@@ -3538,13 +3549,13 @@
           .addTo(fmLayer);
       });
       (gData.lands || []).forEach(l => {
-        const pts = pPath(l.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'land' && fmEdit.id === l.land_id)) return;
+        const pts = pPath(l.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'land' && fmEdit.id === l.land_id) || !fmLandVisible(l)) return;
         const on = sel('land', l.land_id);
         L.polygon(pts, { color: on ? '#FFFFFF' : '#B48CE8', weight: on ? 4 : 2.5, dashArray: '6 6', fillColor: '#B48CE8', fillOpacity: on ? .4 : .2 })
                     .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'land', id: l.land_id }; fmRender(); })
           .addTo(fmLayer);
       });
-      fmLabels();
+      fmLabels(); fmLandBtn();
       fmPanel();
     }
 
@@ -3562,13 +3573,13 @@
       const editing = id => fmEdit && fmEdit.id === id;
       if (z >= 15) {
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length >= 3 && !editing(p.plot_id)) lbl(center(pts), esc(p.plot_name), 'fm-tag'); });
-        (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && !editing(l.land_id)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
+        (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && !editing(l.land_id) && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
         return;
       }
       const g = {};
       gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3) return; const k = plotLoc(p.plot_name); (g[k] = g[k] || { pts: [], n: 0, rai: 0 }); g[k].pts.push(...pts); g[k].n++; g[k].rai += num(p.area_rai); });
       Object.entries(g).forEach(([k, v]) => lbl(center(v.pts), `${esc(k)} <span>· ${v.n} แปลง ${Math.round(v.rai)} ไร่</span>`, 'fm-tag fm-tag-grp', () => fmFit(v.pts)));
-      if (z >= 13) (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
+      if (z >= 13) (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
     }
 
     // แปลงถัดไปที่ยังไม่วาด: พื้นที่เดียวกับแปลงล่าสุดก่อน
@@ -3637,7 +3648,7 @@
       const p0 = fmMap.latLngToContainerPoint(ll);
       const cand = [];
       gData.plots.forEach(p => { if (!(fmEdit.kind === 'plot' && fmEdit.id === p.plot_id)) cand.push(...pPath(p.boundary)); });
-      (gData.lands || []).forEach(l => { if (!(fmEdit.kind === 'land' && fmEdit.id === l.land_id)) cand.push(...pPath(l.boundary)); });
+      (gData.lands || []).forEach(l => { if (!(fmEdit.kind === 'land' && fmEdit.id === l.land_id) && fmLandVisible(l)) cand.push(...pPath(l.boundary)); });
       fmEdit.pts.forEach((p, i) => { if (i !== selfIdx) cand.push(p); });
       let best = null, bd = FM_SNAP_PX;
       cand.forEach(c => { const d = fmMap.latLngToContainerPoint(c).distanceTo(p0); if (d < bd) { bd = d; best = c; } });
@@ -3690,7 +3701,7 @@
       } else {
         if (e.pts.length < 3) return alert('แตะมุมที่ดินอย่างน้อย 3 มุม');
         call('saveLand', [Object.assign({ land_id: e.id || undefined, boundary: path }, e.land)], d => {
-          gData.lands = d.lands; saveCache(gData); render();
+          gData.lands = d.lands; saveCache(gData); render(); fmShowLands = true; lsSet('raioy_lands', '1');
           fmEdit = null; fmEditLayer.clearLayers(); fmSel = { kind: 'land', id: d.savedLand }; fmRender();
         }, $('btnFmSave'));
       }
@@ -3853,6 +3864,7 @@
       });
       call('importBoundaries', [items], d => {
         gData.plots = d.plots; gData.lands = d.lands; saveCache(gData); render();
+        if (items.some(x => x.kind === 'land')) { fmShowLands = true; lsSet('raioy_lands', '1'); }
         kmCancel(); alert(`นำเข้าแล้ว ${d.done} รายการ`);
       }, $('btnKm'), '⏳ กำลังนำเข้า...');
     }

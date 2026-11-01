@@ -268,6 +268,9 @@
     .fm-hint { margin-top: 6px; background: rgba(255,255,255,.95); border-radius: 12px; padding: 8px 12px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
     .fm-lbl { background: rgba(255,255,255,.9); border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 0 5px; box-shadow: none; color: #1F2A24; }
     .fm-lbl::before { display: none; }
+    .poi-lbl { white-space: nowrap; font-size: 12px; font-weight: 600; color: #fff; text-shadow: 0 0 3px #000, 0 0 2px #000, 0 0 1px #000; pointer-events: none; display: flex; align-items: center; gap: 2px; }
+    .poi-lbl .pi { font-size: 15px; text-shadow: none; }
+    .poi-vil { white-space: nowrap; font-size: 14px; font-weight: 700; color: #FFF6C9; text-shadow: 0 0 4px #000, 0 0 2px #000; pointer-events: none; }
     #fmPanel { width: 100%; max-height: 52vh; overflow-y: auto; }
     .km-row { padding: 8px 0; }
     .km-row + .km-row { border-top: 1px solid #EEF1EF; }
@@ -1026,6 +1029,7 @@
           <div class="rk-hint" id="rkHint" data-x="">แตะจุดที่เริ่มลงหิน แล้วแตะไล่ตามถนนไปจนสุด จะได้ระยะทาง</div>
           <button type="button" class="rk-fab" style="top:62px" id="rkLayerBtn" onclick="rkToggleLayer()">แผนที่ถนน</button>
           <button type="button" class="rk-fab" style="top:108px" onclick="rkGoMe()">ไปที่ฉัน</button>
+          <button type="button" class="rk-fab" style="top:154px" id="rkPoiBtn" onclick="poiToggle()">ซ่อนชื่อสถานที่</button>
         </div>
         <div class="modal-footer py-2 d-flex gap-2 flex-nowrap">
           <button type="button" class="btn btn-outline-secondary" onclick="rkUndo()">ย้อน</button>
@@ -1056,6 +1060,7 @@
           </div>
           <button type="button" class="rk-fab" style="top:120px" id="fmLayerBtn" onclick="fmToggleLayer()">แผนที่ถนน</button>
           <button type="button" class="rk-fab" style="top:166px" onclick="fmGoMe()">ไปที่ฉัน</button>
+          <button type="button" class="rk-fab" style="top:212px" id="fmPoiBtn" onclick="poiToggle()">ซ่อนชื่อสถานที่</button>
         </div>
         <div class="modal-footer py-2"><div id="fmPanel"></div></div>
       </div>
@@ -3202,7 +3207,7 @@
 
     // ===== แผนที่ปักจุด (Leaflet + ภาพดาวเทียม): แตะจุดแรก = จุดเริ่ม แตะต่อ = ไล่ตามถนน ได้ระยะทาง =====
     let rkMap = null, rkPts = [], rkDraw = null, rkMe = null, rkWatch = null, rkSat = null, rkStreet = null, rkUseSat = true, rkCentered = false;
-    let rkLastPos = null, rkLine = null;
+    let rkLastPos = null, rkLine = null, rkPoi = null, fmPoi = null;
     try { rkLastPos = JSON.parse(lsGet('raioy_lastpos') || 'null'); } catch (e) {}
     function loadLeaflet() {
       if (window.L) return Promise.resolve();
@@ -3236,6 +3241,7 @@
           rkStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
           rkSat.addTo(rkMap);
           rkDraw = L.layerGroup().addTo(rkMap);
+          rkPoi = poiAttach(rkMap, 'rkPoiBtn');
           rkMap.on('click', e => { rkPts.push([e.latlng.lat, e.latlng.lng]); rkRender(); });
           $('rockMapModal').addEventListener('shown.bs.modal', () => rkMap.invalidateSize());
           $('rockMapModal').addEventListener('hidden.bs.modal', () => { if (rkWatch !== null) navigator.geolocation.clearWatch(rkWatch); rkWatch = null; });
@@ -3447,6 +3453,7 @@
           fmSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18, attribution: 'ภาพ © Esri' });
           fmStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19, attribution: '© OpenStreetMap' });
           fmSat.addTo(fmMap);
+          fmPoi = poiAttach(fmMap, 'fmPoiBtn');
           fmLayer = L.layerGroup().addTo(fmMap); fmEditLayer = L.layerGroup().addTo(fmMap);
           fmMap.on('click', e => {
             $('fmRes').style.display = 'none';
@@ -3654,6 +3661,80 @@
       call('deleteLand', [id], d => { gData.lands = d.lands; saveCache(gData); render(); fmSel = null; fmRender(); }, $('btnLandDel'));
     }
 
+
+
+    // ===== ชื่อสถานที่บนแผนที่ (OpenStreetMap ผ่าน Overpass): หมู่บ้าน วัด รพ./รพ.สต. โรงเรียน อบต. ตลาด ปั๊ม =====
+    // โหลดเป็นช่อง ๆ (0.05°) ตามที่เลื่อนไปดู จำไว้ในหน่วยความจำ · ไอคอนแตะไม่ได้ (ไม่กวนตอนวาด)
+    let poiOn = true;
+    try { poiOn = lsGet('raioy_poi') !== '0'; } catch (e) {}
+    const poiFeat = {}, poiCell = {}, poiMaps = [];
+    const POI_CELL = 0.05;
+    function poiIcon(t) {
+      if (t.place) return '';
+      const a = t.amenity || '', h = t.healthcare || '';
+      if (a === 'place_of_worship') return t.religion === 'buddhist' || !t.religion ? '🛕' : t.religion === 'muslim' ? '🕌' : '⛪';
+      if (a === 'hospital' || a === 'clinic' || a === 'doctors' || h) return '🏥';
+      if (a === 'school' || a === 'college' || a === 'university') return '🏫';
+      if (a === 'townhall' || t.office === 'government') return '🏛️';
+      if (a === 'police') return '👮';
+      if (a === 'marketplace') return '🛒';
+      if (a === 'fuel') return '⛽';
+      if (t.man_made === 'water_tower') return '💧';
+      return '📍';
+    }
+    function poiAttach(map, btnId) {
+      const o = { map, btnId, layer: L.layerGroup(), t: null };
+      if (poiOn) o.layer.addTo(map);
+      map.on('moveend zoomend', () => { clearTimeout(o.t); o.t = setTimeout(() => poiUpdate(o), 400); });
+      poiMaps.push(o); poiBtn(o);
+      return o;
+    }
+    function poiBtn(o) { const b = $(o.btnId); if (b) b.innerText = poiOn ? 'ซ่อนชื่อสถานที่' : 'โชว์ชื่อสถานที่'; }
+    function poiToggle() {
+      poiOn = !poiOn; lsSet('raioy_poi', poiOn ? '1' : '0');
+      poiMaps.forEach(o => { if (poiOn) { o.layer.addTo(o.map); poiUpdate(o); } else o.map.removeLayer(o.layer); poiBtn(o); });
+    }
+    function poiUpdate(o) {
+      if (!poiOn || !o.map._loaded) return;
+      const z = o.map.getZoom();
+      if (z < 13) { o.layer.clearLayers(); return; }
+      const b = o.map.getBounds(), cells = [];
+      for (let la = Math.floor(b.getSouth() / POI_CELL); la <= Math.floor(b.getNorth() / POI_CELL); la++)
+        for (let ln = Math.floor(b.getWest() / POI_CELL); ln <= Math.floor(b.getEast() / POI_CELL); ln++) {
+          const k = la + ':' + ln; if (!poiCell[k]) cells.push([la, ln, k]);
+        }
+      poiDraw(o);
+      if (!cells.length || cells.length > 16) return;
+      const s = Math.min(...cells.map(c => c[0])) * POI_CELL, n = (Math.max(...cells.map(c => c[0])) + 1) * POI_CELL;
+      const w = Math.min(...cells.map(c => c[1])) * POI_CELL, e = (Math.max(...cells.map(c => c[1])) + 1) * POI_CELL;
+      cells.forEach(c => { poiCell[c[2]] = 'loading'; });
+      const bb = `${s.toFixed(3)},${w.toFixed(3)},${n.toFixed(3)},${e.toFixed(3)}`;
+      const q = `[out:json][timeout:20];(node["place"~"^(village|hamlet|town|suburb)$"](${bb});nwr["amenity"~"^(place_of_worship|hospital|clinic|doctors|school|college|townhall|police|marketplace|fuel)$"](${bb});nwr["healthcare"](${bb});nwr["office"="government"](${bb}););out center 600;`;
+      fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent(q) })
+        .then(r => r.json()).then(j => {
+          (j.elements || []).forEach(el => {
+            const t = el.tags || {}, nm = t['name:th'] || t.name;
+            const la = el.lat || (el.center && el.center.lat), ln = el.lon || (el.center && el.center.lon);
+            if (!nm || !la) return;
+            poiFeat[el.type + el.id] = { la, ln, nm, ic: poiIcon(t), vil: !!t.place };
+          });
+          cells.forEach(c => { poiCell[c[2]] = 1; });
+          poiMaps.forEach(poiDraw);
+        }).catch(() => { cells.forEach(c => { delete poiCell[c[2]]; }); });
+    }
+    function poiDraw(o) {
+      if (!poiOn) return;
+      o.layer.clearLayers();
+      const z = o.map.getZoom(), b = o.map.getBounds().pad(0.2);
+      if (z < 13) return;
+      Object.values(poiFeat).forEach(f => {
+        if (!b.contains([f.la, f.ln])) return;
+        if (!f.vil && z < 14) return;
+        const html = f.vil ? `<span class="poi-vil">${esc(f.nm)}</span>` : `<span class="poi-lbl"><span class="pi">${f.ic}</span>${z >= 15 ? esc(f.nm) : ''}</span>`;
+        L.marker([f.la, f.ln], { interactive: false, keyboard: false,
+          icon: L.divIcon({ className: '', html, iconSize: null, iconAnchor: f.vil ? [0, 8] : [9, 10] }) }).addTo(o.layer);
+      });
+    }
 
     // ===== นำเข้า KML (แอป Ling: ข้อมูลแปลง → Export → .kml ส่งเข้าอีเมล → บันทึกลงไฟล์ → เลือกที่นี่) =====
     let kmItems = null, kmLayer = null;

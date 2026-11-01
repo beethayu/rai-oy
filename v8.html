@@ -3493,7 +3493,7 @@
         const pts = pPath(p.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'plot' && fmEdit.id === p.plot_id)) return;
         const col = p.cane_type === 'อ้อยใหม่' ? '#7BD389' : '#E2B66B', on = sel('plot', p.plot_id);
         L.polygon(pts, { color: on ? '#FFFFFF' : col, weight: on ? 4 : 2.5, fillColor: col, fillOpacity: on ? .45 : .25 })
-          .bindTooltip(p.plot_id, { permanent: true, direction: 'center', className: 'fm-lbl' })
+          .bindTooltip(esc(p.plot_name), { permanent: true, direction: 'center', className: 'fm-lbl' })
           .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'plot', id: p.plot_id }; fmRender(); })
           .addTo(fmLayer);
       });
@@ -3508,6 +3508,23 @@
       fmPanel();
     }
 
+    // แปลงถัดไปที่ยังไม่วาด: พื้นที่เดียวกับแปลงล่าสุดก่อน
+    let fmLastLoc = '';
+    function fmNextPlot() {
+      const left = gData.plots.filter(p => !p.boundary);
+      return left.find(p => fmLastLoc && plotLoc(p.plot_name) === fmLastLoc) || left[0];
+    }
+    function fmPickHtml() {
+      const nx = fmNextPlot(), left = gData.plots.filter(p => !p.boundary).length;
+      return `${nx ? `<button type="button" class="btn btn-success fw-bold w-100 mb-2" onclick="fmStartEdit('plot','${nx.plot_id}')">วาดต่อ: ${esc(nx.plot_name)}</button>` : ''}
+        <div class="d-flex gap-2">
+          <select class="form-select flex-fill" id="fmPick" onchange="if(this.value)fmStartEdit('plot',this.value)">
+            <option value="">${nx ? 'หรือเลือกแปลงอื่น' : 'วาดขอบแปลง'}… (ยังไม่วาด ${left})</option>
+            ${gData.plots.map(p => `<option value="${p.plot_id}">${p.boundary ? '✓ ' : ''}${esc(p.plot_name)}</option>`).join('')}
+          </select>
+          <button type="button" class="btn btn-outline-success fw-bold text-nowrap" onclick="fmStartEdit('land','')">+ วัดที่ดิน</button>
+        </div>`;
+    }
     function fmPanel() {
       const P = $('fmPanel'), H = $('fmHint');
       if (fmEdit) { fmEditPanel(); return; }
@@ -3516,13 +3533,13 @@
       if (fmSel && fmSel.kind === 'plot') {
         const p = gData.plots.find(x => x.plot_id === fmSel.id);
         const diff = num(p.area_rai) ? ` · ในระบบ ${num(p.area_rai)} ไร่` : '';
-        P.innerHTML = `<div class="fw-bold"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</div>
+        P.innerHTML = `<div class="fw-bold">${esc(p.plot_name)}</div>
           <div class="srow-s mb-2">วัดจากแผนที่ ${num(p.map_rai)} ไร่${diff} · ${esc(p.cane_type)}</div>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmStartEdit('plot','${p.plot_id}')">แก้ขอบ</button>
+          <div class="d-flex gap-2 mb-2">
+            <button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartEdit('plot','${p.plot_id}')">แก้ขอบ</button>
             ${nav(p.center_lat, p.center_lng)}
             <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>
-          </div>`;
+          </div>${fmPickHtml()}`;
         return;
       }
       if (fmSel && fmSel.kind === 'land') {
@@ -3536,21 +3553,15 @@
           </div>`;
         return;
       }
-      const left = gData.plots.filter(p => !p.boundary);
-      P.innerHTML = `<div class="d-flex gap-2">
-          <select class="form-select flex-fill" id="fmPick" onchange="if(this.value)fmStartEdit('plot',this.value)">
-            <option value="">วาดขอบแปลง… (ยังไม่วาด ${left.length})</option>
-            ${gData.plots.map(p => `<option value="${p.plot_id}">${p.boundary ? '✓ ' : ''}${esc(p.plot_id)} ${esc(p.plot_name)}</option>`).join('')}
-          </select>
-          <button type="button" class="btn btn-outline-success fw-bold text-nowrap" onclick="fmStartEdit('land','')">+ วัดที่ดิน</button>
-        </div>
+      P.innerHTML = `${fmPickHtml()}
         <div class="srow-s mt-1">แตะแปลงบนแผนที่เพื่อดู/แก้ · "วัดที่ดิน" = ที่ที่ยังไม่ใช่แปลงเรา เช่น จะไปเช่า</div>`;
     }
 
     function fmStartEdit(kind, id) {
       const o = kind === 'plot' ? gData.plots.find(x => x.plot_id === id) : (gData.lands || []).find(x => x.land_id === id);
       fmSel = null;
-      fmEdit = { kind, id, pts: pPath(o && o.boundary), name: o ? (kind === 'plot' ? `${o.plot_id} ${o.plot_name}` : o.name) : '',
+      if (kind === 'plot' && o) fmLastLoc = plotLoc(o.plot_name);
+      fmEdit = { kind, id, pts: pPath(o && o.boundary), name: o ? (kind === 'plot' ? o.plot_name : o.name) : '',
         land: kind === 'land' ? { name: o ? o.name : '', owner: o ? o.owner : '', phone: o ? o.phone : '', note: o ? o.note : '' } : null };
       fmRender(); fmDrawEdit();
       if (fmEdit.pts.length) fmFit(fmEdit.pts);
@@ -3620,7 +3631,7 @@
       const item = (t, sub, js) => `<button type="button" onclick="${js}">${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
       const ql = q.toLowerCase();
       const mine = gData.plots.filter(p => (p.plot_id + ' ' + p.plot_name).toLowerCase().includes(ql)).map(p =>
-        item(`${p.plot_id} ${p.plot_name}`, p.boundary ? 'แปลงของเรา' : 'แปลงของเรา · ยังไม่วาดขอบ (แตะเพื่อวาด)',
+        item(p.plot_name, p.boundary ? 'แปลงของเรา' : 'แปลงของเรา · ยังไม่วาดขอบ (แตะเพื่อวาด)',
           p.boundary ? `fmGoPlot('${p.plot_id}')` : `$('fmRes').style.display='none';fmStartEdit('plot','${p.plot_id}')`))
         .concat((gData.lands || []).filter(l => (l.name + ' ' + l.owner).toLowerCase().includes(ql)).map(l => item(l.name, 'ที่ดินดูไว้', `fmGoLand('${l.land_id}')`))).slice(0, 5);
       const show = (h) => { R.innerHTML = h || '<div class="p-3 srow-s">ไม่พบ ลองพิมพ์ชื่อตำบล/อำเภอ หรือวางลิงก์ Google Maps</div>'; R.style.display = 'block'; };
@@ -3654,7 +3665,7 @@
     // เกณฑ์ฉีดยา: ลมเฉลี่ย ≤ 10 กม./ชม. กระโชก ≤ 20, 4 ชม.ข้างหน้าโอกาสฝน ≤ 30% และฝนรวม < 0.3 มม. ช่วง 06–18 น.
     const SPRAY_WIND = 10, SPRAY_GUST = 20, SPRAY_POP = 30;
     let wxData = null, wxLoading = false, wxLocI = 0, wxOpenDay = -1, wxErr = '';
-    try { wxData = JSON.parse(lsGet(WX_STORE) || 'null'); } catch (e) {}
+    try { wxData = JSON.parse(lsGet(WX_STORE) || 'null'); if (wxData && !Array.isArray(wxData.res)) wxData = null; } catch (e) { wxData = null; }
 
     function wxLocs() {
       const g = {}, order = [];
@@ -3681,6 +3692,7 @@
       fetch(url).then(r => r.json()).then(j => { if (j && j.error) throw new Error(j.reason); return Array.isArray(j) ? j : [j]; })
         .catch(() => callApi('weatherForecast', [locs.map(l => ({ lat: l.lat, lng: l.lng }))]))
         .then(res => {
+          if (!Array.isArray(res) || !res.length || !res[0].daily || !res[0].hourly) throw new Error('ข้อมูลพยากรณ์ไม่ครบ');
           wxData = { t: Date.now(), key, res };
           lsSet(WX_STORE, JSON.stringify(wxData));
         }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; })

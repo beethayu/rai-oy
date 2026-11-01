@@ -1227,3 +1227,26 @@ function renameAllBillPhotos() {
   readSheet_(ss, 'Expenses').forEach(e => { if (!seen[e.bill_id]) { seen[e.bill_id] = 1; nameBillPhotos_(e.photo_id, e.timestamp, e.shop); } });
   return Object.keys(seen).length;
 }
+
+// ของในบิลใช้หมดแล้ว (เช่นบิลเก่า): เอาออกจากสต็อก คืนยอดที่รับเข้า ค่าใช้จ่ายยังอยู่
+function billUnstock(billId) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('Expenses');
+    const d = sh.getDataRange().getDisplayValues();
+    let found = false;
+    for (let i = 1; i < d.length; i++) if (d[i][2] === billId) {
+      found = true; sh.getRange(i + 1, 11).setValue(''); sh.getRange(i + 1, 12).setValue('');
+    }
+    if (!found) throw new Error('ไม่พบบิล');
+    const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues(), inv = ss.getSheetByName(SH.INV);
+    for (let i = sd.length - 1; i >= 1; i--) {
+      if (String(sd[i][5]) !== billId) continue;
+      const id = inv.getDataRange().getValues(), c = invCols_(id[0]);
+      const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === String(sd[i][2]));
+      if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)));
+      sl.deleteRow(i + 1);
+    }
+    return readAll_(ss);
+  });
+}

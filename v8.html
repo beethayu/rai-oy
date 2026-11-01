@@ -1148,9 +1148,12 @@
         const pages = (prev ? prev.pages : []).concat(newPages);
         const ids = prev && prev.photo_id ? prev.photo_id.split(',') : [];
         call('readBill', [pages, 'image/jpeg', { photo_ids: ids }], d => {
+          const items = (d.items && d.items.length) ? d.items : [{ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }];
+          const age = calcDays(d.date);
+          const old = age !== null && age > 30 && items.some(it => it.stock_item);
+          if (old) items.forEach(it => { it.stock_item = ''; it.stock_qty = 0; });
           billDraft = { pages, date: d.date || '', shop: d.shop || (prev ? prev.shop : ''), photo_id: d.photo_id || '', note: prev ? prev.note : '',
-            total: num(d.total), err: d.error || '',
-            items: (d.items && d.items.length) ? d.items : [{ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }] };
+            total: num(d.total), err: d.error || '', oldNoStock: old ? age : 0, items };
           renderBill(); showM('billModal');
         }, null, `🤖 AI กำลังอ่านบิล ${pages.length > 1 ? pages.length + ' หน้า ' : ''}รอสักครู่...`);
       }).catch(e => alert(e.message));
@@ -1208,6 +1211,7 @@
       $('bill-body').innerHTML = `
         ${b.err ? `<div class="alert alert-warning py-2 small">AI อ่านบิลไม่สำเร็จ กรอกเองได้ (${esc(b.err).slice(0, 120)})</div>` : '<div class="small text-muted mb-2">AI อ่านให้แล้ว ลายมืออาจอ่านผิด ตรวจตัวเลขให้ตรงบิลก่อนกดบันทึก</div>'}
         <div id="bl_chk">${billChk(b, sum)}</div>
+        ${b.oldNoStock ? `<div class="alert alert-secondary py-2 small mb-2">บิลนี้ผ่านมา ${b.oldNoStock} วันแล้ว ของน่าจะใช้ไปแล้ว จึง<b>ไม่รับเข้าสต็อก</b> ถ้ายังมีของเหลือ เลือก "รับเข้าสต็อก" เองได้ในแต่ละรายการ</div>` : ''}
         <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="pickBill(true)">📷 เพิ่มหน้าบิล (บิลมีหลายใบ) · ตอนนี้ ${(b.pages || []).length || 1} หน้า</button>
         <div class="row g-2 mb-2">
           <div class="col-6"><div class="bill-lbl">วันที่ในบิล</div><input type="date" class="form-control form-control-sm" id="bl_date" value="${beToISO(b.date) || todayISO()}"></div>
@@ -1300,6 +1304,10 @@
           <button type="button" class="btn btn-outline-danger flex-fill" id="btnBillDel" onclick="delBill('${qa(b.id)}')">ลบบิลนี้</button>
         </div>
         <div class="small text-muted mt-2">ลบบิล = ลบค่าใช้จ่าย คืนยอดสต็อกที่รับเข้า และลบรูป</div>
+        ${b.items.some(i => i.stock_item) ? `<div class="border-top mt-3 pt-3">
+          <div class="bill-lbl">ของในบิลนี้ใช้หมดแล้ว (เช่น บิลเก่า)? เอาออกจากสต็อก ค่าใช้จ่ายยังอยู่</div>
+          <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="btnBillUnstock" onclick="billUnstock('${qa(b.id)}')">ใช้หมดแล้ว · เอาออกจากสต็อก</button>
+        </div>` : ''}
         <div class="border-top mt-3 pt-3">
           <div class="bill-lbl">บิลซ่อมรถ: ทุกรายการเป็นของรถ/เครื่องคันนี้ (ใช้ไปกับการซ่อม ไม่เข้าสต็อก)</div>
           <select class="form-select form-select-sm mb-2" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker').map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('')}</select>
@@ -1311,6 +1319,11 @@
           <button type="button" class="btn btn-sm btn-outline-success w-100" id="btnBillMerge" onclick="mergeBill('${qa(b.id)}')">รวมบิลที่เลือกเข้ากับบิลนี้ (ใช้วันที่/ร้านของบิลนี้)</button>
         </div>` : ''}`;
       showM('billView');
+    }
+
+    function billUnstock(id) {
+      if (!confirm('เอาของในบิลนี้ออกจากสต็อก (คืนยอดที่รับเข้า)?')) return;
+      call('billUnstock', [id], d => { init(d); hideModal('billView'); setTimeout(() => openBillView(id), 300); }, $('btnBillUnstock'));
     }
 
     function billAsset(id) {

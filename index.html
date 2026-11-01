@@ -87,17 +87,34 @@ function busy(d) {
 }
 
 // ---------- ขนาดกล่องแอปให้เต็มจอในโหมดไอคอน ----------
+function isStandalone() {
+  try {
+    return !!(navigator.standalone ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      window.matchMedia('(display-mode: minimal-ui)').matches);
+  } catch (e) { return !!navigator.standalone; }
+}
 function fitApp() {
-  if (!navigator.standalone) return;
+  if (!isStandalone()) return;
   const top = APP.getBoundingClientRect().top;
   const portrait = window.matchMedia('(orientation: portrait)').matches;
   const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  const vv = window.visualViewport ? window.visualViewport.height : 0;
   APP.style.bottom = 'auto';
-  APP.style.height = (Math.max(window.innerHeight, full) - top) + 'px';
+  APP.style.height = (Math.max(window.innerHeight, vv, full) - top) + 'px';
 }
-fitApp();
-window.addEventListener('resize', fitApp);
-window.addEventListener('orientationchange', () => setTimeout(fitApp, 300));
+function fitSoon() {
+  fitApp();
+  [100, 400, 1000, 2500].forEach(t => setTimeout(fitApp, t));
+}
+fitSoon();
+window.addEventListener('resize', fitSoon);
+window.addEventListener('orientationchange', fitSoon);
+window.addEventListener('pageshow', fitSoon);
+window.addEventListener('focus', fitSoon);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) fitSoon(); });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', fitApp);
 
 // ---------- fetch พร้อมตัดเวลา ----------
 function fetchWithTimeout(url, opts, ms) {
@@ -201,12 +218,16 @@ async function mount(html) {
 
   // ย้ายระยะขอบและสีพื้นของแอปเดิมมาไว้ในกล่อง #app
   const cs = getComputedStyle(document.body);
+  let bg = cs.backgroundColor;
+  if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') bg = '#ffffff';
   APP.style.padding = cs.padding;
   APP.style.paddingBottom = 'calc(' + (cs.paddingBottom || '0px') + ' + env(safe-area-inset-bottom))';
-  APP.style.backgroundColor = cs.backgroundColor;
+  APP.style.backgroundColor = bg;
   APP.style.backgroundImage = cs.backgroundImage;
   document.body.style.setProperty('padding', '0', 'important');
-  document.body.style.setProperty('background', '#2e7d32', 'important');
+  // พื้นหลังส่วนที่เหลือใช้สีเดียวกับแอป ถ้ามีช่องโผล่จะกลืนไปกับหน้า
+  document.body.style.setProperty('background', bg, 'important');
+  document.documentElement.style.setProperty('background', bg, 'important');
 
   // หน้าต่างที่แอปสร้างใหม่ทีหลัง ให้ย้ายเข้ากล่อง #app อัตโนมัติ
   new MutationObserver(list => {
@@ -224,7 +245,7 @@ async function mount(html) {
   try { document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true })); } catch (e) {}
   try { window.dispatchEvent(new Event('load')); } catch (e) {}
   booted = true;
-  fitApp();
+  fitSoon();
   const b = document.getElementById('boot');
   if (b) b.remove();
 }

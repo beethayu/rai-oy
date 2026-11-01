@@ -255,6 +255,20 @@
     .rk-fab { position: absolute; right: 10px; z-index: 500; border: 0; background: #fff; color: #1F5E3B; font-weight: 700; font-size: 14px; border-radius: 12px; padding: 9px 12px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
     .rk-lbl { background: #1F5E3B; color: #fff; border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 1px 6px; box-shadow: none; }
     .rk-lbl::before { display: none; }
+    #farmMapModal .modal-body { position: relative; padding: 0; }
+    #fmMap { position: absolute; inset: 0; background: #DDE3DE; }
+    .fm-top { position: absolute; left: 10px; right: 10px; top: 10px; z-index: 600; }
+    .fm-search { display: flex; gap: 6px; }
+    .fm-search input { flex: 1; height: 44px; border: 0; border-radius: 12px; padding: 0 14px; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+    .fm-search button { height: 44px; border: 0; border-radius: 12px; padding: 0 14px; background: #1F5E3B; color: #fff; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+    .fm-res { background: #fff; border-radius: 12px; margin-top: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.2); max-height: 50vh; overflow-y: auto; }
+    .fm-res button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: inherit; padding: 10px 14px; font-size: 15px; }
+    .fm-res button + button { border-top: 1px solid #EEF1EF; }
+    .fm-res small { display: block; color: #6B736E; font-size: 12px; }
+    .fm-hint { margin-top: 6px; background: rgba(255,255,255,.95); border-radius: 12px; padding: 8px 12px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+    .fm-lbl { background: rgba(255,255,255,.9); border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 0 5px; box-shadow: none; color: #1F2A24; }
+    .fm-lbl::before { display: none; }
+    #fmPanel { width: 100%; }
     .rk-trip { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; font-size: 14px; }
     .rk-trip + .rk-trip { border-top: 1px solid #EEF1EF; }
     .rk-x { border: 0; background: transparent; color: #A3271B; font-size: 13px; font-weight: 600; padding: 2px 4px; }
@@ -998,6 +1012,31 @@
     </div>
   </div>
 
+  <div class="modal fade" id="farmMapModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">แผนที่ไร่</h6>
+          <button type="button" class="btn-close btn-close-white" onclick="fmClose()"></button>
+        </div>
+        <div class="modal-body">
+          <div id="fmMap"></div>
+          <div class="fm-top">
+            <form class="fm-search" onsubmit="event.preventDefault();fmSearch()">
+              <input id="fmQ" type="search" placeholder="ค้นหาสถานที่ / รหัสแปลง / วางพิกัด" enterkeyhint="search" autocomplete="off">
+              <button type="submit">ค้นหา</button>
+            </form>
+            <div class="fm-res" id="fmRes" style="display:none"></div>
+            <div class="fm-hint" id="fmHint" style="display:none"></div>
+          </div>
+          <button type="button" class="rk-fab" style="top:120px" id="fmLayerBtn" onclick="fmToggleLayer()">แผนที่ถนน</button>
+          <button type="button" class="rk-fab" style="top:166px" onclick="fmGoMe()">ไปที่ฉัน</button>
+        </div>
+        <div class="modal-footer py-2"><div id="fmPanel"></div></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="rockPairModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1183,7 +1222,7 @@
       } catch (e) {}
     }
     function init(d, fromCache) {
-      gData = d; if (!gData.watches) gData.watches = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
+      gData = d; if (!gData.lands) gData.lands = []; if (!gData.watches) gData.watches = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
       if (!uiRestored) { uiRestored = true; uiRestore(); }
       if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
     }
@@ -1816,7 +1855,7 @@
       });
       if (curTab === 'urgent') list.sort((a, b) => (a.st.isOngoing ? 1 : 0) - (b.st.isOngoing ? 1 : 0));
 
-      let html = curTab === 'all' ? plotListHtml(list, logsBy) : todayHtml(rows, logsBy);
+      let html = curTab === 'all' ? farmBtnHtml() + plotListHtml(list, logsBy) : todayHtml(rows, logsBy);
       if (!html) html = '<div class="empty"><b>ไม่มีแปลงในหมวดนี้</b>ลองเลือกหมวดอื่น</div>';
 
       chkHtml = rainListHtml();
@@ -2037,6 +2076,7 @@
           </div>
         </div>
 
+        <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="hideModal('dossierModal');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${num(p.map_rai)} ไร่` : 'วาดขอบแปลงบนแผนที่'}</button>
         <h6 class="fw-bold text-dark mb-2">📊 2. สรุปกิจกรรมสะสมตั้งแต่เริ่มฤดูกาล</h6>
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">
@@ -3327,6 +3367,248 @@
         const a = document.createElement('a'); a.href = rockPairData.url; a.download = rockPairData.name; a.click();
       });
     }
+
+
+    // ================= แผนที่ไร่: วาดขอบแปลง + ที่ดินที่จะเช่า =================
+    let fmMap = null, fmSat = null, fmStreet = null, fmUseSat = true, fmLayer = null, fmEditLayer = null, fmMe = null, fmWatch = null, fmTmp = null;
+    let fmSel = null, fmEdit = null, fmBackTo = '';
+    const RAI = 1600;
+    const pPath = s => String(s || '').split(';').map(x => x.split(',').map(Number)).filter(x => x.length === 2 && x[0] && x[1]);
+    function polyM2(pts) {
+      if (pts.length < 3) return 0;
+      const la = pts.reduce((t, p) => t + p[0], 0) / pts.length, kx = 111320 * Math.cos(la * Math.PI / 180), ky = 110540;
+      let a = 0;
+      for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; a += (p[1] * kx) * (q[0] * ky) - (q[1] * kx) * (p[0] * ky); }
+      return Math.abs(a / 2);
+    }
+    const fmtRai = m2 => { const r = m2 / RAI; return r >= 1 ? `${(Math.round(r * 10) / 10).toLocaleString()} ไร่` : `${Math.round(m2 / 4)} ตร.วา`; };
+
+    function farmBtnHtml() {
+      const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;
+      return `<button type="button" class="btn btn-outline-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openFarmMap()">แผนที่ไร่ · วาดขอบแล้ว ${n}/${gData.plots.length} แปลง${nl ? ` · ที่ดินดูไว้ ${nl}` : ''}</button>`;
+    }
+
+    function openFarmMap(pid, edit) {
+      fmSel = null; fmEdit = null; $('fmRes').style.display = 'none'; $('fmQ').value = '';
+      showM('farmMapModal');
+      loadLeaflet().then(() => {
+        if (!fmMap) {
+          fmMap = L.map('fmMap', { zoomControl: false });
+          fmSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18, attribution: 'ภาพ © Esri' });
+          fmStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19, attribution: '© OpenStreetMap' });
+          fmSat.addTo(fmMap);
+          fmLayer = L.layerGroup().addTo(fmMap); fmEditLayer = L.layerGroup().addTo(fmMap);
+          fmMap.on('click', e => {
+            $('fmRes').style.display = 'none';
+            if (fmEdit) { fmEdit.pts.push([e.latlng.lat, e.latlng.lng]); fmDrawEdit(); }
+            else if (fmSel) { fmSel = null; fmRender(); }
+          });
+          $('farmMapModal').addEventListener('shown.bs.modal', () => fmMap.invalidateSize());
+          $('farmMapModal').addEventListener('hidden.bs.modal', () => { if (fmWatch !== null) navigator.geolocation.clearWatch(fmWatch); fmWatch = null; });
+        }
+        setTimeout(() => {
+          fmMap.invalidateSize();
+          const p = pid && gData.plots.find(x => x.plot_id === pid);
+          if (p && pPath(p.boundary).length) { fmSel = { kind: 'plot', id: pid }; fmFit(pPath(p.boundary)); }
+          else fmFitAll();
+          fmRender();
+          if (p && edit) fmStartEdit('plot', pid);
+        }, 350);
+        fmStartWatch();
+      }).catch(e => { hideModal('farmMapModal'); alert(e.message); });
+    }
+    function fmClose() {
+      if (fmEdit && fmEdit.pts.length && !confirm('ยังไม่ได้บันทึกขอบที่วาด ปิดเลยไหม?')) return;
+      fmEdit = null; hideModal('farmMapModal');
+    }
+    function fmFit(pts) { if (pts.length) fmMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 18 }); }
+    function fmFitAll() {
+      const all = gData.plots.flatMap(p => pPath(p.boundary)).concat((gData.lands || []).flatMap(l => pPath(l.boundary)));
+      if (all.length) fmFit(all);
+      else if (rkLastPos) fmMap.setView([rkLastPos.lat, rkLastPos.lng], 15);
+      else fmMap.setView([15.3, 100.3], 8);
+    }
+    function fmStartWatch() {
+      if (!navigator.geolocation || fmWatch !== null) return;
+      fmWatch = navigator.geolocation.watchPosition(p => {
+        rkLastPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: Date.now() };
+        lsSet('raioy_lastpos', JSON.stringify(rkLastPos));
+        if (!fmMap) return;
+        const ll = [rkLastPos.lat, rkLastPos.lng];
+        if (!fmMe) fmMe = L.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#1E6FD9', fillOpacity: 1, interactive: false }).addTo(fmMap);
+        else fmMe.setLatLng(ll);
+      }, () => {}, { enableHighAccuracy: true, maximumAge: 30000, timeout: 60000 });
+    }
+    function fmGoMe() {
+      if (rkLastPos && fmMap) return fmMap.setView([rkLastPos.lat, rkLastPos.lng], Math.max(fmMap.getZoom(), 16));
+      alert('ยังหาตำแหน่งไม่เจอ (ต้องอนุญาตตำแหน่งให้แอป) · ใช้ช่องค้นหาแทนได้'); fmStartWatch();
+    }
+    function fmToggleLayer() {
+      fmUseSat = !fmUseSat;
+      if (fmUseSat) { fmMap.removeLayer(fmStreet); fmSat.addTo(fmMap); } else { fmMap.removeLayer(fmSat); fmStreet.addTo(fmMap); }
+      $('fmLayerBtn').innerText = fmUseSat ? 'แผนที่ถนน' : 'ภาพดาวเทียม';
+    }
+
+    // วาดแปลง/ที่ดินทั้งหมด (ยกเว้นอันที่กำลังแก้)
+    function fmRender() {
+      if (!fmLayer) return;
+      fmLayer.clearLayers();
+      const sel = (k, id) => fmSel && fmSel.kind === k && fmSel.id === id;
+      gData.plots.forEach(p => {
+        const pts = pPath(p.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'plot' && fmEdit.id === p.plot_id)) return;
+        const col = p.cane_type === 'อ้อยใหม่' ? '#7BD389' : '#E2B66B', on = sel('plot', p.plot_id);
+        L.polygon(pts, { color: on ? '#FFFFFF' : col, weight: on ? 4 : 2.5, fillColor: col, fillOpacity: on ? .45 : .25 })
+          .bindTooltip(p.plot_id, { permanent: true, direction: 'center', className: 'fm-lbl' })
+          .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'plot', id: p.plot_id }; fmRender(); })
+          .addTo(fmLayer);
+      });
+      (gData.lands || []).forEach(l => {
+        const pts = pPath(l.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'land' && fmEdit.id === l.land_id)) return;
+        const on = sel('land', l.land_id);
+        L.polygon(pts, { color: on ? '#FFFFFF' : '#B48CE8', weight: on ? 4 : 2.5, dashArray: '6 6', fillColor: '#B48CE8', fillOpacity: on ? .4 : .2 })
+          .bindTooltip(l.name, { permanent: true, direction: 'center', className: 'fm-lbl' })
+          .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'land', id: l.land_id }; fmRender(); })
+          .addTo(fmLayer);
+      });
+      fmPanel();
+    }
+
+    function fmPanel() {
+      const P = $('fmPanel'), H = $('fmHint');
+      if (fmEdit) { fmEditPanel(); return; }
+      H.style.display = 'none';
+      const nav = (la, ln) => `<a class="btn btn-outline-success flex-fill" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>`;
+      if (fmSel && fmSel.kind === 'plot') {
+        const p = gData.plots.find(x => x.plot_id === fmSel.id);
+        const diff = num(p.area_rai) ? ` · ในระบบ ${num(p.area_rai)} ไร่` : '';
+        P.innerHTML = `<div class="fw-bold"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</div>
+          <div class="srow-s mb-2">วัดจากแผนที่ ${num(p.map_rai)} ไร่${diff} · ${esc(p.cane_type)}</div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmStartEdit('plot','${p.plot_id}')">แก้ขอบ</button>
+            ${nav(p.center_lat, p.center_lng)}
+            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>
+          </div>`;
+        return;
+      }
+      if (fmSel && fmSel.kind === 'land') {
+        const l = (gData.lands || []).find(x => x.land_id === fmSel.id);
+        P.innerHTML = `<div class="fw-bold">${esc(l.name)} <span class="srow-s">· ${num(l.map_rai)} ไร่</span></div>
+          <div class="srow-s mb-2">${[l.owner ? 'เจ้าของ ' + esc(l.owner) : '', l.phone ? `<a href="tel:${esc(l.phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B">${esc(l.phone)}</a>` : '', esc(l.note)].filter(Boolean).join(' · ') || 'ที่ดินดูไว้'}</div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmStartEdit('land','${l.land_id}')">แก้</button>
+            ${nav(l.center_lat, l.center_lng)}
+            <button type="button" class="btn btn-outline-danger" id="btnLandDel" onclick="fmDelLand('${l.land_id}')">ลบ</button>
+          </div>`;
+        return;
+      }
+      const left = gData.plots.filter(p => !p.boundary);
+      P.innerHTML = `<div class="d-flex gap-2">
+          <select class="form-select flex-fill" id="fmPick" onchange="if(this.value)fmStartEdit('plot',this.value)">
+            <option value="">วาดขอบแปลง… (ยังไม่วาด ${left.length})</option>
+            ${gData.plots.map(p => `<option value="${p.plot_id}">${p.boundary ? '✓ ' : ''}${esc(p.plot_id)} ${esc(p.plot_name)}</option>`).join('')}
+          </select>
+          <button type="button" class="btn btn-outline-success fw-bold text-nowrap" onclick="fmStartEdit('land','')">+ วัดที่ดิน</button>
+        </div>
+        <div class="srow-s mt-1">แตะแปลงบนแผนที่เพื่อดู/แก้ · "วัดที่ดิน" = ที่ที่ยังไม่ใช่แปลงเรา เช่น จะไปเช่า</div>`;
+    }
+
+    function fmStartEdit(kind, id) {
+      const o = kind === 'plot' ? gData.plots.find(x => x.plot_id === id) : (gData.lands || []).find(x => x.land_id === id);
+      fmSel = null;
+      fmEdit = { kind, id, pts: pPath(o && o.boundary), name: o ? (kind === 'plot' ? `${o.plot_id} ${o.plot_name}` : o.name) : '',
+        land: kind === 'land' ? { name: o ? o.name : '', owner: o ? o.owner : '', phone: o ? o.phone : '', note: o ? o.note : '' } : null };
+      fmRender(); fmDrawEdit();
+      if (fmEdit.pts.length) fmFit(fmEdit.pts);
+    }
+    function fmDrawEdit() {
+      fmEditLayer.clearLayers();
+      if (!fmEdit) return;
+      const pts = fmEdit.pts;
+      let poly = null;
+      if (pts.length >= 2) poly = L.polygon(pts, { color: '#FFD23F', weight: 3, fillColor: '#FFD23F', fillOpacity: .25, interactive: false }).addTo(fmEditLayer);
+      pts.forEach((p, i) => {
+        const icon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11],
+          html: `<div style="width:22px;height:22px;border-radius:50%;background:${i === 0 ? '#1F5E3B' : '#FFD23F'};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)"></div>` });
+        L.marker(p, { icon, draggable: true }).addTo(fmEditLayer)
+          .on('drag', e => { const ll = e.target.getLatLng(); pts[i] = [ll.lat, ll.lng]; if (poly) poly.setLatLngs(pts); fmEditPanel(true); })
+          .on('dragend', () => fmDrawEdit());
+      });
+      fmEditPanel();
+    }
+    function fmEditPanel(onlyArea) {
+      const e = fmEdit, m2 = polyM2(e.pts), H = $('fmHint');
+      const o = e.kind === 'plot' ? gData.plots.find(x => x.plot_id === e.id) : null;
+      H.style.display = 'block';
+      H.innerHTML = e.pts.length < 3 ? `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · แตะมุมแปลงทีละมุมรอบแปลง (อย่างน้อย 3 มุม) · ลากมุมย้ายได้`
+        : `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · ≈ <b>${fmtRai(m2)}</b>${o && num(o.area_rai) ? ` (ในระบบ ${num(o.area_rai)} ไร่)` : ''} · แตะเพิ่มมุม ลากมุมย้ายได้`;
+      if (onlyArea) return;
+      $('fmPanel').innerHTML = `${e.kind === 'land' ? `<div class="row g-2 mb-2">
+          <div class="col-6"><input class="form-control" id="ld_name" placeholder="ชื่อที่ดิน" value="${esc(e.land.name)}" oninput="fmEdit.land.name=this.value"></div>
+          <div class="col-6"><input class="form-control" id="ld_owner" placeholder="เจ้าของ" value="${esc(e.land.owner)}" oninput="fmEdit.land.owner=this.value"></div>
+          <div class="col-6"><input class="form-control" id="ld_phone" type="tel" placeholder="เบอร์" value="${esc(e.land.phone)}" oninput="fmEdit.land.phone=this.value"></div>
+          <div class="col-6"><input class="form-control" id="ld_note" placeholder="หมายเหตุ เช่น ค่าเช่า" value="${esc(e.land.note)}" oninput="fmEdit.land.note=this.value"></div>
+        </div>` : ''}
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary" onclick="fmEdit.pts.pop();fmDrawEdit()">ย้อน</button>
+          <button type="button" class="btn btn-outline-danger" onclick="if(!fmEdit.pts.length||confirm('ล้างมุมทั้งหมด?')){fmEdit.pts=[];fmDrawEdit()}">ล้าง</button>
+          <button type="button" class="btn btn-outline-secondary" onclick="fmEdit=null;fmEditLayer.clearLayers();fmRender()">ยกเลิก</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnFmSave" onclick="fmSave()">บันทึก</button>
+        </div>`;
+    }
+    function fmSave() {
+      const e = fmEdit, path = e.pts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';');
+      if (e.kind === 'plot') {
+        if (e.pts.length && e.pts.length < 3) return alert('ต้องมีอย่างน้อย 3 มุม');
+        if (!e.pts.length && !confirm('ลบขอบแปลงนี้?')) return;
+        call('setPlotBoundary', [e.id, path], d => {
+          gData.plots = d.plots; saveCache(gData); render();
+          fmEdit = null; fmEditLayer.clearLayers(); fmSel = e.pts.length ? { kind: 'plot', id: e.id } : null; fmRender();
+        }, $('btnFmSave'));
+      } else {
+        if (e.pts.length < 3) return alert('แตะมุมที่ดินอย่างน้อย 3 มุม');
+        call('saveLand', [Object.assign({ land_id: e.id || undefined, boundary: path }, e.land)], d => {
+          gData.lands = d.lands; saveCache(gData); render();
+          fmEdit = null; fmEditLayer.clearLayers(); fmSel = { kind: 'land', id: d.savedLand }; fmRender();
+        }, $('btnFmSave'));
+      }
+    }
+    function fmDelLand(id) {
+      const l = (gData.lands || []).find(x => x.land_id === id);
+      if (!confirm(`ลบที่ดิน "${l.name}"?`)) return;
+      call('deleteLand', [id], d => { gData.lands = d.lands; saveCache(gData); render(); fmSel = null; fmRender(); }, $('btnLandDel'));
+    }
+
+    // ค้นหา: แปลง/ที่ดินของเรา → พิกัด/ลิงก์ Google Maps → ชื่อสถานที่ (OpenStreetMap)
+    function fmSearch() {
+      const q = $('fmQ').value.trim(), R = $('fmRes'); if (!q) return;
+      $('fmQ').blur();
+      const item = (t, sub, js) => `<button type="button" onclick="${js}">${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
+      const ql = q.toLowerCase();
+      const mine = gData.plots.filter(p => (p.plot_id + ' ' + p.plot_name).toLowerCase().includes(ql)).map(p =>
+        item(`${p.plot_id} ${p.plot_name}`, p.boundary ? 'แปลงของเรา' : 'แปลงของเรา · ยังไม่วาดขอบ (แตะเพื่อวาด)',
+          p.boundary ? `fmGoPlot('${p.plot_id}')` : `$('fmRes').style.display='none';fmStartEdit('plot','${p.plot_id}')`))
+        .concat((gData.lands || []).filter(l => (l.name + ' ' + l.owner).toLowerCase().includes(ql)).map(l => item(l.name, 'ที่ดินดูไว้', `fmGoLand('${l.land_id}')`))).slice(0, 5);
+      const show = (h) => { R.innerHTML = h || '<div class="p-3 srow-s">ไม่พบ ลองพิมพ์ชื่อตำบล/อำเภอ หรือวางลิงก์ Google Maps</div>'; R.style.display = 'block'; };
+      if (/https?:\/\/|^-?\d{1,2}\.\d+\s*,\s*-?\d{2,3}\.\d+/.test(q)) {
+        return call('resolveMapLink', [q], g => { R.style.display = 'none'; fmPin(g.lat, g.lng, 'ตำแหน่งที่วาง'); }, null, '⏳ กำลังอ่านพิกัด...');
+      }
+      show(mine.join('') + '<div class="p-3 srow-s">กำลังค้นหาสถานที่…</div>');
+      const c = fmMap.getCenter(), b = `${c.lng - 1.5},${c.lat + 1.5},${c.lng + 1.5},${c.lat - 1.5}`;
+      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=th&accept-language=th&limit=8&viewbox=${b}&q=${encodeURIComponent(q)}`)
+        .then(r => r.json()).then(list => {
+          window._fmHits = list;
+          show(mine.join('') + list.map((h, i) => item(h.name || h.display_name.split(',')[0], h.display_name.split(',').slice(1, 4).join(','), `fmGoHit(${i})`)).join(''));
+        }).catch(() => show(mine.join('') + '<div class="p-3 srow-s">ค้นหาสถานที่ไม่ได้ (เน็ต?) · วางลิงก์ Google Maps แทนได้</div>'));
+    }
+    function fmPin(la, ln, t) {
+      if (fmTmp) fmMap.removeLayer(fmTmp);
+      fmTmp = L.circleMarker([la, ln], { radius: 9, color: '#fff', weight: 3, fillColor: '#E0453A', fillOpacity: 1, interactive: false })
+        .bindTooltip(t, { permanent: true, direction: 'top', offset: [0, -10], className: 'fm-lbl' }).addTo(fmMap);
+      fmMap.setView([la, ln], 17);
+    }
+    function fmGoHit(i) { const h = window._fmHits[i]; $('fmRes').style.display = 'none'; fmPin(+h.lat, +h.lon, h.name || h.display_name.split(',')[0]); }
+    function fmGoPlot(id) { $('fmRes').style.display = 'none'; fmSel = { kind: 'plot', id }; fmRender(); fmFit(pPath(gData.plots.find(p => p.plot_id === id).boundary)); }
+    function fmGoLand(id) { $('fmRes').style.display = 'none'; fmSel = { kind: 'land', id }; fmRender(); fmFit(pPath((gData.lands || []).find(l => l.land_id === id).boundary)); }
 
     // หน้าฝนตก: จัดกลุ่มตามสถานที่ เหมือนหน้าเลือกแปลงในแท็บบันทึกงาน
     function rainListHtml() {

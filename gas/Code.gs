@@ -260,6 +260,7 @@ function readAll_(ss) {
     watches: readSheet_(ss, 'Watch').filter(w => w.status === 'open'),
     expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
     ...readRock_(ss),
+    lands: readSheet_(ss, 'Lands'),
     settings: pub
   };
 }

@@ -70,6 +70,15 @@
   addRockTrip (รอลง→กำลังลง) / deleteRockLog / setRockPair / rockPhotos(logIds) รูปเต็ม / resolveMapLink(ลิงก์สั้น maps.app.goo.gl ได้)
   Drive: โฟลเดอร์ "หินคลุก ไร่อ้อย" (ROCK_FOLDER_ID) / โฟลเดอร์ย่อยชื่อสมาชิก
 
+== แผนที่ไร่ (2 พ.ย. 69 02:20) ==
+- ผู้ใช้อยากลากขอบแปลงในแผนที่ (แปลงห่างกันไม่เกิน 10–15 กม.) + ช่องค้นหาสถานที่ + เผื่อไปเช่าไร่เพิ่ม ได้รู้ขนาดและจำได้
+- v8: ปุ่ม "แผนที่ไร่" บนแท็บแปลง (farmBtnHtml) + ปุ่มในหน้าดูแปลง → farmMapModal (openFarmMap(pid, edit))
+  ภาพดาวเทียม Esri (maxNativeZoom 18) / OSM, แตะแปลง = ข้อมูล + แก้ขอบ/นำทาง/ดูแปลง, ค้นหา fmSearch: แปลง/ที่ดินของเรา → พิกัด/ลิงก์ (resolveMapLink) → Nominatim (OSM, th)
+  วาด fmStartEdit: แตะเพิ่มมุม ลากมุมได้ เนื้อที่สด (polyM2, 1 ไร่ = 1600 ตร.ม.) เทียบ area_rai · ที่ดินดูไว้ (Lands) สีม่วงเส้นประ
+- GAS gas/Geo.gs: Plots เพิ่มคอลัมน์ boundary, map_rai, center_lat, center_lng (headCol_ สร้างเอง) — setPlotBoundary(plotId, path) คืน {plots}
+  ชีต Lands (land_id, name, owner, phone, note, boundary, map_rai, center) saveLand / deleteLand คืน {lands} · readAll_ มี lands
+- ต่อไป: พยากรณ์อากาศ Open-Meteo ใช้ center ของแปลงจัดกลุ่มตาม plotLoc · ฝนเมื่อวานเป็นค่าประมาณจากโมเดล → ถามก่อนลงฝนตก (ผู้ใช้ยังไม่ได้ตอบข้อนี้ ใช้ค่าแนะนำ)
+
 == หน้าตา v8 (2 พ.ย. 69 รอบดึก) ==
 - วันนี้ = todayHtml บรรทัดเดียวแบบหน้าแปลง (srow) แตะแล้วมีปุ่ม (todayOpen) ผู้ใช้ชอบแบบนี้; ปุ่มบันทึกงานตรงกลางเป็น tab-btn ธรรมดา (ไม่ใช่ fab ใหญ่) ซ่อน .tiles บนหัวในแท็บวันนี้/บันทึกงาน; dbg() จดเหตุการณ์ดูท้ายหน้าแผน
 - (เดิม) วันนี้ = การ์ดใหญ่ (plotCard) / แปลง = plotListHtml บรรทัดเดียว จัดกลุ่มตามสถานที่ (plotLoc ตัดวงเล็บ+เลขท้าย)

@@ -80,6 +80,17 @@
       document.getElementById('boot-err').textContent = err || '';
       document.getElementById('boot-retry').style.display = showRetry ? 'inline-flex' : 'none';
     }
+    // จดเหตุการณ์ไว้ดูบั๊ก (30 รายการล่าสุด) ดูได้ท้ายหน้า "แผน"
+    function dbg(msg) {
+      try {
+        const a = JSON.parse(localStorage.getItem('raioy_dbg') || '[]');
+        const t = new Date(); a.push(`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')} ${msg}`);
+        localStorage.setItem('raioy_dbg', JSON.stringify(a.slice(-30)));
+      } catch (e) {}
+    }
+    dbg('เปิดแอป/โหลดหน้าใหม่ (' + (performance.getEntriesByType && (performance.getEntriesByType('navigation')[0] || {}).type || '?') + ')');
+    document.addEventListener('visibilitychange', () => dbg(document.hidden ? 'แอปไปเบื้องหลัง' : 'กลับมาที่แอป'));
+    window.addEventListener('pageshow', e => { if (e.persisted) dbg('กลับมาจากแคช iOS'); });
     function hideBoot() { const b = document.getElementById('boot'); if (b) b.style.display = 'none'; }
     function showKeyBox() {
       const k = document.getElementById('keybox'); if (!k) return;
@@ -374,7 +385,7 @@
         <span class="t-lbl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>ถึงคิวต้องทำ</span>
         <span class="t-num"><span id="t-urg">–</span> <small>แปลง</small></span>
       </button>
-      <button type="button" class="tile tile-doing" onclick="goDoing()">
+      <button type="button" class="tile tile-doing" onclick="dbg('แตะปุ่ม กำลังทำ');goDoing()">
         <span class="t-lbl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>กำลังทำ</span>
         <span class="t-num"><span id="t-doing">–</span> <small>แปลง</small></span>
       </button>
@@ -412,7 +423,7 @@
     <button type="button" class="tab-btn active" data-tab="urgent" onclick="switchTab('urgent')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/></svg>
       วันนี้<span class="nb" id="u-cnt" style="display:none;">0</span></button>
-    <button type="button" class="tab-btn" data-tab="all" onclick="switchTab('all')">
+    <button type="button" class="tab-btn" data-tab="all" onclick="dbg('แตะเมนูล่าง แปลง');switchTab('all')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       แปลง</button>
     <button type="button" class="fab" onclick="openPick()">
@@ -1089,7 +1100,8 @@
     // iOS แตะทะลุ: กด ✕ ปิดหน้าต่างแล้วแตะเดียวกันไปโดนปุ่มข้างใต้ (เช่นปุ่ม "กำลังทำ" มุมขวาบน → เด้งไปหน้าแปลง)
     // หลังปิดหน้าต่าง 0.6 วิ ไม่รับแตะนอกหน้าต่าง
     let ghostUntil = 0;
-    document.addEventListener('hide.bs.modal', () => { ghostUntil = Date.now() + 600; });
+    document.addEventListener('hide.bs.modal', e => { ghostUntil = Date.now() + 600; dbg('ปิด ' + (e.target.id || 'หน้าต่าง')); });
+    document.addEventListener('show.bs.modal', e => dbg('เปิด ' + (e.target.id || 'หน้าต่าง')));
     ['click', 'touchend', 'pointerup'].forEach(ev => document.addEventListener(ev, e => {
       if (Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
     }, true));
@@ -1469,7 +1481,11 @@
             const l = LBL[it.status] || LBL.later;
             return `<div class="plan-it"><span class="plan-dot ${l[0]}">${l[1]}</span><div><div class="plan-t">${esc(it.t)}</div>${it.n ? `<div class="plan-n">${esc(it.n)}</div>` : ''}</div></div>`;
           }).join('')).join('');
-      }).catch(() => { body.innerHTML = '<div class="text-muted">โหลดแผนงานไม่ได้ ลองใหม่อีกครั้ง</div>'; });
+      }).catch(() => { body.innerHTML = '<div class="text-muted">โหลดแผนงานไม่ได้ ลองใหม่อีกครั้ง</div>'; })
+        .finally(() => {
+          let a = []; try { a = JSON.parse(localStorage.getItem('raioy_dbg') || '[]'); } catch (e) {}
+          body.insertAdjacentHTML('beforeend', `<details class="mt-4"><summary class="small text-muted">บันทึกการทำงานของแอป (สำหรับ Claude ดูบั๊ก)</summary><pre style="font-size:11px;white-space:pre-wrap;background:#F4F5F4;padding:8px;border-radius:8px;">${esc(a.slice().reverse().join('\n'))}</pre></details>`);
+        });
     }
 
     // วันที่นับยอดจริงล่าสุดของรายการสต็อก (จาก StockLogs ที่ ref = ⚖️ ปรับยอด)
@@ -1738,6 +1754,10 @@
     }
 
     function switchTab(t, keep) {
+      if (t !== curTab) {
+        const st = (new Error().stack || '').split('\n').slice(2, 4).map(x => x.trim().replace(/^at /, '').replace(/\(.*\)|@.*$/, '').trim()).filter(Boolean).join(' < ');
+        dbg(`หน้า ${curTab} → ${t} (${st || '?'})`);
+      }
       curTab = t;
       document.querySelectorAll('#mainTab .tab-btn').forEach(e => e.classList.toggle('active', e.dataset.tab === t || (t === 'table' && e.dataset.tab === 'all')));
       const plotTab = t === 'all' || t === 'urgent';

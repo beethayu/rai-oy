@@ -1485,6 +1485,7 @@
         ${tractors.map(a => renderCard(a, '🚜', true)).join('')}
         <h6 class="fw-bold mt-3 mb-2 text-success">👤 สถานะคนงาน</h6>
         ${workers.map(a => renderCard(a, '👤', false)).join('')}
+        <div class="bg-white p-3 rounded shadow-sm border mt-3" id="wsum-box">${workSumHtml()}</div>
         <div class="bg-white p-3 rounded shadow-sm border mt-3">
           <h6 class="fw-bold text-dark mb-2">📜 ประวัติซ่อม / บำรุง / สลับแบต / คนงาน (100 รายการล่าสุด)</h6>
           <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
@@ -1499,6 +1500,87 @@
           </div>
         </div>`;
       $('fleet-view').innerHTML = html;
+    }
+
+    // ================= สรุปงานคนงาน (ดูอย่างเดียว ใช้ตอนคิดเงิน) =================
+    let wsFrom = '', wsTo = '', wsOpen = '';
+    function wsPreset(k) {
+      const n = new Date(), y = n.getFullYear(), m = n.getMonth(), d = n.getDate();
+      const iso = (yy, mm, dd) => { const t = new Date(yy, mm, dd); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; };
+      if (k === 'half') { if (d <= 15) { wsFrom = iso(y, m, 1); wsTo = iso(y, m, 15); } else { wsFrom = iso(y, m, 16); wsTo = iso(y, m + 1, 0); } }
+      else if (k === 'prevhalf') { if (d <= 15) { wsFrom = iso(y, m - 1, 16); wsTo = iso(y, m, 0); } else { wsFrom = iso(y, m, 1); wsTo = iso(y, m, 15); } }
+      else if (k === 'month') { wsFrom = iso(y, m, 1); wsTo = iso(y, m + 1, 0); }
+      else if (k === 'prevmonth') { wsFrom = iso(y, m - 1, 1); wsTo = iso(y, m, 0); }
+      wsOpen = ''; $('wsum-box').innerHTML = workSumHtml();
+    }
+    function wsSetRange() { wsFrom = $('ws_from').value; wsTo = $('ws_to').value; $('wsum-box').innerHTML = workSumHtml(); }
+    function wsToggle(n) { wsOpen = wsOpen === n ? '' : n; $('wsum-box').innerHTML = workSumHtml(); }
+    function thDate(iso) { const [y, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]} ${String(+y + 543).slice(2)}`; }
+    const wsTags = r => ['ค้างคืน', 'เลิกเที่ยง'].filter(t => (r || '').includes(t));
+
+    function workSumData() {
+      if (!wsFrom) { const n = new Date(); wsFrom = `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${n.getDate() <= 15 ? '01' : '16'}`; wsTo = todayISO(); }
+      const pName = {}; (gData.plots || []).forEach(p => pName[p.plot_id] = p.plot_name);
+      const logs = (gData.activities || []).filter(l => {
+        if (l.activity_group === 'ฝนตก' || l.activity_group === 'ฝนตกเหมาแปลง') return false;
+        const iso = beToISO(l.timestamp); return iso && iso >= wsFrom && iso <= wsTo;
+      }).map(l => ({ ...l, iso: beToISO(l.timestamp), plot: pName[l.plot_id] || l.plot_id,
+        people: String(l.operator || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ') }));
+      const per = {};
+      logs.forEach(l => l.people.forEach(w => { (per[w] = per[w] || {})[l.iso] = (per[w][l.iso] || []).concat(l); }));
+      const order = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);
+      const names = Object.keys(per).sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+      const rows = names.map(w => {
+        const days = Object.keys(per[w]).sort();
+        let night = 0, half = 0;
+        days.forEach(d => { const ls = per[w][d]; if (ls.some(l => wsTags(l.remark).includes('ค้างคืน'))) night++; if (ls.every(l => wsTags(l.remark).includes('เลิกเที่ยง'))) half++; });
+        return { w, days, night, half, by: per[w] };
+      });
+      return { logs, rows };
+    }
+
+    function workSumHtml() {
+      if (!gData) return '';
+      const { logs, rows } = workSumData();
+      const chip = (k, t) => `<button type="button" class="btn btn-sm btn-outline-success py-0" onclick="wsPreset('${k}')">${t}</button>`;
+      const list = rows.map(r => {
+        const open = wsOpen === r.w;
+        const detail = open ? `<div class="small mt-2 ps-2 border-start border-success border-3">${r.days.map(d => r.by[d].map(l =>
+          `<div class="py-1"><b>${thDate(d)}</b> · ${esc(l.plot)} · ${esc(l.activity_group)}${l.activity_detail && l.activity_detail !== '-' ? ' (' + esc(l.activity_detail) + ')' : ''}${wsTags(l.remark).length ? ' · <b class="text-danger">' + wsTags(l.remark).join(' ') + '</b>' : ''}${(l.remark || '').includes('กำลังทำ') ? ' <span class="text-primary">[เริ่ม ยังไม่เสร็จ]</span>' : ''}</div>`).join('')).join('')}</div>` : '';
+        return `<div class="border-bottom py-2" style="cursor:pointer" onclick="wsToggle('${qa(r.w)}')">
+            <div class="d-flex justify-content-between align-items-center"><b class="fs-6">${esc(r.w)}</b><span class="text-muted small">${open ? '▴' : '▾'}</span></div>
+            <div>ทำงาน <b>${r.days.length}</b> วัน${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}${r.half ? ` · ครึ่งวัน <b>${r.half}</b>` : ''}</div>${detail}</div>`;
+      }).join('') || '<div class="text-muted py-2">ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน</div>';
+      return `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold m-0 text-success">🧾 สรุปงานคนงาน</h6>
+          <button type="button" class="btn btn-sm btn-success py-0" onclick="wsCopy()">ก๊อปส่ง LINE</button>
+        </div>
+        <div class="d-flex gap-1 flex-wrap mb-2">${chip('half', 'ครึ่งเดือนนี้')}${chip('prevhalf', 'ครึ่งเดือนก่อน')}${chip('month', 'เดือนนี้')}${chip('prevmonth', 'เดือนก่อน')}</div>
+        <div class="d-flex gap-1 align-items-center mb-2 small">
+          <input type="date" class="form-control form-control-sm" id="ws_from" value="${wsFrom}" onchange="wsSetRange()">
+          <span>ถึง</span>
+          <input type="date" class="form-control form-control-sm" id="ws_to" value="${wsTo}" onchange="wsSetRange()">
+        </div>
+        ${list}
+        <div class="small text-muted mt-2">นับวันจากงานที่บันทึก (${logs.length} รายการ) · งานหลายวันนับเฉพาะวันที่กดบันทึก ถ้าทำต่อเนื่องให้กด "+ บันทึก" ทุกวัน · กดชื่อเพื่อดูรายวัน</div>`;
+    }
+
+    function wsCopy() {
+      const { logs, rows } = workSumData();
+      if (!logs.length) return alert('ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน');
+      let t = `📌 สรุปงานคนงาน (${thDate(wsFrom)} – ${thDate(wsTo)})\n`;
+      [...new Set(logs.map(l => l.iso))].sort().forEach(d => {
+        t += `\nวันที่ ${thDate(d)}\n`;
+        logs.filter(l => l.iso === d && l.people.length).forEach(l => {
+          const tg = wsTags(l.remark);
+          t += `• ${l.people.join(', ')} : ${l.plot} ${l.activity_group}${tg.length ? ' (' + tg.join(' ') + ')' : ''}\n`;
+        });
+      });
+      t += `\nรวม\n` + rows.map(r => `• ${r.w} ${r.days.length} วัน${r.night ? ' ค้างคืน ' + r.night : ''}${r.half ? ' ครึ่งวัน ' + r.half : ''}`).join('\n');
+      const done = () => alert('ก๊อปแล้ว ไปวางใน LINE ได้เลย');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => prompt('ก๊อปข้อความนี้', t));
+      else prompt('ก๊อปข้อความนี้', t);
     }
 
     // ประวัติซ่อมรายคัน + สถิติ

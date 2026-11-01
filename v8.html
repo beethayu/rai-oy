@@ -202,6 +202,16 @@
     .prow-new { color: var(--green-d); font-weight: 600; }
     .prow-rat { color: #6B4A1F; font-weight: 600; }
     .prow-doing { box-shadow: inset 4px 0 0 #2F5BB7; }
+    .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .task-btn { border: 1px solid #DDE3DF; background: #fff; border-radius: 16px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: inherit; }
+    .task-btn .ti { font-size: 30px; line-height: 1; }
+    .task-btn .tt { font-weight: 700; font-size: 17px; }
+    .task-btn .ts { font-size: 12px; color: #6B736E; }
+    .task-btn:active { background: #EEF5F0; }
+    .pk-row { display: flex; align-items: center; gap: 10px; padding: 11px 12px; width: 100%; }
+    .pk-row + .pk-row { border-top: 1px solid #EEF1EF; }
+    .pk-row input { width: 22px; height: 22px; flex-shrink: 0; accent-color: #1F5E3B; }
+    .pk-row.on { background: #EEF5F0; }
     .sec-h { display: flex; justify-content: space-between; align-items: center; margin: 18px 2px 8px; }
     .sec-h:first-child { margin-top: 4px; }
     .sec-h b { font-size: 17px; }
@@ -420,13 +430,19 @@
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header text-white py-2" style="background:#1F5E3B;">
-          <h5 class="modal-title fw-bold">บันทึกงาน: เลือกแปลง</h5>
+          <h5 class="modal-title fw-bold d-flex align-items-center gap-2"><button type="button" id="pickBack" class="btn btn-sm btn-light py-0 px-2" style="display:none" onclick="pickStage('task')">‹ กลับ</button><span id="pickTitle">บันทึกงาน: ทำอะไร</span></h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด"></button>
         </div>
         <div class="modal-body">
-          <label for="pickQ" class="visually-hidden">ค้นหาแปลง</label>
-          <input id="pickQ" class="pick-q" placeholder="พิมพ์ชื่อหรือรหัสแปลง" oninput="renderPick()">
-          <div id="pickList"></div>
+          <div id="pickTasks"></div>
+          <div id="pickPlots" style="display:none">
+            <label for="pickQ" class="visually-hidden">ค้นหาแปลง</label>
+            <input id="pickQ" class="pick-q" placeholder="พิมพ์ชื่อหรือรหัสแปลง" oninput="renderPick()">
+            <div id="pickList"></div>
+          </div>
+        </div>
+        <div class="modal-footer py-2" id="pickFoot" style="display:none">
+          <button type="button" class="btn btn-success fw-bold w-100 py-2" id="pickGo" onclick="pickGo()" disabled>เลือกแปลงก่อน</button>
         </div>
       </div>
     </div>
@@ -1738,33 +1754,82 @@
       switchTab('all');
     }
 
-    function openPick() { $('pickQ').value = ''; renderPick(); showM('pickModal'); }
+    // ===== ปุ่ม + บันทึกงาน: เลือก "ทำอะไร" ก่อน → ติ๊กแปลง (หลายแปลงได้) → ฟอร์มที่เลือกหมวดไว้แล้ว =====
+    // (บันทึกแปลงเดียวทำจากหน้าแปลง/วันนี้ได้เหมือนเดิม)
+    const TASKS = [
+      { k: 'water', t: 'ขึ้นน้ำ', i: '💧', s: 'ราดร่อง / ขึ้นน้ำ', g: 'ขึ้นน้ำ', watch: 'ขึ้นน้ำ' },
+      { k: 'chem', t: 'ฉีดยา', i: '🧪', s: 'ยาคุม / ยาฆ่าหญ้า', g: 'ฉีดยา', watch: 'ฉีดยา' },
+      { k: 'fert', t: 'ปุ๋ย / บำรุง', i: '🌱', s: 'ใส่ปุ๋ย ถากหญ้า ซ่อมอ้อย', g: 'ใส่ปุ๋ย', watch: 'หว่านปุ๋ย' },
+      { k: 'trac', t: 'รถไถ', i: '🚜', s: 'ริปเปอร์ อุ้มร่อง ฝังปุ๋ย', g: 'รถไถเตรียมดิน/บำรุง' },
+      { k: 'pump', t: 'สูบน้ำขัง', i: '🌊', s: 'น้ำท่วมขัง สูบออก', g: 'ขึ้นน้ำ', det: 'สูบน้ำขังออก', watch: 'น้ำขัง สูบออก' },
+      { k: 'harv', t: 'ตัดอ้อย', i: '🌾', s: 'ตัด / ขนส่ง', g: 'ตัดอ้อย' }
+    ];
+    let pkTask = null, pkSel = new Set();
+    function openPick() {
+      pkTask = null; pkSel = new Set(); $('pickQ').value = '';
+      $('pickTasks').innerHTML = `<div class="task-grid">${TASKS.map(t => `<button type="button" class="task-btn" onclick="pickTask('${t.k}')"><span class="ti">${t.i}</span><span class="tt">${t.t}</span><span class="ts">${t.s}</span></button>`).join('')}</div>
+        <div class="small text-muted mt-3">ฝนตก ใช้ปุ่ม "ฝนตก" ด้านบนของแอป · บันทึกแปลงเดียว แตะแปลงในหน้าแปลงก็ได้</div>`;
+      pickStage('task'); showM('pickModal');
+    }
+    function pickStage(st) {
+      const plots = st === 'plots';
+      $('pickTasks').style.display = plots ? 'none' : 'block';
+      $('pickPlots').style.display = plots ? 'block' : 'none';
+      $('pickFoot').style.display = plots ? 'flex' : 'none';
+      $('pickBack').style.display = plots ? 'inline-block' : 'none';
+      $('pickTitle').innerText = plots ? `${pkTask.t}: เลือกแปลง` : 'บันทึกงาน: ทำอะไร';
+      if (plots) { renderPick(); pkFoot(); }
+    }
+    function pickTask(k) { pkTask = TASKS.find(t => t.k === k); pkSel = new Set(); $('pickQ').value = ''; pickStage('plots'); }
+    function pkToggle(id, on) {
+      on ? pkSel.add(id) : pkSel.delete(id);
+      document.querySelectorAll(`.pk-row[data-id="${id}"]`).forEach(r => { r.classList.toggle('on', on); r.querySelector('input').checked = on; });
+      pkFoot();
+    }
+    function pkFoot() {
+      const n = pkSel.size, b = $('pickGo');
+      b.disabled = !n; b.innerText = n ? `ถัดไป: บันทึก${pkTask.t} ${n} แปลง` : 'ติ๊กแปลงก่อน (เลือกได้หลายแปลง)';
+    }
     function renderPick() {
+      if (!pkTask) return;
       const q = $('pickQ').value.trim().toLowerCase();
       const rows = gData.plots.map(p => ({ p, st: analyze(p) }))
         .filter(({ p }) => !q || (p.plot_id + ' ' + p.plot_name).toLowerCase().includes(q));
-      const item = ({ p, st }) => {
-        const kd = kindOf(st), w = watchesOf(p.plot_id).length;
-        return `<button type="button" class="srow-main" style="border-top:1px solid #EEF1EF" onclick="pickPlot('${p.plot_id}')">
-          <span class="srow-l"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span>
-          <span class="srow-s">${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</span></span>
-          ${kd.k === 'doing' ? '<span class="pill pill-doing">กำลังทำ</span>' : w ? '<span class="pill pill-watch">ฝากดู</span>' : kd.k === 'urgent' ? '<span class="pill pill-urgent">ถึงคิว</span>' : ''}
-        </button>`;
+      const why = ({ p, st }) => {
+        const w = watchesOf(p.plot_id).find(x => x.reason === pkTask.watch);
+        if (w) return `<span class="pill pill-watch">ฝากดู</span>`;
+        const og = st.isOngoing && (gData.activities || []).find(a => a.plot_id === p.plot_id && (a.remark || '').includes('[⏳กำลังทำ]'));
+        if (og && og.activity_group === pkTask.g) return `<span class="pill pill-doing">กำลังทำ</span>`;
+        if (st.isUrg && !st.isOngoing && (pkTask.k === 'water' || pkTask.k === 'chem')) return `<span class="pill pill-urgent">ถึงคิว</span>`;
+        return '';
+      };
+      const item = r => {
+        const { p } = r, on = pkSel.has(p.plot_id);
+        return `<label class="pk-row ${on ? 'on' : ''}" data-id="${p.plot_id}"><input type="checkbox" ${on ? 'checked' : ''} onchange="pkToggle('${p.plot_id}', this.checked)">
+          <span class="srow-l" style="flex:1"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span>
+          <span class="srow-s">${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</span></span>${why(r)}</label>`;
       };
       let h = '';
-      const hot = q ? [] : rows.filter(r => r.st.isOngoing || r.st.isUrg || watchesOf(r.p.plot_id).length);
-      if (hot.length) h += `<div class="srow-h">ด่วน / กำลังทำ</div><div class="srow-box">${hot.map(item).join('')}</div>`;
+      const hot = q ? [] : rows.filter(r => why(r));
+      if (hot.length) h += `<div class="srow-h">แนะนำ (ฝากดู / ถึงคิว)</div><div class="srow-box">${hot.map(item).join('')}</div>`;
       const groups = [], idx = {};
       rows.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
       h += groups.map(g => `<div class="srow-h">${esc(g.l)}</div><div class="srow-box">${g.rows.map(item).join('')}</div>`).join('');
       $('pickList').innerHTML = h || '<div class="text-muted p-2">ไม่พบแปลงที่ค้นหา</div>';
     }
-    function pickPlot(pid) {
-      const p = gData.plots.find(x => x.plot_id === pid);
-      const m = $('pickModal');
-      m.addEventListener('hidden.bs.modal', () => openAct(pid, p.plot_name, 'new'), { once: true });
+    function pickGo() {
+      if (!pkSel.size) return;
+      const ids = gData.plots.map(p => p.plot_id).filter(id => pkSel.has(id)), t = pkTask;
+      const names = ids.map(id => gData.plots.find(p => p.plot_id === id).plot_name);
+      $('pickModal').addEventListener('hidden.bs.modal', () => {
+        openAct(ids.join(','), ids.length > 1 ? `${ids.length} แปลง (${names.join(', ')})` : names[0], 'new');
+        selGrp(t.g);
+        if (t.det) $('water_det').value = t.det;
+        if (ids.length > 1) $('act_dt2_wrap').style.display = '';
+      }, { once: true });
       hideModal('pickModal');
     }
+    function pickPlot(pid) { const p = gData.plots.find(x => x.plot_id === pid); if (p) openAct(pid, p.plot_name, 'new'); }
 
     // ================= V8: เปิดแอป / จำข้อมูลในเครื่อง =================
     function readCache() { try { return JSON.parse(lsGet(DATA_STORE) || 'null'); } catch (e) { return null; } }
@@ -2678,7 +2743,7 @@
       let wks = []; document.querySelectorAll('.w-chk:checked').forEach(c => wks.push(c.value));
 
       const base = {
-        edit_log_id: $('edit_log_id').value, plotIds: [$('act_pid').value], activity_group: g, activity_detail: det,
+        edit_log_id: $('edit_log_id').value, plotIds: $('act_pid').value.split(',').filter(Boolean), activity_group: g, activity_detail: det,
         equipment: eq, quantity: qty, operator: wks.length ? wks.join(' + ') : 'ไม่ระบุ',
         custom_date: isoToBE($('act_dt').value), remark: $('act_rmk').value,
         is_ongoing: $('mode_ongoing').checked, usage
@@ -2692,7 +2757,7 @@
         if (days.length > 31) return alert('ช่วงวันยาวเกิน 31 วัน');
         if (!checkDate(d2)) return;
         const rng = `${thDate(d1)}–${thDate(d2)}`;
-        const pl = (gData.plots || []).find(x => x.plot_id === $('act_pid').value);
+        const pl = { plot_name: base.plotIds.map(id => ((gData.plots || []).find(x => x.plot_id === id) || { plot_name: id }).plot_name).join(', ') };
         const stayAll = (' ' + base.remark + ' ').includes(' ค้างคืน ');
         let nNight = 0;
         const perDay = days.map((d, k) => {

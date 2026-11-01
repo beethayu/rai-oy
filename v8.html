@@ -102,6 +102,7 @@
       --urg: #B4410E; --urg-ink: #8A300A; --urg-soft: #FCEBDD;
       --doing: #1E4FB8; --doing-ink: #183F94; --doing-soft: #E4ECFB;
       --done-soft: #ECEAE2;
+      --red: #C62828; --red-ink: #9B1C1C; --red-soft: #FDE4E1;
     }
     /* แถบสถานะ iOS: ทุกอย่างตรงนั้นเป็นสีเขียวเดียวกัน (theme-color, html, #sbar) เงาที่ iOS 26 ใส่จะได้กลืนไป */
     html { background: #1F5E3B !important; height: 100%; overflow: hidden; overscroll-behavior: none; }
@@ -158,6 +159,18 @@
     .pill-done { background: var(--done-soft); color: #3E4742; }
     .pill-normal { background: var(--green-soft); color: var(--green-d); }
     .pc-meta { font-size: 15px; color: var(--muted); margin: 0; }
+    .pc.edge-red { box-shadow: inset 6px 0 0 var(--red); }
+    .pc.edge-urg { box-shadow: inset 6px 0 0 var(--urg); }
+    .pc.edge-doing { box-shadow: inset 6px 0 0 var(--doing); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -4px; }
+    .chip { font-size: 14px; font-weight: 600; padding: 4px 11px; border-radius: 999px; line-height: 1.35; }
+    .chip-new { background: var(--green-soft); color: var(--green-d); }
+    .chip-rat { background: #F1E6D6; color: #6B4A1F; }
+    .chip-gray { background: var(--done-soft); color: #4A524D; }
+    .chip-red { background: var(--red); color: #fff; }
+    .chip-urg { background: var(--urg-soft); color: var(--urg-ink); }
+    .chip-blue { background: var(--doing-soft); color: var(--doing-ink); }
+    .chip-ok { background: var(--green-soft); color: var(--green-d); }
     .pc-now { background: var(--ground); border-radius: 14px; padding: 10px 14px; cursor: pointer; }
     .pc-now .k { font-size: 13px; font-weight: 600; color: var(--muted); }
     .pc-now .v { font-size: 17px; font-weight: 600; line-height: 1.4; word-break: break-word; }
@@ -978,14 +991,30 @@
       return { k: 'normal', lbl: 'ปกติ' };
     }
 
+    // ป้ายน้ำแบบ V7: แดง = ขาดน้ำ, ส้ม = ดินหมาดฉีดยาได้, ฟ้า = เพิ่งให้น้ำ, เขียว = ปกติ, เทา = ไม่ต้องสนใจ
+    function waterChip(p, st, pDays, wDays) {
+      if (st.isHarvested) return null;
+      if (p.cane_type === 'อ้อยใหม่' && pDays === null) return null;
+      if (isNearHarvest(p, pDays)) return { c: 'gray', t: wDays === null ? 'งดน้ำ ใกล้ตัด' : `งดน้ำ ใกล้ตัด · น้ำล่าสุด ${wDays} วัน` };
+      if (wDays === null) return { c: 'gray', t: 'ยังไม่มีวันน้ำ' };
+      const limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
+      const sMin = num(S('SPRAY_DAY_MIN')) || 3, sMax = num(S('SPRAY_DAY_MAX')) || 5;
+      if (wDays >= limit) return { c: 'red', t: `ขาดน้ำ ${wDays} วัน (ครบ ${limit} ว.)` };
+      if (wDays >= sMin && wDays <= sMax) return { c: 'urg', t: `หลังน้ำ ${wDays} วัน · ดินหมาด ฉีดยาได้` };
+      if (wDays < sMin) return { c: 'blue', t: `เพิ่งให้น้ำ ${wDays} วัน` };
+      return { c: 'ok', t: `ให้น้ำ ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
+    }
+
     function plotCard(p, st, logs) {
       const kd = kindOf(st);
       const pDays = calcDays(p.plant_date), wDays = calcDays(p.last_water_date);
-      const meta = [`${esc(p.area_rai)} ไร่`, esc(p.cane_type)];
-      if (pDays !== null) meta.push(`อายุ ${Math.floor(pDays / 30)} ด. ${pDays % 30} ว.`);
+      const meta = [`${esc(p.area_rai)} ไร่`];
       if (p.cane_variety && p.cane_variety !== '-' && p.cane_variety !== 'nan') meta.push(`พันธุ์ ${esc(p.cane_variety)}`);
-      if (p.cane_type === 'อ้อยใหม่' && pDays === null) meta.push('ยังไม่ปลูก');
-      else meta.push(wDays === null ? 'น้ำ: ยังไม่บันทึก' : `ให้น้ำ ${wDays} วันก่อน`);
+      const wc = waterChip(p, st, pDays, wDays);
+      const isNew = p.cane_type === 'อ้อยใหม่';
+      const ageTxt = pDays === null ? (isNew ? 'ยังไม่ปลูก' : 'ไม่รู้อายุ') : `${Math.floor(pDays / 30)} ด. ${pDays % 30} ว.`;
+      const chips = `<span class="chip ${isNew ? 'chip-new' : 'chip-rat'}">${isNew ? 'อ้อยใหม่' : 'อ้อยตอ'} · ${ageTxt}</span>` + (wc ? `<span class="chip chip-${wc.c}">${wc.t}</span>` : '');
+      const edge = st.isOngoing ? 'edge-doing' : (wc && wc.c === 'red') ? 'edge-red' : (wc && wc.c === 'urg') ? 'edge-urg' : '';
 
       let note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')) : '';
       const nowKey = st.isOngoing ? 'ตอนนี้กำลังทำ' : 'งานล่าสุด';
@@ -1014,7 +1043,7 @@
           </div>`).join('') || '<div class="text-muted">ยังไม่มีประวัติที่บันทึกผ่านแอป</div>';
 
       return `
-        <article class="pc">
+        <article class="pc ${edge}">
           <div class="pc-top">
             <div class="pc-name" onclick="openDossier('${p.plot_id}')">
               <span class="pc-id">${esc(p.plot_id)}</span>
@@ -1023,6 +1052,7 @@
             <span class="pill pill-${kd.k}">${kd.lbl}</span>
           </div>
           <p class="pc-meta">${meta.join(' · ')}</p>
+          <div class="chips">${chips}</div>
           ${note ? `<div class="pc-now" onclick="${nowClick}"><div class="k">${nowKey}</div><div class="v">${esc(note)}</div></div>` : ''}
           <div class="pc-next ${kd.k === 'urgent' ? 'urgent' : ''}">${ICON_NEXT}<span><b>ขั้นต่อไป:</b> ${esc(next)}</span></div>
           <div class="pc-btns">${btns}</div>

@@ -911,6 +911,14 @@
       return map;
     }
 
+    // พ.ย.–ธ.ค. ใกล้ตัด: ไม่เตือนคิวน้ำ/ฉีดยา ยกเว้นอ้อยใหม่อายุน้อยกว่า 6 เดือน
+    const YOUNG_NEW_DAYS = 180;
+    function isNearHarvest(p, pDays) {
+      const m = new Date().getMonth();
+      if (m !== 10 && m !== 11) return false;
+      return !(p.cane_type === 'อ้อยใหม่' && pDays !== null && pDays < YOUNG_NEW_DAYS);
+    }
+
     function analyze(p) {
       let wDays = calcDays(p.last_water_date), pDays = calcDays(p.plant_date);
       let limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
@@ -929,6 +937,12 @@
       } else if (isHarvested) {
         badges.push(`<span class="badge-smart bg-dark text-white">🏁 ตัดอ้อยส่งโรงงานเสร็จแล้ว</span>`);
         cls = 'harvested'; next = '🌱 รอบำรุงตอ / ริปเปอร์ / ฝังปุ๋ยฤดูกาลถัดไป';
+      } else if (p.cane_type === 'อ้อยใหม่' && pDays === null) {
+        badges.push(`<span class="badge-smart bg-light text-secondary border">🌱 ยังไม่ปลูก</span>`);
+        next = 'ยังไม่ปลูก (ใส่วันปลูกในข้อมูลแปลงเมื่อปลูกแล้ว)';
+      } else if (isNearHarvest(p, pDays)) {
+        badges.push(`<span class="badge-smart bg-light text-secondary border">🌾 ช่วงใกล้ตัด งดให้น้ำ</span>`);
+        next = 'ช่วงใกล้ตัด (พ.ย.–ธ.ค.) ไม่ต้องให้น้ำ';
       } else if (wDays === null) {
         badges.push(`<span class="badge-smart bg-light text-secondary border">💧 ยังไม่ระบุวันน้ำล่าสุด</span>`);
         next = 'กด "+ บันทึก" เพื่อเริ่มงาน หรืออัปเดตวันให้น้ำ';
@@ -970,7 +984,8 @@
       const meta = [`${esc(p.area_rai)} ไร่`, esc(p.cane_type)];
       if (pDays !== null) meta.push(`อายุ ${Math.floor(pDays / 30)} ด. ${pDays % 30} ว.`);
       if (p.cane_variety && p.cane_variety !== '-' && p.cane_variety !== 'nan') meta.push(`พันธุ์ ${esc(p.cane_variety)}`);
-      meta.push(wDays === null ? 'น้ำ: ยังไม่บันทึก' : `ให้น้ำ ${wDays} วันก่อน`);
+      if (p.cane_type === 'อ้อยใหม่' && pDays === null) meta.push('ยังไม่ปลูก');
+      else meta.push(wDays === null ? 'น้ำ: ยังไม่บันทึก' : `ให้น้ำ ${wDays} วันก่อน`);
 
       let note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')) : '';
       const nowKey = st.isOngoing ? 'ตอนนี้กำลังทำ' : 'งานล่าสุด';
@@ -1028,7 +1043,7 @@
       rows.forEach(({ p, st }) => {
         totRai += parseFloat(p.area_rai || 0);
         if (st.isOngoing) nDoing++; else if (st.isUrg) nUrg++;
-        if (!st.isHarvested && calcDays(p.last_water_date) === null) nNoWater++;
+        if (!st.isHarvested && calcDays(p.last_water_date) === null && !(p.cane_type === 'อ้อยใหม่' && calcDays(p.plant_date) === null)) nNoWater++;
       });
 
       let list = rows.filter(({ p, st }) => {

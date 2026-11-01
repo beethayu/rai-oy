@@ -70,6 +70,13 @@
   addRockTrip (รอลง→กำลังลง) / deleteRockLog / setRockPair / rockPhotos(logIds) รูปเต็ม / resolveMapLink(ลิงก์สั้น maps.app.goo.gl ได้)
   Drive: โฟลเดอร์ "หินคลุก ไร่อ้อย" (ROCK_FOLDER_ID) / โฟลเดอร์ย่อยชื่อสมาชิก
 
+== ราคาน้ำตาล → ราคาอ้อย (2 พ.ย. 69 03:40) ==
+- ผู้ใช้ส่งกราฟราคาอ้อยขั้นต้น (บาท/ตัน) เทียบน้ำตาลโลก (¢/ปอนด์) ฤดู 61/62–68/69 + TradingView SB1! อยากดูบ่อย ๆ
+- หน้าวันนี้: sugarStripHtml ใต้แถบอากาศ "น้ำตาลโลก 19.37 ¢ · คาดราคาอ้อย ~1,050" แตะ → sugarModal: ราคา/เปลี่ยนแปลง, กราฟจุดฤดู + เส้นแนวโน้ม + จุดตอนนี้,
+  กราฟเส้น 1 ปี, ปุ่ม TradingView · cache localStorage raioy_sugar 1 ชม. ปุ่มรีเฟรช (getSugar(true))
+- SUGAR_SEASONS ใน v8.html = จุดที่ Claude อ่านจากกราฟ (ผู้ใช้ยังไม่ได้ให้ตัวเลขจริง) → เส้น อ้อย ≈ 46.8 × น้ำตาล + 143 (R² 0.99)
+- GAS gas/Sugar.gs: getSugar(force) Yahoo chart API SB=F 1 ปี (User-Agent) แคช 30 นาที, logSugar_ ลงชีต SugarLog ใน logDailyRainTrigger (03:30), sugarBrief_ ในสรุป LINE
+
 == พยากรณ์อากาศ (2 พ.ย. 69 02:40) ==
 - Open-Meteo (ฟรี ไม่มีรหัส) หน้าเว็บเรียกตรง api.open-meteo.com (สำรอง: GAS weatherForecast) cache localStorage raioy_wx 45 นาที
   จุด = เฉลี่ย center ของแปลงที่วาดขอบ จัดกลุ่มตาม plotLoc (wxLocs) · ไม่มีขอบเลย → Settings WX_LAT/WX_LNG (wxUseMyLoc → setWxHome)

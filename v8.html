@@ -313,6 +313,11 @@
     .wx-boxes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
     .wx-boxes > div { border-radius: 10px; padding: 6px 8px; } .wx-boxes small { display: block; font-size: 11.5px; color: #3E4742; } .wx-boxes b { font-size: 14.5px; }
     .wx-hbars { display: grid; gap: 2px; align-items: end; height: 32px; margin-top: 4px; } .wx-hbars i { display: block; border-radius: 3px 3px 1px 1px; }
+    .sg-strip { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: #fff; color: inherit; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
+    .sg-strip .sg-ic { width: 30px; height: 30px; border-radius: 8px; background: #F3EBDD; color: #7A4B12; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sg-up { color: #1F7A45; font-weight: 600; } .sg-dn { color: #B23B1E; font-weight: 600; }
+    .sg-big { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .sg-chart text { font-family: inherit; }
     .wx-rain-card { background: #EAF2FB; border: 1px solid #C9DDF3; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
     .rk-trip { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; font-size: 14px; }
     .rk-trip + .rk-trip { border-top: 1px solid #EEF1EF; }
@@ -1098,6 +1103,18 @@
     </div>
   </div>
 
+  <div class="modal fade" id="sugarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">ราคาน้ำตาล → ราคาอ้อย</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="sugar-body"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="rockPairModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1806,7 +1823,7 @@
       const head = (t, n, extra) => `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:center;padding-right:2px;"><span>${t}${n ? ` <span style="font-weight:500;color:#6B736E;font-size:13px;">${n}</span>` : ''}</span>${extra || ''}</div>`;
       const none = t => `<div class="srow-s" style="padding:2px 4px 4px;">${t}</div>`;
 
-      let h = wxStripHtml() + wxRainAskHtml();
+      let h = wxStripHtml() + sugarStripHtml() + wxRainAskHtml();
       h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
       h += ws.length ? `<div class="srow-box">${ws.map(w => {
         const p = byId[w.plot_id].p, ago = calcDays(w.created);
@@ -4096,6 +4113,112 @@
       if (hist.length) h += `<div class="card-sec py-2"><div class="bill-lbl mb-1">ฝน 7 วันที่ผ่านมา ${esc(locs[wxSelA].loc)} (มม. ค่าประมาณ)</div><div class="d-flex justify-content-between text-center" style="font-size:12.5px">${hist.map(x => `<div><div class="fw-bold" style="color:${num(x.rain_mm) >= 10 ? '#1E5FA8' : '#3E4742'}">${r1x(x.rain_mm)}</div><div class="srow-s">${esc(x.timestamp.slice(0, 5))}</div></div>`).join('')}</div></div>`;
       h += `<div class="msub">อัปเดต ${hhmm(wxData.t)} น. <button type="button" class="grp-all ms-1" onclick="wxLoad(true)">โหลดใหม่</button> · ฉีดยาได้ = ลมไม่เกิน ${SPRAY_WIND} (กระโชก ${SPRAY_GUST}) และ 4 ชม.ข้างหน้าโอกาสฝนไม่เกิน ${SPRAY_POP}% · ข้อมูล Open-Meteo เป็นค่าพยากรณ์ ฝนฟ้าคะนองเป็นหย่อม ๆ อาจคลาด</div>`;
       B.innerHTML = h;
+    }
+
+
+    // ================= ราคาน้ำตาลโลก → คาดราคาอ้อยขั้นต้น =================
+    // จุดแต่ละฤดู อ่านจากกราฟที่ผู้ใช้ส่งมา (2 พ.ย. 69) [ฤดู, น้ำตาล ¢/ปอนด์, ราคาอ้อยขั้นต้น บาท/ตัน] — แก้เป็นตัวเลขจริงได้ที่นี่
+    const SUGAR_SEASONS = [['61/62', 12.55, 700], ['62/63', 13.25, 750], ['63/64', 16.0, 920], ['64/65', 20.05, 1070],
+      ['65/66', 20.15, 1080], ['66/67', 27.35, 1420], ['67/68', 21.8, 1160], ['68/69', 15.2, 890]];
+    const SUGAR_TTL = 60 * 60000;
+    let sugar = null, sugarLoading = false, sugarErr = '';
+    try { sugar = JSON.parse(lsGet('raioy_sugar') || 'null'); } catch (e) { sugar = null; }
+    // เส้นตรง least squares: อ้อย = a × น้ำตาล + b
+    const sugarFit = (() => {
+      const n = SUGAR_SEASONS.length, xs = SUGAR_SEASONS.map(r => r[1]), ys = SUGAR_SEASONS.map(r => r[2]);
+      const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+      let sxy = 0, sxx = 0, syy = 0; xs.forEach((x, i) => { sxy += (x - mx) * (ys[i] - my); sxx += (x - mx) ** 2; syy += (ys[i] - my) ** 2; });
+      const a = sxy / sxx; return { a, b: my - a * mx, r2: sxy * sxy / (sxx * syy) };
+    })();
+    const canePrice = c => Math.round((sugarFit.a * c + sugarFit.b) / 10) * 10;
+
+    function sugarLoad(force) {
+      if (sugarLoading || (!force && sugar && Date.now() - sugar.got < SUGAR_TTL)) return;
+      sugarLoading = true; sugarErr = '';
+      callApi('getSugar', [!!force]).then(d => {
+        if (!d || !d.price) throw new Error('ไม่มีราคา');
+        sugar = Object.assign(d, { got: Date.now() }); lsSet('raioy_sugar', JSON.stringify(sugar));
+      }).catch(e => { sugarErr = e.message || 'โหลดไม่ได้'; })
+        .finally(() => { sugarLoading = false; if (curTab === 'urgent') render(); if ($('sugarModal').classList.contains('show')) sugarRender(); });
+    }
+
+    const SUGAR_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>';
+    function sugarStripHtml() {
+      sugarLoad();
+      if (!sugar) return `<button type="button" class="sg-strip" onclick="openSugar()"><span class="sg-ic">${SUGAR_ICON}</span><span class="flex-fill"><b>ราคาน้ำตาลโลก</b><span class="srow-s d-block">${sugarErr ? 'โหลดไม่ได้ · แตะเพื่อลองใหม่' : 'กำลังโหลด…'}</span></span></button>`;
+      const up = sugar.chg >= 0;
+      return `<button type="button" class="sg-strip" onclick="openSugar()"><span class="sg-ic">${SUGAR_ICON}</span>
+        <span class="flex-fill" style="min-width:0"><b>น้ำตาลโลก ${sugar.price} ¢</b> <span class="${up ? 'sg-up' : 'sg-dn'}">${up ? '+' : ''}${sugar.pct}%</span>
+          <span class="srow-s d-block">คาดราคาอ้อยขั้นต้น ~${canePrice(sugar.price).toLocaleString()} บาท/ตัน</span></span>
+        <span class="srow-s">กราฟ ›</span></button>`;
+    }
+    function openSugar() { sugarRender(); showM('sugarModal'); sugarLoad(); }
+
+    // กราฟจุด: แกน x = น้ำตาล ¢/ปอนด์, แกน y = ราคาอ้อย บาท/ตัน, เส้นแนวโน้ม + จุด "ตอนนี้"
+    function sugarScatterSvg(now) {
+      const W = 358, H = 250, L = 44, R = 10, T = 12, B = 34;
+      const xMin = 10, xMax = 30, yMin = 600, yMax = 1500;
+      const X = v => L + (v - xMin) / (xMax - xMin) * (W - L - R), Y = v => T + (yMax - v) / (yMax - yMin) * (H - T - B);
+      let g = '';
+      for (let x = 10; x <= 30; x += 5) g += `<line x1="${X(x)}" y1="${T}" x2="${X(x)}" y2="${H - B}" stroke="#EEF1EF"/><text x="${X(x)}" y="${H - B + 14}" font-size="10.5" fill="#5B635E" text-anchor="middle">${x}</text>`;
+      for (let y = 600; y <= 1500; y += 300) g += `<line x1="${L}" y1="${Y(y)}" x2="${W - R}" y2="${Y(y)}" stroke="#EEF1EF"/><text x="${L - 5}" y="${Y(y) + 3.5}" font-size="10.5" fill="#5B635E" text-anchor="end">${y.toLocaleString()}</text>`;
+      const f = sugarFit;
+      g += `<line x1="${X(11)}" y1="${Y(f.a * 11 + f.b)}" x2="${X(29.5)}" y2="${Y(f.a * 29.5 + f.b)}" stroke="#C0392B" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+      // จุดที่อยู่ใกล้กันเลื่อนป้ายออกข้าง ไม่ให้ทับ
+      const off = { '61/62': [-7, 4, 'end'], '62/63': [-7, -4, 'end'], '64/65': [-10, 22, 'end'], '65/66': [8, -6, 'start'], '68/69': [-7, -4, 'end'] };
+      SUGAR_SEASONS.forEach(([n, x, y]) => {
+        const [dx, dy, an] = off[n] || [0, -9, 'middle'];
+        g += `<circle cx="${X(x)}" cy="${Y(y)}" r="5" fill="#3B82C4"/><text x="${X(x) + dx}" y="${Y(y) + dy}" font-size="10.5" fill="#3E4742" text-anchor="${an}">${n}</text>`;
+      });
+      if (now) {
+        const cy = canePrice(now);
+        g += `<line x1="${X(now)}" y1="${H - B}" x2="${X(now)}" y2="${Y(cy)}" stroke="#E07B00" stroke-width="2"/><line x1="${L}" y1="${Y(cy)}" x2="${X(now)}" y2="${Y(cy)}" stroke="#E07B00" stroke-width="2"/>
+          <circle cx="${X(now)}" cy="${Y(cy)}" r="7" fill="#E07B00" stroke="#fff" stroke-width="2"/>
+          <text x="${X(now) + 10}" y="${Y(cy) + 22}" font-size="12" font-weight="700" fill="#A35400">ตอนนี้ ${now} ¢ → ~${cy.toLocaleString()}</text>`;
+      }
+      g += `<text x="${(L + W - R) / 2}" y="${H - 3}" font-size="11" fill="#3E4742" text-anchor="middle">ราคาน้ำตาลโลก (¢/ปอนด์)</text>`;
+      return `<svg class="sg-chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="ราคาอ้อยขั้นต้นเทียบราคาน้ำตาลโลกแต่ละฤดู">${g}</svg>`;
+    }
+    // กราฟเส้นราคาน้ำตาล 1 ปี
+    function sugarLineSvg(series) {
+      if (!series || series.length < 2) return '';
+      const W = 358, H = 150, L = 34, R = 8, T = 10, B = 22;
+      const vs = series.map(p => p[1]), lo = Math.floor(Math.min(...vs)), hi = Math.ceil(Math.max(...vs));
+      const X = i => L + i / (series.length - 1) * (W - L - R), Y = v => T + (hi - v) / Math.max(1, hi - lo) * (H - T - B);
+      let g = '';
+      for (let k = 0; k <= 3; k++) { const v = lo + (hi - lo) * k / 3; g += `<line x1="${L}" y1="${Y(v)}" x2="${W - R}" y2="${Y(v)}" stroke="#EEF1EF"/><text x="${L - 4}" y="${Y(v) + 3.5}" font-size="10" fill="#5B635E" text-anchor="end">${v.toFixed(1)}</text>`; }
+      [0, Math.floor(series.length / 2), series.length - 1].forEach(i => { const [y, m] = series[i][0].split('-'); g += `<text x="${X(i)}" y="${H - 6}" font-size="10" fill="#5B635E" text-anchor="${i === 0 ? 'start' : i === series.length - 1 ? 'end' : 'middle'}">${TH_MON[+m - 1]} ${String(+y + 543).slice(2)}</text>`; });
+      g += `<polyline points="${series.map((p, i) => X(i).toFixed(1) + ',' + Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="#1F5E3B" stroke-width="2" stroke-linejoin="round"/>`;
+      const li = series.length - 1;
+      g += `<circle cx="${X(li)}" cy="${Y(series[li][1])}" r="4" fill="#E07B00"/>`;
+      return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="ราคาน้ำตาลโลกย้อนหลัง 1 ปี">${g}</svg>`;
+    }
+    function sugarRender() {
+      const B = $('sugar-body');
+      if (!sugar) { B.innerHTML = `<div class="msub">${sugarErr ? 'โหลดราคาไม่ได้ (' + esc(sugarErr) + ')' : 'กำลังโหลดราคา…'}</div>${sugarErr ? '<button class="btn btn-success w-100" onclick="sugarLoad(true)">ลองใหม่</button>' : ''}`; return; }
+      const up = sugar.chg >= 0, f = sugarFit, vs = (sugar.series || []).map(p => p[1]);
+      B.innerHTML = `
+        <div class="card-sec">
+          <div class="d-flex justify-content-between align-items-start">
+            <div><div class="srow-s">น้ำตาลโลก Sugar No.11 (สัญญาใกล้สุด)</div>
+              <div class="sg-big">${sugar.price} <span style="font-size:15px;font-weight:600">¢/ปอนด์</span></div>
+              <div class="${up ? 'sg-up' : 'sg-dn'}">${up ? '+' : ''}${sugar.chg} (${up ? '+' : ''}${sugar.pct}%)</div></div>
+            <div class="text-end"><div class="srow-s">คาดราคาอ้อยขั้นต้น</div><div class="sg-big" style="color:#A35400">~${canePrice(sugar.price).toLocaleString()}</div><div class="srow-s">บาท/ตัน</div></div>
+          </div>
+          <div class="srow-s mt-1">ราคาตลาด ${esc(sugar.time)} น. · <button type="button" class="grp-all" onclick="sugarLoad(true)">${sugarLoading ? 'กำลังโหลด…' : 'รีเฟรช'}</button></div>
+        </div>
+        <div class="card-sec">
+          <h6>ราคาอ้อยขั้นต้นแต่ละฤดู เทียบราคาน้ำตาล</h6>
+          ${sugarScatterSvg(sugar.price)}
+          <div class="srow-s">เส้นประ: อ้อย ≈ ${f.a.toFixed(1)} × น้ำตาล + ${Math.round(f.b)} บาท (R² ${f.r2.toFixed(2)}) · ทุก 1 ¢ ≈ ${Math.round(f.a)} บาท/ตัน</div>
+        </div>
+        ${vs.length ? `<div class="card-sec">
+          <h6>ราคาน้ำตาล 1 ปีที่ผ่านมา</h6>
+          ${sugarLineSvg(sugar.series)}
+          <div class="srow-s">ต่ำสุด ${Math.min(...vs)} · สูงสุด ${Math.max(...vs)} ¢ → อ้อย ~${canePrice(Math.min(...vs)).toLocaleString()}–${canePrice(Math.max(...vs)).toLocaleString()} บาท/ตัน</div>
+        </div>` : ''}
+        <a class="btn btn-outline-success w-100 mb-2" href="https://www.tradingview.com/symbols/ICEUS-SB1!/" target="_blank" rel="noopener">เปิดกราฟใน TradingView</a>
+        <div class="msub">เป็นการคาดคร่าว ๆ จากเส้นแนวโน้ม · ราคาอ้อยขั้นต้นจริงคิดจากราคาน้ำตาลเฉลี่ยทั้งฤดู ค่าเงินบาท และค่าความหวาน · จุดแต่ละฤดูอ่านจากกราฟที่ส่งมา (ปรับเป็นตัวเลขจริงได้)</div>`;
     }
 
     // หน้าฝนตก: จัดกลุ่มตามสถานที่ เหมือนหน้าเลือกแปลงในแท็บบันทึกงาน

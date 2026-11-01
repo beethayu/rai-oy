@@ -1,0 +1,776 @@
+/**
+ * 🌾 ระบบจัดการไร่อ้อย 281 ไร่ — V7.0
+ * ใหม่ใน V7.0:
+ *  - 📦 ตัดสต็อกยา/ปุ๋ยอัตโนมัติ (ชีต Inventory + StockLogs) แก้/ลบงาน = คืนยอดให้เอง
+ *  - 🔔 แจ้งเตือน LINE ทุกเช้า (ตรงเวลา ตั้งได้ในชีต Settings หรือในแอป)
+ *  - 🔧 ประวัติซ่อม/บำรุงรายคัน + นับวันที่เสีย
+ *  - ⚡ เร็วขึ้น: ตั้งค่าครั้งเดียว, อ่าน/เขียนชีตแบบรวดเดียว, กันบันทึกชนกัน (LockService)
+ *  - 📅 วันที่ถูกเก็บเป็นข้อความ dd/mm/yyyy(พ.ศ.) ป้องกัน Sheets แปลงวันเพี้ยน
+ *
+ * ติดตั้งครั้งแรก: เลือกฟังก์ชัน setupV7 แล้วกด ▶ เรียกใช้ 1 ครั้ง (อนุญาตสิทธิ์ส่ง LINE / ตั้งเวลา)
+ */
+
+const APP_VERSION = '7.0';
+const SH = {
+  PLOTS: 'Plots', ACT: 'Activities', OPT: 'MasterOptions', ASSET: 'Assets',
+  ALOG: 'AssetLogs', INV: 'Inventory', SLOG: 'StockLogs', SET: 'Settings'
+};
+const HEADERS = {
+  Assets: ['asset_id', 'category', 'name', 'status', 'issue_detail', 'parts_needed', 'battery_info', 'battery_date', 'updated_at'],
+  AssetLogs: ['log_id', 'timestamp', 'asset_name', 'category', 'event_type', 'detail', 'parts_or_battery', 'ref_plot'],
+  Inventory: ['item_id', 'category', 'name', 'note', 'unit', 'pack_size', 'pack_name', 'per_tank', 'stock', 'reorder_point', 'updated_at'],
+  StockLogs: ['log_id', 'timestamp', 'item_name', 'change_qty', 'unit', 'ref_log_id', 'plot_id', 'note'],
+  Settings: ['key', 'value', 'description']
+};
+const DEFAULT_SETTINGS = [
+  ['LINE_CHANNEL_TOKEN', '', 'Channel access token (long-lived) จาก LINE Developers'],
+  ['LINE_TARGET_ID', '', 'ว่าง = ส่งหาทุกคนที่แอดเพื่อน OA (broadcast) | ใส่ User ID หรือ Group ID = ส่งเฉพาะที่นั้น'],
+  ['NOTIFY_ENABLED', 'ปิด', 'เปิด / ปิด การแจ้งเตือนทุกเช้า'],
+  ['NOTIFY_TIME', '04:00', 'เวลาส่งสรุปทุกเช้า (ชม:นาที)'],
+  ['WATER_DAYS_NEW', '12', 'รอบน้ำอ้อยใหม่ (วัน)'],
+  ['WATER_DAYS_RATOON', '15', 'รอบน้ำอ้อยตอ (วัน)'],
+  ['SPRAY_DAY_MIN', '3', 'ฉีดยาคุมได้หลังน้ำ ตั้งแต่วันที่'],
+  ['SPRAY_DAY_MAX', '5', 'ฉีดยาคุมได้หลังน้ำ ถึงวันที่'],
+  ['CHEM_PRESET_NEW', 'Becano,Zytron Mix,Bakaron', 'สูตรยาอ้อยใหม่ (ชื่อตรงกับชีต Inventory คั่นด้วย ,)'],
+  ['CHEM_PRESET_GROW', 'Becano,Zytron Mix,Bakapost', 'สูตรยาอ้อยโต'],
+  ['FERT_PRESET_BASE', '16-8-8:1', 'สูตรปุ๋ยรองพื้น (สูตร:สัดส่วน)'],
+  ['FERT_PRESET_RATOON', '21-0-0:3,16-8-8:1', 'สูตรปุ๋ยอ้อยตอ (สูตร:สัดส่วน คั่นด้วย ,)'],
+  ['LAST_NOTIFY', '', '(ระบบใช้) วันที่ส่ง LINE ล่าสุด']
+];
+
+// ======================= พื้นฐาน =======================
+function doGetOld() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('จัดการไร่อ้อย 281 ไร่ (V7.0)')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function getTodayStr() {
+  const now = new Date();
+  return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear() + 543}`;
+}
+
+function dateKey_(s) {
+  const p = String(s || '').trim().split('/');
+  if (p.length !== 3) return 0;
+  let d = parseInt(p[0], 10), m = parseInt(p[1], 10), y = parseInt(p[2], 10);
+  if (!d || !m || !y) return 0;
+  if (y > 2400) y -= 543;
+  return y * 10000 + m * 100 + d;
+}
+
+function daysSince_(s) {
+  const k = dateKey_(s);
+  if (!k) return null;
+  const dt = new Date(Math.floor(k / 10000), Math.floor(k / 100) % 100 - 1, k % 100);
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((now - dt) / 86400000));
+}
+
+function round_(n) { return Math.round(n * 1000) / 1000; }
+
+function withLock_(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try { return fn(); } finally { lock.releaseLock(); }
+}
+
+function getOrCreate_(ss, name, headers) {
+  let sh = ss.getSheetByName(name);
+  if (sh) return sh;
+  sh = ss.insertSheet(name);
+  sh.getRange(1, 1, 1, headers.length).setValues([headers])
+    .setFontWeight('bold').setBackground('#38761d').setFontColor('#ffffff');
+  sh.setFrozenRows(1);
+  return sh;
+}
+
+// เขียนหลายแถวต่อท้ายในครั้งเดียว (เก็บเป็นข้อความ กันวันที่เพี้ยน)
+function appendRows_(sh, rows) {
+  if (!rows || !rows.length) return;
+  const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length);
+  rg.setNumberFormat('@');
+  rg.setValues(rows.map(r => r.map(v => (v === null || v === undefined) ? '' : String(v))));
+}
+
+// อ่านชีตเป็น array ของ object (raw=true: ตัวเลขคงเป็น number)
+function readSheet_(ss, name, raw) {
+  const sh = ss.getSheetByName(name);
+  if (!sh) return [];
+  const rng = sh.getDataRange();
+  const disp = rng.getDisplayValues();
+  if (disp.length <= 1) return [];
+  const vals = raw ? rng.getValues() : null;
+  const h = disp[0], out = [];
+  for (let r = 1; r < disp.length; r++) {
+    if (!disp[r].some(v => v !== '')) continue;
+    const o = {};
+    h.forEach((k, i) => { if (k) o[k] = (raw && typeof vals[r][i] === 'number') ? vals[r][i] : disp[r][i]; });
+    out.push(o);
+  }
+  return out;
+}
+
+// เรียงใหม่→เก่า ตามวันที่ (วันเท่ากัน แถวหลังขึ้นก่อน)
+function sortDesc_(arr) {
+  return arr.map((o, i) => ({ o, i, k: dateKey_(o.timestamp) }))
+    .sort((a, b) => (b.k - a.k) || (b.i - a.i)).map(x => x.o);
+}
+
+function readOptions_(ss) {
+  const sh = ss.getSheetByName(SH.OPT);
+  if (!sh) return {};
+  const d = sh.getDataRange().getDisplayValues();
+  const h = d.shift() || [];
+  const o = {};
+  h.forEach((k, i) => { if (k) o[k] = d.map(r => r[i]).filter(Boolean); });
+  return o;
+}
+
+function getSettings_(ss) {
+  const o = {};
+  const sh = ss.getSheetByName(SH.SET);
+  if (sh) sh.getDataRange().getDisplayValues().slice(1).forEach(r => { if (r[0]) o[r[0]] = String(r[1]).trim(); });
+  DEFAULT_SETTINGS.forEach(d => { if (!(d[0] in o)) o[d[0]] = d[1]; });
+  return o;
+}
+
+function setSetting_(ss, key, val) {
+  const sh = getOrCreate_(ss, SH.SET, HEADERS.Settings);
+  const d = sh.getDataRange().getDisplayValues();
+  for (let i = 1; i < d.length; i++) {
+    if (d[i][0] === key) { sh.getRange(i + 1, 2).setNumberFormat('@').setValue(String(val)); return; }
+  }
+  appendRows_(sh, [[key, String(val), '']]);
+}
+
+// ======================= ตั้งค่าระบบ (ทำครั้งเดียว) =======================
+function setupV7() {
+  ensureSetup_(true);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const s = getSettings_(ss);
+  if (s.NOTIFY_ENABLED === 'เปิด') installNotifyTriggers_(s);
+  Logger.log('✅ ตั้งค่า V7.0 เรียบร้อย: สร้างชีต Inventory / StockLogs / Settings แล้ว');
+}
+
+function ensureSetup_(force) {
+  const props = PropertiesService.getScriptProperties();
+  if (!force && props.getProperty('SETUP_VER') === APP_VERSION) return;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const today = getTodayStr();
+
+  // 1) MasterOptions: เพิ่มคอลัมน์ Truck / Pump ถ้ายังไม่มี + ActivityGroup "ตัดอ้อย"
+  const opt = ss.getSheetByName(SH.OPT);
+  if (opt) {
+    const head = opt.getRange(1, 1, 1, Math.max(opt.getLastColumn(), 1)).getDisplayValues()[0];
+    while (head.length && head[head.length - 1] === '') head.pop();
+    const ensureCol = (name, defs) => {
+      if (head.indexOf(name) !== -1) return;
+      const c = head.length + 1; head.push(name);
+      opt.getRange(1, c).setValue(name);
+      if (defs.length) opt.getRange(2, c, defs.length, 1).setValues(defs.map(v => [v]));
+    };
+    ensureCol('Truck', ['สิบล้อคันที่ 1']);
+    ensureCol('Pump', ['พญานาค หมายเลข 1', 'พญานาค หมายเลข 2', 'พญานาค หมายเลข 3']);
+    const gi = head.indexOf('ActivityGroup');
+    if (gi !== -1 && opt.getLastRow() > 1) {
+      const col = opt.getRange(2, gi + 1, opt.getLastRow() - 1, 1).getDisplayValues().map(r => r[0]).filter(String);
+      if (!col.includes('ตัดอ้อย')) opt.getRange(col.length + 2, gi + 1).setValue('ตัดอ้อย');
+    }
+  }
+
+  // 2) Assets / AssetLogs
+  getOrCreate_(ss, SH.ASSET, HEADERS.Assets);
+  getOrCreate_(ss, SH.ALOG, HEADERS.AssetLogs);
+  syncAssets_(ss);
+
+  // 3) Inventory (ยอดเริ่มต้น 0)
+  if (!ss.getSheetByName(SH.INV)) {
+    const sh = getOrCreate_(ss, SH.INV, HEADERS.Inventory);
+    const rows = [
+      ['CH_1', 'Chemical', 'Becano', 'บีคาโน (อินดาซิแฟลม 50% SC)', 'ml', 100, 'ขวด', 20, 0, 0, today],
+      ['CH_2', 'Chemical', 'Zytron Mix', 'ไซทรอน มิกซ์', 'ml', 500, 'ขวด', 250, 0, 0, today],
+      ['CH_3', 'Chemical', 'Bakaron', 'บาก้ารอน (ไดยูรอน 80% SC)', 'ml', 1000, 'ขวด', 1000, 0, 0, today],
+      ['CH_4', 'Chemical', 'Bakapost', 'บาก้าโพส (อะมีทรีน 80% WG)', 'g', 1000, 'ถุง', 300, 0, 0, today],
+      ['FT_1', 'Fertilizer', 'เทอราโกร 21-0-0', 'กระสอบ 50 กก.', 'กระสอบ', 1, 'กระสอบ', '', 0, 0, today],
+      ['FT_2', 'Fertilizer', 'มหาวงศ์ 21-0-0', 'กระสอบ 50 กก.', 'กระสอบ', 1, 'กระสอบ', '', 0, 0, today],
+      ['FT_3', 'Fertilizer', 'มหาวงศ์ 16-8-8', 'กระสอบ 50 กก.', 'กระสอบ', 1, 'กระสอบ', '', 0, 0, today]
+    ];
+    [1, 2, 3, 4, 5, 7, 11].forEach(c => sh.getRange(2, c, rows.length, 1).setNumberFormat('@'));
+    sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  }
+
+  // 4) StockLogs
+  getOrCreate_(ss, SH.SLOG, HEADERS.StockLogs);
+
+  // 5) Settings (เติมคีย์ที่ขาด)
+  const setSh = getOrCreate_(ss, SH.SET, HEADERS.Settings);
+  const have = new Set(setSh.getDataRange().getDisplayValues().slice(1).map(r => r[0]));
+  appendRows_(setSh, DEFAULT_SETTINGS.filter(r => !have.has(r[0])));
+
+  props.setProperty('SETUP_VER', APP_VERSION);
+}
+
+// ซิงค์รายชื่อจาก MasterOptions เข้า Assets (คืนค่า true ถ้ามีการเพิ่ม)
+function syncAssets_(ss, options, assets) {
+  options = options || readOptions_(ss);
+  const sh = ss.getSheetByName(SH.ASSET);
+  if (!sh) return false;
+  const names = new Set((assets || readSheet_(ss, SH.ASSET)).map(a => a.name));
+  const today = getTodayStr();
+  const rows = []; let n = 0;
+  [['Tractor', 'TR', 'พร้อมใช้', true], ['Truck', 'TK', 'พร้อมใช้', true], ['Pump', 'PM', 'พร้อมใช้', false], ['Worker', 'WK', 'ปกติ', false]]
+    .forEach(([cat, pre, st, hasBat]) => {
+      (options[cat] || []).forEach(name => {
+        if (names.has(name)) return;
+        names.add(name);
+        rows.push([pre + '_' + Date.now().toString().slice(-6) + (n++), cat, name, st, '-', '-',
+          hasBat ? `แบตติดรถ (${name})` : (cat === 'Pump' ? 'ไม่ใช้แบต/มือหมุน' : '-'), hasBat ? today : '-', today]);
+      });
+    });
+  if (rows.length) appendRows_(sh, rows);
+  return rows.length > 0;
+}
+
+// ======================= โหลดข้อมูล =======================
+function getInitialData() {
+  ensureSetup_(false);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const data = readAll_(ss);
+  if (syncAssets_(ss, data.options, data.assets)) data.assets = readSheet_(ss, SH.ASSET);
+  return data;
+}
+
+function readAll_(ss) {
+  const s = getSettings_(ss);
+  const pub = {};
+  Object.keys(s).forEach(k => { if (k !== 'LINE_CHANNEL_TOKEN') pub[k] = s[k]; });
+  pub.hasToken = !!s.LINE_CHANNEL_TOKEN;
+  return {
+    version: APP_VERSION,
+    today: getTodayStr(),
+    plots: readSheet_(ss, SH.PLOTS),
+    activities: sortDesc_(readSheet_(ss, SH.ACT)),
+    options: readOptions_(ss),
+    assets: readSheet_(ss, SH.ASSET),
+    assetLogs: sortDesc_(readSheet_(ss, SH.ALOG)),
+    inventory: readSheet_(ss, SH.INV, true),
+    stockLogs: sortDesc_(readSheet_(ss, SH.SLOG, true)),
+    settings: pub
+  };
+}
+
+// ======================= ตัวเลือก / แปลง =======================
+function updateMasterOption(category, action, value) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SH.OPT);
+    const data = sheet.getDataRange().getDisplayValues();
+    const headers = data[0];
+    let colIdx = headers.indexOf(category);
+    if (colIdx === -1) {
+      colIdx = headers.length;
+      sheet.getRange(1, colIdx + 1).setValue(category);
+    }
+    let colValues = [];
+    for (let i = 1; i < data.length; i++) if (data[i][colIdx]) colValues.push(data[i][colIdx]);
+
+    if (action === 'add' && value && !colValues.includes(value)) {
+      colValues.push(value);
+    } else if (action === 'remove') {
+      colValues = colValues.filter(v => v !== value);
+      const assetSheet = ss.getSheetByName(SH.ASSET);
+      if (assetSheet) {
+        const aData = assetSheet.getDataRange().getDisplayValues();
+        for (let r = aData.length - 1; r >= 1; r--) if (aData[r][2] === value) assetSheet.deleteRow(r + 1);
+      }
+    }
+    const maxRows = Math.max(sheet.getLastRow(), colValues.length + 1);
+    if (maxRows > 1) sheet.getRange(2, colIdx + 1, maxRows, 1).clearContent();
+    if (colValues.length) sheet.getRange(2, colIdx + 1, colValues.length, 1).setValues(colValues.map(v => [v]));
+    if (action === 'add') syncAssets_(ss);
+    return readAll_(ss);
+  });
+}
+
+function updatePlotInfo(payload) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.PLOTS);
+    const data = sh.getDataRange().getDisplayValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === payload.plot_id) {
+        sh.getRange(i + 1, 6).setNumberFormat('@');
+        sh.getRange(i + 1, 2, 1, 5).setValues([[payload.plot_name, payload.area_rai, payload.cane_type, payload.cane_variety, payload.plant_date]]);
+        break;
+      }
+    }
+    return readAll_(ss);
+  });
+}
+
+// ======================= งานในแปลง =======================
+function buildNote_(a) {
+  const rmk = a[8] || '';
+  const isOng = rmk.includes('[⏳กำลังทำ]');
+  const clean = rmk.replace('[⏳กำลังทำ]', '').replace('[✅เสร็จสิ้น]', '').trim();
+  const det = `${a[3]}${a[4] && a[4] !== '-' ? ' (' + a[4] + ')' : ''}`;
+  const eq = (a[5] && a[5] !== '-') ? ` [${a[5]}]` : '';
+  const q = (a[6] && a[6] !== '-') ? ` [${a[6]}]` : '';
+  const r = clean ? ` (${clean})` : '';
+  return isOng ? `[กำลังทำ] ${det}${eq} | เริ่ม ${a[1]}${q}${r}` : `✅ ${det}${eq} เสร็จ ${a[1]}${q}${r}`;
+}
+
+// อัปเดตวันน้ำล่าสุด + งานล่าสุด ของหลายแปลงในครั้งเดียว (อ่าน Activities รอบเดียว เขียน Plots รอบเดียว)
+function syncPlots_(ss, plotIds) {
+  const want = new Set(plotIds);
+  const act = ss.getSheetByName(SH.ACT).getDataRange().getDisplayValues();
+  const info = {};
+  for (let i = 1; i < act.length; i++) {
+    const r = act[i];
+    if (!want.has(r[2])) continue;
+    const k = dateKey_(r[1]);
+    const o = info[r[2]] || (info[r[2]] = { lk: -1, latest: null, ok: -1, ong: null, wk: -1, water: '' });
+    const ongoing = (r[8] || '').includes('[⏳กำลังทำ]');
+    if (k >= o.lk) { o.lk = k; o.latest = r; }
+    if (ongoing && k >= o.ok) { o.ok = k; o.ong = r; }
+    if ((r[3] === 'ขึ้นน้ำ' || r[3] === 'ฝนตก') && !ongoing && k >= o.wk) { o.wk = k; o.water = r[1]; }
+  }
+  const plotSh = ss.getSheetByName(SH.PLOTS);
+  const pd = plotSh.getDataRange().getDisplayValues();
+  if (pd.length <= 1) return;
+  const out = pd.slice(1).map(r => [r[6], r[7]]);
+  for (let r = 1; r < pd.length; r++) {
+    if (!want.has(pd[r][0])) continue;
+    const o = info[pd[r][0]];
+    if (!o) { out[r - 1] = [pd[r][6], '-']; continue; }
+    out[r - 1] = [o.water || pd[r][6], buildNote_(o.ong || o.latest)];
+  }
+  const rg = plotSh.getRange(2, 7, out.length, 2);
+  rg.setNumberFormat('@');
+  rg.setValues(out);
+}
+
+function saveActivities(payload) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.ACT);
+    const date = payload.custom_date || getTodayStr();
+    const g = payload.activity_group;
+    const rmk = (payload.is_ongoing ? '[⏳กำลังทำ] ' : '[✅เสร็จสิ้น] ') + (payload.remark || '');
+    const pid0 = payload.plotIds[0];
+
+    if (payload.edit_log_id) {
+      const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues();
+      for (let i = ids.length - 1; i >= 1; i--) {
+        if (ids[i][0] === String(payload.edit_log_id)) {
+          const rg = sh.getRange(i + 1, 2, 1, 8);
+          rg.setNumberFormat('@');
+          rg.setValues([[date, pid0, g, payload.activity_detail || '-', payload.equipment || '-', payload.quantity || '-', payload.operator || '-', rmk]]);
+          break;
+        }
+      }
+      reverseUsage_(ss, payload.edit_log_id);
+      applyUsage_(ss, payload.usage, payload.edit_log_id, pid0, date, g);
+      syncPlots_(ss, [pid0]);
+      return readAll_(ss);
+    }
+
+    const base = Date.now();
+    const rows = payload.plotIds.map((pid, i) => ['L' + base + '_' + i, date, pid, g,
+      payload.activity_detail || '-', payload.equipment || '-', payload.quantity || '-', payload.operator || '-', rmk]);
+    appendRows_(sh, rows);
+    applyUsage_(ss, payload.usage, rows[0][0], pid0, date, g);
+    syncPlots_(ss, payload.plotIds);
+    return readAll_(ss);
+  });
+}
+
+function deleteActivity(logId, plotId) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.ACT);
+    const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues();
+    for (let i = ids.length - 1; i >= 1; i--) {
+      if (ids[i][0] === String(logId)) { sh.deleteRow(i + 1); break; }
+    }
+    reverseUsage_(ss, logId);
+    syncPlots_(ss, [plotId]);
+    return readAll_(ss);
+  });
+}
+
+// ======================= สต็อกยา / ปุ๋ย =======================
+function invCols_(h) {
+  return { id: h.indexOf('item_id'), name: h.indexOf('name'), stock: h.indexOf('stock'), unit: h.indexOf('unit'), upd: h.indexOf('updated_at') };
+}
+
+// ตัดสต็อกตามรายการที่ใช้ usage = [{name, qty}] (qty = หน่วยย่อย เช่น ml, g, กระสอบ)
+function applyUsage_(ss, usage, ref, plotId, date, note) {
+  usage = (usage || []).filter(u => u && u.name && Number(u.qty) > 0);
+  if (!usage.length) return;
+  const sh = ss.getSheetByName(SH.INV);
+  const d = sh.getDataRange().getValues();
+  const c = invCols_(d[0]);
+  const today = getTodayStr(), logs = [], base = Date.now();
+  usage.forEach((u, k) => {
+    const r = d.findIndex((row, i) => i > 0 && String(row[c.name]) === u.name);
+    let unit = '';
+    if (r > 0) {
+      unit = d[r][c.unit];
+      const nv = round_((Number(d[r][c.stock]) || 0) - Number(u.qty));
+      d[r][c.stock] = nv;
+      sh.getRange(r + 1, c.stock + 1).setValue(nv);
+      sh.getRange(r + 1, c.upd + 1).setNumberFormat('@').setValue(today);
+    }
+    logs.push(['S' + base + '_' + k, date, u.name, -round_(Number(u.qty)), unit, ref, plotId || '-', note || '']);
+  });
+  appendRows_(ss.getSheetByName(SH.SLOG), logs);
+}
+
+// คืนยอดสต็อกของงานที่ถูกแก้/ลบ
+function reverseUsage_(ss, ref) {
+  const slog = ss.getSheetByName(SH.SLOG);
+  if (!slog || slog.getLastRow() < 2) return;
+  const d = slog.getDataRange().getDisplayValues();
+  const back = {}, rows = [];
+  for (let i = 1; i < d.length; i++) {
+    if (d[i][5] === String(ref)) {
+      back[d[i][2]] = (back[d[i][2]] || 0) - (parseFloat(String(d[i][3]).replace(/,/g, '')) || 0);
+      rows.push(i + 1);
+    }
+  }
+  if (!rows.length) return;
+  rows.reverse().forEach(r => slog.deleteRow(r));
+  const sh = ss.getSheetByName(SH.INV);
+  const v = sh.getDataRange().getValues();
+  const c = invCols_(v[0]);
+  Object.keys(back).forEach(name => {
+    const r = v.findIndex((row, i) => i > 0 && String(row[c.name]) === name);
+    if (r > 0) sh.getRange(r + 1, c.stock + 1).setValue(round_((Number(v[r][c.stock]) || 0) + back[name]));
+  });
+}
+
+// รับของเข้า (mode 'in') หรือ นับยอดจริง (mode 'set')
+function receiveStock(p) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.INV);
+    const d = sh.getDataRange().getValues();
+    const c = invCols_(d[0]);
+    const r = d.findIndex((row, i) => i > 0 && String(row[c.name]) === p.name);
+    if (r < 1) throw new Error('ไม่พบรายการ ' + p.name);
+    const cur = Number(d[r][c.stock]) || 0, q = Number(p.qty) || 0;
+    const nv = round_(p.mode === 'set' ? q : cur + q);
+    sh.getRange(r + 1, c.stock + 1).setValue(nv);
+    sh.getRange(r + 1, c.upd + 1).setNumberFormat('@').setValue(getTodayStr());
+    appendRows_(ss.getSheetByName(SH.SLOG), [['S' + Date.now(), p.date || getTodayStr(), p.name, round_(nv - cur),
+      d[r][c.unit], p.mode === 'set' ? '⚖️ ปรับยอด' : '📥 รับเข้า', '-', p.note || '']]);
+    return readAll_(ss);
+  });
+}
+
+function saveStockItem(p) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.INV);
+    const d = sh.getDataRange().getDisplayValues();
+    const h = d[0];
+    const textCols = ['item_id', 'category', 'name', 'note', 'unit', 'pack_name', 'updated_at'];
+    const fields = ['category', 'name', 'note', 'unit', 'pack_size', 'pack_name', 'per_tank', 'reorder_point'];
+    const dup = d.findIndex((row, i) => i > 0 && row[h.indexOf('name')] === p.name && row[h.indexOf('item_id')] !== p.item_id);
+    if (dup > 0) throw new Error('มีรายการชื่อ "' + p.name + '" อยู่แล้ว');
+    let r = p.item_id ? d.findIndex((row, i) => i > 0 && row[h.indexOf('item_id')] === p.item_id) : -1;
+    if (r < 1) {
+      const pre = p.category === 'Chemical' ? 'CH_' : (p.category === 'Fertilizer' ? 'FT_' : 'OT_');
+      r = sh.getLastRow();
+      const vals = { item_id: pre + Date.now().toString().slice(-6), stock: 0 };
+      h.forEach((k, i) => { if (textCols.includes(k)) sh.getRange(r + 1, i + 1).setNumberFormat('@'); });
+      sh.getRange(r + 1, 1, 1, h.length).setValues([h.map(k => k in vals ? vals[k] : (k === 'updated_at' ? getTodayStr() : (p[k] !== undefined ? p[k] : '')))]);
+    } else {
+      fields.forEach(f => {
+        const ci = h.indexOf(f);
+        if (ci === -1) return;
+        const cell = sh.getRange(r + 1, ci + 1);
+        if (textCols.includes(f)) cell.setNumberFormat('@');
+        cell.setValue(p[f]);
+      });
+      sh.getRange(r + 1, h.indexOf('updated_at') + 1).setNumberFormat('@').setValue(getTodayStr());
+    }
+    return readAll_(ss);
+  });
+}
+
+function deleteStockItem(itemId) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.INV);
+    const d = sh.getDataRange().getDisplayValues();
+    for (let i = d.length - 1; i >= 1; i--) if (d[i][0] === itemId) { sh.deleteRow(i + 1); break; }
+    return readAll_(ss);
+  });
+}
+
+// ======================= รถ / พญานาค / คนงาน =======================
+// keep_status = true → บันทึกงานบำรุงรักษาอย่างเดียว ไม่เปลี่ยนสถานะ
+function saveAssetEvent(payload) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const assetSheet = ss.getSheetByName(SH.ASSET);
+    const logSheet = ss.getSheetByName(SH.ALOG);
+    const actDate = payload.custom_date || getTodayStr();
+
+    if (!payload.keep_status) {
+      const aData = assetSheet.getDataRange().getDisplayValues();
+      for (let i = 1; i < aData.length; i++) {
+        if (aData[i][2] === payload.asset_name) {
+          const bat = payload.battery_info !== undefined ? payload.battery_info : aData[i][6];
+          const batDate = payload.battery_date !== undefined ? payload.battery_date : aData[i][7];
+          const rg = assetSheet.getRange(i + 1, 4, 1, 6);
+          rg.setNumberFormat('@');
+          rg.setValues([[payload.status, payload.issue_detail || '-', payload.parts_needed || '-', bat, batDate, actDate]]);
+          break;
+        }
+      }
+    }
+    appendRows_(logSheet, [['AL' + Date.now(), actDate, payload.asset_name, payload.category || '-',
+      payload.event_type || payload.status, payload.issue_detail || '-',
+      payload.parts_needed || payload.battery_info || '-', payload.ref_plot || '-']]);
+    return readAll_(ss);
+  });
+}
+
+function transferBattery(payload) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const assetSheet = ss.getSheetByName(SH.ASSET);
+    const logSheet = ss.getSheetByName(SH.ALOG);
+    const actDate = payload.swap_date || getTodayStr();
+    const aData = assetSheet.getDataRange().getDisplayValues();
+    const setBat = (row, vals) => { const rg = assetSheet.getRange(row, 7, 1, 3); rg.setNumberFormat('@'); rg.setValues([vals]); };
+    let batName = payload.new_bat_name || 'แบตลูกใหม่';
+    const t = Date.now();
+
+    if (payload.mode === 'swap') {
+      let fromBat = '';
+      for (let i = 1; i < aData.length; i++) {
+        if (aData[i][2] === payload.from_vehicle) {
+          fromBat = aData[i][6];
+          if (!fromBat || fromBat.includes('ไม่มีแบต')) fromBat = `แบตเดิมของ ${payload.from_vehicle}`;
+          setBat(i + 1, [`⚠️ ไม่มีแบต (ถอดไปใส่ ${payload.to_vehicle})`, actDate, actDate]);
+          break;
+        }
+      }
+      batName = payload.custom_bat_label ? `${payload.custom_bat_label} (ย้ายจาก ${payload.from_vehicle})` : `${fromBat} (ย้ายจาก ${payload.from_vehicle})`;
+      for (let i = 1; i < aData.length; i++) {
+        if (aData[i][2] === payload.to_vehicle) { setBat(i + 1, [batName, actDate, actDate]); break; }
+      }
+      appendRows_(logSheet, [
+        ['BL' + t + '_1', actDate, payload.from_vehicle, 'Battery', '🔄 ถอดแบตออก', `ถอดแบตไปใส่ให้ ${payload.to_vehicle} (${payload.remark || '-'})`, fromBat, '-'],
+        ['BL' + t + '_2', actDate, payload.to_vehicle, 'Battery', '🔋 รับแบตสลับมาใส่', `นำแบตมาจาก ${payload.from_vehicle} (${payload.remark || '-'})`, batName, '-']
+      ]);
+    } else {
+      for (let i = 1; i < aData.length; i++) {
+        if (aData[i][2] === payload.to_vehicle) { setBat(i + 1, [batName, actDate, actDate]); break; }
+      }
+      appendRows_(logSheet, [['BL' + t, actDate, payload.to_vehicle, 'Battery', '🆕 เปลี่ยน/ตั้งค่าแบต', payload.remark || 'ติดตั้งแบตเตอรี่', batName, '-']]);
+    }
+    return readAll_(ss);
+  });
+}
+
+function isDownEvt_(e) { return /เสีย|จอด|ป่วย/.test(e) && !/ซ่อมเสร็จ/.test(e); }
+function isUpEvt_(e) { return /พร้อมใช้|ปกติ|ซ่อมเสร็จ/.test(e); }
+
+// วันที่เริ่มเสีย/จอด/ป่วย ของแต่ละคัน (ที่ยังไม่หาย)
+function downSinceMap_(alogs) {
+  const m = {};
+  sortDesc_(alogs).reverse().forEach(l => {
+    const e = l.event_type || '';
+    if (isDownEvt_(e)) { if (!m[l.asset_name]) m[l.asset_name] = l.timestamp; }
+    else if (isUpEvt_(e)) delete m[l.asset_name];
+  });
+  return m;
+}
+
+// ======================= ตั้งค่า + แจ้งเตือน LINE =======================
+function saveSettings(obj) {
+  return withLock_(() => {
+    ensureSetup_(false);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.SET);
+    const d = sh.getDataRange().getDisplayValues();
+    const allowed = DEFAULT_SETTINGS.map(r => r[0]).filter(k => k !== 'LAST_NOTIFY');
+    const col = d.slice(1).map(r => [r[1]]);
+    Object.keys(obj || {}).forEach(k => {
+      if (!allowed.includes(k)) return;
+      const v = String(obj[k] === undefined ? '' : obj[k]).trim();
+      if (k === 'LINE_CHANNEL_TOKEN' && !v) return; // เว้นว่าง = ใช้โทเคนเดิม
+      const i = d.findIndex((r, j) => j > 0 && r[0] === k);
+      if (i > 0) col[i - 1] = [v];
+    });
+    if (col.length) { const rg = sh.getRange(2, 2, col.length, 1); rg.setNumberFormat('@'); rg.setValues(col); }
+    const s = getSettings_(ss);
+    if (s.NOTIFY_ENABLED === 'เปิด') installNotifyTriggers_(s); else removeNotifyTriggers_();
+    return readAll_(ss);
+  });
+}
+
+function parseTime_(t) {
+  const m = String(t || '').match(/(\d{1,2})[:.](\d{2})/);
+  return m ? [Math.min(23, +m[1]), Math.min(59, +m[2])] : [4, 0];
+}
+
+// ตัวตั้งเวลาหลักทำงานก่อนเวลาส่ง ~2 ชม. แล้วสร้างตัวตั้งเวลาครั้งเดียวที่เวลาตรงเป๊ะ
+function installNotifyTriggers_(s) {
+  removeNotifyTriggers_();
+  const [h] = parseTime_(s.NOTIFY_TIME);
+  ScriptApp.newTrigger('dailyScheduler').timeBased().everyDays(1).atHour((h + 22) % 24).create();
+  scheduleExactNotify_(s);
+}
+
+function removeNotifyTriggers_() {
+  ScriptApp.getProjectTriggers().forEach(t => {
+    const f = t.getHandlerFunction();
+    if (f === 'dailyScheduler' || f === 'sendMorningBrief') ScriptApp.deleteTrigger(t);
+  });
+}
+
+function dailyScheduler() {
+  scheduleExactNotify_(getSettings_(SpreadsheetApp.getActiveSpreadsheet()));
+}
+
+function scheduleExactNotify_(s) {
+  ScriptApp.getProjectTriggers().forEach(t => { if (t.getHandlerFunction() === 'sendMorningBrief') ScriptApp.deleteTrigger(t); });
+  if (s.NOTIFY_ENABLED !== 'เปิด') return;
+  const [h, m] = parseTime_(s.NOTIFY_TIME);
+  const at = new Date(); at.setHours(h, m, 0, 0);
+  if (at.getTime() <= Date.now()) at.setDate(at.getDate() + 1);
+  ScriptApp.newTrigger('sendMorningBrief').timeBased().at(at).create();
+}
+
+function sendMorningBrief() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const s = getSettings_(ss);
+  const today = getTodayStr();
+  if (s.NOTIFY_ENABLED !== 'เปิด' || s.LAST_NOTIFY === today) return;
+  const res = sendLine_(s, buildBrief_(ss, s));
+  if (res.ok) setSetting_(ss, 'LAST_NOTIFY', today);
+  else console.error(res.msg);
+}
+
+// ปุ่ม "ดูตัวอย่าง" ในแอป (ไม่ส่ง ไม่เสียโควตา)
+function previewBrief() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return buildBrief_(ss, getSettings_(ss));
+}
+
+// ปุ่ม "ส่งทดสอบ" ในแอป
+function testNotify() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const s = getSettings_(ss);
+  return sendLine_(s, '🧪 ทดสอบระบบ\n\n' + buildBrief_(ss, s));
+}
+
+function sendLine_(s, text) {
+  if (!s.LINE_CHANNEL_TOKEN) return { ok: false, msg: 'ยังไม่ได้ใส่ Channel access token' };
+  const target = (s.LINE_TARGET_ID || '').trim();
+  const url = target ? 'https://api.line.me/v2/bot/message/push' : 'https://api.line.me/v2/bot/message/broadcast';
+  const body = { messages: [{ type: 'text', text: text.slice(0, 4900) }] };
+  if (target) body.to = target;
+  const r = UrlFetchApp.fetch(url, {
+    method: 'post', contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + s.LINE_CHANNEL_TOKEN },
+    payload: JSON.stringify(body), muteHttpExceptions: true
+  });
+  const code = r.getResponseCode();
+  return { ok: code === 200, msg: code === 200 ? 'ส่งเข้า LINE สำเร็จ' : `LINE ตอบกลับ ${code}: ${r.getContentText().slice(0, 200)}` };
+}
+
+function thaiDate_(d) {
+  const D = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+  const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  return `${D[d.getDay()]} ${d.getDate()} ${M[d.getMonth()]} ${(d.getFullYear() + 543) % 100}`;
+}
+
+function fmtStock_(it) {
+  const q = Number(it.stock) || 0, pack = Number(it.pack_size) || 1, pt = Number(it.per_tank) || 0;
+  let s = pack > 1 ? `${Math.round(q / pack * 10) / 10} ${it.pack_name || it.unit}` : `${q} ${it.unit}`;
+  if (pt > 0) s += ` (≈${Math.max(0, Math.floor(q / pt))} ถัง)`;
+  return s;
+}
+
+function buildBrief_(ss, s) {
+  const plots = readSheet_(ss, SH.PLOTS);
+  const acts = sortDesc_(readSheet_(ss, SH.ACT));
+  const assets = readSheet_(ss, SH.ASSET);
+  const alogs = readSheet_(ss, SH.ALOG);
+  const inv = readSheet_(ss, SH.INV, true);
+  const wNew = +s.WATER_DAYS_NEW || 12, wRat = +s.WATER_DAYS_RATOON || 15;
+  const sMin = +s.SPRAY_DAY_MIN || 3, sMax = +s.SPRAY_DAY_MAX || 5;
+
+  const water = [], spray = [], soon = [], ongoing = [], busy = new Set();
+  plots.forEach(p => {
+    const note = p.status_note || '';
+    const name = `${p.plot_id} ${p.plot_name}`;
+    if (note.includes('[กำลังทำ]')) {
+      ongoing.push(`• ${name}: ${note.replace('[กำลังทำ]', '').split('|')[0].trim()} (${(note.split('|')[1] || '').trim().split(' ').slice(0, 2).join(' ')})`);
+      const l = acts.find(a => a.plot_id === p.plot_id && (a.remark || '').includes('[⏳กำลังทำ]'));
+      if (l) (l.equipment || '').split(',').forEach(e => { e = e.trim(); if (e && e !== '-') busy.add(e); });
+      return;
+    }
+    if (note.includes('✅ ตัดอ้อย')) return;
+    const w = daysSince_(p.last_water_date);
+    if (w === null) return;
+    const lim = p.cane_type === 'อ้อยใหม่' ? wNew : wRat;
+    if (w >= lim) water.push(`• ${name} (${p.area_rai} ไร่) ขาดน้ำ ${w} วัน`);
+    else if (w >= sMin && w <= sMax) spray.push(`• ${name} หลังน้ำ ${w} วัน`);
+    else if (lim - w <= 2) soon.push(`• ${name} อีก ${lim - w} วัน`);
+  });
+
+  const dm = downSinceMap_(alogs);
+  const icon = { Pump: '🐍', Truck: '🚛', Tractor: '🚜' };
+  const isOk = a => a.status === 'พร้อมใช้' || a.status === 'ปกติ';
+  const broken = [], sick = [], noBat = [];
+  assets.forEach(a => {
+    if (a.category === 'Worker') {
+      if (!isOk(a)) sick.push(`• ${a.name}: ${a.issue_detail !== '-' ? a.issue_detail : a.status}`);
+      return;
+    }
+    if (!isOk(a)) {
+      const dd = dm[a.name] ? daysSince_(dm[a.name]) : null;
+      broken.push(`• ${icon[a.category] || '🔧'} ${a.name}: ${a.issue_detail !== '-' ? a.issue_detail : a.status}${dd !== null ? ` (${dd} วัน)` : ''}${a.parts_needed && a.parts_needed !== '-' ? ` → ${a.parts_needed}` : ''}`);
+    }
+    if ((a.battery_info || '').includes('ไม่มีแบต')) noBat.push(`• ${a.name}`);
+  });
+
+  const low = inv.filter(it => (Number(it.reorder_point) || 0) > 0 && (Number(it.stock) || 0) <= Number(it.reorder_point))
+    .map(it => `• ${it.name} เหลือ ${fmtStock_(it)}`);
+
+  const avail = ['Pump', 'Truck', 'Tractor'].map(cat => {
+    const list = assets.filter(a => a.category === cat);
+    if (!list.length) return '';
+    const free = list.filter(a => isOk(a) && !busy.has(a.name)).length;
+    return `${icon[cat]} ${free}/${list.length}`;
+  }).filter(Boolean).join(' | ');
+
+  const sec = (title, arr) => arr.length ? `\n${title} (${arr.length})\n${arr.join('\n')}\n` : '';
+  let msg = `🌾 สรุปไร่อ้อย ${thaiDate_(new Date())}\n`;
+  msg += sec('💧 ถึงคิวขึ้นน้ำ', water);
+  msg += sec('🔫 ดินหมาด ฉีดยาคุมได้', spray);
+  msg += sec('📅 ใกล้ถึงรอบน้ำ', soon);
+  msg += sec('⏳ งานค้าง', ongoing);
+  msg += sec('🔧 รถ/พญานาคเสีย', broken);
+  msg += sec('🤒 คนงานลา/ป่วย', sick);
+  msg += sec('🔋 รถไม่มีแบต', noBat);
+  msg += sec('📦 ของใกล้หมด', low);
+  if (!water.length && !spray.length && !ongoing.length && !broken.length) msg += '\n✅ วันนี้ไม่มีคิวด่วน\n';
+  if (avail) msg += `\nพร้อมใช้: ${avail}`;
+  return msg.trim();
+}
+
+
+function authorizeFetch() {
+  UrlFetchApp.fetch('https://www.google.com');
+}

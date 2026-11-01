@@ -1,14 +1,16 @@
-สรุปโปรเจกต์ "ไร่อ้อย 281 ไร่ V8" (อัปเดต 1 พ.ย. 2569 19:40)
+สรุปโปรเจกต์ "ไร่อ้อย 281 ไร่ V8" (อัปเดต 1 พ.ย. 2569 21:45)
 
 == โครงสร้าง ==
 - Google Sheets = เก็บข้อมูล (25 แปลง, งาน, รถ/คน/ปั๊ม, สต็อก, ตั้งค่า)
-- Apps Script = หลังบ้าน / API (ห้ามลบ)
+- Apps Script = หลังบ้าน / API (ห้ามลบ) — เจ้าของ: บัญชี bee.prettyboy@gmail.com
+  Script ID: 1e83OC2v5qta9GrUpiajU8BUsfo2uEwzeqSFXXMuSZ94Yoh7Rvn3Q-uni
+  โค้ดทั้งหมดอยู่ใน repo โฟลเดอร์ gas/ (Code.gs, Api.gs, Index.html, appsscript.json) — ต้นฉบับอยู่ที่ GitHub แล้ว
   URL: https://script.google.com/macros/s/AKfycbzWvJ2M0C7ZHQTVTWVCFCh7ugALw9dWws9A52iYEYvpxivqWzRCN22qWa4R6mE5XcZBuA/exec
   - Code.gs: ฟังก์ชันเดิมทั้งหมด (doGet เดิมเปลี่ยนชื่อเป็น doGetOld)
     ฟังก์ชันที่หน้าเว็บเรียก: getInitialData, saveActivities, deleteActivity, updatePlotInfo,
     saveAssetEvent, transferBattery, receiveStock, saveStockItem, deleteStockItem,
     saveSettings, previewBrief, testNotify, updateMasterOption
-  - Api.gs: router (สำเนาอยู่ใน GitHub: gas/Api.gs)
+  - Api.gs: router
     • GET ?page=html → Index.html เป็น JSON (ไม่ต้องใช้รหัส)
     • GET ?fn=ชื่อ&k=รหัส หรือ POST {fn, args, k} (text/plain) → {ok, result} / {ok:false, error}
     • รหัสผิด → error ขึ้นต้นด้วย "AUTH"
@@ -49,8 +51,13 @@
 
 == วิธีทำงาน ==
 - แก้หน้าตา v8 → Claude แก้ v8.html แล้ว push เอง → รอ 1–2 นาที → ปัดปิดแอปแล้วเปิดใหม่
-- แก้หลังบ้าน → Claude ให้ไฟล์เต็ม → วางใน Apps Script → Deploy > จัดการ > แก้ไข > เวอร์ชันใหม่
-  (Claude อ่าน Code.gs ไม่ได้ ต้องแคปหน้าจอให้ดู)
+- แก้หลังบ้าน → Claude แก้ไฟล์ใน gas/ แล้ว push เอง → GitHub Action "Deploy Apps Script"
+  (.github/workflows/gas-deploy.yml) ทำ clasp push + deploy เวอร์ชันใหม่ให้ URL เดิม + ทดสอบ ?page=html อัตโนมัติ
+  ⚠️ ห้ามแก้โค้ดในหน้า Apps Script ตรง ๆ แล้ว (จะถูกทับตอน push ครั้งถัดไป) ถ้าเผลอแก้ ให้ Claude clasp pull มาเข้า repo ก่อน
+  ต้องมี GitHub Secret ชื่อ CLASPRC_JSON (token ของ bee.prettyboy) — Claude ใส่ secret เองไม่ได้ ผู้ใช้ต้องวางเอง
+  ถ้า token หมดอายุ/ถูกยกเลิก (Action แดงที่ขั้น Push code) → Claude รัน clasp login --no-localhost ใหม่ แล้วผู้ใช้อัปเดต secret
+  Claude ใช้ clasp ในแชตได้เลย (โดเมน script.googleapis.com, oauth2.googleapis.com, www.googleapis.com, accounts.google.com อนุญาตแล้ว)
+  แต่ workspace แต่ละแชตต้อง clasp login ใหม่ (หรือใช้ Action อย่างเดียวก็พอ)
 - Claude อ่านข้อมูล/หน้าจอผ่าน API ได้ ต้องอนุญาตโดเมน script.google.com และ
   script.googleusercontent.com ในการตั้งค่า > ความสามารถ (อนุญาตแล้ว)
   และต้องบอกรหัส API ให้ Claude ในแชตนั้น
@@ -111,16 +118,8 @@
    ไอเดียต่อ: แปลงน้ำขังบ่อย ติดป้ายเหมือนป้ายดินทราย (ต้องแก้ GAS)
 - ส่งลิงก์ v8 พร้อมรหัส (?k=) ให้คนงาน
 - สลับลิงก์หลักให้เปิด v8 (เมื่อใช้ v8 แล้วโอเค)
-- ⭐ งานแรกของแชตถัดไป: ตั้ง clasp (GitHub → Apps Script อัตโนมัติ) ลองทำบนมือถือ ไม่ใช้คอม
-  1) ผู้ใช้เปิด Apps Script API: script.google.com/home/usersettings (โหมดเดสก์ท็อปในมือถือ)
-  2) ผู้ใช้อนุญาตโดเมนเพิ่มใน Claude ตั้งค่า > ความสามารถ: script.googleapis.com, oauth2.googleapis.com,
-     accounts.google.com, www.googleapis.com (เช็กกับ proxy status ว่าขาดอะไร)
-  3) Claude ติดตั้ง @google/clasp ใน workspace → clasp login แบบไม่ใช้ localhost (ยังไม่แน่ใจว่ารุ่นใหม่ทำได้ ต้องลอง)
-     ผู้ใช้กดลิงก์บนมือถือ อนุญาต แล้วก๊อปรหัส/URL กลับมา. Google อาจเตือน "ยังไม่ยืนยัน" → ขั้นสูง → ไปต่อ
-  4) clasp clone สคริปต์ → เอา Code.gs / Api.gs / Index.html เข้า repo (โฟลเดอร์ gas/) Claude จะอ่าน Code.gs ได้แล้ว
-  5) ผู้ใช้ใส่ .clasprc.json เป็น GitHub Secret (github.com โหมดเดสก์ท็อป) → GitHub Action: push gas/ → clasp push + deploy เวอร์ชันใหม่ ให้ URL เดิม
-     ห้ามใส่ token ใน repo (repo สาธารณะ)
-  ถ้าข้อ 3 ไม่ได้ → ใช้คอมครั้งเดียว
-  หลังจากนั้นค่อยทำงานที่ต้องแก้ GAS: ป้ายดินทราย, ฝากดู, ประวัติย้อนหลัง
+- ✅ ตั้ง clasp แล้ว (1 พ.ย. 21:45) ทำบนมือถือได้ ไม่ต้องใช้คอม: login --no-localhost, clone เข้า gas/, GitHub Action deploy
+  ก่อนตั้ง: deployment @12 = โค้ดเดียวกับ HEAD (เช็กแล้ว) / มี deployment ทดสอบ @HEAD AKfycbydx... ไม่ได้ใช้
+  ต่อไปทำงานที่ต้องแก้ GAS ได้แล้ว: ป้ายดินทราย, ฝากดู, ประวัติย้อนหลัง
 - ทางเลือกที่คุยไว้: ย้ายไป Supabase (เร็วกว่า, Claude ดูแลได้ทั้งระบบ, แต่เสียการเปิดดูใน Google Sheets,
   ฟรีแต่หยุดเมื่อไม่ใช้งาน 7 วัน, LINE แจ้งเตือนต้องทำใหม่, ใช้ 2–3 แชต) — ผู้ใช้สนใจแต่ยังไม่ตัดสินใจ เลือก clasp ก่อน

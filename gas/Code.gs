@@ -257,6 +257,7 @@ function readAll_(ss) {
     assetLogs: sortDesc_(readSheet_(ss, SH.ALOG)),
     inventory: readSheet_(ss, SH.INV, true),
     stockLogs: sortDesc_(readSheet_(ss, SH.SLOG, true)),
+    expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
     settings: pub
   };
 }
@@ -893,4 +894,172 @@ function billAiModels() {
     models: (j.models || []).filter(m => (m.supportedGenerationMethods || []).indexOf('generateContent') !== -1)
       .map(m => m.name.replace('models/', ''))
   };
+}
+
+const BILL_CATS_ = ['อะไหล่', 'น้ำมัน', 'ปุ๋ย', 'ยา', 'ค่าแรง', 'อื่นๆ'];
+const EXP_HEADERS_ = ['exp_id', 'timestamp', 'bill_id', 'shop', 'category', 'item', 'qty', 'unit', 'amount',
+  'asset', 'stock_item', 'stock_qty', 'photo_id', 'note', 'created_at'];
+
+// รันครั้งเดียวในหน้า Apps Script เพื่อกดอนุญาตสิทธิ์ Drive (เก็บรูปบิล)
+function authorizeBillDrive() {
+  const f = billFolder_();
+  Logger.log('✅ ใช้ Drive ได้แล้ว โฟลเดอร์: ' + f.getName() + ' ' + f.getUrl());
+  return f.getUrl();
+}
+
+function billFolder_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('BILL_FOLDER_ID');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  const f = DriveApp.createFolder('บิลไร่อ้อย');
+  props.setProperty('BILL_FOLDER_ID', f.getId());
+  return f;
+}
+
+function geminiCall_(parts) {
+  const props = PropertiesService.getScriptProperties();
+  const models = [props.getProperty('GEMINI_MODEL') || 'gemini-flash-latest', 'gemini-2.5-flash']
+    .filter((m, i, a) => m && a.indexOf(m) === i);
+  let last = '';
+  for (let i = 0; i < models.length; i++) {
+    const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent', {
+      method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { 'x-goog-api-key': geminiKey_() },
+      payload: JSON.stringify({
+        contents: [{ role: 'user', parts: parts }],
+        generationConfig: { temperature: 0, responseMimeType: 'application/json' }
+      })
+    });
+    const code = res.getResponseCode(), txt = res.getContentText();
+    if (code === 200) {
+      const j = JSON.parse(txt);
+      const out = (((j.candidates || [])[0] || {}).content || {}).parts || [];
+      return out.map(p => p.text || '').join('');
+    }
+    last = code + ' ' + txt.slice(0, 200);
+  }
+  throw new Error('อ่านบิลไม่ได้ (Gemini ' + last + ')');
+}
+
+// อ่านรูปบิล → เก็บรูปใน Drive + ให้ Gemini แยกรายการ (ยังไม่บันทึก รอผู้ใช้ตรวจก่อน)
+function readBill(b64, mime) {
+  if (!b64) throw new Error('ไม่มีรูป');
+  mime = mime || 'image/jpeg';
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const inv = readSheet_(ss, SH.INV).map(i => `- ${i.name} [${i.category}] หน่วยย่อย ${i.unit}` +
+    (Number(i.pack_size) > 1 ? ` (1 ${i.pack_name} = ${i.pack_size} ${i.unit})` : ''));
+  const assets = readSheet_(ss, SH.ASSET).filter(a => a.category !== 'Worker').map(a => `- ${a.name}`);
+  const today = getTodayStr();
+
+  const file = billFolder_().createFile(Utilities.newBlob(Utilities.base64Decode(b64), mime,
+    'บิล_' + today.replace(/\//g, '-') + '_' + Date.now() + (mime === 'image/png' ? '.png' : '.jpg')));
+
+  const prompt = `คุณอ่านบิล/ใบเสร็จของไร่อ้อยในประเทศไทย (ภาษาไทย อาจเขียนมือ) ตอบเป็น JSON อย่างเดียว:
+{"date":"dd/mm/yyyy พ.ศ.","shop":"ชื่อร้าน","total":ตัวเลข,"items":[{"item":"ชื่อสินค้า","category":"หมวด","qty":ตัวเลข,"unit":"หน่วยในบิล","amount":ราคารวมของบรรทัดเป็นบาท,"stock_item":"","stock_qty":0,"asset":""}]}
+กติกา:
+- category เลือกจาก: ${BILL_CATS_.join(', ')} (ยาฆ่าหญ้า/ยาฉีด = ยา, ดีเซล/เบนซิน/น้ำมันเครื่อง/ไฮดรอลิก = น้ำมัน)
+- วันที่ปีเป็น พ.ศ. (ถ้าบิลเป็น ค.ศ. ให้ +543) ถ้าไม่มีวันที่ใส่ "${today}"
+- stock_item: ถ้าสินค้าตรงกับรายการในสต็อกด้านล่าง ใส่ชื่อให้ตรงทุกตัวอักษร ไม่ตรงใส่ ""
+  stock_qty: จำนวนที่ได้มา แปลงเป็น "หน่วยย่อย" ของรายการสต็อกนั้น (เช่น ไซทรอน 1 ลิตร = 1000 ml, ปุ๋ย 10 กระสอบ = 10)
+- asset: ถ้าเป็นอะไหล่ของรถ/เครื่องในรายการด้านล่างและบิลบอกชัด ใส่ชื่อให้ตรง ไม่ชัดใส่ ""
+- amount เป็นบาท ไม่มีจุลภาค ถ้าอ่านไม่ออกใส่ 0 / อย่าเดา ถ้าไม่ใช่บิลให้ items เป็น []
+รายการสต็อก:
+${inv.join('\n')}
+รถ/เครื่อง:
+${assets.join('\n')}`;
+
+  let data;
+  try {
+    const txt = geminiCall_([{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }]);
+    data = JSON.parse(txt.replace(/^```json\s*|```\s*$/g, ''));
+  } catch (e) {
+    return { photo_id: file.getId(), error: String(e.message || e), date: today, shop: '', total: 0, items: [] };
+  }
+  const invNames = new Set(readSheet_(ss, SH.INV).map(i => i.name));
+  const asNames = new Set(readSheet_(ss, SH.ASSET).map(a => a.name));
+  data.items = (data.items || []).map(it => ({
+    item: String(it.item || '').trim(),
+    category: BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ',
+    qty: Number(it.qty) || 0, unit: String(it.unit || ''), amount: Number(it.amount) || 0,
+    stock_item: invNames.has(it.stock_item) ? it.stock_item : '',
+    stock_qty: invNames.has(it.stock_item) ? (Number(it.stock_qty) || 0) : 0,
+    asset: asNames.has(it.asset) ? it.asset : ''
+  }));
+  data.photo_id = file.getId();
+  return data;
+}
+
+// ยกเลิกบิล (ยังไม่บันทึก) → ทิ้งรูป
+function discardBillPhoto(photoId) {
+  if (!photoId) return true;
+  try { DriveApp.getFileById(photoId).setTrashed(true); } catch (e) {}
+  return true;
+}
+
+function addStock_(ss, name, qty, date, ref, note) {
+  const sh = ss.getSheetByName(SH.INV);
+  const d = sh.getDataRange().getValues();
+  const c = invCols_(d[0]);
+  const r = d.findIndex((row, i) => i > 0 && String(row[c.name]) === name);
+  if (r < 1) return false;
+  const nv = round_((Number(d[r][c.stock]) || 0) + Number(qty));
+  sh.getRange(r + 1, c.stock + 1).setValue(nv);
+  sh.getRange(r + 1, c.upd + 1).setNumberFormat('@').setValue(getTodayStr());
+  appendRows_(ss.getSheetByName(SH.SLOG), [['S' + Date.now() + '_' + Math.floor(Math.random() * 1000), date, name,
+    round_(Number(qty)), d[r][c.unit], ref, '-', note || '']]);
+  return true;
+}
+
+// บันทึกบิลที่ผู้ใช้ตรวจแล้ว: ลงชีต Expenses + รับเข้าสต็อก + ประวัติรถ (อะไหล่)
+function saveBill(b) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = getOrCreate_(ss, 'Expenses', EXP_HEADERS_);
+    const items = (b.items || []).filter(it => it && (it.item || Number(it.amount)));
+    if (!items.length) throw new Error('ไม่มีรายการในบิล');
+    const billId = 'B' + Date.now(), date = b.date || getTodayStr(), shop = String(b.shop || '').trim() || '-';
+    const now = getTodayStr();
+    const assetCat = {};
+    readSheet_(ss, SH.ASSET).forEach(a => { assetCat[a.name] = a.category; });
+    const rows = [], alog = [];
+    items.forEach((it, i) => {
+      const cat = BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ';
+      const sq = it.stock_item ? (Number(it.stock_qty) || 0) : 0;
+      rows.push([billId + '_' + i, date, billId, shop, cat, it.item || '-', Number(it.qty) || '', it.unit || '',
+        Number(it.amount) || 0, it.asset || '', it.stock_item || '', sq || '', b.photo_id || '', b.note || '', now]);
+      if (sq > 0) addStock_(ss, it.stock_item, sq, date, billId, '🧾 บิล ' + shop);
+      if (it.asset && assetCat[it.asset]) {
+        alog.push([billId + '_A' + i, date, it.asset, assetCat[it.asset], '🧾 ซื้ออะไหล่',
+          `${it.item} ${Number(it.amount) || 0} บาท (${shop})`, it.item || '-', '-']);
+      }
+    });
+    appendRows_(sh, rows);
+    if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
+    return readAll_(ss);
+  });
+}
+
+// ลบบิลทั้งใบ: ลบแถวค่าใช้จ่าย, คืนสต็อกที่รับเข้า, ลบประวัติรถ, ทิ้งรูป
+function deleteBill(billId) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('Expenses');
+    if (!sh || !billId) throw new Error('ไม่พบบิล');
+    const d = sh.getDataRange().getDisplayValues();
+    let photo = '';
+    for (let i = d.length - 1; i >= 1; i--) if (d[i][2] === billId) { photo = photo || d[i][12]; sh.deleteRow(i + 1); }
+    const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues();
+    for (let i = sd.length - 1; i >= 1; i--) {
+      if (String(sd[i][5]) !== billId) continue;
+      const q = Number(sd[i][3]) || 0, name = String(sd[i][2]);
+      const inv = ss.getSheetByName(SH.INV), id = inv.getDataRange().getValues(), c = invCols_(id[0]);
+      const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === name);
+      if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - q));
+      sl.deleteRow(i + 1);
+    }
+    const al = ss.getSheetByName(SH.ALOG), ad = al.getDataRange().getDisplayValues();
+    for (let i = ad.length - 1; i >= 1; i--) if (String(ad[i][0]).indexOf(billId + '_A') === 0) al.deleteRow(i + 1);
+    if (photo) discardBillPhoto(photo);
+    return readAll_(ss);
+  });
 }

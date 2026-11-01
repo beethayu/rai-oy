@@ -39,6 +39,11 @@ jobs:
           name: site
           # Upload entire repository
           path: '.'
+      - name: Cancel stuck deployment
+        run: gh api -X POST repos/${{ github.repository }}/pages/deployments/c6134831f2bcc56f74ecfa8320ef668b4f0eae5e/cancel || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

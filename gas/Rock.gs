@@ -3,13 +3,25 @@
 // ชีต RockPoints = จุด, RockLogs = รูป (before/after) + เที่ยวรถ (trip) · รูปเก็บใน Drive โฟลเดอร์ "หินคลุก ไร่อ้อย/<สมาชิก>"
 
 const ROCK_PT_ = ['point_id', 'created', 'member', 'phone', 'name', 'start_lat', 'start_lng', 'end_lat', 'end_lng',
-  'dist_m', 'quota', 'note', 'status', 'done_at', 'pair_before', 'pair_after'];
+  'dist_m', 'quota', 'note', 'status', 'done_at', 'pair_before', 'pair_after', 'path'];
 const ROCK_LOG_ = ['log_id', 'point_id', 'type', 'timestamp', 'file_id', 'lat', 'lng', 'truck', 'driver', 'trips', 'note',
   'created', 'thumb'];
 const ROCK_ST_ = ['รอลง', 'กำลังลง', 'ลงเสร็จ'];
 
 function rockSheets_(ss) {
-  return { pt: getOrCreate_(ss, 'RockPoints', ROCK_PT_), log: getOrCreate_(ss, 'RockLogs', ROCK_LOG_) };
+  const pt = getOrCreate_(ss, 'RockPoints', ROCK_PT_), log = getOrCreate_(ss, 'RockLogs', ROCK_LOG_);
+  [[pt, ROCK_PT_], [log, ROCK_LOG_]].forEach(([sh, h]) => {   // คอลัมน์ที่เพิ่มทีหลัง (เช่น path)
+    if (sh.getLastColumn() < h.length) sh.getRange(1, 1, 1, h.length).setValues([h]).setFontWeight('bold').setBackground('#38761d').setFontColor('#ffffff');
+  });
+  return { pt: pt, log: log };
+}
+
+// เส้นที่แตะบนแผนที่ "lat,lng;lat,lng;..." → ระยะรวม (เมตร)
+function rockPathLen_(path) {
+  const pts = String(path || '').split(';').map(x => x.split(',').map(Number)).filter(x => x.length === 2 && x[0] && x[1]);
+  let m = 0;
+  for (let i = 1; i < pts.length; i++) m += Number(rockDist_(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1])) || 0;
+  return Math.round(m);
 }
 
 // สำหรับ readAll_: ไม่ส่ง thumb (ใหญ่) ไปกับข้อมูลหลัก ดึงทีละจุดด้วย rockThumbs
@@ -60,12 +72,15 @@ function saveRockPoint(p) {
     if (!row) { o.point_id = 'R' + Date.now(); o.created = getTodayStr(); o.status = 'รอลง'; }
     ['member', 'phone', 'name', 'note', 'quota'].forEach(k => { if (p[k] !== undefined) o[k] = String(p[k]).trim(); });
     ['start_lat', 'start_lng', 'end_lat', 'end_lng'].forEach(k => { if (p[k] !== undefined) o[k] = rockCoord_(p[k]); });
+    if (p.path !== undefined) {
+      o.path = String(p.path || '').split(';').map(x => x.split(',').map(rockCoord_).join(',')).filter(x => /^-?\d.*,-?\d/.test(x)).join(';');
+    }
     if (p.status !== undefined && ROCK_ST_.indexOf(p.status) !== -1) {
       o.status = p.status; o.done_at = p.status === 'ลงเสร็จ' ? (o.done_at || getTodayStr()) : '';
     }
     if (!o.member) throw new Error('ใส่ชื่อสมาชิกก่อน');
     if (!o.name) o.name = 'จุด ' + o.created;
-    o.dist_m = rockDist_(o.start_lat, o.start_lng, o.end_lat, o.end_lng);
+    o.dist_m = o.path && o.path.indexOf(';') > 0 ? rockPathLen_(o.path) : rockDist_(o.start_lat, o.start_lng, o.end_lat, o.end_lng);
     const vals = [ROCK_PT_.map(k => o[k] === undefined || o[k] === null ? '' : String(o[k]))];
     if (row) sh.getRange(row.r, 1, 1, ROCK_PT_.length).setNumberFormat('@').setValues(vals);
     else appendRows_(sh, vals);

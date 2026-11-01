@@ -249,6 +249,12 @@
     .rk-pt + .rk-pt { border-top: 1px solid #EEF1EF; }
     .rk-pt .rk-l { flex: 1; min-width: 0; }
     .rk-dot { width: 26px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; flex-shrink: 0; }
+    #rockMapModal .modal-body { position: relative; padding: 0; }
+    #rkMap { position: absolute; inset: 0; background: #DDE3DE; }
+    .rk-hint { position: absolute; left: 10px; right: 10px; top: 10px; z-index: 500; background: rgba(255,255,255,.95); border-radius: 12px; padding: 8px 12px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+    .rk-fab { position: absolute; right: 10px; z-index: 500; border: 0; background: #fff; color: #1F5E3B; font-weight: 700; font-size: 14px; border-radius: 12px; padding: 9px 12px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+    .rk-lbl { background: #1F5E3B; color: #fff; border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 1px 6px; box-shadow: none; }
+    .rk-lbl::before { display: none; }
     .rk-trip { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; font-size: 14px; }
     .rk-trip + .rk-trip { border-top: 1px solid #EEF1EF; }
     .rk-x { border: 0; background: transparent; color: #A3271B; font-size: 13px; font-weight: 600; padding: 2px 4px; }
@@ -966,6 +972,28 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody" id="rock-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="rockMapModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">ปักจุดลงหิน</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="rkMap"></div>
+          <div class="rk-hint" id="rkHint">แตะจุดที่เริ่มลงหิน แล้วแตะไล่ตามถนนไปจนสุด จะได้ระยะทาง</div>
+          <button type="button" class="rk-fab" style="top:62px" id="rkLayerBtn" onclick="rkToggleLayer()">แผนที่ถนน</button>
+          <button type="button" class="rk-fab" style="top:108px" onclick="rkGoMe()">ไปที่ฉัน</button>
+        </div>
+        <div class="modal-footer py-2 d-flex gap-2 flex-nowrap">
+          <button type="button" class="btn btn-outline-secondary" onclick="rkUndo()">ย้อน</button>
+          <button type="button" class="btn btn-outline-danger" onclick="rkClear()">ล้าง</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnRkMapSave" onclick="rkSave()">บันทึก</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2297,7 +2325,8 @@
       }).map(l => ({ ...l, iso: beToISO(l.timestamp), plot: pName[l.plot_id] || l.plot_id,
         people: String(l.operator || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ') }));
       const rpt = {}; (gData.rockPoints || []).forEach(r => rpt[r.point_id] = r);
-      (gData.rockLogs || []).filter(l => l.type === 'trip' && l.driver).forEach(l => {
+      const ourW = new Set((gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name));
+      (gData.rockLogs || []).filter(l => l.type === 'trip' && ourW.has(l.driver)).forEach(l => {
         const iso = beToISO(l.timestamp), r = rpt[l.point_id];
         if (!iso || iso < wsFrom || iso > wsTo) return;
         logs.push({ iso, timestamp: l.timestamp, plot: 'หินคลุก ' + (r ? r.member + ' ' + r.name : ''), activity_group: 'ขนหินคลุก',
@@ -2986,20 +3015,6 @@
       call('saveRockPoint', [o], d => { init(d); rockCur = d.savedPoint || rockCur; rockEdit = false; rockNew = null; renderRock(); }, $('btnRockSave'));
     }
 
-    function rockXYHtml(r, k, label) {
-      const la = r[k + '_lat'], ln = r[k + '_lng'], ok = hasXY(la, ln);
-      return `<div class="rk-pt">
-        <span class="rk-dot" style="background:${k === 'start' ? '#1F5E3B' : '#C77700'}">${k === 'start' ? 'A' : 'B'}</span>
-        <div class="rk-l"><div class="fw-bold">${label}</div><div class="srow-s">${ok ? `${num(la).toFixed(5)}, ${num(ln).toFixed(5)}` : 'ยังไม่ปัก'}</div></div>
-        ${ok ? `<a class="btn btn-sm btn-success fw-bold" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>` : ''}
-      </div>
-      <div class="d-flex gap-2 mb-2">
-        <button type="button" class="btn btn-sm btn-outline-success flex-fill" id="btnXY_${k}" onclick="rockHere('${k}')">${ok ? 'ปักใหม่ตรงนี้' : 'ปักตรงที่ยืนอยู่'}</button>
-        <button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="rockPaste('${k}')">วางลิงก์ Google Maps</button>
-        ${ok ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="rockClearXY('${k}')">ลบ</button>` : ''}
-      </div>`;
-    }
-
     function rockThumbHtml(l, r) {
       const pp = rockPairIds(r), t = rockThumbCache[l.log_id], pair = [pp.b && pp.b.log_id, pp.a && pp.a.log_id].includes(l.log_id);
       return `<button type="button" class="rk-th ${pair ? 'pair' : ''}" style="${rockSel === l.log_id ? 'outline:3px solid #C77700;outline-offset:2px;' : ''}" onclick="rockSel=rockSel==='${qa(l.log_id)}'?'':'${qa(l.log_id)}';renderRock()">
@@ -3022,11 +3037,12 @@
       const bef = lg.filter(l => l.type === 'before'), aft = lg.filter(l => l.type === 'after'), trips = lg.filter(l => l.type === 'trip');
       const tSum = trips.reduce((t, l) => t + num(l.trips), 0), q = num(r.quota);
       const { b: pb, a: pa } = rockPairIds(r);
-      const trucks = (gData.assets || []).filter(a => a.category === 'Truck').map(a => a.name);
-      const workers = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);
-      const lastTrip = trips[trips.length - 1] || {};
+      const allTrips = (gData.rockLogs || []).filter(l => l.type === 'trip');
+      const uniq = a => [...new Set(a.filter(Boolean))];
+      const drivers = uniq(allTrips.map(l => l.driver).reverse().concat((gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name)));
+      const trucks = uniq(allTrips.map(l => l.truck).reverse().concat((gData.assets || []).filter(a => a.category === 'Truck').map(a => a.name)));
+      const lastTrip = trips[trips.length - 1] || allTrips[allTrips.length - 1] || {};
       const opt = (v, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(v)}</option>`;
-      const both = hasXY(r.start_lat, r.start_lng) && hasXY(r.end_lat, r.end_lng);
       $('rock-body').innerHTML = `
         <div class="card-sec">
           <div class="d-flex justify-content-between align-items-start gap-2">
@@ -3039,11 +3055,15 @@
         </div>
 
         <div class="card-sec">
-          <h6>พิกัด${r.dist_m ? ` · ระยะ ${fmtDist(r.dist_m)}` : ''}</h6>
-          ${rockXYHtml(r, 'start', 'ต้นทาง (จุดเริ่มลงหิน)')}
-          ${rockXYHtml(r, 'end', 'ปลายทาง (ลงถึงตรงไหน)')}
-          ${both ? `<a class="btn btn-sm btn-outline-success w-100" href="https://www.google.com/maps/dir/?api=1&origin=${r.start_lat},${r.start_lng}&destination=${r.end_lat},${r.end_lng}" target="_blank" rel="noopener">ดูช่วงที่ลงหินบนแผนที่ (A → B)</a>` : ''}
-          <div class="msub mt-2 mb-0">ไปถึงหน้างานแล้วกด "ปักตรงที่ยืนอยู่" · หรือกดค้างที่จุดใน Google Maps ก๊อปลิงก์/พิกัดมาวาง · ถ่ายรูปก่อนลงรูปแรก ถ้ายังไม่มีต้นทาง จะปักให้เอง</div>
+          <h6>จุดลงหิน${r.dist_m ? ` · ระยะ ${fmtDist(r.dist_m)}` : ''}</h6>
+          ${hasXY(r.start_lat, r.start_lng) ? `
+            <div class="srow-s mb-2">${num(r.start_lat).toFixed(5)}, ${num(r.start_lng).toFixed(5)}</div>
+            <div class="d-flex gap-2">
+              <a class="btn btn-success fw-bold flex-fill" href="${gmNav(r.start_lat, r.start_lng)}" target="_blank" rel="noopener">นำทาง (Google Maps)</a>
+              <button type="button" class="btn btn-outline-success flex-fill" onclick="openRockMap()">ดู / แก้บนแผนที่</button>
+            </div>`
+          : `<button type="button" class="btn btn-success fw-bold w-100" style="height:52px;" onclick="openRockMap()">ปักจุดบนแผนที่</button>`}
+          <button type="button" class="grp-all mt-2" onclick="rockPaste()">หรือวางลิงก์ / พิกัดจาก Google Maps</button>
         </div>
 
         <div class="card-sec">
@@ -3065,11 +3085,13 @@
           <div class="row g-2">
             <div class="col-7"><div class="bill-lbl">วันที่</div><input type="date" class="form-control" id="rk_tdate" value="${todayISO()}"></div>
             <div class="col-5"><div class="bill-lbl">กี่เที่ยว</div><input type="number" inputmode="numeric" class="form-control" id="rk_trips" value="1" min="1"></div>
-            <div class="col-6"><div class="bill-lbl">คนขับ</div><select class="form-select" id="rk_driver">${opt('', !lastTrip.driver)}${workers.map(w => opt(w, w === lastTrip.driver)).join('')}</select></div>
-            <div class="col-6"><div class="bill-lbl">สิบล้อ</div><select class="form-select" id="rk_truck">${opt('', !lastTrip.truck && trucks.length !== 1)}${trucks.map(t => opt(t, t === lastTrip.truck || trucks.length === 1)).join('')}</select></div>
+            <div class="col-6"><div class="bill-lbl">คนขับ</div><input class="form-control" id="rk_driver" list="rk_drivers" value="${esc(lastTrip.driver || '')}" placeholder="ชื่อคนขับ" onfocus="this.select()">
+              <datalist id="rk_drivers">${drivers.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
+            <div class="col-6"><div class="bill-lbl">รถ</div><input class="form-control" id="rk_truck" list="rk_trucks" value="${esc(lastTrip.truck || '')}" placeholder="ทะเบียน/ชื่อรถ" onfocus="this.select()">
+              <datalist id="rk_trucks">${trucks.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
           </div>
           <button type="button" class="btn btn-outline-success w-100 fw-bold mt-2" id="btnRockTrip" onclick="rockAddTrip()">+ บันทึกเที่ยว</button>
-          <div class="msub mt-2 mb-0">คนขับจะไปขึ้นใน "สรุปงานคนงาน" ด้วย</div>
+          <div class="msub mt-2 mb-0">ไม่ใส่คนขับ/รถก็ได้ · ถ้าคนขับเป็นคนงานของเรา จะไปขึ้นใน "สรุปงานคนงาน" ด้วย</div>
         </div>
 
         ${r.status === 'ลงเสร็จ'
@@ -3082,27 +3104,105 @@
       return new Promise(ok => {
         if (!navigator.geolocation) return ok(null);
         navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
-          () => ok(null), { enableHighAccuracy: true, timeout: timeout || 15000, maximumAge: 0 });
+          () => ok(null), { enableHighAccuracy: false, timeout: timeout || 4000, maximumAge: 600000 });
       });
     }
-    function rockSaveXY(k, la, ln, btn) {
-      call('saveRockPoint', [{ point_id: rockCur, [k + '_lat']: la, [k + '_lng']: ln }], d => { init(d); renderRock(); }, btn);
-    }
-    function rockHere(k) {
-      const btn = $('btnXY_' + k); btn.disabled = true; btn.innerText = 'กำลังหาตำแหน่ง…';
-      rockGPS().then(g => {
-        btn.disabled = false;
-        if (!g) { renderRock(); return alert('หาตำแหน่งไม่ได้ เปิด "ตำแหน่ง" ให้ Safari/แอปนี้ก่อน แล้วลองใหม่ (หรือวางลิงก์ Google Maps แทน)'); }
-        if (g.acc > 60 && !confirm(`ตำแหน่งคลาดเคลื่อนได้ประมาณ ${Math.round(g.acc)} ม. ใช้เลยไหม? (กดยกเลิก แล้วรอสักครู่ค่อยกดใหม่จะแม่นขึ้น)`)) { renderRock(); return; }
-        rockSaveXY(k, g.lat, g.lng, btn);
-      });
-    }
-    function rockPaste(k) {
+    function rockPaste() {
       const t = prompt('วางลิงก์ Google Maps หรือพิกัด (เช่น 15.12345, 100.12345)');
       if (!t || !t.trim()) return;
-      call('resolveMapLink', [t.trim()], g => rockSaveXY(k, g.lat, g.lng), null, '⏳ กำลังอ่านพิกัด...');
+      call('resolveMapLink', [t.trim()], g => call('saveRockPoint', [{ point_id: rockCur, start_lat: g.lat, start_lng: g.lng, end_lat: '', end_lng: '', path: '' }],
+        d => { init(d); renderRock(); }), null, '⏳ กำลังอ่านพิกัด...');
     }
-    function rockClearXY(k) { if (confirm('ลบพิกัดนี้?')) rockSaveXY(k, '', ''); }
+
+    // ===== แผนที่ปักจุด (Leaflet + ภาพดาวเทียม): แตะจุดแรก = จุดเริ่ม แตะต่อ = ไล่ตามถนน ได้ระยะทาง =====
+    let rkMap = null, rkPts = [], rkDraw = null, rkMe = null, rkWatch = null, rkSat = null, rkStreet = null, rkUseSat = true, rkCentered = false;
+    let rkLastPos = null;
+    try { rkLastPos = JSON.parse(lsGet('raioy_lastpos') || 'null'); } catch (e) {}
+    function loadLeaflet() {
+      if (window.L) return Promise.resolve();
+      return new Promise((ok, bad) => {
+        const c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(c);
+        const j = document.createElement('script'); j.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+        j.onload = ok; j.onerror = () => bad(new Error('โหลดแผนที่ไม่ได้ ตรวจสัญญาณเน็ต')); document.head.appendChild(j);
+      });
+    }
+    const rkLen = pts => pts.reduce((m, p, i) => i ? m + hav(pts[i - 1], p) : 0, 0);
+    function hav(a, b) {
+      const R = 6371000, rd = x => x * Math.PI / 180, dLa = rd(b[0] - a[0]), dLn = rd(b[1] - a[1]);
+      const h = Math.sin(dLa / 2) ** 2 + Math.cos(rd(a[0])) * Math.cos(rd(b[0])) * Math.sin(dLn / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+    function openRockMap() {
+      const r = rockPt(rockCur); if (!r) return;
+      rkPts = String(r.path || '').split(';').map(x => x.split(',').map(Number)).filter(x => x.length === 2 && x[0] && x[1]);
+      if (!rkPts.length && hasXY(r.start_lat, r.start_lng)) rkPts = [[num(r.start_lat), num(r.start_lng)]];
+      rkCentered = false;
+      showM('rockMapModal');
+      loadLeaflet().then(() => {
+        if (!rkMap) {
+          rkMap = L.map('rkMap', { zoomControl: false, attributionControl: true });
+          rkSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'ภาพ © Esri' });
+          rkStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+          rkSat.addTo(rkMap);
+          rkDraw = L.layerGroup().addTo(rkMap);
+          rkMap.on('click', e => { rkPts.push([e.latlng.lat, e.latlng.lng]); rkRender(); });
+          $('rockMapModal').addEventListener('shown.bs.modal', () => rkMap.invalidateSize());
+          $('rockMapModal').addEventListener('hidden.bs.modal', () => { if (rkWatch !== null) navigator.geolocation.clearWatch(rkWatch); rkWatch = null; });
+        }
+        setTimeout(() => {
+          rkMap.invalidateSize();
+          if (rkPts.length > 1) rkMap.fitBounds(L.latLngBounds(rkPts), { padding: [60, 60], maxZoom: 18 });
+          else if (rkPts.length) rkMap.setView(rkPts[0], 17);
+          else if (rkLastPos) rkMap.setView([rkLastPos.lat, rkLastPos.lng], 16);
+          else rkMap.setView([15.3, 100.3], 8);
+          rkRender();
+        }, 350);
+        rkStartWatch();
+      }).catch(e => { hideModal('rockMapModal'); alert(e.message); });
+    }
+    function rkStartWatch() {
+      if (!navigator.geolocation || rkWatch !== null) return;
+      rkWatch = navigator.geolocation.watchPosition(p => {
+        rkLastPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: Date.now() };
+        lsSet('raioy_lastpos', JSON.stringify(rkLastPos));
+        if (!rkMap) return;
+        const ll = [rkLastPos.lat, rkLastPos.lng];
+        if (!rkMe) rkMe = L.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#1E6FD9', fillOpacity: 1 }).addTo(rkMap);
+        else rkMe.setLatLng(ll);
+        if (!rkCentered && !rkPts.length) { rkCentered = true; rkMap.setView(ll, 17); }
+      }, () => {}, { enableHighAccuracy: true, maximumAge: 30000, timeout: 60000 });
+    }
+    function rkRender() {
+      if (!rkDraw) return;
+      rkDraw.clearLayers();
+      if (rkPts.length > 1) L.polyline(rkPts, { color: '#FFB020', weight: 6, opacity: .95 }).addTo(rkDraw);
+      rkPts.forEach((p, i) => {
+        const m = L.circleMarker(p, { radius: i === 0 ? 10 : 6, color: '#fff', weight: 3, fillColor: i === 0 ? '#1F5E3B' : '#FFB020', fillOpacity: 1 }).addTo(rkDraw);
+        if (i === 0) m.bindTooltip('เริ่ม', { permanent: true, direction: 'top', offset: [0, -10], className: 'rk-lbl' });
+      });
+      const len = rkLen(rkPts);
+      $('rkHint').innerHTML = !rkPts.length ? 'แตะจุดที่เริ่มลงหิน แล้วแตะไล่ตามถนนไปจนสุด จะได้ระยะทาง'
+        : rkPts.length === 1 ? 'ได้จุดเริ่มแล้ว · แตะต่อไปตามถนนเพื่อวัดระยะ (ไม่วัดก็กดบันทึกได้)'
+        : `ระยะประมาณ <b>${fmtDist(len)}</b> · ${rkPts.length} จุด · แตะต่อได้อีก`;
+    }
+    function rkUndo() { rkPts.pop(); rkRender(); }
+    function rkClear() { if (!rkPts.length || confirm('ล้างจุดทั้งหมด?')) { rkPts = []; rkRender(); } }
+    function rkGoMe() {
+      if (rkLastPos && rkMap) return rkMap.setView([rkLastPos.lat, rkLastPos.lng], Math.max(rkMap.getZoom(), 17));
+      alert('ยังหาตำแหน่งไม่เจอ (ต้องอนุญาตตำแหน่งให้แอป) · แตะบนแผนที่เองได้เลย ไม่ต้องรอ');
+      rkStartWatch();
+    }
+    function rkToggleLayer() {
+      rkUseSat = !rkUseSat;
+      if (rkUseSat) { rkMap.removeLayer(rkStreet); rkSat.addTo(rkMap); } else { rkMap.removeLayer(rkSat); rkStreet.addTo(rkMap); }
+      $('rkLayerBtn').innerText = rkUseSat ? 'แผนที่ถนน' : 'ภาพดาวเทียม';
+    }
+    function rkSave() {
+      const p0 = rkPts[0] || ['', ''];
+      call('saveRockPoint', [{ point_id: rockCur, start_lat: p0[0], start_lng: p0[1], end_lat: '', end_lng: '',
+        path: rkPts.length > 1 ? rkPts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';') : '' }],
+        d => { hideModal('rockMapModal'); init(d); renderRock(); }, $('btnRkMapSave'));
+    }
 
     function pickRock(stage) { rockStage = stage; const f = $('rockFile'); f.value = ''; f.click(); }
     function rockThumb(file) {
@@ -3121,8 +3221,8 @@
     async function onRockFile(inp) {
       const files = [...(inp.files || [])]; if (!files.length || !rockCur) return;
       const id = rockCur, stage = rockStage, t = $('syncToast');
-      t.style.display = 'block'; t.innerText = '⏳ กำลังหาตำแหน่ง...';
-      const g = await rockGPS(8000);
+      t.style.display = 'block'; t.innerText = '⏳ กำลังเตรียมรูป...';
+      const g = rkLastPos && Date.now() - (rkLastPos.t || 0) < 300000 ? rkLastPos : await rockGPS(4000);
       let d = null;
       const known = new Set((gData.rockLogs || []).map(l => l.log_id));
       try {
@@ -3156,7 +3256,7 @@
     function rockAddTrip() {
       const n = num($('rk_trips').value); if (!(n > 0)) return alert('ใส่จำนวนเที่ยว');
       if (!checkDate($('rk_tdate').value)) return;
-      call('addRockTrip', [rockCur, { date: isoToBE($('rk_tdate').value), trips: n, driver: $('rk_driver').value, truck: $('rk_truck').value }],
+      call('addRockTrip', [rockCur, { date: isoToBE($('rk_tdate').value), trips: n, driver: $('rk_driver').value.trim(), truck: $('rk_truck').value.trim() }],
         d => { init(d); renderRock(); }, $('btnRockTrip'));
     }
     function rockSetSt(st) {

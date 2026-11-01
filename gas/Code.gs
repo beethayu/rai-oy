@@ -261,6 +261,7 @@ function readAll_(ss) {
     expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
     ...readRock_(ss),
     lands: readSheet_(ss, 'Lands'),
+    rainLog: readRain_(ss),
     settings: pub
   };
 }
@@ -866,6 +867,7 @@ function buildBrief_(ss, s) {
   msg += sec('🤒 คนงานลา/ป่วย', sick);
   msg += sec('🔋 รถไม่มีแบต', noBat);
   msg += sec('📦 ของใกล้หมด', low);
+  try { msg += wxBrief_(ss); } catch (e) {}
   if (!water.length && !spray.length && !ongoing.length && !broken.length) msg += '\n✅ วันนี้ไม่มีคิวด่วน\n';
   if (avail) msg += `\nพร้อมใช้: ${avail}`;
   return msg.trim();

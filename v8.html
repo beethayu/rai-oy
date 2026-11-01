@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="ไร่อ้อย">
-  <meta name="theme-color" content="#F4F3EC">
+  <meta name="theme-color" content="#1F5E3B">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" href="icon.png">
   <title>ไร่อ้อย V8</title>
@@ -56,9 +56,12 @@
       --doing: #1E4FB8; --doing-ink: #183F94; --doing-soft: #E4ECFB;
       --done-soft: #ECEAE2;
     }
-    html, body { background: var(--ground); height: 100%; overflow: hidden; overscroll-behavior: none; }
+    /* แถบสถานะ iOS: ทุกอย่างตรงนั้นเป็นสีเขียวเดียวกัน (theme-color, html, #sbar) เงาที่ iOS 26 ใส่จะได้กลืนไป */
+    html { background: #1F5E3B !important; height: 100%; overflow: hidden; overscroll-behavior: none; }
+    body { background: var(--ground) !important; height: 100%; overflow: hidden; overscroll-behavior: none; }
+    #sbar { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #1F5E3B; z-index: 1030; pointer-events: none; }
     /* เลื่อนเฉพาะในกล่อง #app เพื่อไม่ให้ iOS ใส่เงา/เบลอใต้แถบสถานะ */
-    #app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: none; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    #app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: none; padding-bottom: calc(96px + env(safe-area-inset-bottom)); background: var(--ground); }
     body { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif !important; color: var(--ink); padding-bottom: 0 !important; }
     .modal, .modal * { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif; }
     .modal-content { border-radius: 20px; border: 0; }
@@ -173,6 +176,7 @@
   </style>
 </head>
 <body>
+  <div id="sbar"></div>
   <div id="app">
   <header class="hd">
     <div class="hd-top">

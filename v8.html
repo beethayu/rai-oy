@@ -196,6 +196,12 @@
     .srow-tag { font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-left: 4px; }
     .srow-tag.bad { background: #FBE3E0; color: #A3271B; }
     .srow-act { padding: 0 14px 12px; }
+    .srow-main .pill { flex-shrink: 0; }
+    .hrow { display: flex; gap: 12px; width: 100%; padding: 11px 14px; border: 0; background: transparent; color: inherit; text-align: left; }
+    .hrow + .hrow { border-top: 1px solid #EEF1EF; }
+    .hrow-d { flex-shrink: 0; width: 84px; font-size: 13px; font-weight: 600; color: #4A524D; padding-top: 2px; }
+    .hrow-b { display: flex; flex-direction: column; min-width: 0; font-size: 15px; }
+    .hrow-s { font-size: 13px; color: #6B736E; }
     .plan-sec { font-weight: 700; color: #1F5E3B; margin: 14px 0 6px; font-size: 16px; }
     .plan-sec:first-child { margin-top: 0; }
     .plan-it { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #E6EBE7; }
@@ -1313,6 +1319,7 @@
     }
 
     function openBillView(id) {
+      hideModal('assetHistModal');
       const b = billsGrouped().find(x => x.id === id); if (!b) return;
       $('billview-body').innerHTML = `<div class="fw-bold fs-6">${esc(b.shop)}</div><div class="text-muted mb-2">${esc(b.date)}${b.note ? ' · ' + esc(b.note) : ''}</div>
         ${b.items.map(i => `<div class="exp-cat"><div>${esc(i.item)} <span class="small text-muted">${i.qty ? esc(i.qty) + ' ' + esc(i.unit) : ''} · ${esc(i.category)}${i.stock_item ? ' · รับเข้า ' + esc(i.stock_item) : ''}${i.asset ? ' · ' + esc(i.asset) : ''}</span></div><b class="text-nowrap">${baht(i.amount)}</b></div>`).join('')}
@@ -1801,89 +1808,101 @@
       return m;
     }
 
+    // แท็บรถ/คน: แยก 2 หน้า + รายการบรรทัดเดียว แตะแล้วค่อยมีปุ่ม (แบบเดียวกับหน้าสต็อก)
+    let fleetPane = 'mach', fleetOpen = '', fleetLogOpen = false;
+    function setFleetPane(p) { fleetPane = p; fleetOpen = ''; renderFleet(); }
+    function tglFleet(n) { fleetOpen = fleetOpen === n ? '' : n; renderFleet(); }
+    function tglFleetLog() { fleetLogOpen = !fleetLogOpen; renderFleet(); }
+    const okSt = a => a.status === 'พร้อมใช้' || a.status === 'ปกติ';
+
+    // ประวัติรถ: รวมแถวที่มาจากบิลเดียวกัน (log_id = B..._A#) เป็นบรรทัดเดียว
+    function groupAssetLogs(logs) {
+      const out = [], seen = {};
+      logs.forEach(l => {
+        const m = String(l.log_id || '').match(/^(B\d+)_A/);
+        if (!m) { out.push({ ...l }); return; }
+        const key = m[1] + '|' + l.asset_name;
+        if (seen[key]) { seen[key].n++; return; }
+        const exp = (gData.expenses || []).filter(e => e.bill_id === m[1] && (!e.asset || e.asset === l.asset_name));
+        const tot = exp.reduce((t, e) => t + num(e.amount), 0);
+        const g = { ...l, bill: m[1], n: 1, total: tot, shop: exp[0] ? exp[0].shop : '' };
+        seen[key] = g; out.push(g);
+      });
+      return out;
+    }
+    function logRow(l, showName) {
+      if (l.bill) return `<button type="button" class="hrow" onclick="openBillView('${qa(l.bill)}')">
+          <span class="hrow-d">${esc(l.timestamp)}</span>
+          <span class="hrow-b">${showName ? `<b>${esc(l.asset_name)}</b> · ` : ''}🧾 ซ่อม/อะไหล่ ${esc(l.shop || '')}
+            <span class="hrow-s">${l.n} รายการ · ${baht(l.total)} บาท · แตะดูบิล</span></span></button>`;
+      return `<div class="hrow">
+          <span class="hrow-d">${esc(l.timestamp)}</span>
+          <span class="hrow-b">${showName ? `<b>${esc(l.asset_name)}</b> · ` : ''}${esc(l.event_type)}
+            <span class="hrow-s">${esc(l.detail || '')}${l.parts_or_battery && l.parts_or_battery !== '-' ? ' · ' + esc(l.parts_or_battery) : ''}${l.ref_plot && l.ref_plot !== '-' ? ' · 📍 ' + esc(l.ref_plot) : ''}</span></span></div>`;
+    }
+
     function renderFleet() {
-      let activeMap = getActiveDeployments(), dm = downMap();
-      let assets = gData.assets || [];
-      let pumps = assets.filter(a => a.category === 'Pump'), trucks = assets.filter(a => a.category === 'Truck');
-      let tractors = assets.filter(a => a.category === 'Tractor'), workers = assets.filter(a => a.category === 'Worker');
-      const okSt = a => a.status === 'พร้อมใช้' || a.status === 'ปกติ';
+      const activeMap = getActiveDeployments(), dm = downMap();
+      const assets = gData.assets || [];
+      const by = c => assets.filter(a => a.category === c);
+      const pumps = by('Pump'), trucks = by('Truck'), tractors = by('Tractor'), workers = by('Worker');
       const countFree = l => l.filter(a => okSt(a) && !activeMap[a.name]).length;
-      const countBusy = l => l.filter(a => Boolean(activeMap[a.name])).length;
-      const countIssue = l => l.filter(a => !okSt(a)).length;
+      const issues = assets.filter(a => !okSt(a));
+      const mIssue = issues.filter(a => a.category !== 'Worker').length, wIssue = issues.length - mIssue;
+      const fBadge = $('f-cnt'); fBadge.style.display = issues.length ? 'inline-block' : 'none'; fBadge.innerText = issues.length;
+      const spend = {};
+      (gData.expenses || []).forEach(e => { if (e.asset) spend[e.asset] = (spend[e.asset] || 0) + num(e.amount); });
 
-      let totalIssues = countIssue(pumps) + countIssue(trucks) + countIssue(tractors) + countIssue(workers);
-      let fBadge = $('f-cnt');
-      fBadge.style.display = totalIssues > 0 ? 'inline-block' : 'none'; fBadge.innerText = totalIssues;
-
-      const renderCard = (a, icon, showBat) => {
-        let busyAt = activeMap[a.name], isOk = okSt(a);
-        let cardCls = busyAt ? 'busy' : (isOk ? '' : (a.status.includes('จอด') ? 'parked' : 'broken'));
-        let since = !isOk && dm[a.name] ? calcDays(dm[a.name]) : null;
-        let badgeHtml = busyAt ? `<span class="badge bg-primary">🔵 กำลังทำงาน @ ${busyAt}</span>`
-          : (isOk ? `<span class="badge bg-success">🟢 ว่าง / พร้อมใช้</span>` : `<span class="badge bg-danger">🔴 ${a.status}${since !== null ? ` ${since} วัน` : ''}</span>`);
-        let issueHtml = (!isOk || (a.issue_detail && a.issue_detail !== '-'))
-          ? `<div class="small text-danger fw-bold mt-1">⚠️ ${a.issue_detail} ${a.parts_needed && a.parts_needed !== '-' ? `| 🔧 ต้องใช้: <u>${a.parts_needed}</u>` : ''} <span class="text-muted fw-normal">(อัปเดต ${a.updated_at})</span></div>` : '';
-        let batWarn = (a.battery_info || '').includes('ไม่มีแบต');
-        let batAge = calcDays(a.battery_date);
-        let batHtml = showBat ? `<div class="small mt-1 p-1 px-2 rounded ${batWarn ? 'bg-danger text-white fw-bold' : 'bg-light border text-dark'}">
-               🔋 <b>แบต:</b> ${a.battery_info || 'ยังไม่ระบุ'} ${a.battery_date && a.battery_date !== '-' ? `(ตั้งแต่ ${a.battery_date}${batAge !== null ? ` • ${batAge} วัน` : ''})` : ''}</div>` : '';
-        return `
-          <div class="asset-card ${cardCls}">
-            <div class="d-flex justify-content-between align-items-start gap-1">
-              <div><span class="fw-bold fs-6">${icon} ${a.name}</span> ${badgeHtml}</div>
-              <div class="d-flex gap-1 flex-wrap justify-content-end">
-                ${!isOk ? `<button class="btn btn-sm btn-success py-0 px-2 fw-bold" onclick="quickFixAsset('${qa(a.name)}','${a.category}')">✅ ซ่อมเสร็จ</button>` : ''}
-                <button class="btn btn-sm btn-outline-dark py-0 px-2" onclick="openAssetEdit('${qa(a.name)}')">📝 จดซ่อม</button>
-                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="openAssetHist('${qa(a.name)}')">📜</button>
-              </div>
-            </div>
-            ${issueHtml}${batHtml}
-          </div>`;
-      };
-      const box = (cls, tcls, title, list, busyLbl, issueLbl) => `
-        <div class="col-4"><div class="avail-box ${cls}">
-          <div class="small fw-bold ${tcls}">${title}</div>
-          <div class="fs-4 fw-bold text-success">ว่าง ${countFree(list)}/${list.length}</div>
-          <div class="small text-muted">${busyLbl} ${countBusy(list)} | ${issueLbl} ${countIssue(list)}</div>
-        </div></div>`;
-
-      let html = `
-        <div class="row g-2 mb-3">
-          ${box('border-primary', 'text-primary', '🐍 พญานาค', pumps, 'ใช้อยู่', 'เสีย')}
-          ${box('border-danger', 'text-danger', '🚛 สิบล้อ', trucks, 'วิ่งงาน', 'ซ่อม/จอด')}
-          ${box('border-secondary', 'text-dark', '🚜 รถไถ', tractors, 'ใช้อยู่', 'ซ่อม')}
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="fw-bold m-0 text-primary">🐍 เครื่องสูบน้ำพญานาค</h6>
-          <button class="btn btn-sm btn-outline-primary py-0" onclick="new bootstrap.Modal($('setModal')).show()">+ เพิ่ม</button>
-        </div>
-        ${pumps.map(a => renderCard(a, '🐍', false)).join('')}
-        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-          <h6 class="fw-bold m-0 text-danger">🚛 รถสิบล้อ</h6>
-          <button class="btn btn-sm btn-warning fw-bold py-0" onclick="openBatModal()">🔋 สลับแบต</button>
-        </div>
-        ${trucks.map(a => renderCard(a, '🚛', true)).join('')}
-        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-          <h6 class="fw-bold m-0 text-dark">🚜 รถไถ & เครื่องจักร</h6>
-          <button class="btn btn-sm btn-warning fw-bold py-0" onclick="openBatModal()">🔋 สลับแบต</button>
-        </div>
-        ${tractors.map(a => renderCard(a, '🚜', true)).join('')}
-        <h6 class="fw-bold mt-3 mb-2 text-success">👤 สถานะคนงาน</h6>
-        ${workers.map(a => renderCard(a, '👤', false)).join('')}
-        <div class="bg-white p-3 rounded shadow-sm border mt-3" id="wsum-box">${workSumHtml()}</div>
-        <div class="bg-white p-3 rounded shadow-sm border mt-3">
-          <h6 class="fw-bold text-dark mb-2">📜 ประวัติซ่อม / บำรุง / สลับแบต / คนงาน (100 รายการล่าสุด)</h6>
-          <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
-            <table class="table table-sm table-bordered small mb-0">
-              <thead class="table-light"><tr><th>วันที่</th><th>รถ/พญานาค/คน</th><th>รายการ</th><th>อาการ/รายละเอียด</th><th>อะไหล่/แบต</th><th>แปลง</th></tr></thead>
-              <tbody>
-                ${(gData.assetLogs || []).slice(0, 100).map(al => `
-                  <tr><td class="fw-bold">${al.timestamp}</td><td><b>${al.asset_name}</b></td><td><span class="badge bg-secondary">${al.event_type}</span></td>
-                  <td>${al.detail}</td><td class="text-primary fw-bold">${al.parts_or_battery}</td><td>${al.ref_plot}</td></tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted">ยังไม่มีประวัติ</td></tr>'}
-              </tbody>
-            </table>
-          </div>
+      const row = (a, icon) => {
+        const busyAt = activeMap[a.name], isOk = okSt(a), open = fleetOpen === a.name;
+        const since = !isOk && dm[a.name] ? calcDays(dm[a.name]) : null;
+        const pill = busyAt ? `<span class="pill pill-doing">ทำงาน ${esc(busyAt)}</span>`
+          : isOk ? `<span class="pill pill-normal">ว่าง</span>`
+          : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`;
+        const subs = [];
+        if (!isOk && a.issue_detail && a.issue_detail !== '-') subs.push(`<span style="color:#A3271B">${esc(a.issue_detail)}</span>`);
+        const hasBat = a.category === 'Tractor' || a.category === 'Truck';
+        if (hasBat) {
+          const bd = calcDays(a.battery_date);
+          let bi = a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').trim() : 'ยังไม่ระบุ';
+          if (!/^แบต/.test(bi)) bi = 'แบต ' + bi;
+          subs.push(`${esc(bi)}${bd !== null ? ' (' + bd + ' วัน)' : ''}`);
+        }
+        if (spend[a.name]) subs.push(`ค่าซ่อมรวม ${baht(spend[a.name])} บ.`);
+        const last = (gData.assetLogs || []).find(l => l.asset_name === a.name);
+        if (!subs.length && last) subs.push(`ล่าสุด ${esc(last.timestamp)} · ${esc(last.event_type)}`);
+        return `<div class="srow ${!isOk ? 'srow-bad' : ''} ${open ? 'open' : ''}">
+          <button type="button" class="srow-main" onclick="tglFleet('${qa(a.name)}')">
+            <span class="srow-l"><span class="srow-n">${icon} ${esc(a.name)}</span>${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
+            ${pill}
+          </button>
+          ${open ? `<div class="srow-act">
+            ${!isOk && a.parts_needed && a.parts_needed !== '-' ? `<div class="small mb-2">ต้องใช้อะไหล่: <b>${esc(a.parts_needed)}</b> <span class="text-muted">(อัปเดต ${esc(a.updated_at)})</span></div>` : ''}
+            <div class="d-flex gap-2 flex-wrap">
+              ${!isOk ? `<button class="btn btn-sm btn-success fw-bold flex-fill" onclick="quickFixAsset('${qa(a.name)}','${a.category}')">${a.category === 'Worker' ? 'กลับมาทำงานแล้ว' : 'ซ่อมเสร็จ'}</button>` : ''}
+              <button class="btn btn-sm btn-outline-dark fw-bold flex-fill" onclick="openAssetEdit('${qa(a.name)}')">${a.category === 'Worker' ? 'จดลา / ป่วย' : 'จดซ่อม / บำรุง'}</button>
+              ${hasBat ? `<button class="btn btn-sm btn-outline-dark flex-fill" onclick="openBatModal()">สลับแบต</button>` : ''}
+              <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="openAssetHist('${qa(a.name)}')">ประวัติ</button>
+            </div></div>` : ''}
         </div>`;
+      };
+      const grp = (t, list, icon) => list.length ? `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${t}</span><span style="font-weight:500;color:#6B736E;font-size:13px;">ว่าง ${countFree(list)}/${list.length}</span></div><div class="srow-box">${list.map(a => row(a, icon)).join('')}</div>` : '';
+
+      let html = `<div class="seg mb-2">
+          <button type="button" class="${fleetPane === 'mach' ? 'on' : ''}" onclick="setFleetPane('mach')">รถ / เครื่อง${mIssue ? ` <span class="seg-dot">${mIssue}</span>` : ''}</button>
+          <button type="button" class="${fleetPane === 'work' ? 'on' : ''}" onclick="setFleetPane('work')">คนงาน${wIssue ? ` <span class="seg-dot">${wIssue}</span>` : ''}</button>
+        </div>`;
+      if (fleetPane === 'work') {
+        html += grp('คนงาน', workers, '👤') + `<div class="bg-white p-3 rounded border mt-3" id="wsum-box">${workSumHtml()}</div>`;
+      } else {
+        html += grp('พญานาค', pumps, '🐍') + grp('รถไถ', tractors, '🚜') + grp('สิบล้อ', trucks, '🚛');
+        const logs = groupAssetLogs((gData.assetLogs || []).filter(l => { const a = assets.find(x => x.name === l.asset_name); return !a || a.category !== 'Worker'; }));
+        html += `<div class="d-flex gap-2 mt-3">
+            <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="tglFleetLog()">${fleetLogOpen ? 'ซ่อน' : 'ดู'}ประวัติซ่อม / บำรุงทั้งหมด</button>
+            <button class="btn btn-sm btn-outline-success" onclick="new bootstrap.Modal($('setModal')).show()">+ เพิ่มรถ/เครื่อง</button>
+          </div>
+          ${fleetLogOpen ? `<div class="srow-box mt-2">${logs.slice(0, 60).map(l => logRow(l, true)).join('') || '<div class="p-3 text-muted">ยังไม่มีประวัติ</div>'}</div>` : ''}`;
+      }
       $('fleet-view').innerHTML = html;
     }
 
@@ -1992,10 +2011,7 @@
           ${!isWorker ? stat('🧽 เปลี่ยนกรองล่าสุด', ago(lastOf('กรอง'))) : ''}
           ${(a.category === 'Tractor' || a.category === 'Truck') ? `<div class="col-12"><div class="dossier-stat"><div class="small text-muted fw-bold">🔋 แบตตอนนี้</div><div class="fw-bold">${a.battery_info || '-'} ${a.battery_date && a.battery_date !== '-' ? `(ใช้มา ${calcDays(a.battery_date)} วัน)` : ''}</div></div></div>` : ''}
         </div>
-        <div class="table-responsive"><table class="table table-sm table-bordered small mb-0">
-          <thead class="table-light"><tr><th>วันที่</th><th>รายการ</th><th>รายละเอียด</th><th>อะไหล่/แบต</th></tr></thead>
-          <tbody>${logs.map(l => `<tr><td class="fw-bold">${l.timestamp}</td><td><span class="badge bg-secondary">${l.event_type}</span></td><td>${l.detail}${l.ref_plot && l.ref_plot !== '-' ? `<div class="text-muted">📍 ${l.ref_plot}</div>` : ''}</td><td class="text-primary">${l.parts_or_battery}</td></tr>`).join('') || '<tr><td colspan="4" class="text-center text-muted">ยังไม่มีประวัติ</td></tr>'}</tbody>
-        </table></div>`;
+        <div class="srow-box">${groupAssetLogs(logs).map(l => logRow(l, false)).join('') || '<div class="p-3 text-muted">ยังไม่มีประวัติ</div>'}</div>`;
       bootstrap.Modal.getOrCreateInstance($('assetHistModal')).show();
     }
 

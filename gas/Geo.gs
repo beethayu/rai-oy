@@ -98,3 +98,32 @@ function deleteLand(landId) {
     return { lands: readSheet_(ss, 'Lands') };
   });
 }
+
+// นำเข้าขอบหลายรายการในครั้งเดียว (จากไฟล์ KML ของแอป Ling ฯลฯ)
+// items: [{kind:'plot', id, path} | {kind:'land', name, note, path}] → คืน { plots, lands, done }
+function importBoundaries(items) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.PLOTS);
+    const cB = headCol_(sh, 'boundary'), cR = headCol_(sh, 'map_rai'), cLa = headCol_(sh, 'center_lat'), cLn = headCol_(sh, 'center_lng');
+    const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues().map(r => r[0]);
+    let done = 0;
+    const lands = [];
+    (items || []).forEach(it => {
+      const pts = parsePath_(it.path), info = polyInfo_(pts);
+      if (!info) return;
+      const path = cleanPath_(pts), rai = String(Math.round(info.m2 / RAI_M2_ * 100) / 100);
+      if (it.kind === 'plot') {
+        const r = ids.indexOf(it.id);
+        if (r < 1) return;
+        [[cB, path], [cR, rai], [cLa, info.lat.toFixed(6)], [cLn, info.lng.toFixed(6)]].forEach(([c, v]) => sh.getRange(r + 1, c).setNumberFormat('@').setValue(v));
+        done++;
+      } else if (it.kind === 'land') {
+        lands.push(['D' + Date.now() + '_' + lands.length, getTodayStr(), String(it.name || 'ที่ดินนำเข้า').trim(), '', '', String(it.note || '').trim(),
+          path, rai, info.lat.toFixed(6), info.lng.toFixed(6)]);
+        done++;
+      }
+    });
+    if (lands.length) appendRows_(getOrCreate_(ss, 'Lands', LAND_H_), lands);
+    return { plots: readSheet_(ss, SH.PLOTS), lands: readSheet_(ss, 'Lands'), done: done };
+  });
+}

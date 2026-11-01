@@ -87,6 +87,8 @@
 - v8: ปุ่ม "แผนที่ไร่" บนแท็บแปลง (farmBtnHtml) + ปุ่มในหน้าดูแปลง → farmMapModal (openFarmMap(pid, edit))
   ภาพดาวเทียม Esri (maxNativeZoom 18) / OSM, แตะแปลง = ข้อมูล + แก้ขอบ/นำทาง/ดูแปลง, ค้นหา fmSearch: แปลง/ที่ดินของเรา → พิกัด/ลิงก์ (resolveMapLink) → Nominatim (OSM, th)
   หมุนแผนที่ได้: ปลั๊กอิน leaflet-rotate 0.5.2 (jsdelivr, โหลดหลัง Leaflet; โหลดไม่ได้ = แผนที่ปกติ) สองนิ้วหมุน + ปุ่มเข็มทิศซ้ายล่าง กดกลับทิศเหนือ (ทั้งแผนที่ไร่และหินคลุก)
+  นำเข้า KML จากแอป Ling (ผู้ใช้วัดแปลงไว้ใน Ling เนื้อที่ไม่ตรงกับที่วาดเอง): ปุ่ม "นำเข้าขอบแปลงจาก Ling (.kml)" → onKmlFile (DOMParser, Placemark → outerBoundaryIs/LinearRing)
+    → kmPanel เลือกแต่ละรูป = แปลง (จับคู่ชื่อเอง kmMatch > 0.6) / ที่ดินดูไว้ / ข้าม → GAS importBoundaries(items) ครั้งเดียว คืน {plots, lands, done}
   ป้ายบนแผนที่ = ชื่อแปลงเต็ม (ผู้ใช้: ไม่เอา P03) · หลังบันทึกมีปุ่ม "วาดต่อ: <แปลงถัดไปพื้นที่เดียวกัน>" + ตัวเลือกแปลงโชว์ตลอด (fmPickHtml)
   วาด fmStartEdit: แตะเพิ่มมุม ลากมุมได้ เนื้อที่สด (polyM2, 1 ไร่ = 1600 ตร.ม.) เทียบ area_rai · ที่ดินดูไว้ (Lands) สีม่วงเส้นประ
 - GAS gas/Geo.gs: Plots เพิ่มคอลัมน์ boundary, map_rai, center_lat, center_lng (headCol_ สร้างเอง) — setPlotBoundary(plotId, path) คืน {plots}

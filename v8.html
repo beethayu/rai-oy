@@ -268,7 +268,9 @@
     .fm-hint { margin-top: 6px; background: rgba(255,255,255,.95); border-radius: 12px; padding: 8px 12px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
     .fm-lbl { background: rgba(255,255,255,.9); border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 0 5px; box-shadow: none; color: #1F2A24; }
     .fm-lbl::before { display: none; }
-    #fmPanel { width: 100%; }
+    #fmPanel { width: 100%; max-height: 52vh; overflow-y: auto; }
+    .km-row { padding: 8px 0; }
+    .km-row + .km-row { border-top: 1px solid #EEF1EF; }
     .leaflet-control-rotate { border: 0 !important; box-shadow: 0 2px 8px rgba(0,0,0,.25) !important; border-radius: 12px !important; }
     .leaflet-control-rotate a, .leaflet-control-rotate-toggle { width: 44px !important; height: 44px !important; line-height: 44px !important; border-radius: 12px !important; }
     .wx-strip { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: #fff; color: inherit; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
@@ -1034,6 +1036,7 @@
     </div>
   </div>
 
+  <input type="file" accept=".kml,.xml,application/vnd.google-earth.kml+xml,text/xml" id="kmlFile" style="display:none" onchange="onKmlFile(this)">
   <div class="modal fade" id="farmMapModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
@@ -3443,6 +3446,7 @@
           fmLayer = L.layerGroup().addTo(fmMap); fmEditLayer = L.layerGroup().addTo(fmMap);
           fmMap.on('click', e => {
             $('fmRes').style.display = 'none';
+            if (kmItems) return;
             if (fmEdit) { fmEdit.pts.push([e.latlng.lat, e.latlng.lng]); fmDrawEdit(); }
             else if (fmSel) { fmSel = null; fmRender(); }
           });
@@ -3462,7 +3466,7 @@
     }
     function fmClose() {
       if (fmEdit && fmEdit.pts.length && !confirm('ยังไม่ได้บันทึกขอบที่วาด ปิดเลยไหม?')) return;
-      fmEdit = null; hideModal('farmMapModal');
+      fmEdit = null; if (kmItems) kmCancel(); hideModal('farmMapModal');
     }
     function fmFit(pts) { if (pts.length) fmMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 18 }); }
     function fmFitAll() {
@@ -3531,11 +3535,13 @@
             ${gData.plots.map(p => `<option value="${p.plot_id}">${p.boundary ? '✓ ' : ''}${esc(p.plot_name)}</option>`).join('')}
           </select>
           <button type="button" class="btn btn-outline-success fw-bold text-nowrap" onclick="fmStartEdit('land','')">+ วัดที่ดิน</button>
-        </div>`;
+        </div>
+        <button type="button" class="grp-all mt-2" onclick="$('kmlFile').value='';$('kmlFile').click()">นำเข้าขอบแปลงจาก Ling (.kml)</button>`;
     }
     function fmPanel() {
       const P = $('fmPanel'), H = $('fmHint');
       if (fmEdit) { fmEditPanel(); return; }
+      if (kmItems) { kmPanel(); return; }
       H.style.display = 'none';
       const nav = (la, ln) => `<a class="btn btn-outline-success flex-fill" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>`;
       if (fmSel && fmSel.kind === 'plot') {
@@ -3630,6 +3636,86 @@
       const l = (gData.lands || []).find(x => x.land_id === id);
       if (!confirm(`ลบที่ดิน "${l.name}"?`)) return;
       call('deleteLand', [id], d => { gData.lands = d.lands; saveCache(gData); render(); fmSel = null; fmRender(); }, $('btnLandDel'));
+    }
+
+
+    // ===== นำเข้า KML (แอป Ling: ข้อมูลแปลง → Export → .kml ส่งเข้าอีเมล → บันทึกลงไฟล์ → เลือกที่นี่) =====
+    let kmItems = null, kmLayer = null;
+    function onKmlFile(inp) {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      f.text().then(t => {
+        const doc = new DOMParser().parseFromString(t, 'text/xml');
+        if (doc.getElementsByTagName('parsererror').length) throw new Error('ไฟล์นี้ไม่ใช่ KML');
+        const out = [];
+        [...doc.getElementsByTagName('Placemark')].forEach((pm, n) => {
+          const nm = ((pm.getElementsByTagName('name')[0] || {}).textContent || '').trim() || `รายการ ${n + 1}`;
+          const desc = ((pm.getElementsByTagName('description')[0] || {}).textContent || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          // ขอบนอกของ Polygon (หรือ LinearRing / LineString ที่ปิดรูป)
+          const ring = pm.getElementsByTagName('outerBoundaryIs')[0] || pm.getElementsByTagName('LinearRing')[0] || pm.getElementsByTagName('LineString')[0];
+          const c = ring && ring.getElementsByTagName('coordinates')[0];
+          if (!c) return;
+          let pts = c.textContent.trim().split(/\s+/).map(x => x.split(',').map(Number)).filter(x => x.length >= 2 && isFinite(x[0]) && isFinite(x[1])).map(x => [x[1], x[0]]);
+          if (pts.length > 2 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1]) pts.pop();
+          if (pts.length < 3) return;
+          out.push({ name: nm, desc, pts, m2: polyM2(pts), target: '' });
+        });
+        if (!out.length) throw new Error('ไม่พบรูปแปลง (Polygon) ในไฟล์นี้');
+        const used = new Set();
+        out.forEach(it => { const m = kmMatch(it.name, used); it.target = m ? 'plot:' + m : 'skip'; if (m) used.add(m); });
+        kmItems = out; fmEdit = null; fmSel = null;
+        fmRender(); kmDraw();
+        fmFit(out.flatMap(x => x.pts));
+      }).catch(e => alert('เปิดไฟล์ไม่ได้: ' + e.message));
+    }
+    // จับคู่ชื่อใน Ling กับชื่อแปลง: นับคำ/ตัวเลขที่ตรงกัน
+    function kmMatch(name, used) {
+      const tok = s => String(s).replace(/[()\[\],.\-_/]/g, ' ').split(/\s+/).filter(Boolean);
+      const a = tok(name);
+      let best = null, bs = 0;
+      gData.plots.forEach(p => {
+        if (used.has(p.plot_id)) return;
+        if (a.includes(p.plot_id)) { best = p.plot_id; bs = 99; return; }
+        const b = tok(p.plot_name);
+        let sc = 0; b.forEach(w => { if (a.some(x => x === w || (w.length > 2 && (x.includes(w) || w.includes(x))))) sc++; });
+        sc = sc / Math.max(b.length, 1);
+        if (sc > bs) { bs = sc; best = p.plot_id; }
+      });
+      return bs > 0.6 ? best : null;   // ไม่แน่ใจ = ให้ผู้ใช้เลือกเอง
+    }
+    function kmDraw() {
+      if (kmLayer) kmLayer.clearLayers(); else kmLayer = L.layerGroup().addTo(fmMap);
+      (kmItems || []).forEach((it, i) => L.polygon(it.pts, { color: '#FF8A00', weight: 3, fillColor: '#FF8A00', fillOpacity: it.target === 'skip' ? .08 : .3, dashArray: it.target === 'skip' ? '4 6' : null })
+        .bindTooltip(`${i + 1}. ${esc(it.name)}`, { permanent: true, direction: 'center', className: 'fm-lbl' }).addTo(kmLayer));
+    }
+    function kmPanel() {
+      $('fmHint').style.display = 'block';
+      $('fmHint').innerHTML = `นำเข้าจาก Ling ${kmItems.length} รูป · เลือกว่าแต่ละรูปเป็นแปลงไหน (ส้ม) · เนื้อที่คิดจากพิกัดในไฟล์`;
+      const opts = it => `<option value="skip" ${it.target === 'skip' ? 'selected' : ''}>ข้าม (ไม่นำเข้า)</option>
+        <option value="land" ${it.target === 'land' ? 'selected' : ''}>ที่ดินดูไว้ (ยังไม่ใช่แปลงเรา)</option>
+        ${gData.plots.map(p => `<option value="plot:${p.plot_id}" ${it.target === 'plot:' + p.plot_id ? 'selected' : ''}>${p.boundary ? '✓ ' : ''}${esc(p.plot_name)} (${num(p.area_rai)} ไร่)</option>`).join('')}`;
+      const n = kmItems.filter(x => x.target !== 'skip').length;
+      $('fmPanel').innerHTML = kmItems.map((it, i) => `<div class="km-row">
+          <div class="d-flex justify-content-between gap-2"><b>${i + 1}. ${esc(it.name)}</b><span class="text-nowrap fw-bold">${fmtRai(it.m2)}</span></div>
+          <select class="form-select form-select-sm mt-1" onchange="kmItems[${i}].target=this.value;kmDraw();kmPanel()">${opts(it)}</select>
+        </div>`).join('') + `
+        <div class="srow-s my-2">แปลงที่มี ✓ วาดขอบไว้แล้ว ถ้านำเข้าจะทับขอบเดิม</div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary" onclick="kmCancel()">ยกเลิก</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnKm" ${n ? '' : 'disabled'} onclick="kmSave()">นำเข้า ${n} รายการ</button>
+        </div>`;
+    }
+    function kmCancel() { kmItems = null; if (kmLayer) kmLayer.clearLayers(); fmRender(); }
+    function kmSave() {
+      const dup = {};
+      for (const it of kmItems) if (it.target.startsWith('plot:')) { if (dup[it.target]) return alert('เลือกแปลงเดียวกันซ้ำ 2 รูป: ' + it.name); dup[it.target] = 1; }
+      const items = kmItems.filter(x => x.target !== 'skip').map(it => {
+        const path = it.pts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';');
+        return it.target === 'land' ? { kind: 'land', name: it.name, note: 'นำเข้าจาก Ling', path } : { kind: 'plot', id: it.target.slice(5), path };
+      });
+      call('importBoundaries', [items], d => {
+        gData.plots = d.plots; gData.lands = d.lands; saveCache(gData); render();
+        kmCancel(); alert(`นำเข้าแล้ว ${d.done} รายการ`);
+      }, $('btnKm'), '⏳ กำลังนำเข้า...');
     }
 
     // ค้นหา: แปลง/ที่ดินของเรา → พิกัด/ลิงก์ Google Maps → ชื่อสถานที่ (OpenStreetMap)

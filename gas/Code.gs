@@ -870,3 +870,27 @@ function buildBrief_(ss, s) {
 function authorizeFetch() {
   UrlFetchApp.fetch('https://www.google.com');
 }
+
+// ======================= อ่านบิลด้วย Gemini =======================
+// รหัสอยู่ใน Script Properties: GEMINI_KEY (ห้ามใส่ในโค้ด/GitHub)  รุ่นเปลี่ยนได้ที่ GEMINI_MODEL
+function geminiKey_() {
+  const k = PropertiesService.getScriptProperties().getProperty('GEMINI_KEY');
+  if (!k) throw new Error('ยังไม่ได้ใส่ GEMINI_KEY ในพร็อพเพอร์ตี้ของสคริปต์');
+  return k.trim();
+}
+
+// เช็กว่ารหัสใช้ได้ + รุ่นที่อ่านรูปได้ (ไม่คืนรหัส)
+function billAiModels() {
+  const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {
+    headers: { 'x-goog-api-key': geminiKey_() }, muteHttpExceptions: true
+  });
+  const code = res.getResponseCode();
+  if (code !== 200) return { ok: false, code: code, error: res.getContentText().slice(0, 300) };
+  const j = JSON.parse(res.getContentText());
+  return {
+    ok: true,
+    current: PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || '',
+    models: (j.models || []).filter(m => (m.supportedGenerationMethods || []).indexOf('generateContent') !== -1)
+      .map(m => m.name.replace('models/', ''))
+  };
+}

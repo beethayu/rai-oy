@@ -16,17 +16,38 @@
   <script>
     // ===== เชื่อมกับ Apps Script (แทน google.script.run) =====
     const API_URL = 'https://script.google.com/macros/s/AKfycbzWvJ2M0C7ZHQTVTWVCFCh7ugALw9dWws9A52iYEYvpxivqWzRCN22qWa4R6mE5XcZBuA/exec';
+    const KEY_STORE = 'raioy_key';          // รหัสผ่าน API (ใช้ร่วมกับ index.html เดิม)
+    const DATA_STORE = 'raioy_v8_data';     // ข้อมูลล่าสุด เปิดแอปแล้วเห็นทันที
+    const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+    // ลิงก์แบบ ...v8.html?k=รหัส : จำรหัสแล้วลบออกจากแถบที่อยู่
+    (function () {
+      const m = location.search.match(/[?&]k=([^&]+)/);
+      if (m) {
+        lsSet(KEY_STORE, decodeURIComponent(m[1]));
+        history.replaceState(null, '', location.pathname + location.hash);
+      }
+    })();
+
     function callApi(fn, args) {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 60000);
       return fetch(API_URL, {
         method: 'POST', redirect: 'follow', signal: ctrl.signal,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ fn: fn, args: args })
+        body: JSON.stringify({ fn: fn, args: args, k: lsGet(KEY_STORE) || '' })
       })
-        .catch(e => { throw (e.name === 'AbortError' ? new Error('หมดเวลาเชื่อมต่อ ลองใหม่อีกครั้ง') : e); })
+        .catch(e => { throw (e.name === 'AbortError' ? new Error('หมดเวลาเชื่อมต่อ สัญญาณอาจอ่อน ลองใหม่อีกครั้ง') : new Error('เชื่อมต่อไม่ได้ ตรวจสอบสัญญาณเน็ต')); })
         .then(r => r.json())
-        .then(j => { if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด'); return j.result; })
+        .then(j => {
+          if (!j.ok) {
+            const err = new Error(j.error || 'เกิดข้อผิดพลาด');
+            if (/^AUTH/.test(j.error || '')) { err.auth = true; showKeyBox(); }
+            throw err;
+          }
+          return j.result;
+        })
         .finally(() => clearTimeout(timer));
     }
     function makeRunner(cfg) {
@@ -39,13 +60,39 @@
           return (...args) => {
             callApi(name, args).then(
               r => { if (cfg.ok) cfg.ok(r, cfg.user); },
-              e => { if (cfg.fail) cfg.fail(e, cfg.user); else alert('เกิดข้อผิดพลาด: ' + e.message); }
+              e => {
+                if (e.auth) { const t = document.getElementById('syncToast'); if (t) t.style.display = 'none'; return; }
+                if (cfg.fail) cfg.fail(e, cfg.user); else alert('เกิดข้อผิดพลาด: ' + e.message);
+              }
             );
           };
         }
       });
     }
     window.google = { script: { run: makeRunner({}), host: { close() {} } } };
+
+    // ===== หน้าโหลด / ใส่รหัส =====
+    function bootMsg(msg, err, showRetry) {
+      const b = document.getElementById('boot'); if (!b) return;
+      b.style.display = 'flex';
+      document.getElementById('boot-spin').style.display = err ? 'none' : 'block';
+      document.getElementById('boot-msg').textContent = msg;
+      document.getElementById('boot-err').textContent = err || '';
+      document.getElementById('boot-retry').style.display = showRetry ? 'inline-flex' : 'none';
+    }
+    function hideBoot() { const b = document.getElementById('boot'); if (b) b.style.display = 'none'; }
+    function showKeyBox() {
+      const k = document.getElementById('keybox'); if (!k) return;
+      k.style.display = 'flex';
+      hideBoot();
+      setTimeout(() => { const i = document.getElementById('key-in'); if (i) i.focus(); }, 100);
+    }
+    function saveKey() {
+      const v = (document.getElementById('key-in').value || '').trim();
+      if (!v) return;
+      lsSet(KEY_STORE, v);
+      location.reload();
+    }
   </script>
   <style>
     :root {
@@ -143,6 +190,18 @@
     .pick-item { width: 100%; text-align: left; background: #fff; color: var(--ink); font-family: inherit; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 56px; }
     .pick-item b { font-size: 16px; }
     .pick-item small { color: var(--muted); font-size: 13px; display: block; }
+    /* หน้าโหลด / ใส่รหัส / สถานะเน็ต */
+    #boot, #keybox { position: fixed; inset: 0; z-index: 3000; background: var(--ground); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; text-align: center; }
+    #keybox { display: none; }
+    #boot-spin { width: 44px; height: 44px; border: 4px solid #CFE3D5; border-top-color: var(--green); border-radius: 50%; animation: sp .8s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    #boot-msg, .kb-title { font-size: 18px; font-weight: 700; }
+    #boot-err { color: var(--urg-ink); font-size: 15px; max-width: 320px; }
+    #boot-retry, .kb-btn { height: 52px; padding: 0 28px; border-radius: 14px; border: 0; background: var(--green); color: #fff; font-size: 17px; font-weight: 600; align-items: center; justify-content: center; }
+    .kb-in { width: 100%; max-width: 320px; height: 52px; border: 1.5px solid var(--line2); border-radius: 14px; padding: 0 16px; font-size: 18px; text-align: center; }
+    .kb-note { font-size: 14px; color: var(--muted); max-width: 320px; }
+    #net { display: none; justify-content: space-between; align-items: center; gap: 10px; background: #FFF6E0; border: 1px solid #F0DCA6; color: #5C4300; border-radius: 14px; padding: 8px 8px 8px 14px; font-size: 14px; margin-bottom: 12px; }
+    #net button { height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--green); color: #fff; font-weight: 600; flex-shrink: 0; }
   </style>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&amp;display=swap" rel="stylesheet">
@@ -180,6 +239,19 @@
 </head>
 <body>
   <div id="sbar"></div>
+  <div id="boot">
+    <div id="boot-spin"></div>
+    <div id="boot-msg">กำลังโหลด…</div>
+    <div id="boot-err"></div>
+    <button type="button" id="boot-retry" style="display:none" onclick="location.reload()">ลองใหม่</button>
+  </div>
+  <div id="keybox">
+    <div class="kb-title">ใส่รหัสผ่านแอปไร่อ้อย</div>
+    <label for="key-in" class="visually-hidden">รหัสผ่าน</label>
+    <input id="key-in" class="kb-in" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')saveKey()">
+    <button type="button" class="kb-btn" onclick="saveKey()">ตกลง</button>
+    <div class="kb-note">ใส่ครั้งเดียว เครื่องนี้จะจำไว้ ถ้าไม่รู้รหัสให้ถามเจ้าของไร่</div>
+  </div>
   <div id="app">
   <header class="hd">
     <div class="hd-top">
@@ -209,6 +281,7 @@
 
   <div class="wrap">
     <div class="sec-hd"><h1 id="sec-title">วันนี้ต้องดูแปลงไหน</h1><span id="sec-sub"></span></div>
+    <div id="net"></div>
     <div id="notice-box"></div>
 
     <div id="filter-sec" class="d-flex overflow-auto pb-1" style="white-space: nowrap; display:none !important;">
@@ -766,7 +839,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let gData = { plots: [], activities: [], options: {}, assets: [], assetLogs: [], inventory: [], stockLogs: [], settings: {} }, curTab = 'urgent', curFil = 'ALL';
-    window.onload = () => call('getInitialData', [], init, null, '⏳ กำลังโหลด...');
+    window.onload = startApp;
 
     
     const S = k => (gData.settings || {})[k];
@@ -799,7 +872,7 @@
     }
     function setDateMax() { document.querySelectorAll('input[type=date]').forEach(i => { if (i.id !== 'ae_bat_date') i.max = todayISO(); }); }
 
-    function init(d) { gData = d; popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); }
+    function init(d, fromCache) { gData = d; if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); }
 
     function calcDays(dStr) {
       if (!dStr || dStr === '-' || dStr === 'nan') return null;
@@ -1043,6 +1116,28 @@
       const m = $('pickModal');
       m.addEventListener('hidden.bs.modal', () => openAct(pid, p.plot_name, 'new'), { once: true });
       hideModal('pickModal');
+    }
+
+    // ================= V8: เปิดแอป / จำข้อมูลในเครื่อง =================
+    function readCache() { try { return JSON.parse(lsGet(DATA_STORE) || 'null'); } catch (e) { return null; } }
+    function saveCache(d) { lsSet(DATA_STORE, JSON.stringify({ t: Date.now(), d: d })); setNet(''); }
+    function hhmm(ts) { const d = new Date(ts); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+    function setNet(html) { const n = $('net'); if (!n) return; n.innerHTML = html; n.style.display = html ? 'flex' : 'none'; }
+    function loadFresh(hasCache) {
+      if (hasCache) setNet('<span>กำลังอัปเดตข้อมูลล่าสุด…</span>');
+      else bootMsg('กำลังโหลดข้อมูลไร่…');
+      callApi('getInitialData', []).then(d => { hideBoot(); init(d); }).catch(e => {
+        if (e.auth) return;
+        if (hasCache) {
+          const c = readCache();
+          setNet(`<span>เน็ตไม่ดี · แสดงข้อมูลเมื่อ ${c ? hhmm(c.t) : '-'} น.</span><button type="button" onclick="loadFresh(true)">ลองใหม่</button>`);
+        } else bootMsg('โหลดไม่สำเร็จ', e.message, true);
+      });
+    }
+    function startApp() {
+      const c = readCache();
+      if (c && c.d) { hideBoot(); init(c.d, true); }
+      loadFresh(!!(c && c.d));
     }
 
     // ================= แฟ้มข้อมูลแปลง =================

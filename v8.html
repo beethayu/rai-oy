@@ -230,6 +230,16 @@
     .pk-row + .pk-row { border-top: 1px solid #EEF1EF; }
     .pk-row input { width: 22px; height: 22px; flex-shrink: 0; accent-color: #1F5E3B; }
     .pk-row.on { background: #EEF5F0; }
+    /* หน้าต่างแบบใหม่ (ฝนตก แบต ตั้งค่า) ให้หน้าตาเดียวกับแท็บอื่น */
+    .mhd { background: #1F5E3B; color: #fff; }
+    .mhd .modal-title { font-weight: 700; font-size: 17px; }
+    .msub { font-size: 14px; color: #6B736E; margin-bottom: 10px; }
+    .mbody { background: #F4F3EF; }
+    .card-sec { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+    .card-sec h6 { font-weight: 700; font-size: 16px; color: #1F5E3B; margin: 0 0 8px; }
+    .grp-all { border: 0; background: transparent; color: #1F5E3B; font-size: 13px; font-weight: 600; padding: 0; }
+    .opt-chip { display: inline-flex; align-items: center; gap: 6px; background: #EEF1EF; color: inherit; border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 14px; font-weight: 600; }
+    .opt-chip button { border: 0; background: #fff; color: #A3271B; width: 24px; height: 24px; border-radius: 999px; font-size: 13px; line-height: 1; padding: 0; }
     .sec-h { display: flex; justify-content: space-between; align-items: center; margin: 12px 2px 6px; }
     .sec-h:first-child { margin-top: 4px; }
     .sec-h b { font-size: 17px; }
@@ -751,44 +761,38 @@
 
   
   <div class="modal fade" id="batModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-warning text-dark py-2">
-          <h6 class="modal-title fw-bold">🔋 สลับแบตเตอรี่ข้ามคัน / เปลี่ยนแบตใหม่</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">แบตเตอรี่รถ</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3">
-          <div class="btn-group w-100 mb-3" role="group">
-            <input type="radio" class="btn-check" name="bat_mode" id="bm_swap" autocomplete="off" checked onchange="tglBatMode()">
-            <label class="btn btn-outline-dark fw-bold btn-sm" for="bm_swap">🔄 ถอดสลับจากคันนึง ไปใส่อีกคัน</label>
-            <input type="radio" class="btn-check" name="bat_mode" id="bm_new" autocomplete="off" onchange="tglBatMode()">
-            <label class="btn btn-outline-primary fw-bold btn-sm" for="bm_new">🆕 ซื้อแบตใหม่ / ตั้งค่าแบตเริ่มต้น</label>
+        <div class="modal-body p-3 mbody">
+          <input type="radio" class="d-none" name="bat_mode" id="bm_swap" checked>
+          <input type="radio" class="d-none" name="bat_mode" id="bm_new">
+          <div class="seg mb-3">
+            <button type="button" id="bm_swap_b" onclick="setBatMode(true)">ย้ายแบตข้ามคัน</button>
+            <button type="button" id="bm_new_b" onclick="setBatMode(false)">ใส่แบตลูกใหม่</button>
           </div>
-          <div id="bat_from_box" class="mb-2 p-2 rounded border bg-light">
-            <label class="small fw-bold text-danger">1. ถอดแบตมาจากรถคันไหน? (คันที่ถูกถอด):</label>
-            <select class="form-select form-select-sm mt-1" id="bat_from"></select>
-          </div>
-          <div class="mb-2 p-2 rounded border bg-light">
-            <label class="small fw-bold text-success">2. นำไปใส่ให้รถคันไหน? (คันที่รับแบต):</label>
-            <select class="form-select form-select-sm mt-1" id="bat_to"></select>
-          </div>
-          <div class="mb-2">
-            <label class="small fw-bold" id="bat_lbl_name">ชื่อ/รหัสแบตลูกนี้ (ถ้ามี):</label>
-            <input type="text" class="form-control form-control-sm" id="bat_label" placeholder="เช่น แบต GS 120A (ลูกปี 69)">
-          </div>
-          <div class="row g-2">
-            <div class="col-6">
-              <label class="small fw-bold">วันที่เปลี่ยน/สลับ:</label>
-              <input type="date" class="form-control form-control-sm" id="bat_date">
+          <div class="card-sec">
+            <div id="bat_from_box" class="mb-2">
+              <div class="bill-lbl">ถอดมาจากคันไหน</div>
+              <select class="form-select" id="bat_from"></select>
             </div>
-            <div class="col-6">
-              <label class="small fw-bold">สาเหตุ/หมายเหตุ:</label>
-              <input type="text" class="form-control form-control-sm" id="bat_rmk" placeholder="เช่น แบตเดิมเสื่อม">
+            <div class="bill-lbl" id="bat_lbl_to">เอาไปใส่คันไหน</div>
+            <select class="form-select" id="bat_to"></select>
+          </div>
+          <div class="card-sec">
+            <div class="bill-lbl" id="bat_lbl_name">ชื่อเรียกแบต</div>
+            <input type="text" class="form-control mb-2" id="bat_label" placeholder="เช่น GS 120A (ลูกปี 69)">
+            <div class="row g-2">
+              <div class="col-6"><div class="bill-lbl">วันที่</div><input type="date" class="form-control" id="bat_date"></div>
+              <div class="col-6"><div class="bill-lbl">หมายเหตุ</div><input type="text" class="form-control" id="bat_rmk" placeholder="เช่น แบตเดิมเสื่อม"></div>
             </div>
           </div>
         </div>
-        <div class="modal-footer p-2">
-          <button type="button" class="btn btn-warning w-100 fw-bold text-dark" onclick="submitBattery()" id="btnBatSave">💾 บันทึกการย้าย/เปลี่ยนแบต</button>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitBattery()" id="btnBatSave">บันทึก</button>
         </div>
       </div>
     </div>
@@ -857,94 +861,82 @@
   </div>
 
   <div class="modal fade" id="setModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-dark text-white py-2">
-          <h6 class="modal-title fw-bold">⚙️ ตั้งค่าระบบ</h6>
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">ตั้งค่า</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3">
-          
-          <div class="p-2 rounded border border-success mb-3" style="background:#f4fbf4;">
-            <label class="fw-bold text-success">🔔 แจ้งเตือน LINE ทุกเช้า</label>
-            <div class="small text-muted mb-2" id="set_status"></div>
-            <label class="small fw-bold">Channel access token:</label>
-            <input type="password" class="form-control form-control-sm mb-2" id="set_token" autocomplete="off">
-            <label class="small fw-bold">ส่งถึง (เว้นว่าง = ทุกคนที่แอดเพื่อน OA):</label>
-            <input type="text" class="form-control form-control-sm mb-2" id="set_target" placeholder="User ID หรือ Group ID (ไม่บังคับ)">
+        <div class="modal-body p-3 mbody">
+          <div class="card-sec">
+            <h6>แจ้งเตือน LINE ทุกเช้า</h6>
+            <div class="msub mb-2" id="set_status"></div>
             <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="small fw-bold">สถานะ:</label>
-                <select class="form-select form-select-sm" id="set_enabled"><option value="เปิด">🟢 เปิด</option><option value="ปิด">⚪ ปิด</option></select>
-              </div>
-              <div class="col-6">
-                <label class="small fw-bold">เวลาส่ง:</label>
-                <input type="time" class="form-control form-control-sm" id="set_time">
-              </div>
+              <div class="col-6"><div class="bill-lbl">สถานะ</div><select class="form-select" id="set_enabled"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
+              <div class="col-6"><div class="bill-lbl">เวลาส่ง</div><input type="time" class="form-control" id="set_time"></div>
             </div>
-            <div class="d-flex gap-1">
-              <button type="button" class="btn btn-outline-success btn-sm flex-fill fw-bold" onclick="previewLine()" id="btnPrev">👀 ดูตัวอย่าง</button>
-              <button type="button" class="btn btn-outline-primary btn-sm flex-fill fw-bold" onclick="testLine()" id="btnTest">📨 ส่งทดสอบ</button>
+            <div class="bill-lbl">Channel access token</div>
+            <input type="password" class="form-control mb-2" id="set_token" autocomplete="off">
+            <div class="bill-lbl">ส่งถึง (ไม่ใส่ = ทุกคนที่แอดเพื่อน OA)</div>
+            <input type="text" class="form-control mb-2" id="set_target" placeholder="User ID หรือ Group ID">
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewLine()" id="btnPrev">ดูตัวอย่าง</button>
+              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="testLine()" id="btnTest">ส่งทดสอบ</button>
             </div>
             <div id="set_preview" class="mt-2"></div>
           </div>
 
-          
-          <div class="p-2 rounded border mb-3 bg-light">
-            <label class="fw-bold text-primary">💧 รอบน้ำ / ฉีดยาคุม</label>
-            <div class="row g-2 mt-1">
-              <div class="col-6"><small class="fw-bold">อ้อยใหม่ (วัน)</small><input type="number" class="form-control form-control-sm" id="set_wnew"></div>
-              <div class="col-6"><small class="fw-bold">อ้อยตอ (วัน)</small><input type="number" class="form-control form-control-sm" id="set_wrat"></div>
-              <div class="col-6"><small class="fw-bold">ฉีดยาคุม หลังน้ำวันที่</small><input type="number" class="form-control form-control-sm" id="set_smin"></div>
-              <div class="col-6"><small class="fw-bold">ถึงวันที่</small><input type="number" class="form-control form-control-sm" id="set_smax"></div>
+          <div class="card-sec">
+            <h6>รอบน้ำ / ฉีดยาคุม</h6>
+            <div class="row g-2">
+              <div class="col-6"><div class="bill-lbl">อ้อยใหม่ ให้น้ำทุก (วัน)</div><input type="number" inputmode="numeric" class="form-control" id="set_wnew"></div>
+              <div class="col-6"><div class="bill-lbl">อ้อยตอ ให้น้ำทุก (วัน)</div><input type="number" inputmode="numeric" class="form-control" id="set_wrat"></div>
+              <div class="col-6"><div class="bill-lbl">ฉีดยาคุม หลังน้ำวันที่</div><input type="number" inputmode="numeric" class="form-control" id="set_smin"></div>
+              <div class="col-6"><div class="bill-lbl">ถึงวันที่</div><input type="number" inputmode="numeric" class="form-control" id="set_smax"></div>
             </div>
           </div>
 
-          
-          <div class="p-2 rounded border mb-3 bg-light">
-            <label class="fw-bold text-success">🧪 สูตรลัด ยา / ปุ๋ย</label>
-            <small class="d-block mt-1 fw-bold">ยาอ้อยใหม่ (ชื่อยาคั่นด้วย ,)</small><input type="text" class="form-control form-control-sm" id="set_cnew">
-            <small class="d-block mt-1 fw-bold">ยาอ้อยโต</small><input type="text" class="form-control form-control-sm" id="set_cgrow">
-            <small class="d-block mt-1 fw-bold">ปุ๋ยรองพื้น (สูตร:สัดส่วน)</small><input type="text" class="form-control form-control-sm" id="set_fbase">
-            <small class="d-block mt-1 fw-bold">ปุ๋ยอ้อยตอ (เช่น 21-0-0:3,16-8-8:1)</small><input type="text" class="form-control form-control-sm" id="set_frat">
+          <div class="card-sec">
+            <h6>สูตรลัด ยา / ปุ๋ย</h6>
+            <div class="bill-lbl">ยาอ้อยใหม่ (ชื่อยาคั่นด้วย ,)</div><input type="text" class="form-control mb-2" id="set_cnew">
+            <div class="bill-lbl">ยาอ้อยโต</div><input type="text" class="form-control mb-2" id="set_cgrow">
+            <div class="bill-lbl">ปุ๋ยรองพื้น (สูตร:สัดส่วน)</div><input type="text" class="form-control mb-2" id="set_fbase">
+            <div class="bill-lbl">ปุ๋ยอ้อยตอ (เช่น 21-0-0:3,16-8-8:1)</div><input type="text" class="form-control" id="set_frat">
           </div>
-          <button type="button" class="btn btn-success w-100 fw-bold mb-3" onclick="saveSettingsUI()" id="btnSetSave">💾 บันทึกการตั้งค่า</button>
-          <hr>
+          <button type="button" class="btn btn-success w-100 fw-bold mb-4" onclick="saveSettingsUI()" id="btnSetSave">บันทึกการตั้งค่า</button>
 
-          <div class="mb-3">
-            <label class="fw-bold text-primary">🐍 เครื่องสูบน้ำพญานาค</label>
-            <div class="input-group input-group-sm mb-2">
-              <input type="text" class="form-control" id="new_pump" placeholder="เช่น พญานาค หมายเลข 4...">
-              <button class="btn btn-primary fw-bold" type="button" onclick="modOpt('Pump','add','new_pump')">+ เพิ่ม</button>
+          <div class="srow-h mt-0">รายชื่อในฟอร์มบันทึกงาน</div>
+          <div class="card-sec">
+            <h6>คนงาน</h6>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="new_worker" placeholder="ชื่อคนงานใหม่">
+              <button class="btn btn-outline-success fw-bold" type="button" onclick="modOpt('Worker','add','new_worker')">+ เพิ่ม</button>
             </div>
-            <div id="list_pump" class="d-flex flex-wrap gap-1"></div>
+            <div id="list_worker" class="d-flex flex-wrap gap-2"></div>
           </div>
-          <hr>
-          <div class="mb-3">
-            <label class="fw-bold text-danger">🚛 รถสิบล้อขนส่ง</label>
-            <div class="input-group input-group-sm mb-2">
-              <input type="text" class="form-control" id="new_truck" placeholder="พิมพ์ชื่อ/ทะเบียนสิบล้อ...">
-              <button class="btn btn-danger fw-bold" type="button" onclick="modOpt('Truck','add','new_truck')">+ เพิ่ม</button>
+          <div class="card-sec">
+            <h6>เครื่องสูบน้ำพญานาค</h6>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="new_pump" placeholder="เช่น พญานาค 4">
+              <button class="btn btn-outline-success fw-bold" type="button" onclick="modOpt('Pump','add','new_pump')">+ เพิ่ม</button>
             </div>
-            <div id="list_truck" class="d-flex flex-wrap gap-1"></div>
+            <div id="list_pump" class="d-flex flex-wrap gap-2"></div>
           </div>
-          <hr>
-          <div class="mb-3">
-            <label class="fw-bold text-secondary">🚜 รถไถ / รถตัดอ้อย</label>
-            <div class="input-group input-group-sm mb-2">
-              <input type="text" class="form-control" id="new_tractor" placeholder="พิมพ์ชื่อรถไถ/รถตัด...">
-              <button class="btn btn-secondary fw-bold" type="button" onclick="modOpt('Tractor','add','new_tractor')">+ เพิ่ม</button>
+          <div class="card-sec">
+            <h6>รถไถ / รถตัดอ้อย</h6>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="new_tractor" placeholder="ชื่อรถไถ/รถตัด">
+              <button class="btn btn-outline-success fw-bold" type="button" onclick="modOpt('Tractor','add','new_tractor')">+ เพิ่ม</button>
             </div>
-            <div id="list_tractor" class="d-flex flex-wrap gap-1"></div>
+            <div id="list_tractor" class="d-flex flex-wrap gap-2"></div>
           </div>
-          <hr>
-          <div class="mb-2">
-            <label class="fw-bold text-success">👤 รายชื่อคนงาน</label>
-            <div class="input-group input-group-sm mb-2">
-              <input type="text" class="form-control" id="new_worker" placeholder="พิมพ์ชื่อคนงานใหม่...">
-              <button class="btn btn-success fw-bold" type="button" onclick="modOpt('Worker','add','new_worker')">+ เพิ่ม</button>
+          <div class="card-sec">
+            <h6>รถสิบล้อ</h6>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="new_truck" placeholder="ชื่อ/ทะเบียนสิบล้อ">
+              <button class="btn btn-outline-success fw-bold" type="button" onclick="modOpt('Truck','add','new_truck')">+ เพิ่ม</button>
             </div>
-            <div id="list_worker" class="d-flex flex-wrap gap-1"></div>
+            <div id="list_truck" class="d-flex flex-wrap gap-2"></div>
           </div>
         </div>
       </div>
@@ -953,21 +945,20 @@
 
   
   <div class="modal fade" id="rainModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white py-2">
-          <h6 class="modal-title fw-bold">🌧️ เลือกแปลงที่ฝนตก (รีเซ็ตวันน้ำ)</h6>
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">ฝนตก แปลงไหนบ้าง</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
-          <div class="form-check mb-2 pb-2 border-bottom">
-            <input class="form-check-input" type="checkbox" id="selAll" onchange="document.querySelectorAll('.p-chk').forEach(c=&gt;c.checked=this.checked)">
-            <label class="form-check-label fw-bold text-primary" for="selAll">เลือกทั้งหมด</label>
-          </div>
+        <div class="modal-body p-3 mbody">
+          <div class="msub">ฝนตกนับเป็นการให้น้ำ วันน้ำของแปลงที่ติ๊กจะเริ่มนับใหม่จากวันนี้</div>
+          <div class="srow-box"><label class="pk-row" id="rain_all_row"><input type="checkbox" id="selAll" onchange="rainAll(this.checked)">
+            <span class="srow-n">เลือกทั้งหมด</span></label></div>
           <div id="chk-list"></div>
         </div>
-        <div class="modal-footer p-2">
-          <button type="button" class="btn btn-primary w-100 fw-bold" onclick="submitRain()" id="btnRain">💾 บันทึกฝนตก</button>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitRain()" id="btnRain">บันทึกฝนตก</button>
         </div>
       </div>
     </div>
@@ -1748,12 +1739,10 @@
       let html = curTab === 'all' ? plotListHtml(list, logsBy) : todayHtml(rows, logsBy);
       if (!html) html = '<div class="empty"><b>ไม่มีแปลงในหมวดนี้</b>ลองเลือกหมวดอื่น</div>';
 
-      rows.forEach(({ p }) => {
-        chkHtml += `<div class="form-check mb-2"><input class="form-check-input p-chk" type="checkbox" value="${p.plot_id}" id="c_${p.plot_id}"><label class="form-check-label" for="c_${p.plot_id}"><b>${p.plot_id} - ${esc(p.plot_name)}</b> (${p.area_rai} ไร่)</label></div>`;
-      });
+      chkHtml = rainListHtml();
 
       $('plot-list').innerHTML = html;
-      $('chk-list').innerHTML = chkHtml;
+      $('chk-list').innerHTML = chkHtml; rainSync();
       const total = nUrg + nDoing + (gData.watches || []).length;
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
       $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
@@ -2388,21 +2377,25 @@
     
     function openBatModal() {
       let vehicles = (gData.assets || []).filter(a => a.category === 'Tractor' || a.category === 'Truck');
-      let opts = vehicles.map(v => `<option value="${v.name}">${v.name} [ตอนนี้: ${v.battery_info}]</option>`).join('');
+      let opts = vehicles.map(v => `<option value="${esc(v.name)}">${esc(v.name)}${v.battery_info ? ' · แบต: ' + esc(v.battery_info) : ''}</option>`).join('');
       $('bat_from').innerHTML = opts; $('bat_to').innerHTML = opts;
       if (vehicles.length > 1) $('bat_to').selectedIndex = 1;
       $('bat_label').value = ''; $('bat_date').value = todayISO(); $('bat_rmk').value = '';
-      tglBatMode();
+      setBatMode(true);
       bootstrap.Modal.getOrCreateInstance($('batModal')).show();
     }
+    function setBatMode(swap) { $(swap ? 'bm_swap' : 'bm_new').checked = true; tglBatMode(); }
     function tglBatMode() {
       let isSwap = $('bm_swap').checked;
+      $('bm_swap_b').classList.toggle('on', isSwap); $('bm_new_b').classList.toggle('on', !isSwap);
       $('bat_from_box').style.display = isSwap ? 'block' : 'none';
-      $('bat_lbl_name').innerText = isSwap ? 'ชื่อเรียกแบตลูกที่ย้าย (เว้นว่าง = ใช้ชื่อเดิม):' : 'ชื่อ/ขนาดแอมป์แบตลูกใหม่ (เช่น แบตใหม่ GS 120A):';
+      $('bat_lbl_to').innerText = isSwap ? 'เอาไปใส่คันไหน' : 'ใส่ให้คันไหน';
+      $('bat_lbl_name').innerText = isSwap ? 'ชื่อเรียกแบตลูกที่ย้าย (ไม่ใส่ = ใช้ชื่อเดิม)' : 'ชื่อ/ขนาดแบตลูกใหม่';
+      $('btnBatSave').innerText = isSwap ? 'บันทึกการย้ายแบต' : 'บันทึกแบตลูกใหม่';
     }
     function submitBattery() {
       let isSwap = $('bm_swap').checked, fromV = $('bat_from').value, toV = $('bat_to').value;
-      if (isSwap && fromV === toV) return alert('กรุณาเลือกรถต้นทางและปลายทางคนละคันครับ');
+      if (isSwap && fromV === toV) return alert('เลือกรถคนละคันครับ');
       if (!checkDate($('bat_date').value)) return;
       call('transferBattery', [{
         mode: isSwap ? 'swap' : 'new', from_vehicle: fromV, to_vehicle: toV,
@@ -2614,7 +2607,7 @@
           <input type="number" inputmode="decimal" min="0" step="any" class="form-control form-control-sm f-qty" data-name="${f.name}" style="width:80px;" oninput="fertSum()" placeholder="0">
         </div>`).join('') || '<div class="small text-muted">ยังไม่มีรายการปุ๋ย (เพิ่มได้ในแท็บ 📦 สต็อก)</div>';
 
-      const chip = (cat, v) => `<span class="badge bg-light text-dark border p-2">${v} <span class="text-danger ms-1" style="cursor:pointer;" onclick="modOpt('${cat}','remove','','${qa(v)}')">✖</span></span>`;
+      const chip = (cat, v) => `<span class="opt-chip">${esc(v)}<button type="button" aria-label="ลบ" onclick="modOpt('${cat}','remove','','${qa(v)}')">✕</button></span>`;
       $('list_pump').innerHTML = pumps.map(v => chip('Pump', v)).join('');
       $('list_worker').innerHTML = workers.map(v => chip('Worker', v)).join('');
       $('list_tractor').innerHTML = tractors.map(v => chip('Tractor', v)).join('');
@@ -2622,7 +2615,7 @@
 
       // ฟอร์มตั้งค่า
       $('set_token').value = '';
-      $('set_token').placeholder = S('hasToken') ? '✅ ใส่แล้ว (เว้นว่าง = ใช้อันเดิม)' : 'วางโทเคนจาก LINE Developers';
+      $('set_token').placeholder = S('hasToken') ? 'ใส่แล้ว (ไม่ใส่ = ใช้อันเดิม)' : 'วางโทเคนจาก LINE Developers';
       $('set_target').value = S('LINE_TARGET_ID') || '';
       $('set_enabled').value = S('NOTIFY_ENABLED') === 'เปิด' ? 'เปิด' : 'ปิด';
       const tm = String(S('NOTIFY_TIME') || '04:00').match(/(\d{1,2})[:.](\d{2})/);
@@ -2632,7 +2625,7 @@
       $('set_cnew').value = S('CHEM_PRESET_NEW') || ''; $('set_cgrow').value = S('CHEM_PRESET_GROW') || '';
       $('set_fbase').value = S('FERT_PRESET_BASE') || ''; $('set_frat').value = S('FERT_PRESET_RATOON') || '';
       $('set_status').innerHTML = S('NOTIFY_ENABLED') === 'เปิด'
-        ? `🟢 เปิดอยู่ — ส่งทุกวัน ${$('set_time').value} น.${S('LAST_NOTIFY') ? ` • ส่งล่าสุด ${S('LAST_NOTIFY')}` : ''}` : '⚪ ยังปิดอยู่';
+        ? `เปิดอยู่ · ส่งทุกวัน ${$('set_time').value} น.${S('LAST_NOTIFY') ? ` · ส่งล่าสุด ${S('LAST_NOTIFY')}` : ''}` : 'ยังปิดอยู่';
     }
 
     function saveSettingsUI() {
@@ -2832,9 +2825,32 @@
       call('saveActivities', [base], d => { hideModal('actModal'); pkAfterSave(); init(d); }, $('btnSaveAct'));
     }
 
+    // หน้าฝนตก: จัดกลุ่มตามสถานที่ เหมือนหน้าเลือกแปลงในแท็บบันทึกงาน
+    function rainListHtml() {
+      const groups = [], idx = {};
+      gData.plots.forEach(p => { const l = plotLoc(p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, ps: [] }); } groups[idx[l]].ps.push(p); });
+      return groups.map((g, gi) => `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(g.l)}</span>
+          <button type="button" class="grp-all" onclick="rainGrp(${gi})">เลือกทั้งกลุ่ม</button></div>
+        <div class="srow-box" data-rg="${gi}">${g.ps.map(p => `<label class="pk-row"><input type="checkbox" class="p-chk" value="${p.plot_id}" onchange="rainSync()">
+          <span class="srow-l" style="flex:1"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span>
+          <span class="srow-s">${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</span></span></label>`).join('')}</div>`).join('');
+    }
+    function rainSync() {
+      const all = [...document.querySelectorAll('.p-chk')], n = all.filter(c => c.checked).length;
+      all.forEach(c => c.closest('.pk-row').classList.toggle('on', c.checked));
+      $('selAll').checked = n && n === all.length; $('rain_all_row').classList.toggle('on', $('selAll').checked);
+      $('btnRain').innerText = n ? `บันทึกฝนตก ${n} แปลง` : 'บันทึกฝนตก';
+    }
+    function rainAll(on) { document.querySelectorAll('.p-chk').forEach(c => c.checked = on); rainSync(); }
+    function rainGrp(gi) {
+      const cs = [...document.querySelectorAll(`[data-rg="${gi}"] .p-chk`)], on = !cs.every(c => c.checked);
+      cs.forEach(c => c.checked = on); rainSync();
+    }
+
     function submitRain() {
       let ids = []; document.querySelectorAll('.p-chk:checked').forEach(c => ids.push(c.value));
       if (!ids.length) return alert('เลือกอย่างน้อย 1 แปลง');
+      if (!confirm(`ลงฝนตกวันนี้ ${ids.length} แปลง?`)) return;
       call('saveActivities', [{ plotIds: ids, activity_group: 'ฝนตก', activity_detail: 'น้ำฝนธรรมชาติ', operator: 'ธรรมชาติ', is_ongoing: false }],
         d => { hideModal('rainModal'); init(d); }, $('btnRain'));
     }

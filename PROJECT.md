@@ -59,6 +59,7 @@
   usage (ยา/ปุ๋ย) ตัดสต็อกครั้งเดียวทั้งงาน (ไม่คูณจำนวนแปลง)
 - สต็อก: seg สต็อก | ค่าใช้จ่าย/บิล (stockPane), รถ/คน: seg รถ/เครื่อง | คนงาน (fleetPane) — สไตล์ .seg .srow .srow-box ใช้ร่วมกัน
 - ประวัติรถ groupAssetLogs รวมแถวจากบิลเดียวกัน (B..._A#) เป็นบรรทัดเดียว แตะเปิดบิล, แถวรถโชว์ค่าซ่อมรวมจาก Expenses.asset
+- หน้าต่างแบบใหม่ (2 พ.ย.): .mhd หัวเขียว + .mbody + .card-sec + .bill-lbl, fullscreen-sm-down — ฝนตก (rainListHtml จัดกลุ่ม) แบต (seg) ตั้งค่า (opt-chip) ทำแล้ว
 - ทดสอบหน้าตาได้ใน workspace: google-chrome + playwright (python) โหลด v8.html แล้ว route API ไปที่ data.json
   (bootstrap/ฟอนต์จาก CDN โหลดไม่ได้ใน workspace ปุ่มจะดูเปล่า ๆ แต่ในแอปจริงปกติ)
 

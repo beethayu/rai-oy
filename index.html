@@ -5,29 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ไร่อ้อย">
-<meta name="theme-color" content="#2e7d32">
+<meta name="theme-color" id="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
 <title>จัดการไร่อ้อย 281 ไร่</title>
 <style>
   html, body { overscroll-behavior: none; height: 100%; overflow: hidden; }
-  html { background: #2e7d32; }
+  html { background: #fff; }
   body { margin: 0 !important; background: #fff; }
-  #safe-top { position: fixed; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top) + 16px); background: #2e7d32; z-index: 2147483647; pointer-events: none; }
-  #app { position: fixed; top: calc(env(safe-area-inset-top) + 16px); left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: none; transform: translateZ(0); }
+  #app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: none; transform: translateZ(0); }
   #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; box-sizing: border-box; text-align: center; background: #fff; z-index: 2147483646; font-family: -apple-system, sans-serif; color: #2e7d32; }
   #boot .spin { width: 42px; height: 42px; border: 4px solid #c8e6c9; border-top-color: #2e7d32; border-radius: 50%; animation: sp 0.8s linear infinite; }
   #boot button { padding: 10px 18px; font-size: 16px; margin: 4px; border-radius: 8px; border: 1px solid #2e7d32; background: #fff; color: #2e7d32; }
   #boot-err { color: #c62828; font-size: 13px; word-break: break-word; white-space: pre-wrap; max-height: 40vh; overflow: auto; }
   @keyframes sp { to { transform: rotate(360deg); } }
   #api-toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); max-width: 90%; background: #333; color: #fff; padding: 10px 16px; border-radius: 10px; font: 14px -apple-system, sans-serif; z-index: 2147483647; display: none; }
-  #api-busy { position: fixed; top: calc(env(safe-area-inset-top) + 16px); left: 0; height: 3px; width: 0; background: #ffeb3b; z-index: 2147483647; transition: width 0.3s; pointer-events: none; }
+  #api-busy { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: #ffeb3b; z-index: 2147483647; transition: width 0.3s; pointer-events: none; }
 </style>
 </head>
 <body>
-<div id="safe-top"></div>
 <div id="app"></div>
 <div id="api-busy"></div>
 <div id="boot">
@@ -42,7 +40,7 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbzWvJ2M0C7ZHQTVTWVCFCh7ugALw9dWws9A52iYEYvpxivqWzRCN22qWa4R6mE5XcZBuA/exec';
 const CACHE_KEY = 'raioy_app_html';
 const TIMEOUT_MS = 60000;
-const SHELL_IDS = new Set(['safe-top', 'app', 'api-busy', 'boot', 'api-toast']);
+const SHELL_IDS = new Set(['app', 'api-busy', 'boot', 'api-toast']);
 const APP = document.getElementById('app');
 let stage = 'เริ่มต้น';
 let booted = false;
@@ -85,36 +83,6 @@ function busy(d) {
   busyCount = Math.max(0, busyCount + d);
   document.getElementById('api-busy').style.width = busyCount ? '70%' : '0';
 }
-
-// ---------- ขนาดกล่องแอปให้เต็มจอในโหมดไอคอน ----------
-function isStandalone() {
-  try {
-    return !!(navigator.standalone ||
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.matchMedia('(display-mode: fullscreen)').matches ||
-      window.matchMedia('(display-mode: minimal-ui)').matches);
-  } catch (e) { return !!navigator.standalone; }
-}
-function fitApp() {
-  if (!isStandalone()) return;
-  const top = APP.getBoundingClientRect().top;
-  const portrait = window.matchMedia('(orientation: portrait)').matches;
-  const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-  const vv = window.visualViewport ? window.visualViewport.height : 0;
-  APP.style.bottom = 'auto';
-  APP.style.height = (Math.max(window.innerHeight, vv, full) - top) + 'px';
-}
-function fitSoon() {
-  fitApp();
-  [100, 400, 1000, 2500].forEach(t => setTimeout(fitApp, t));
-}
-fitSoon();
-window.addEventListener('resize', fitSoon);
-window.addEventListener('orientationchange', fitSoon);
-window.addEventListener('pageshow', fitSoon);
-window.addEventListener('focus', fitSoon);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) fitSoon(); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', fitApp);
 
 // ---------- fetch พร้อมตัดเวลา ----------
 function fetchWithTimeout(url, opts, ms) {
@@ -228,6 +196,9 @@ async function mount(html) {
   // พื้นหลังส่วนที่เหลือใช้สีเดียวกับแอป ถ้ามีช่องโผล่จะกลืนไปกับหน้า
   document.body.style.setProperty('background', bg, 'important');
   document.documentElement.style.setProperty('background', bg, 'important');
+  // สีขอบนอกที่ iOS ระบายให้ ใช้สีเดียวกับแอป
+  const tc = document.getElementById('theme-color');
+  if (tc) tc.setAttribute('content', bg);
 
   // หน้าต่างที่แอปสร้างใหม่ทีหลัง ให้ย้ายเข้ากล่อง #app อัตโนมัติ
   new MutationObserver(list => {
@@ -245,7 +216,6 @@ async function mount(html) {
   try { document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true })); } catch (e) {}
   try { window.dispatchEvent(new Event('load')); } catch (e) {}
   booted = true;
-  fitSoon();
   const b = document.getElementById('boot');
   if (b) b.remove();
 }

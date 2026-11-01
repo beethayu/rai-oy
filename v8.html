@@ -389,6 +389,10 @@
             <small class="fw-bold text-primary d-block mb-1">🐍 เลือกเครื่องสูบน้ำพญานาคที่ใช้ (ติ๊กได้หลายตัว):</small>
             <div id="pump_chks" class="small mb-1"></div>
             <input type="text" class="form-control form-control-sm" id="water_det" value="ราดร่อง/ขึ้นน้ำ" placeholder="รายละเอียดการให้น้ำ">
+            <div class="d-flex gap-1 mt-1 flex-wrap">
+              <button type="button" class="btn btn-sm btn-outline-primary py-0" onclick="document.getElementById('water_det').value='ราดร่อง/ขึ้นน้ำ'">ขึ้นน้ำ</button>
+              <button type="button" class="btn btn-sm btn-outline-primary py-0" onclick="document.getElementById('water_det').value='สูบน้ำขังออก'">สูบน้ำขังออก</button>
+            </div>
           </div>
 
           
@@ -485,6 +489,8 @@
             <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ล็อก 2'">ล็อก 2</button>
             <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ได้ครึ่งแปลง'">ครึ่งแปลง</button>
             <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='เสร็จสมบูรณ์'">เสร็จสมบูรณ์</button>
+            <button type="button" class="btn btn-sm btn-light border py-0" onclick="addRmk('ค้างคืน')">ค้างคืน</button>
+            <button type="button" class="btn btn-sm btn-light border py-0" onclick="addRmk('เลิกเที่ยง')">เลิกเที่ยง</button>
           </div>
         </div>
         <div class="modal-footer p-2">
@@ -881,6 +887,9 @@
     function beToISO(s) { if (!s || s === '-') return ''; const p = String(s).trim().split('/'); if (p.length !== 3) return ''; let y = parseInt(p[2], 10); if (y > 2400) y -= 543; return `${y}-${pad(+p[1])}-${pad(+p[0])}`; }
     function isoToBE(s) { if (!s) return ''; const [y, m, d] = s.split('-'); return `${d}/${m}/${+y + 543}`; }
     function todayISO() { const n = new Date(); return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`; }
+    // ต่อท้ายหมายเหตุ (ค้างคืน / เลิกเที่ยง ใช้คู่กับคำอื่นได้)
+    function addRmk(t) { const el = document.getElementById('act_rmk'); if (!el.value.includes(t)) el.value = el.value.trim() ? el.value.trim() + ' ' + t : t; }
+
     function checkDate(iso) {
       if (iso && iso > todayISO()) return confirm(`⚠️ วันที่ ${isoToBE(iso)} เลยวันนี้ไปแล้ว\nยืนยันจะบันทึกวันที่นี้ใช่ไหม?`);
       return true;

@@ -197,6 +197,13 @@
     .srow-tag.bad { background: #FBE3E0; color: #A3271B; }
     .srow-act { padding: 0 14px 12px; }
     .srow-main .pill { flex-shrink: 0; }
+    .prow-id { display: inline-block; font-size: 12px; font-weight: 700; background: #1F2A23; color: #fff; border-radius: 6px; padding: 1px 6px; margin-right: 2px; vertical-align: 2px; }
+    .prow-tag { font-size: 12px; font-weight: 700; background: #F6EBC9; color: #6E5410; border: 1px dashed #C9A646; border-radius: 999px; padding: 0 7px; vertical-align: 2px; }
+    .prow-new { color: var(--green-d); font-weight: 600; }
+    .prow-rat { color: #6B4A1F; font-weight: 600; }
+    .prow-doing { box-shadow: inset 4px 0 0 #2F5BB7; }
+    .prow-card { padding: 0 8px 8px; }
+    .prow-card .pc { margin: 0; box-shadow: none; }
     .hrow { display: flex; gap: 12px; width: 100%; padding: 11px 14px; border: 0; background: transparent; color: inherit; text-align: left; }
     .hrow + .hrow { border-top: 1px solid #EEF1EF; }
     .hrow-d { flex-shrink: 0; width: 84px; font-size: 13px; font-weight: 600; color: #4A524D; padding-top: 2px; }
@@ -1459,6 +1466,43 @@
         </article>`;
     }
 
+    // แท็บแปลง: บรรทัดเดียวต่อแปลง จัดกลุ่มตามสถานที่ (ผู้ใช้: ห้ามเรียงตามอายุ) แตะแล้วกางการ์ดเต็ม
+    let plotOpen = '';
+    const plotLoc = n => String(n || '').replace(/\s*\(.*\)\s*$/, '').replace(/\s*\d+$/, '').trim() || n;
+    function tglPlot(id) { plotOpen = plotOpen === id ? '' : id; render(); }
+    function plotRow(p, st, logs) {
+      const kd = kindOf(st), open = plotOpen === p.plot_id;
+      const pDays = calcDays(p.plant_date), wDays = calcDays(p.last_water_date);
+      const isNew = p.cane_type === 'อ้อยใหม่';
+      const loc = plotLoc(p.plot_name);
+      let sub = p.plot_name.slice(loc.length).replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!sub) sub = p.plot_name; else if (/^\d+$/.test(sub)) sub = 'แปลง ' + sub;
+      const age = pDays === null ? (isNew ? 'ยังไม่ปลูก' : '') : `${Math.floor(pDays / 30)} ด.`;
+      const wc = waterChip(p, st, pDays, wDays);
+      const wTxt = !wc ? '' : wc.c === 'red' ? `<span style="color:#A3271B;font-weight:600">ขาดน้ำ ${wDays} วัน</span>`
+        : wc.c === 'gray' ? (wDays !== null ? `น้ำ ${wDays} วันก่อน` : '') : `น้ำ ${wDays} วันก่อน`;
+      const sand = plotTags(p).includes(TAG_SAND) ? '<span class="prow-tag">ทราย</span>' : '';
+      const right = kd.k === 'normal' ? '' : `<span class="pill pill-${kd.k}">${kd.lbl}</span>`;
+      return `<div class="srow ${kd.k === 'doing' ? 'prow-doing' : kd.k === 'urgent' ? 'srow-bad' : ''} ${open ? 'open' : ''}">
+        <button type="button" class="srow-main" onclick="tglPlot('${p.plot_id}')">
+          <span class="srow-l">
+            <span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(sub)} ${sand}</span>
+            <span class="srow-s">${esc(p.area_rai)} ไร่ · <span class="${isNew ? 'prow-new' : 'prow-rat'}">${isNew ? 'อ้อยใหม่' : 'ตอ'}${age ? ' ' + age : ''}</span>${wTxt ? ' · ' + wTxt : ''}</span>
+          </span>${right}
+        </button>
+        ${open ? `<div class="prow-card">${plotCard(p, st, logs)}</div>` : ''}
+      </div>`;
+    }
+    function plotListHtml(list, logsBy) {
+      const groups = [], idx = {};
+      list.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
+      return groups.map(g => {
+        const rai = g.rows.reduce((t, r) => t + num(r.p.area_rai), 0);
+        return `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:baseline;padding-right:4px;"><span>${esc(g.l)}</span><span style="font-weight:500;color:#6B736E;font-size:13px;">${g.rows.length} แปลง · ${Math.round(rai * 10) / 10} ไร่</span></div>
+          <div class="srow-box">${g.rows.map(({ p, st }) => plotRow(p, st, logsBy[p.plot_id] || [])).join('')}</div>`;
+      }).join('');
+    }
+
     function render() {
       let chkHtml = '', totRai = 0, nUrg = 0, nDoing = 0, nNoWater = 0;
       const logsBy = {};
@@ -1481,7 +1525,7 @@
       });
       if (curTab === 'urgent') list.sort((a, b) => (a.st.isOngoing ? 1 : 0) - (b.st.isOngoing ? 1 : 0));
 
-      let html = list.map(({ p, st }) => plotCard(p, st, logsBy[p.plot_id] || [])).join('');
+      let html = curTab === 'all' ? plotListHtml(list, logsBy) : list.map(({ p, st }) => plotCard(p, st, logsBy[p.plot_id] || [])).join('');
       if (!html) {
         html = curTab === 'urgent'
           ? '<div class="empty"><b>วันนี้ไม่มีงานค้างหรือคิวด่วน</b>กด "บันทึกงาน" ด้านล่างเมื่อเริ่มงานใหม่</div>'

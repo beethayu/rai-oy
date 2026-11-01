@@ -952,9 +952,12 @@ function geminiCall_(parts) {
 }
 
 // อ่านรูปบิล → เก็บรูปใน Drive + ให้ Gemini แยกรายการ (ยังไม่บันทึก รอผู้ใช้ตรวจก่อน)
-function readBill(b64, mime) {
-  if (!b64) throw new Error('ไม่มีรูป');
+// images = b64 เดียว หรือ array ของหน้าบิลเดียวกัน (หลายหน้า) / opts.photo_ids = รูปที่เก็บไปแล้ว (หน้าแรก ๆ) ไม่ต้องเก็บซ้ำ
+function readBill(images, mime, opts) {
+  const pages = (Array.isArray(images) ? images : [images]).filter(Boolean);
+  if (!pages.length) throw new Error('ไม่มีรูป');
   mime = mime || 'image/jpeg';
+  opts = opts || {};
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const inv = readSheet_(ss, SH.INV).map(i => `- ${i.name} [${i.category}] หน่วยย่อย ${i.unit}` +
     (Number(i.pack_size) > 1 ? ` (1 ${i.pack_name} = ${i.pack_size} ${i.unit})` : ''));
@@ -962,51 +965,72 @@ function readBill(b64, mime) {
   const today = getTodayStr();
 
   const t0 = Date.now();
-  const file = billFolder_().createFile(Utilities.newBlob(Utilities.base64Decode(b64), mime,
-    'บิล_' + today.replace(/\//g, '-') + '_' + Date.now() + (mime === 'image/png' ? '.png' : '.jpg')));
+  const ids = (opts.photo_ids || []).slice();
+  const folder = billFolder_();
+  for (let i = ids.length; i < pages.length; i++) {
+    ids.push(folder.createFile(Utilities.newBlob(Utilities.base64Decode(pages[i]), mime,
+      'บิล_' + today.replace(/\//g, '-') + '_' + Date.now() + '_' + (i + 1) + (mime === 'image/png' ? '.png' : '.jpg'))).getId());
+  }
+  const photoIds = ids.join(',');
 
-  const prompt = `คุณอ่านบิล/ใบเสร็จของไร่อ้อยในประเทศไทย (ภาษาไทย อาจเขียนมือ) ตอบเป็น JSON อย่างเดียว:
-{"date":"dd/mm/yyyy พ.ศ.","shop":"ชื่อร้าน","total":ตัวเลข,"items":[{"item":"ชื่อสินค้า","category":"หมวด","qty":ตัวเลข,"unit":"หน่วยในบิล","amount":ราคารวมของบรรทัดเป็นบาท,"stock_item":"","stock_qty":0,"asset":""}]}
-กติกา:
-- category เลือกจาก: ${BILL_CATS_.join(', ')} (ยาฆ่าหญ้า/ยาฉีด = ยา, ดีเซล/เบนซิน/น้ำมันเครื่อง/ไฮดรอลิก = น้ำมัน)
-- วันที่ปีเป็น พ.ศ. (ถ้าบิลเป็น ค.ศ. ให้ +543) ถ้าไม่มีวันที่ใส่ "${today}"
-- stock_item: ถ้าสินค้าตรงกับรายการในสต็อกด้านล่าง ใส่ชื่อให้ตรงทุกตัวอักษร ไม่ตรงใส่ ""
-  stock_qty: จำนวนที่ได้มา แปลงเป็น "หน่วยย่อย" ของรายการสต็อกนั้น (เช่น ไซทรอน 1 ลิตร = 1000 ml, ปุ๋ย 10 กระสอบ = 10)
-- asset: ถ้าเป็นอะไหล่ของรถ/เครื่องในรายการด้านล่างและบิลบอกชัด ใส่ชื่อให้ตรง ไม่ชัดใส่ ""
-- amount เป็นบาท ไม่มีจุลภาค ถ้าอ่านไม่ออกใส่ 0 / อย่าเดา ถ้าไม่ใช่บิลให้ items เป็น []
+  const prompt = `คุณอ่านบิล/ใบเสร็จของไร่อ้อยในประเทศไทย ส่วนใหญ่เป็นบิลเงินสดเขียนมือภาษาไทย ตอบเป็น JSON อย่างเดียว:
+{"date":"dd/mm/yyyy พ.ศ.","shop":"ชื่อร้าน","vehicle":"รถ/เครื่องที่บิลระบุ หรือ \"\"","total":ยอดรวมที่เขียนในบิล,"items":[{"item":"ชื่อสินค้า","category":"หมวด","qty":ตัวเลข,"unit":"หน่วยในบิล","amount":เงินของบรรทัดเป็นบาท,"stock_item":"","stock_qty":0,"asset":""}]}
+${pages.length > 1 ? `- รูปทั้ง ${pages.length} รูปคือบิลใบเดียวกันหลายหน้า (ดูเลขที่ มุมขวาบน) ให้รวมรายการทุกหน้าตามลำดับ ยอดรวมท้ายบิลมักอยู่หน้าสุดท้ายและเป็นยอดของทุกหน้ารวมกัน
+` : ''}วิธีอ่านลายมือ:
+- คอลัมน์: จำนวน | รายการ | หน่วยละ | จำนวนเงิน — amount เอาจากคอลัมน์จำนวนเงิน (ขวาสุด) ไม่ใช่หน่วยละ
+- ถ้ามีหน่วยละ ใช้ จำนวน × หน่วยละ เช็กว่าตรงกับจำนวนเงิน
+- ผลรวม amount ทุกบรรทัดควรเท่ากับยอดรวมในบิล ถ้าไม่เท่า ให้อ่านตัวเลขแต่ละบรรทัดใหม่อย่างระวัง (เลข 0/6/9, 1/7, 4/9 เขียนมือคล้ายกัน)
+- คำย่อ/สะกดผิดที่พบบ่อย: แท้ = อะไหล่แท้, คลัทช์/ครัช, ลูกปืน, ซีล, โอริง, กรองโซล่า, กรองดักน้ำ, กรองไฮดรอลิค, กรองอากาศ, กรองน้ำมันเครื่อง, ไฟวีล = ฟลายวีล, ดุมล้อ, น้ำมันเกียร์, น้ำมันเบรก, ค่าแรง
+- ชื่อสินค้าให้เขียนเป็นคำที่ถูกต้องอ่านง่าย (ไม่ต้องลอกตัวสะกดผิดในบิล) เลขรุ่นอะไหล่ (เช่น 29685 KOYO) ใส่ต่อท้ายชื่อ
+- วันที่: ปี 2 หลักคือ พ.ศ. 25xx (เช่น 68 = 2568) ปีที่เป็น ค.ศ. ให้ +543 ถ้าไม่มีวันที่ใส่ "${today}"
+หมวด category เลือกจาก: ${BILL_CATS_.join(', ')}
+- อะไหล่/ค่าเจียร/ค่ากลึง = อะไหล่, ค่าแรง/ค่าช่าง = ค่าแรง, ยาฆ่าหญ้า/ยาฉีด = ยา, ดีเซล/เบนซิน/น้ำมันเครื่อง/ไฮดรอลิก/น้ำมันเกียร์/น้ำมันเบรก = น้ำมัน
+รถ/เครื่อง (asset):
+- ถ้าหัวบิล (ช่องชื่อ/ที่อยู่) หรือรายการระบุรถ เช่น "TS-6020" = New Holland TS6020, "B2420" = Kubota B2420 ให้ใส่ vehicle และใส่ asset ให้ทุกบรรทัดที่เป็นอะไหล่ น้ำมันที่เติมตอนซ่อม และค่าแรงของรถคันนั้น ชื่อ asset ต้องตรงกับรายการด้านล่างทุกตัวอักษร
+- ไม่ชัดใส่ ""
+สต็อก (stock_item / stock_qty):
+- ใส่เฉพาะของที่ซื้อมาเก็บไว้ใช้เอง และตรงกับรายการสต็อกด้านล่าง (ชื่อตรงทุกตัวอักษร) stock_qty แปลงเป็นหน่วยย่อยของรายการนั้น (เช่น ไซทรอน 1 ลิตร × 2 = 2000 ml)
+- ถ้าเป็นบิลซ่อมรถที่มีค่าแรง/ระบุรถ น้ำมันในบิลถือว่าเติมใส่รถไปแล้ว ไม่ต้องรับเข้าสต็อก (stock_item "")
+- อ่านไม่ออกใส่ amount 0 / ห้ามเดาจากอากาศ / ถ้าไม่ใช่บิลให้ items เป็น []
 รายการสต็อก:
 ${inv.join('\n')}
 รถ/เครื่อง:
 ${assets.join('\n')}`;
 
-  let data;
+  let data, tAi = 0;
   try {
-    var tDrive = Date.now() - t0;
-    const txt = geminiCall_([{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }]);
-    var tAi = Date.now() - t0 - tDrive;
+    const parts = [{ text: prompt }].concat(pages.map(p => ({ inline_data: { mime_type: mime, data: p } })));
+    const t1 = Date.now();
+    const txt = geminiCall_(parts);
+    tAi = Date.now() - t1;
     data = JSON.parse(txt.replace(/^```json\s*|```\s*$/g, ''));
+    if (Array.isArray(data)) data = data[0] || {};
   } catch (e) {
-    return { photo_id: file.getId(), error: String(e.message || e), date: today, shop: '', total: 0, items: [] };
+    return { photo_id: photoIds, pages: pages.length, error: String(e.message || e), date: today, shop: '', total: 0, items: [] };
   }
   const invNames = new Set(readSheet_(ss, SH.INV).map(i => i.name));
   const asNames = new Set(readSheet_(ss, SH.ASSET).map(a => a.name));
+  const veh = asNames.has(data.vehicle) ? data.vehicle : '';
   data.items = (data.items || []).map(it => ({
     item: String(it.item || '').trim(),
     category: BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ',
     qty: Number(it.qty) || 0, unit: String(it.unit || ''), amount: Number(it.amount) || 0,
     stock_item: invNames.has(it.stock_item) ? it.stock_item : '',
     stock_qty: invNames.has(it.stock_item) ? (Number(it.stock_qty) || 0) : 0,
-    asset: asNames.has(it.asset) ? it.asset : ''
+    asset: asNames.has(it.asset) ? it.asset : (veh && it.category !== 'ปุ๋ย' && it.category !== 'ยา' ? veh : '')
   }));
-  data.photo_id = file.getId();
-  data.ms = { drive: tDrive, ai: tAi, model: geminiUsed_ };
+  data.vehicle = veh;
+  data.photo_id = photoIds;
+  data.pages = pages.length;
+  data.ms = { drive: Date.now() - t0 - tAi, ai: tAi, model: geminiUsed_ };
   return data;
 }
 
 // ยกเลิกบิล (ยังไม่บันทึก) → ทิ้งรูป
 function discardBillPhoto(photoId) {
-  if (!photoId) return true;
-  try { DriveApp.getFileById(photoId).setTrashed(true); } catch (e) {}
+  String(photoId || '').split(',').map(x => x.trim()).filter(Boolean).forEach(id => {
+    try { DriveApp.getFileById(id).setTrashed(true); } catch (e) {}
+  });
   return true;
 }
 

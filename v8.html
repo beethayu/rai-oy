@@ -713,7 +713,7 @@
   </div>
 
   
-  <input type="file" accept="image/*" id="billFile" style="display:none" onchange="onBillFile(this)">
+  <input type="file" accept="image/*" multiple id="billFile" style="display:none" onchange="onBillFile(this)">
   <div class="modal fade" id="billModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1119,10 +1119,10 @@
     // ===== บิล / ค่าใช้จ่าย (ถ่ายรูป → Gemini อ่าน → ตรวจ → บันทึก) =====
     const BILL_CATS = ['อะไหล่', 'น้ำมัน', 'ปุ๋ย', 'ยา', 'ค่าแรง', 'อื่นๆ'];
     const STOCK_CAT = { 'น้ำมัน': 'Fuel', 'ปุ๋ย': 'Fertilizer', 'ยา': 'Chemical' };
-    let billDraft = null;
+    let billDraft = null, billAddMode = false;
     const baht = n => (Math.round(num(n) * 100) / 100).toLocaleString('th-TH');
 
-    function pickBill() { const f = $('billFile'); f.value = ''; f.click(); }
+    function pickBill(add) { billAddMode = !!add; if (add) billKeep(); const f = $('billFile'); f.value = ''; f.click(); }
 
     function shrinkImage(file) {
       return new Promise((ok, bad) => {
@@ -1140,14 +1140,19 @@
       });
     }
 
+    // เลือกได้หลายรูป = บิลเดียวกันหลายหน้า / ในหน้าตรวจกด "เพิ่มหน้าบิล" ได้ (อ่านใหม่ทั้งบิล)
     function onBillFile(inp) {
-      const f = inp.files && inp.files[0]; if (!f) return;
-      shrinkImage(f).then(b64 => {
-        call('readBill', [b64, 'image/jpeg'], d => {
-          billDraft = { date: d.date || '', shop: d.shop || '', photo_id: d.photo_id || '', note: '', total: num(d.total), err: d.error || '',
+      const files = [...(inp.files || [])]; if (!files.length) return;
+      const prev = billAddMode && billDraft ? billDraft : null;
+      Promise.all(files.map(shrinkImage)).then(newPages => {
+        const pages = (prev ? prev.pages : []).concat(newPages);
+        const ids = prev && prev.photo_id ? prev.photo_id.split(',') : [];
+        call('readBill', [pages, 'image/jpeg', { photo_ids: ids }], d => {
+          billDraft = { pages, date: d.date || '', shop: d.shop || (prev ? prev.shop : ''), photo_id: d.photo_id || '', note: prev ? prev.note : '',
+            total: num(d.total), err: d.error || '',
             items: (d.items && d.items.length) ? d.items : [{ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }] };
           renderBill(); showM('billModal');
-        }, null, '🤖 AI กำลังอ่านบิล รอสักครู่...');
+        }, null, `🤖 AI กำลังอ่านบิล ${pages.length > 1 ? pages.length + ' หน้า ' : ''}รอสักครู่...`);
       }).catch(e => alert(e.message));
     }
 
@@ -1174,10 +1179,19 @@
         </div></div>`;
     }
 
+    function billChk(b, sum) {
+      if (!b.total) return '';
+      return Math.abs(b.total - sum) > 0.5
+        ? `<div class="alert py-2 small mb-2" style="background:#FDE7D2;color:#8A4100;border:0;"><b>ยอดไม่ตรง:</b> ท้ายบิล ${baht(b.total)} แต่รวมรายการได้ ${baht(sum)} (ต่างกัน ${baht(Math.abs(b.total - sum))} บาท) เช็กบรรทัดที่ลายมืออ่านยาก</div>`
+        : `<div class="small mb-2" style="color:#1F5E3B;">✓ ยอดรวมตรงกับท้ายบิล ${baht(b.total)} บาท</div>`;
+    }
+
     function renderBill() {
       const b = billDraft, sum = b.items.reduce((t, it) => t + num(it.amount), 0);
       $('bill-body').innerHTML = `
-        ${b.err ? `<div class="alert alert-warning py-2 small">AI อ่านบิลไม่สำเร็จ กรอกเองได้ (${esc(b.err).slice(0, 120)})</div>` : '<div class="small text-muted mb-2">AI อ่านให้แล้ว ตรวจและแก้ให้ตรงบิลก่อนกดบันทึก</div>'}
+        ${b.err ? `<div class="alert alert-warning py-2 small">AI อ่านบิลไม่สำเร็จ กรอกเองได้ (${esc(b.err).slice(0, 120)})</div>` : '<div class="small text-muted mb-2">AI อ่านให้แล้ว ลายมืออาจอ่านผิด ตรวจตัวเลขให้ตรงบิลก่อนกดบันทึก</div>'}
+        <div id="bl_chk">${billChk(b, sum)}</div>
+        <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="pickBill(true)">📷 เพิ่มหน้าบิล (บิลมีหลายใบ) · ตอนนี้ ${(b.pages || []).length || 1} หน้า</button>
         <div class="row g-2 mb-2">
           <div class="col-6"><div class="bill-lbl">วันที่ในบิล</div><input type="date" class="form-control form-control-sm" id="bl_date" value="${beToISO(b.date) || todayISO()}"></div>
           <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm" id="bl_shop" value="${esc(b.shop)}"></div>
@@ -1185,7 +1199,6 @@
         ${b.items.map(billRowHtml).join('')}
         <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="billAdd()">+ เพิ่มรายการ</button>
         <div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold">รวม</span><span class="bill-total" id="bl_sum">${baht(sum)} บาท</span></div>
-        ${b.total && Math.abs(b.total - sum) > 0.5 ? `<div class="small" style="color:#8A4100;">ยอดรวมท้ายบิล ${baht(b.total)} บาท ไม่ตรงกับผลรวมรายการ ลองเช็กอีกที</div>` : ''}
         <div class="bill-lbl mt-2">หมายเหตุ</div><input class="form-control form-control-sm" id="bl_note" value="${esc(b.note)}">`;
     }
 
@@ -1195,7 +1208,7 @@
       if (k === 'category') { it.stock_item = ''; it.stock_qty = 0; if (v !== 'อะไหล่') it.asset = ''; }
       if (k === 'stock_item' && !v) it.stock_qty = 0;
       if (rerender) { billKeep(); renderBill(); }
-      else if (k === 'amount') $('bl_sum').innerText = baht(billDraft.items.reduce((t, x) => t + num(x.amount), 0)) + ' บาท';
+      else if (k === 'amount') { const sm = billDraft.items.reduce((t, x) => t + num(x.amount), 0); $('bl_sum').innerText = baht(sm) + ' บาท'; $('bl_chk').innerHTML = billChk(billDraft, sm); }
     }
     function billAdd() { billKeep(); billDraft.items.push({ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }); renderBill(); }
     function billDel(i) { billKeep(); billDraft.items.splice(i, 1); renderBill(); }
@@ -1251,7 +1264,7 @@
         ${b.items.map(i => `<div class="exp-cat"><div>${esc(i.item)} <span class="small text-muted">${i.qty ? esc(i.qty) + ' ' + esc(i.unit) : ''} · ${esc(i.category)}${i.stock_item ? ' · รับเข้า ' + esc(i.stock_item) : ''}${i.asset ? ' · ' + esc(i.asset) : ''}</span></div><b class="text-nowrap">${baht(i.amount)}</b></div>`).join('')}
         <div class="d-flex justify-content-between mt-2"><b>รวม</b><span class="bill-total">${baht(b.total)} บาท</span></div>
         <div class="d-flex gap-2 mt-3">
-          ${b.photo ? `<a class="btn btn-outline-success flex-fill" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${encodeURIComponent(b.photo)}/view">ดูรูปบิล</a>` : ''}
+          ${String(b.photo || '').split(',').filter(Boolean).map((id, k, a) => `<a class="btn btn-outline-success flex-fill" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${encodeURIComponent(id.trim())}/view">ดูรูป${a.length > 1 ? 'หน้า ' + (k + 1) : 'บิล'}</a>`).join('')}
           <button type="button" class="btn btn-outline-danger flex-fill" id="btnBillDel" onclick="delBill('${qa(b.id)}')">ลบบิลนี้</button>
         </div>
         <div class="small text-muted mt-2">ลบบิล = ลบค่าใช้จ่าย คืนยอดสต็อกที่รับเข้า และลบรูป</div>`;

@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ไร่อ้อย">
+  <meta name="theme-color" content="#1F5E3B">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" href="icon.png">
+  <title>ไร่อ้อย V8</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+    // ===== เชื่อมกับ Apps Script (แทน google.script.run) =====
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzWvJ2M0C7ZHQTVTWVCFCh7ugALw9dWws9A52iYEYvpxivqWzRCN22qWa4R6mE5XcZBuA/exec';
+    function callApi(fn, args) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 60000);
+      return fetch(API_URL, {
+        method: 'POST', redirect: 'follow', signal: ctrl.signal,
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn: fn, args: args })
+      })
+        .catch(e => { throw (e.name === 'AbortError' ? new Error('หมดเวลาเชื่อมต่อ ลองใหม่อีกครั้ง') : e); })
+        .then(r => r.json())
+        .then(j => { if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด'); return j.result; })
+        .finally(() => clearTimeout(timer));
+    }
+    function makeRunner(cfg) {
+      return new Proxy({}, {
+        get(_, name) {
+          if (name === 'withSuccessHandler') return f => makeRunner(Object.assign({}, cfg, { ok: f }));
+          if (name === 'withFailureHandler') return f => makeRunner(Object.assign({}, cfg, { fail: f }));
+          if (name === 'withUserObject') return u => makeRunner(Object.assign({}, cfg, { user: u }));
+          if (typeof name !== 'string' || name === 'then') return undefined;
+          return (...args) => {
+            callApi(name, args).then(
+              r => { if (cfg.ok) cfg.ok(r, cfg.user); },
+              e => { if (cfg.fail) cfg.fail(e, cfg.user); else alert('เกิดข้อผิดพลาด: ' + e.message); }
+            );
+          };
+        }
+      });
+    }
+    window.google = { script: { run: makeRunner({}), host: { close() {} } } };
+  </script>
+  <style>
+    :root {
+      --ground: #F4F3EC; --card: #FFFFFF; --line: #E2E0D6; --line2: #D3D1C6;
+      --ink: #1C2320; --muted: #5A625D;
+      --green: #1F5E3B; --green-d: #15432A; --green-soft: #E3EFE6;
+      --urg: #B4410E; --urg-ink: #8A300A; --urg-soft: #FCEBDD;
+      --doing: #1E4FB8; --doing-ink: #183F94; --doing-soft: #E4ECFB;
+      --done-soft: #ECEAE2;
+    }
+    html, body { background: var(--ground); }
+    body { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif !important; color: var(--ink); padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+    .modal, .modal * { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif; }
+    .modal-content { border-radius: 20px; border: 0; }
+    .modal-header { border-radius: 20px 20px 0 0; }
+
+    /* ส่วนหัว */
+    .hd { background: var(--green); color: #fff; padding: calc(14px + env(safe-area-inset-top)) 16px 20px; }
+    .hd-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .hd-date { font-size: 14px; color: #CFE3D5; }
+    .hd-rai { font-size: 30px; font-weight: 700; line-height: 1.2; }
+    .hd-btns { display: flex; gap: 6px; }
+    .ibtn { height: 44px; min-width: 44px; padding: 0 10px; border-radius: 12px; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .ibtn-rain { background: #fff; color: var(--doing); border: 0; }
+    .ibtn-ghost { background: transparent; color: #fff; border: 1px solid #4E8466; }
+    .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .tile { text-align: left; border: 0; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; }
+    .tile .t-lbl { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .tile .t-num { font-size: 34px; font-weight: 700; line-height: 1.1; }
+    .tile .t-num small { font-size: 15px; font-weight: 500; }
+    .tile-urg { background: var(--urg-soft); color: var(--urg-ink); }
+    .tile-doing { background: var(--doing-soft); color: var(--doing-ink); }
+
+    .wrap { max-width: 720px; margin: 0 auto; padding: 16px 14px 8px; }
+    .sec-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .sec-hd h1 { font-size: 20px; font-weight: 700; margin: 0; }
+    .sec-hd span { font-size: 14px; color: var(--muted); }
+    .notice { background: #FFF6E0; border: 1px solid #F0DCA6; color: #5C4300; border-radius: 14px; padding: 10px 14px; font-size: 14px; margin-bottom: 12px; }
+
+    /* ชิปกรอง */
+    #filter-sec { gap: 8px; margin-bottom: 12px !important; scrollbar-width: none; }
+    #filter-sec::-webkit-scrollbar { display: none; }
+    .filter-chip { flex-shrink: 0; height: 40px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 600; background: #fff; color: var(--ink); border: 1px solid var(--line2); margin: 0; }
+    .filter-chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    /* การ์ดแปลง */
+    .pc { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .pc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .pc-name { cursor: pointer; flex: 1; min-width: 0; }
+    .pc-id { display: inline-block; font-size: 13px; font-weight: 700; background: var(--ink); color: #fff; padding: 1px 8px; border-radius: 6px; margin-bottom: 4px; }
+    .pc-name h2 { font-size: 20px; font-weight: 700; line-height: 1.3; margin: 0; }
+    .pill { flex-shrink: 0; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+    .pill-doing { background: var(--doing-soft); color: var(--doing-ink); }
+    .pill-urgent { background: var(--urg-soft); color: var(--urg-ink); }
+    .pill-done { background: var(--done-soft); color: #3E4742; }
+    .pill-normal { background: var(--green-soft); color: var(--green-d); }
+    .pc-meta { font-size: 15px; color: var(--muted); margin: 0; }
+    .pc-now { background: var(--ground); border-radius: 14px; padding: 10px 14px; cursor: pointer; }
+    .pc-now .k { font-size: 13px; font-weight: 600; color: var(--muted); }
+    .pc-now .v { font-size: 17px; font-weight: 600; line-height: 1.4; word-break: break-word; }
+    .pc-next { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; }
+    .pc-next svg { flex-shrink: 0; margin-top: 3px; }
+    .pc-next.urgent { color: var(--urg-ink); font-weight: 600; }
+    .pc-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .bigbtn { height: 52px; border-radius: 14px; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .bigbtn-main { background: var(--green); color: #fff; border: 0; }
+    .bigbtn-main:active { background: var(--green-d); }
+    .bigbtn-out { background: #fff; color: var(--green); border: 1.5px solid var(--green); }
+    .pc-foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ECEAE2; padding-top: 8px; }
+    .linkbtn { background: none; border: 0; padding: 8px 0; min-height: 40px; font-size: 15px; font-weight: 600; color: var(--green); }
+    .linkbtn.muted { color: var(--muted); }
+    .timeline-box { background: var(--ground) !important; border: 0 !important; border-radius: 14px !important; margin-top: 0 !important; }
+    .empty { text-align: center; padding: 28px 16px; background: #fff; border-radius: 20px; border: 1px solid var(--line); color: var(--muted); }
+    .empty b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 4px; }
+
+    /* แถบเมนูล่าง */
+    .bnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1040; background: #fff; border-top: 1px solid var(--line); padding: 6px 6px calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; }
+    .bnav .tab-btn { position: relative; background: none; border: 0; padding: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 500; color: var(--muted); border-radius: 0; }
+    .bnav .tab-btn.active { color: var(--green); font-weight: 700; background: none; }
+    .bnav .nb { position: absolute; top: 2px; left: 50%; margin-left: 6px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--urg); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+    .bnav .fab { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--green); }
+    .bnav .fab span { width: 58px; height: 58px; border-radius: 18px; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; margin-top: -26px; box-shadow: 0 4px 12px rgba(31,94,59,0.35); }
+    #syncToast { bottom: calc(96px + env(safe-area-inset-bottom)) !important; font-size: 15px !important; padding: 8px 18px !important; }
+
+    /* เลือกแปลงก่อนบันทึก */
+    .pick-q { width: 100%; height: 48px; border: 1px solid var(--line2); border-radius: 12px; padding: 0 14px; font-size: 16px; margin-bottom: 10px; }
+    .pick-item { width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 56px; }
+    .pick-item b { font-size: 16px; }
+    .pick-item small { color: var(--muted); font-size: 13px; display: block; }
+  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { background: #eef1f6; font-family: 'Sarabun', sans-serif; padding-bottom: 65px; }
+    .app-header { background: linear-gradient(135deg, #155d27, #28a745); color: white; padding: 14px; border-radius: 0 0 18px 18px; }
+    .tab-btn { font-weight: 700; background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 7px 3px; color: #495057; font-size: 0.78rem; }
+    .tab-btn.active { background: #198754; color: white; border-color: #198754; }
+    .plot-card { border-radius: 14px; border: none; border-left: 7px solid #198754; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: white; }
+    .plot-card.ongoing { border-left-color: #0d6efd; }
+    .plot-card.urgent-water { border-left-color: #dc3545; }
+    .plot-card.urgent-spray { border-left-color: #fd7e14; }
+    .plot-card.harvested { border-left-color: #6c757d; opacity: 0.92; }
+    .badge-smart { font-size: 0.78rem; padding: 5px 10px; border-radius: 20px; font-weight: 600; display: inline-block; margin: 0 4px 4px 0; }
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .box-done { background: #f4f8ff; border: 1px solid #cfe2ff; border-radius: 10px; padding: 8px 10px; cursor: pointer; transition: 0.15s; }
+    .box-done:hover { background: #e6f0ff; }
+    .box-next { background: #fff8e6; border: 1px solid #ffe69c; border-radius: 10px; padding: 8px 10px; }
+    .box-next.urgent { background: #fff0f1; border-color: #f5c2c7; }
+    .box-next.ongoing { background: #eef6ff; border-color: #b6d4fe; }
+    .timeline-box { background: #f8f9fa; border-radius: 10px; padding: 10px; margin-top: 8px; font-size: 0.85rem; display: none; border: 1px solid #dee2e6; }
+    .filter-chip { border-radius: 20px; font-size: 0.82rem; padding: 4px 12px; margin-right: 5px; border: 1px solid #ced4da; background: white; font-weight: 600; }
+    .filter-chip.active { background: #155d27; color: white; border-color: #155d27; }
+    .grp-btn.active { font-weight: 700; border-width: 2px; box-shadow: 0 0 0 2px rgba(25,135,84,0.3); }
+    .asset-card { border-radius: 12px; background: white; border: 1px solid #e2e8f0; border-left: 6px solid #198754; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .asset-card.busy { border-left-color: #0d6efd; background: #f8fbff; }
+    .asset-card.broken { border-left-color: #dc3545; background: #fff8f8; }
+    .asset-card.parked { border-left-color: #fd7e14; background: #fffdf8; }
+    .avail-box { border-radius: 12px; padding: 10px; background: white; border: 1px solid #dee2e6; text-align: center; }
+    .dossier-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; height: 100%; }
+    #syncToast { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #212529; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; z-index: 3000; display: none; }
+    #set_preview { white-space: pre-wrap; font-size: 0.8rem; background: #f1f8f1; border: 1px solid #b7dfb9; border-radius: 10px; padding: 10px; display: none; max-height: 260px; overflow-y: auto; }
+    @media (max-width: 420px) { .status-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="hd-top">
+      <div>
+        <div class="hd-date" id="hd-date">ไร่อ้อย</div>
+        <div class="hd-rai" id="sub-info">กำลังโหลด…</div>
+      </div>
+      <div class="hd-btns">
+        <button type="button" class="ibtn ibtn-rain" onclick="showM('rainModal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
+        <button type="button" class="ibtn ibtn-ghost" onclick="openBatModal()">แบต</button>
+        <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="showM('setModal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+      </div>
+    </div>
+    <div class="tiles">
+      <button type="button" class="tile tile-urg" onclick="switchTab('urgent')">
+        <span class="t-lbl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>ถึงคิวต้องทำ</span>
+        <span class="t-num"><span id="t-urg">–</span> <small>แปลง</small></span>
+      </button>
+      <button type="button" class="tile tile-doing" onclick="goDoing()">
+        <span class="t-lbl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>กำลังทำ</span>
+        <span class="t-num"><span id="t-doing">–</span> <small>แปลง</small></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="sec-hd"><h1 id="sec-title">วันนี้ต้องดูแปลงไหน</h1><span id="sec-sub"></span></div>
+    <div id="notice-box"></div>
+
+    <div id="filter-sec" class="d-flex overflow-auto pb-1" style="white-space: nowrap; display:none !important;">
+      <button type="button" class="filter-chip active" onclick="setFilter('ALL', this)">ทั้งหมด</button>
+      <button type="button" class="filter-chip" data-f="กำลังทำ" onclick="setFilter('กำลังทำ', this)">กำลังทำ</button>
+      <button type="button" class="filter-chip" onclick="setFilter('ตัดอ้อย', this)">ตัดแล้ว</button>
+      <button type="button" class="filter-chip" onclick="setFilter('อ้อยใหม่', this)">อ้อยใหม่</button>
+      <button type="button" class="filter-chip" onclick="setFilter('อ้อยตอ', this)">อ้อยตอ</button>
+      <button type="button" class="filter-chip" onclick="setFilter('หนองบวบหอม', this)">หนองบวบหอม</button>
+      <button type="button" class="filter-chip" onclick="setFilter('ทิ้งสุ่ม', this)">ทิ้งสุ่ม</button>
+      <button type="button" class="filter-chip" onclick="setFilter('สำนักแจง', this)">สำนักแจง</button>
+      <button type="button" class="filter-chip" onclick="setFilter('หนองเฝ้า', this)">หนองเฝ้า</button>
+      <button type="button" class="filter-chip" onclick="setFilter('หนองกระทู้', this)">หนองกระทู้</button>
+      <button type="button" class="filter-chip" onclick="setFilter('หนองจิก', this)">หนองจิก</button>
+      <button type="button" class="filter-chip" onclick="setFilter('ยายเวียน', this)">ยายเวียน</button>
+    </div>
+
+    <div id="plot-list"></div>
+    <div id="fleet-view" style="display:none;"></div>
+    <div id="stock-view" style="display:none;"></div>
+    <div id="table-view" style="display:none;" class="table-responsive bg-white p-2 rounded shadow-sm"></div>
+  </div>
+
+  <nav class="bnav" id="mainTab" aria-label="เมนูหลัก">
+    <button type="button" class="tab-btn active" data-tab="urgent" onclick="switchTab('urgent')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/></svg>
+      วันนี้<span class="nb" id="u-cnt" style="display:none;">0</span></button>
+    <button type="button" class="tab-btn" data-tab="all" onclick="switchTab('all')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      แปลง</button>
+    <button type="button" class="fab" onclick="openPick()">
+      <span><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+      บันทึกงาน</button>
+    <button type="button" class="tab-btn" data-tab="fleet" onclick="switchTab('fleet')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14a6.5 6.5 0 0 1 3 6"/></svg>
+      รถ/คน<span class="nb" id="f-cnt" style="display:none;">0</span></button>
+    <button type="button" class="tab-btn" data-tab="stock" onclick="switchTab('stock')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
+      สต็อก<span class="nb" id="s-cnt" style="display:none;">0</span></button>
+  </nav>
+
+  <div class="modal fade" id="pickModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
+          <h5 class="modal-title fw-bold">บันทึกงาน: เลือกแปลง</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด"></button>
+        </div>
+        <div class="modal-body">
+          <label for="pickQ" class="visually-hidden">ค้นหาแปลง</label>
+          <input id="pickQ" class="pick-q" placeholder="พิมพ์ชื่อหรือรหัสแปลง" oninput="renderPick()">
+          <div id="pickList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="syncToast">⏳ กำลังบันทึก...</div>
+
+  
+  <div class="modal fade" id="actModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white py-2" id="actHeader">
+          <h6 class="modal-title fw-bold" id="actTitle">บันทึกงาน</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <input type="hidden" id="act_pid"><input type="hidden" id="edit_log_id">
+
+          <label class="small fw-bold text-muted mb-1">1. สถานะของงานนี้</label>
+          <div class="btn-group w-100 mb-2" role="group">
+            <input type="radio" class="btn-check" name="status_mode" id="mode_ongoing" autocomplete="off">
+            <label class="btn btn-outline-primary fw-bold btn-sm py-2" for="mode_ongoing">⏳ เริ่มทำ / ยังไม่เสร็จ</label>
+            <input type="radio" class="btn-check" name="status_mode" id="mode_done" autocomplete="off" checked>
+            <label class="btn btn-outline-success fw-bold btn-sm py-2" for="mode_done">✅ ทำเสร็จแล้ว (งานเสร็จ)</label>
+          </div>
+
+          <label class="small fw-bold text-muted mb-1">2. เลือกประเภทงาน</label>
+          <div class="d-flex gap-1 mb-2 flex-wrap">
+            <button type="button" class="btn btn-sm btn-outline-primary flex-fill grp-btn" id="btn_g_water" onclick="selGrp('ขึ้นน้ำ')">💧 ขึ้นน้ำ</button>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark flex-fill grp-btn" id="btn_g_chem" onclick="selGrp('ฉีดยา')">🔫 ฉีดยา</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill grp-btn" id="btn_g_trac" onclick="selGrp('รถไถเตรียมดิน/บำรุง')">🚜 รถไถ</button>
+            <button type="button" class="btn btn-sm btn-outline-success flex-fill grp-btn" id="btn_g_fert" onclick="selGrp('ใส่ปุ๋ย')">🌱 ปุ๋ย/บำรุง</button>
+            <button type="button" class="btn btn-sm btn-outline-danger flex-fill grp-btn" id="btn_g_harv" onclick="selGrp('ตัดอ้อย')">🌾 ตัดอ้อย/ขนส่ง</button>
+          </div>
+          <input type="hidden" id="act_grp" value="ขึ้นน้ำ">
+
+          
+          <div id="sub_water" class="mb-2 p-2 bg-light rounded border border-primary">
+            <small class="fw-bold text-primary d-block mb-1">🐍 เลือกเครื่องสูบน้ำพญานาคที่ใช้ (ติ๊กได้หลายตัว):</small>
+            <div id="pump_chks" class="small mb-1"></div>
+            <input type="text" class="form-control form-control-sm" id="water_det" value="ราดร่อง/ขึ้นน้ำ" placeholder="รายละเอียดการให้น้ำ">
+          </div>
+
+          
+          <div id="sub_trac" style="display:none;" class="mb-2 p-2 bg-light rounded border">
+            <small class="fw-bold">เลือกงานรถไถ & เครื่องจักร:</small>
+            <select class="form-select form-select-sm mb-1 mt-1" id="trac_task" onchange="placeFert()">
+              <option value="ริปเปอร์ / ครูดร่อง">ริปเปอร์ / ครูดร่อง</option>
+              <option value="ไถพรวน">ไถพรวน</option>
+              <option value="ชักร่อง / ปลูกอ้อย">ชักร่อง / ปลูกอ้อย</option>
+              <option value="อุ้มร่อง">อุ้มร่อง</option>
+              <option value="ฝังปุ๋ย">ฝังปุ๋ย</option>
+              <option value="สับหญ้า / ถากหญ้า">สับหญ้า / ถากหญ้า</option>
+            </select>
+            <select class="form-select form-select-sm" id="act_eq"></select>
+            <div id="fert_slot_trac"></div>
+          </div>
+
+          
+          <div id="sub_chem" style="display:none;" class="mb-2 p-2 bg-light rounded border">
+            <small class="fw-bold d-block mb-1">สูตรลัด:</small>
+            <div class="d-flex gap-1 mb-2">
+              <button type="button" class="btn btn-sm btn-outline-success flex-fill fw-bold" onclick="chemPreset('CHEM_PRESET_NEW')">🌱 อ้อยใหม่</button>
+              <button type="button" class="btn btn-sm btn-outline-success flex-fill fw-bold" onclick="chemPreset('CHEM_PRESET_GROW')">🌿 อ้อยโต</button>
+            </div>
+            <small class="fw-bold d-block mb-1">ติ๊กเลือกยาที่ผสม (อัตราต่อถัง 200L):</small>
+            <div id="chem_chks" class="small"></div>
+            <input type="number" inputmode="decimal" class="form-control form-control-sm mt-1" id="chem_qty" placeholder="จำนวนถัง 200 ลิตร (เช่น 2, 3.5)" oninput="chemPreview()">
+            <div id="chem_preview" class="small mt-1"></div>
+          </div>
+
+          
+          <div id="sub_gen" style="display:none;" class="mb-2 p-2 bg-light rounded border">
+            <div class="d-flex gap-1 mb-1 flex-wrap">
+              <button type="button" class="btn btn-sm btn-outline-dark py-0" onclick="document.getElementById('gen_det').value='ใส่ปุ๋ยรองพื้น'">ปุ๋ยรองพื้น</button>
+              <button type="button" class="btn btn-sm btn-outline-dark py-0" onclick="document.getElementById('gen_det').value='ใส่ปุ๋ยอ้อยตอ'">ปุ๋ยอ้อยตอ</button>
+              <button type="button" class="btn btn-sm btn-outline-dark py-0" onclick="document.getElementById('gen_det').value='ใส่ปุ๋ยแต่งหน้า'">ปุ๋ยแต่งหน้า</button>
+              <button type="button" class="btn btn-sm btn-outline-dark py-0" onclick="document.getElementById('gen_det').value='ปลูกอ้อยใหม่'">ปลูกอ้อยใหม่</button>
+              <button type="button" class="btn btn-sm btn-outline-dark py-0" onclick="document.getElementById('gen_det').value='ซ่อมอ้อย'">ซ่อมอ้อย</button>
+              <button type="button" class="btn btn-sm btn-outline-dark py-0" onclick="document.getElementById('gen_det').value='ถากหญ้า'">ถากหญ้า</button>
+            </div>
+            <input type="text" class="form-control form-control-sm mb-1" id="gen_det" placeholder="ชื่องาน">
+            <div id="fert_slot_gen"></div>
+            <input type="text" class="form-control form-control-sm mt-1" id="gen_qty" placeholder="จำนวน (กรณีงานที่ไม่ใช้ปุ๋ย)">
+          </div>
+
+          
+          <div id="fert_block" class="p-2 rounded border border-success bg-white mt-1" style="display:none;">
+            <small class="fw-bold text-success d-block mb-1">🌱 ปุ๋ยที่ใช้ (กระสอบ) — ตัดสต็อกอัตโนมัติ</small>
+            <div class="d-flex gap-1 mb-2 align-items-center">
+              <input type="number" inputmode="decimal" class="form-control form-control-sm" id="fert_total" placeholder="รวมกี่ลูก" style="max-width:95px;">
+              <button type="button" class="btn btn-sm btn-outline-success fw-bold" onclick="fertPreset('FERT_PRESET_BASE','ใส่ปุ๋ยรองพื้น')">รองพื้น</button>
+              <button type="button" class="btn btn-sm btn-outline-success fw-bold" onclick="fertPreset('FERT_PRESET_RATOON','ใส่ปุ๋ยอ้อยตอ')">อ้อยตอ (ผสม)</button>
+            </div>
+            <div id="fert_rows"></div>
+            <div class="small fw-bold text-end text-success" id="fert_sum"></div>
+          </div>
+
+          
+          <div id="sub_harv" style="display:none;" class="mb-2 p-2 bg-light rounded border border-danger">
+            <div class="row g-1 mb-2">
+              <div class="col-6">
+                <small class="fw-bold">วิธีตัด:</small>
+                <select class="form-select form-select-sm" id="harv_method">
+                  <option value="รถตัดอ้อย">🚜 รถตัดอ้อย</option>
+                  <option value="คนตัด">🔪 คนตัด</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <small class="fw-bold">ประเภทอ้อยส่ง:</small>
+                <select class="form-select form-select-sm" id="harv_burn">
+                  <option value="อ้อยสด">🟢 อ้อยสด</option>
+                  <option value="อ้อยไฟไหม้">🔥 อ้อยไฟไหม้</option>
+                </select>
+              </div>
+            </div>
+            <small class="fw-bold d-block mb-1">🚛 เลือกรถสิบล้อขนส่ง (ติ๊กได้หลายคัน):</small>
+            <div id="truck_chks" class="small mb-2"></div>
+            <input type="text" class="form-control form-control-sm" id="harv_qty" placeholder="จำนวนเที่ยว / น้ำหนักตัน (เช่น 3 เที่ยว 45 ตัน)">
+          </div>
+
+          <div class="mb-2 p-2 bg-light rounded border">
+            <small class="fw-bold d-block mb-1">👤 ผู้ปฏิบัติงาน (ติ๊กเลือกได้หลายคน):</small>
+            <div id="worker_chks" class="small"></div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt"></div>
+            <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="act_rmk" placeholder="เช่น ล็อก 1, ครึ่งแปลง"></div>
+          </div>
+          <div class="d-flex gap-1 flex-wrap">
+            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ล็อก 1'">ล็อก 1</button>
+            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ล็อก 2'">ล็อก 2</button>
+            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='ได้ครึ่งแปลง'">ครึ่งแปลง</button>
+            <button type="button" class="btn btn-sm btn-light border py-0" onclick="document.getElementById('act_rmk').value='เสร็จสมบูรณ์'">เสร็จสมบูรณ์</button>
+          </div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitAct()" id="btnSaveAct">💾 บันทึกข้อมูล</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="dossierModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white py-2">
+          <h6 class="modal-title fw-bold" id="dosTitle">📓 แฟ้มประวัติแปลงแบบละเอียด</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3" id="dosBody"></div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="logInspModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <h6 class="modal-title fw-bold" id="inspTitle">📌 รายละเอียดงาน & บันทึกเหตุการณ์หน้างาน</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <div id="inspDetailBox" class="p-2 bg-light rounded border mb-3"></div>
+          <div class="p-3 rounded border border-danger" style="background:#fff8f8;">
+            <h6 class="fw-bold text-danger mb-2">🚨 บันทึกเหตุการณ์หน้างานจากงานนี้ (รถเสีย / พญานาค / คนงาน)</h6>
+            <input type="hidden" id="insp_ref_plot">
+            <label class="small fw-bold">1. เลือกคนงาน หรือ เครื่องจักรที่มีปัญหาในงานนี้:</label>
+            <select class="form-select form-select-sm mb-2" id="insp_asset_sel" onchange="updQuickIssues()"></select>
+            <label class="small fw-bold">2. สถานะที่ต้องการตั้ง:</label>
+            <select class="form-select form-select-sm mb-2" id="insp_status_sel">
+              <option value="เสีย/รอซ่อม">🔴 เสีย / รอซ่อม / รออะไหล่</option>
+              <option value="จอดบ้าน/รอดัดแปลง">🟡 จอดบ้าน / รอต่อกล่อง / จอดนาน</option>
+              <option value="ป่วย/ลาพัก">🤒 คนงานป่วย / ลาพัก / มีปัญหา</option>
+              <option value="พร้อมใช้">🟢 ซ่อมเสร็จแล้ว / กลับมาพร้อมใช้งานปกติ</option>
+            </select>
+            <label class="small fw-bold d-block mb-1">3. ปุ่มด่วนอาการเสีย / ปัญหาที่พบบ่อย:</label>
+            <div id="insp_quick_btns" class="d-flex flex-wrap gap-1 mb-2"></div>
+            <input type="text" class="form-control form-control-sm mb-2" id="insp_issue" placeholder="อาการเสีย / ปัญหาของคนงาน (เช่น กรองตัน, เบรครั่ว, ป่วย)">
+            <input type="text" class="form-control form-control-sm mb-2" id="insp_parts" placeholder="อะไหล่ที่ต้องใช้ / การแก้ไข (เช่น รอเปลี่ยนกรอง, รอปะยาง)">
+            <div class="row g-2 mb-2">
+              <div class="col-6"><small class="fw-bold">วันที่เกิดเหตุ</small><input type="date" class="form-control form-control-sm" id="insp_dt"></div>
+              <div class="col-6 d-flex align-items-end"><button type="button" class="btn btn-danger btn-sm w-100 fw-bold" onclick="submitInspIssue()" id="btnSaveInsp">💾 บันทึกเข้าทะเบียน</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="assetEditModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-secondary text-white py-2">
+          <h6 class="modal-title fw-bold" id="aeTitle">🔧 อัปเดตข้อมูลรถ / พญานาค / คนงาน</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <input type="hidden" id="ae_name"><input type="hidden" id="ae_cat">
+
+          <div id="ae_mt_box" class="p-2 rounded border border-info mb-3" style="background:#f3fbff;">
+            <label class="small fw-bold text-info">🛢️ บันทึกงานบำรุงรักษา (ไม่เปลี่ยนสถานะรถ)</label>
+            <div class="d-flex flex-wrap gap-1 my-1">
+              <button type="button" class="btn btn-sm btn-outline-info text-dark py-0" onclick="document.getElementById('ae_mt').value='เปลี่ยนน้ำมันเครื่อง'">🛢️ น้ำมันเครื่อง</button>
+              <button type="button" class="btn btn-sm btn-outline-info text-dark py-0" onclick="document.getElementById('ae_mt').value='เปลี่ยนกรองเครื่อง/กรองโซล่า'">🧽 เปลี่ยนกรอง</button>
+              <button type="button" class="btn btn-sm btn-outline-info text-dark py-0" onclick="document.getElementById('ae_mt').value='อัดจารบี'">⚙️ อัดจารบี</button>
+              <button type="button" class="btn btn-sm btn-outline-info text-dark py-0" onclick="document.getElementById('ae_mt').value='เปลี่ยนยาง'">🛞 เปลี่ยนยาง</button>
+              <button type="button" class="btn btn-sm btn-outline-info text-dark py-0" onclick="document.getElementById('ae_mt').value='เปลี่ยนสายพาน'">➰ สายพาน</button>
+            </div>
+            <input type="text" class="form-control form-control-sm mb-1" id="ae_mt" placeholder="งานบำรุง เช่น เปลี่ยนน้ำมันเครื่อง &#43; กรอง">
+            <input type="text" class="form-control form-control-sm mb-1" id="ae_mt_parts" placeholder="อะไหล่/ของที่ใช้ (ถ้ามี)">
+            <button type="button" class="btn btn-info btn-sm w-100 fw-bold" onclick="submitMaint()" id="btnMt">💾 บันทึกงานบำรุง</button>
+          </div>
+
+          <div class="mb-2">
+            <label class="small fw-bold">สถานะปัจจุบัน:</label>
+            <select class="form-select form-select-sm" id="ae_status">
+              <option value="พร้อมใช้">🟢 ว่าง / พร้อมใช้งาน</option>
+              <option value="เสีย/รอซ่อม">🔴 เสีย / รอซ่อม / รอเปลี่ยนอะไหล่</option>
+              <option value="จอดบ้าน/รอดัดแปลง">🟡 จอดอยู่ที่บ้าน / รอต่อกล่อง / จอดนาน</option>
+              <option value="ปกติ">🟢 มาทำงานปกติ (สำหรับคนงาน)</option>
+              <option value="ป่วย/ลาพัก">🤒 ป่วย / ลากิจ / มีปัญหา (สำหรับคนงาน)</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="small fw-bold">ปุ่มด่วนอาการเสีย / สถานะ:</label>
+            <div class="d-flex flex-wrap gap-1 mt-1">
+              <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="setAeQuick('เสีย/รอซ่อม','กรองตัน','ต้องเปลี่ยนกรอง')">🐍 กรองตัน/เปลี่ยนกรอง</button>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="setAeQuick('เสีย/รอซ่อม','ยางรั่ว','รอปะยาง / เปลี่ยนยาง')">🐍 ยางรั่วรอปะ</button>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="setAeQuick('เสีย/รอซ่อม','เบรครั่ว รอซ่อม','ชุดซ่อมเบรค / น้ำมันเบรค')">🚛 เบรครั่วรอซ่อม</button>
+              <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0" onclick="setAeQuick('จอดบ้าน/รอดัดแปลง','จอดบ้าน รอต่อกล่องวิ่งอ้อยรถตัด','เหล็กต่อกระบะกรง')">🚛 รอต่อกล่องอ้อยรถตัด</button>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="setAeQuick('เสีย/รอซ่อม','จอดนาน แบตเสื่อม สตาร์ทไม่ติด','ต้องชาร์จไฟ หรือเปลี่ยนแบต')">🚜 แบตเสื่อมสตาร์ทไม่ติด</button>
+              <button type="button" class="btn btn-sm btn-outline-success py-0" onclick="setAeQuick('พร้อมใช้','-','ซ่อมเสร็จพร้อมลุย')">✅ ซ่อมเสร็จ/พร้อมใช้</button>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="small fw-bold">รายละเอียดอาการ / สาเหตุที่จอด / อาการป่วย:</label>
+            <input type="text" class="form-control form-control-sm" id="ae_issue" placeholder="เช่น เบรครั่ว, รอต่อกล่อง, กรองตัน, ป่วย">
+          </div>
+          <div class="mb-2">
+            <label class="small fw-bold">อะไหล่ที่ต้องใช้ / การซ่อมบำรุง:</label>
+            <input type="text" class="form-control form-control-sm" id="ae_parts" placeholder="เช่น กรองโซล่า, ปะยาง, ต่อกระบะ">
+          </div>
+          <div id="ae_bat_box" class="p-2 bg-light rounded border mb-2">
+            <label class="small fw-bold text-primary">🔋 ข้อมูลแบตเตอรี่ประจำรถคันนี้:</label>
+            <input type="text" class="form-control form-control-sm mb-1 mt-1" id="ae_bat_info" placeholder="เช่น แบตลูกที่ 1 (GS 120A)">
+            <small class="text-muted">วันที่เริ่มใส่แบตลูกนี้</small>
+            <input type="date" class="form-control form-control-sm" id="ae_bat_date">
+          </div>
+          <div class="mb-2">
+            <label class="small fw-bold">วันที่บันทึก / วันที่ซ่อมเสร็จ:</label>
+            <input type="date" class="form-control form-control-sm" id="ae_date">
+          </div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitAssetEdit()" id="btnAeSave">💾 บันทึกสถานะ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="assetHistModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white py-2">
+          <h6 class="modal-title fw-bold" id="ahTitle">📜 ประวัติซ่อม</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3" id="ahBody"></div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="batModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark py-2">
+          <h6 class="modal-title fw-bold">🔋 สลับแบตเตอรี่ข้ามคัน / เปลี่ยนแบตใหม่</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <div class="btn-group w-100 mb-3" role="group">
+            <input type="radio" class="btn-check" name="bat_mode" id="bm_swap" autocomplete="off" checked onchange="tglBatMode()">
+            <label class="btn btn-outline-dark fw-bold btn-sm" for="bm_swap">🔄 ถอดสลับจากคันนึง ไปใส่อีกคัน</label>
+            <input type="radio" class="btn-check" name="bat_mode" id="bm_new" autocomplete="off" onchange="tglBatMode()">
+            <label class="btn btn-outline-primary fw-bold btn-sm" for="bm_new">🆕 ซื้อแบตใหม่ / ตั้งค่าแบตเริ่มต้น</label>
+          </div>
+          <div id="bat_from_box" class="mb-2 p-2 rounded border bg-light">
+            <label class="small fw-bold text-danger">1. ถอดแบตมาจากรถคันไหน? (คันที่ถูกถอด):</label>
+            <select class="form-select form-select-sm mt-1" id="bat_from"></select>
+          </div>
+          <div class="mb-2 p-2 rounded border bg-light">
+            <label class="small fw-bold text-success">2. นำไปใส่ให้รถคันไหน? (คันที่รับแบต):</label>
+            <select class="form-select form-select-sm mt-1" id="bat_to"></select>
+          </div>
+          <div class="mb-2">
+            <label class="small fw-bold" id="bat_lbl_name">ชื่อ/รหัสแบตลูกนี้ (ถ้ามี):</label>
+            <input type="text" class="form-control form-control-sm" id="bat_label" placeholder="เช่น แบต GS 120A (ลูกปี 69)">
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="small fw-bold">วันที่เปลี่ยน/สลับ:</label>
+              <input type="date" class="form-control form-control-sm" id="bat_date">
+            </div>
+            <div class="col-6">
+              <label class="small fw-bold">สาเหตุ/หมายเหตุ:</label>
+              <input type="text" class="form-control form-control-sm" id="bat_rmk" placeholder="เช่น แบตเดิมเสื่อม">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-warning w-100 fw-bold text-dark" onclick="submitBattery()" id="btnBatSave">💾 บันทึกการย้าย/เปลี่ยนแบต</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="setModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white py-2">
+          <h6 class="modal-title fw-bold">⚙️ ตั้งค่าระบบ</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          
+          <div class="p-2 rounded border border-success mb-3" style="background:#f4fbf4;">
+            <label class="fw-bold text-success">🔔 แจ้งเตือน LINE ทุกเช้า</label>
+            <div class="small text-muted mb-2" id="set_status"></div>
+            <label class="small fw-bold">Channel access token:</label>
+            <input type="password" class="form-control form-control-sm mb-2" id="set_token" autocomplete="off">
+            <label class="small fw-bold">ส่งถึง (เว้นว่าง = ทุกคนที่แอดเพื่อน OA):</label>
+            <input type="text" class="form-control form-control-sm mb-2" id="set_target" placeholder="User ID หรือ Group ID (ไม่บังคับ)">
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="small fw-bold">สถานะ:</label>
+                <select class="form-select form-select-sm" id="set_enabled"><option value="เปิด">🟢 เปิด</option><option value="ปิด">⚪ ปิด</option></select>
+              </div>
+              <div class="col-6">
+                <label class="small fw-bold">เวลาส่ง:</label>
+                <input type="time" class="form-control form-control-sm" id="set_time">
+              </div>
+            </div>
+            <div class="d-flex gap-1">
+              <button type="button" class="btn btn-outline-success btn-sm flex-fill fw-bold" onclick="previewLine()" id="btnPrev">👀 ดูตัวอย่าง</button>
+              <button type="button" class="btn btn-outline-primary btn-sm flex-fill fw-bold" onclick="testLine()" id="btnTest">📨 ส่งทดสอบ</button>
+            </div>
+            <div id="set_preview" class="mt-2"></div>
+          </div>
+
+          
+          <div class="p-2 rounded border mb-3 bg-light">
+            <label class="fw-bold text-primary">💧 รอบน้ำ / ฉีดยาคุม</label>
+            <div class="row g-2 mt-1">
+              <div class="col-6"><small class="fw-bold">อ้อยใหม่ (วัน)</small><input type="number" class="form-control form-control-sm" id="set_wnew"></div>
+              <div class="col-6"><small class="fw-bold">อ้อยตอ (วัน)</small><input type="number" class="form-control form-control-sm" id="set_wrat"></div>
+              <div class="col-6"><small class="fw-bold">ฉีดยาคุม หลังน้ำวันที่</small><input type="number" class="form-control form-control-sm" id="set_smin"></div>
+              <div class="col-6"><small class="fw-bold">ถึงวันที่</small><input type="number" class="form-control form-control-sm" id="set_smax"></div>
+            </div>
+          </div>
+
+          
+          <div class="p-2 rounded border mb-3 bg-light">
+            <label class="fw-bold text-success">🧪 สูตรลัด ยา / ปุ๋ย</label>
+            <small class="d-block mt-1 fw-bold">ยาอ้อยใหม่ (ชื่อยาคั่นด้วย ,)</small><input type="text" class="form-control form-control-sm" id="set_cnew">
+            <small class="d-block mt-1 fw-bold">ยาอ้อยโต</small><input type="text" class="form-control form-control-sm" id="set_cgrow">
+            <small class="d-block mt-1 fw-bold">ปุ๋ยรองพื้น (สูตร:สัดส่วน)</small><input type="text" class="form-control form-control-sm" id="set_fbase">
+            <small class="d-block mt-1 fw-bold">ปุ๋ยอ้อยตอ (เช่น 21-0-0:3,16-8-8:1)</small><input type="text" class="form-control form-control-sm" id="set_frat">
+          </div>
+          <button type="button" class="btn btn-success w-100 fw-bold mb-3" onclick="saveSettingsUI()" id="btnSetSave">💾 บันทึกการตั้งค่า</button>
+          <hr>
+
+          <div class="mb-3">
+            <label class="fw-bold text-primary">🐍 เครื่องสูบน้ำพญานาค</label>
+            <div class="input-group input-group-sm mb-2">
+              <input type="text" class="form-control" id="new_pump" placeholder="เช่น พญานาค หมายเลข 4...">
+              <button class="btn btn-primary fw-bold" type="button" onclick="modOpt('Pump','add','new_pump')">+ เพิ่ม</button>
+            </div>
+            <div id="list_pump" class="d-flex flex-wrap gap-1"></div>
+          </div>
+          <hr>
+          <div class="mb-3">
+            <label class="fw-bold text-danger">🚛 รถสิบล้อขนส่ง</label>
+            <div class="input-group input-group-sm mb-2">
+              <input type="text" class="form-control" id="new_truck" placeholder="พิมพ์ชื่อ/ทะเบียนสิบล้อ...">
+              <button class="btn btn-danger fw-bold" type="button" onclick="modOpt('Truck','add','new_truck')">+ เพิ่ม</button>
+            </div>
+            <div id="list_truck" class="d-flex flex-wrap gap-1"></div>
+          </div>
+          <hr>
+          <div class="mb-3">
+            <label class="fw-bold text-secondary">🚜 รถไถ / รถตัดอ้อย</label>
+            <div class="input-group input-group-sm mb-2">
+              <input type="text" class="form-control" id="new_tractor" placeholder="พิมพ์ชื่อรถไถ/รถตัด...">
+              <button class="btn btn-secondary fw-bold" type="button" onclick="modOpt('Tractor','add','new_tractor')">+ เพิ่ม</button>
+            </div>
+            <div id="list_tractor" class="d-flex flex-wrap gap-1"></div>
+          </div>
+          <hr>
+          <div class="mb-2">
+            <label class="fw-bold text-success">👤 รายชื่อคนงาน</label>
+            <div class="input-group input-group-sm mb-2">
+              <input type="text" class="form-control" id="new_worker" placeholder="พิมพ์ชื่อคนงานใหม่...">
+              <button class="btn btn-success fw-bold" type="button" onclick="modOpt('Worker','add','new_worker')">+ เพิ่ม</button>
+            </div>
+            <div id="list_worker" class="d-flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="rainModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <h6 class="modal-title fw-bold">🌧️ เลือกแปลงที่ฝนตก (รีเซ็ตวันน้ำ)</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-check mb-2 pb-2 border-bottom">
+            <input class="form-check-input" type="checkbox" id="selAll" onchange="document.querySelectorAll('.p-chk').forEach(c=&gt;c.checked=this.checked)">
+            <label class="form-check-label fw-bold text-primary" for="selAll">เลือกทั้งหมด</label>
+          </div>
+          <div id="chk-list"></div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-primary w-100 fw-bold" onclick="submitRain()" id="btnRain">💾 บันทึกฝนตก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white py-2">
+          <h6 class="modal-title fw-bold" id="stTitle">📥 รับของเข้า</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <input type="hidden" id="st_name"><input type="hidden" id="st_mode">
+          <div id="st_cur" class="small p-2 bg-light rounded border mb-2"></div>
+          <label class="small fw-bold" id="st_lbl">จำนวน:</label>
+          <div class="input-group input-group-sm mb-2">
+            <input type="number" inputmode="decimal" step="any" class="form-control" id="st_qty">
+            <select class="form-select" id="st_unit" style="max-width:120px;"></select>
+          </div>
+          <div class="row g-2">
+            <div class="col-6"><small class="fw-bold">วันที่</small><input type="date" class="form-control form-control-sm" id="st_dt"></div>
+            <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="st_note" placeholder="เช่น ร้าน..."></div>
+          </div>
+        </div>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitStock()" id="btnSt">💾 บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white py-2">
+          <h6 class="modal-title fw-bold" id="itTitle">📦 รายการสต็อก</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <input type="hidden" id="it_id">
+          <div class="row g-2 small">
+            <div class="col-6"><label class="fw-bold">หมวด</label>
+              <select class="form-select form-select-sm" id="it_cat" onchange="tglItemCat()">
+                <option value="Chemical">🧪 ยาฉีด</option><option value="Fertilizer">🌱 ปุ๋ย</option><option value="Other">📦 อื่นๆ</option>
+              </select></div>
+            <div class="col-6"><label class="fw-bold">ชื่อ (ใช้ตอนบันทึกงาน)</label><input type="text" class="form-control form-control-sm" id="it_name" placeholder="เช่น มหาวงศ์ 21-0-0"></div>
+            <div class="col-12"><label class="fw-bold">รายละเอียด</label><input type="text" class="form-control form-control-sm" id="it_note" placeholder="เช่น ไซทรอน มิกซ์ / กระสอบ 50 กก."></div>
+            <div class="col-4"><label class="fw-bold">หน่วยย่อย</label><input type="text" class="form-control form-control-sm" id="it_unit" placeholder="ml / g / กระสอบ"></div>
+            <div class="col-4"><label class="fw-bold">ขนาดบรรจุ</label><input type="number" step="any" class="form-control form-control-sm" id="it_pack" placeholder="500"></div>
+            <div class="col-4"><label class="fw-bold">เรียกว่า</label><input type="text" class="form-control form-control-sm" id="it_packname" placeholder="ขวด / ถุง"></div>
+            <div class="col-6" id="it_pt_box"><label class="fw-bold">ใช้ต่อถัง 200L (หน่วยย่อย)</label><input type="number" step="any" class="form-control form-control-sm" id="it_pertank"></div>
+            <div class="col-6"><label class="fw-bold">เตือนเมื่อเหลือ ≤ (ขวด/ถุง/กระสอบ)</label><input type="number" step="any" class="form-control form-control-sm" id="it_reorder" placeholder="0 = ไม่เตือน"></div>
+          </div>
+        </div>
+        <div class="modal-footer p-2 d-flex">
+          <button type="button" class="btn btn-outline-danger fw-bold" onclick="delItem()" id="btnItDel">🗑️ ลบ</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" onclick="saveItem()" id="btnItSave">💾 บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let gData = { plots: [], activities: [], options: {}, assets: [], assetLogs: [], inventory: [], stockLogs: [], settings: {} }, curTab = 'urgent', curFil = 'ALL';
+    window.onload = () => call('getInitialData', [], init, null, '⏳ กำลังโหลด...');
+
+    
+    const S = k => (gData.settings || {})[k];
+    const num = v => { const n = parseFloat(String(v === undefined ? '' : v).replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+    const r1 = n => Math.round(n * 10) / 10;
+    const r3 = n => Math.round(n * 1000) / 1000;
+    const qa = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pad = n => String(n).padStart(2, '0');
+    const $ = id => document.getElementById(id);
+    const hideModal = id => { const m = bootstrap.Modal.getInstance($(id)); if (m) m.hide(); };
+
+    
+    function call(fn, args, ok, btn, toastMsg) {
+      const t = $('syncToast');
+      t.innerText = toastMsg || '⏳ กำลังบันทึก...'; t.style.display = 'block';
+      if (btn) { btn.disabled = true; btn.dataset.lbl = btn.innerHTML; btn.innerHTML = '⏳ กำลังบันทึก...'; }
+      const done = () => { t.style.display = 'none'; if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.lbl; } };
+      google.script.run
+        .withSuccessHandler(d => { done(); if (ok) ok(d); })
+        .withFailureHandler(e => { done(); alert('❌ เกิดข้อผิดพลาด: ' + (e && e.message ? e.message : e)); })[fn](...args);
+    }
+
+    function beToISO(s) { if (!s || s === '-') return ''; const p = String(s).trim().split('/'); if (p.length !== 3) return ''; let y = parseInt(p[2], 10); if (y > 2400) y -= 543; return `${y}-${pad(+p[1])}-${pad(+p[0])}`; }
+    function isoToBE(s) { if (!s) return ''; const [y, m, d] = s.split('-'); return `${d}/${m}/${+y + 543}`; }
+    function todayISO() { const n = new Date(); return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`; }
+    function checkDate(iso) {
+      if (iso && iso > todayISO()) return confirm(`⚠️ วันที่ ${isoToBE(iso)} เลยวันนี้ไปแล้ว\nยืนยันจะบันทึกวันที่นี้ใช่ไหม?`);
+      return true;
+    }
+    function setDateMax() { document.querySelectorAll('input[type=date]').forEach(i => { if (i.id !== 'ae_bat_date') i.max = todayISO(); }); }
+
+    function init(d) { gData = d; popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); }
+
+    function calcDays(dStr) {
+      if (!dStr || dStr === '-' || dStr === 'nan') return null;
+      let p = dStr.trim().split('/'); if (p.length !== 3) return null;
+      let y = parseInt(p[2], 10); if (y > 2400) y -= 543;
+      let dt = new Date(y, parseInt(p[1], 10) - 1, parseInt(p[0], 10)), now = new Date();
+      now.setHours(0, 0, 0, 0); dt.setHours(0, 0, 0, 0);
+      return Math.max(0, Math.round((now - dt) / 86400000));
+    }
+
+    
+    const invItem = n => (gData.inventory || []).find(i => i.name === n);
+    function fmtQty(it, q) {
+      const pack = num(it.pack_size) || 1, unit = it.unit || '';
+      if (pack > 1) return `${r1(q / pack)} ${it.pack_name || unit} (${r1(q).toLocaleString()} ${unit})`;
+      return `${r1(q)} ${unit}`;
+    }
+    function stockState(it) {
+      const q = num(it.stock), ro = num(it.reorder_point);
+      if (q < 0) return 'neg';
+      if (ro > 0 && q <= ro) return 'low';
+      if (q === 0) return 'zero';
+      return 'ok';
+    }
+
+    function getActiveDeployments() {
+      let map = {};
+      gData.plots.forEach(p => {
+        if ((p.status_note || '').includes('[กำลังทำ]')) {
+          let lastLog = gData.activities.find(a => a.plot_id === p.plot_id && (a.remark || '').includes('[⏳กำลังทำ]'));
+          if (lastLog) {
+            (lastLog.equipment || '').split(',').map(s => s.trim()).forEach(e => { if (e && e !== '-') map[e] = `${p.plot_id} (${p.plot_name}) โดย ${lastLog.operator}`; });
+          }
+        }
+      });
+      return map;
+    }
+
+    function analyze(p) {
+      let wDays = calcDays(p.last_water_date), pDays = calcDays(p.plant_date);
+      let limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
+      let sMin = num(S('SPRAY_DAY_MIN')) || 3, sMax = num(S('SPRAY_DAY_MAX')) || 5;
+      let noteStr = p.status_note || '';
+      let isOngoing = noteStr.includes('[กำลังทำ]');
+      let isHarvested = noteStr.includes('✅ ตัดอ้อย');
+      let badges = [], isUrg = isOngoing, cls = isOngoing ? 'ongoing' : '', next = 'ดูแลตามปกติ (ยังไม่มีคิวด่วน)', nextCls = '';
+
+      if (pDays !== null) badges.push(`<span class="badge-smart bg-secondary text-white">🌱 อายุ ${Math.floor(pDays / 30)}ด. ${pDays % 30}ว.</span>`);
+      if (p.cane_variety && p.cane_variety !== '-' && p.cane_variety !== 'nan') badges.push(`<span class="badge-smart bg-light text-dark border">🌾 พันธุ์: ${p.cane_variety}</span>`);
+
+      if (isOngoing) {
+        badges.push(`<span class="badge-smart bg-primary text-white">🔄 กำลังทำงานค้างอยู่</span>`);
+        next = '⏳ ลุยงานที่ค้างให้จบ (เสร็จแล้วกดปุ่ม "งานเสร็จ")'; nextCls = 'ongoing';
+      } else if (isHarvested) {
+        badges.push(`<span class="badge-smart bg-dark text-white">🏁 ตัดอ้อยส่งโรงงานเสร็จแล้ว</span>`);
+        cls = 'harvested'; next = '🌱 รอบำรุงตอ / ริปเปอร์ / ฝังปุ๋ยฤดูกาลถัดไป';
+      } else if (wDays === null) {
+        badges.push(`<span class="badge-smart bg-light text-secondary border">💧 ยังไม่ระบุวันน้ำล่าสุด</span>`);
+        next = 'กด "+ บันทึก" เพื่อเริ่มงาน หรืออัปเดตวันให้น้ำ';
+      } else if (wDays >= limit) {
+        badges.push(`<span class="badge-smart bg-danger text-white">🚨 ขาดน้ำ ${wDays} วัน (ครบ ${limit}ว.)</span>`);
+        isUrg = true; cls = 'urgent-water'; next = '🔥 ถึงคิวราดร่อง / ขึ้นน้ำรอบต่อไปทันที!'; nextCls = 'urgent';
+      } else if (wDays >= sMin && wDays <= sMax) {
+        badges.push(`<span class="badge-smart" style="background:#fd7e14;color:white;">⚠️ หลังน้ำ ${wDays} วัน (ดินหมาด)</span>`);
+        isUrg = true; cls = 'urgent-spray'; next = '🔫 ดินกำลังหมาด! ถึงคิวฉีดยาคุมหญ้า'; nextCls = 'urgent';
+      } else if (wDays < sMin) {
+        badges.push(`<span class="badge-smart bg-info text-dark">💧 เพิ่งให้น้ำ (${wDays} วันก่อน)</span>`);
+        next = `ดินยังแฉะ รออีก ${sMin - wDays} วันเตรียมฉีดยาคุมหญ้า`;
+      } else {
+        badges.push(`<span class="badge-smart bg-success text-white">💧 ให้น้ำแล้ว ${wDays} วัน</span>`);
+        next = `รอขึ้นน้ำรอบถัดไปในอีก ${limit - wDays} วัน`;
+      }
+      return { badges: badges.join(''), isUrg, cls, next, nextCls, isOngoing, isHarvested };
+    }
+
+    // ================= V8: หน้าแรก / การ์ดแปลง =================
+    const ICON_NEXT = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    const ICON_CHECK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+    const plain = s => String(s || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim();
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const showM = id => bootstrap.Modal.getOrCreateInstance($(id)).show();
+    const TH_DAY = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+    const TH_MON = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+    function kindOf(st) {
+      if (st.isOngoing) return { k: 'doing', lbl: 'กำลังทำ' };
+      if (st.isUrg) return { k: 'urgent', lbl: 'ถึงคิว' };
+      if (st.isHarvested) return { k: 'done', lbl: 'ตัดแล้ว' };
+      return { k: 'normal', lbl: 'ปกติ' };
+    }
+
+    function plotCard(p, st, logs) {
+      const kd = kindOf(st);
+      const pDays = calcDays(p.plant_date), wDays = calcDays(p.last_water_date);
+      const meta = [`${esc(p.area_rai)} ไร่`, esc(p.cane_type)];
+      if (pDays !== null) meta.push(`อายุ ${Math.floor(pDays / 30)} ด. ${pDays % 30} ว.`);
+      if (p.cane_variety && p.cane_variety !== '-' && p.cane_variety !== 'nan') meta.push(`พันธุ์ ${esc(p.cane_variety)}`);
+      meta.push(wDays === null ? 'น้ำ: ยังไม่บันทึก' : `ให้น้ำ ${wDays} วันก่อน`);
+
+      let note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')) : '';
+      const nowKey = st.isOngoing ? 'ตอนนี้กำลังทำ' : 'งานล่าสุด';
+      const latest = logs.length ? logs[0].log_id : '';
+      const nowClick = latest ? `openLogInspect('${latest}')` : `openDossier('${p.plot_id}')`;
+      const next = st.isOngoing ? 'ทำให้จบ แล้วกด "งานเสร็จ"' : plain(st.next);
+      const pn = qa(p.plot_name);
+
+      const btns = st.isOngoing
+        ? `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn}','finish')">${ICON_CHECK}งานเสร็จ</button>
+           <button type="button" class="bigbtn bigbtn-out" onclick="openAct('${p.plot_id}','${pn}','new')">+ บันทึก</button>`
+        : `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn}','new')">+ บันทึกงาน</button>
+           <button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`;
+
+      const tlHtml = logs.map(l => `
+          <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div onclick="openLogInspect('${l.log_id}')" style="cursor:pointer;flex:1;">
+              <b>${esc(l.timestamp)}</b> · <span class="fw-bold" style="color:#1F5E3B">${esc(l.activity_group)}</span>
+              ${l.activity_detail !== '-' ? '(' + esc(l.activity_detail) + ')' : ''} ${l.quantity !== '-' ? '[' + esc(l.quantity) + ']' : ''}
+              <div class="text-muted small">คน: ${esc(l.operator)} ${l.equipment !== '-' ? '| รถ/ปั๊ม: ' + esc(l.equipment) : ''} ${esc(plain(l.remark))}</div>
+            </div>
+            <div class="d-flex gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditLog('${l.log_id}','${pn}')">แก้</button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="delLog('${l.log_id}','${p.plot_id}')">ลบ</button>
+            </div>
+          </div>`).join('') || '<div class="text-muted">ยังไม่มีประวัติที่บันทึกผ่านแอป</div>';
+
+      return `
+        <article class="pc">
+          <div class="pc-top">
+            <div class="pc-name" onclick="openDossier('${p.plot_id}')">
+              <span class="pc-id">${esc(p.plot_id)}</span>
+              <h2>${esc(p.plot_name)}</h2>
+            </div>
+            <span class="pill pill-${kd.k}">${kd.lbl}</span>
+          </div>
+          <p class="pc-meta">${meta.join(' · ')}</p>
+          ${note ? `<div class="pc-now" onclick="${nowClick}"><div class="k">${nowKey}</div><div class="v">${esc(note)}</div></div>` : ''}
+          <div class="pc-next ${kd.k === 'urgent' ? 'urgent' : ''}">${ICON_NEXT}<span><b>ขั้นต่อไป:</b> ${esc(next)}</span></div>
+          <div class="pc-btns">${btns}</div>
+          <div class="pc-foot">
+            <button type="button" class="linkbtn muted" onclick="tglTl('${p.plot_id}')">ประวัติ (${logs.length}) ▾</button>
+            ${latest ? `<button type="button" class="linkbtn" onclick="openEditLog('${latest}','${pn}')">แก้งานล่าสุด</button>` : ''}
+          </div>
+          <div class="timeline-box" id="tl_${p.plot_id}">${tlHtml}</div>
+        </article>`;
+    }
+
+    function render() {
+      let chkHtml = '', totRai = 0, nUrg = 0, nDoing = 0, nNoWater = 0;
+      const logsBy = {};
+      gData.activities.forEach(a => { (logsBy[a.plot_id] = logsBy[a.plot_id] || []).push(a); });
+      const rows = gData.plots.map(p => ({ p, st: analyze(p) }));
+
+      rows.forEach(({ p, st }) => {
+        totRai += parseFloat(p.area_rai || 0);
+        if (st.isOngoing) nDoing++; else if (st.isUrg) nUrg++;
+        if (!st.isHarvested && calcDays(p.last_water_date) === null) nNoWater++;
+      });
+
+      let list = rows.filter(({ p, st }) => {
+        if (curTab === 'urgent') return st.isUrg;
+        if (curFil === 'ALL') return true;
+        if (curFil === 'กำลังทำ') return st.isOngoing;
+        if (curFil === 'ตัดอ้อย') return st.isHarvested || (p.status_note || '').includes('ตัดอ้อย');
+        if (curFil === 'อ้อยใหม่' || curFil === 'อ้อยตอ') return p.cane_type === curFil;
+        return p.plot_name.includes(curFil);
+      });
+      if (curTab === 'urgent') list.sort((a, b) => (a.st.isOngoing ? 1 : 0) - (b.st.isOngoing ? 1 : 0));
+
+      let html = list.map(({ p, st }) => plotCard(p, st, logsBy[p.plot_id] || [])).join('');
+      if (!html) {
+        html = curTab === 'urgent'
+          ? '<div class="empty"><b>วันนี้ไม่มีงานค้างหรือคิวด่วน</b>กด "บันทึกงาน" ด้านล่างเมื่อเริ่มงานใหม่</div>'
+          : '<div class="empty"><b>ไม่มีแปลงในหมวดนี้</b>ลองเลือกหมวดอื่น</div>';
+      }
+
+      rows.forEach(({ p }) => {
+        chkHtml += `<div class="form-check mb-2"><input class="form-check-input p-chk" type="checkbox" value="${p.plot_id}" id="c_${p.plot_id}"><label class="form-check-label" for="c_${p.plot_id}"><b>${p.plot_id} - ${esc(p.plot_name)}</b> (${p.area_rai} ไร่)</label></div>`;
+      });
+
+      $('plot-list').innerHTML = html;
+      $('chk-list').innerHTML = chkHtml;
+      const total = nUrg + nDoing;
+      $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
+      $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
+      $('sub-info').innerText = `${totRai} ไร่`;
+      const n = new Date();
+      $('hd-date').innerText = `${gData.plots.length} แปลง · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
+      $('sec-sub').innerText = `${list.length} แปลง`;
+      $('notice-box').innerHTML = (curTab === 'urgent' && nNoWater)
+        ? `<div class="notice">มี <b>${nNoWater} แปลง</b> ที่ยังไม่มีวันให้น้ำล่าสุด ระบบจึงยังเตือนคิวน้ำ/คิวฉีดยาของแปลงเหล่านี้ไม่ได้ <button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab('all')">ไปดูแปลงทั้งหมด</button></div>`
+        : '';
+
+      let tHtml = `<table class="table table-sm table-bordered small mb-0"><thead class="table-success"><tr><th>รหัส</th><th>แปลง</th><th>ไร่</th><th>ประเภท</th><th>น้ำล่าสุด</th><th>งานล่าสุด</th><th>ต้องทำอะไรต่อ</th><th>แฟ้ม</th></tr></thead><tbody>`;
+      rows.forEach(({ p, st }) => {
+        tHtml += `<tr><td>${p.plot_id}</td><td><b>${esc(p.plot_name)}</b></td><td>${p.area_rai}</td><td>${p.cane_type}</td><td>${p.last_water_date || '-'}</td><td>${p.status_note !== 'nan' ? esc(p.status_note) : '-'}</td><td>${esc(plain(st.next))}</td><td><button class="btn btn-sm btn-dark py-0" onclick="openDossier('${p.plot_id}')">ดูครบ</button></td></tr>`;
+      });
+      $('table-view').innerHTML = tHtml + `</tbody></table>`;
+      if ($('pickModal').classList.contains('show')) renderPick();
+    }
+
+    function switchTab(t, keep) {
+      curTab = t;
+      document.querySelectorAll('#mainTab .tab-btn').forEach(e => e.classList.toggle('active', e.dataset.tab === t || (t === 'table' && e.dataset.tab === 'all')));
+      const plotTab = t === 'all' || t === 'urgent';
+      $('plot-list').style.display = plotTab ? 'block' : 'none';
+      $('filter-sec').style.setProperty('display', t === 'all' ? 'flex' : 'none', 'important');
+      $('fleet-view').style.display = t === 'fleet' ? 'block' : 'none';
+      $('stock-view').style.display = t === 'stock' ? 'block' : 'none';
+      $('table-view').style.display = t === 'table' ? 'block' : 'none';
+      $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
+      const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อกปุ๋ยและยา', table: 'ตารางสรุปทุกแปลง' };
+      $('sec-title').innerText = titles[t] || '';
+      $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
+      if (plotTab) render();
+      if (t === 'all') $('sec-sub').innerHTML = '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>';
+      if (!keep) window.scrollTo(0, 0);
+    }
+
+    function goDoing() {
+      curFil = 'กำลังทำ';
+      document.querySelectorAll('.filter-chip').forEach(e => e.classList.toggle('active', e.dataset.f === 'กำลังทำ'));
+      switchTab('all');
+    }
+
+    function openPick() { $('pickQ').value = ''; renderPick(); showM('pickModal'); }
+    function renderPick() {
+      const q = $('pickQ').value.trim().toLowerCase();
+      const rows = gData.plots.map(p => ({ p, st: analyze(p) }))
+        .filter(({ p }) => !q || (p.plot_id + ' ' + p.plot_name).toLowerCase().includes(q))
+        .sort((a, b) => (b.st.isOngoing ? 1 : 0) - (a.st.isOngoing ? 1 : 0));
+      $('pickList').innerHTML = rows.map(({ p, st }) => {
+        const kd = kindOf(st);
+        return `<button type="button" class="pick-item" onclick="pickPlot('${p.plot_id}')">
+            <span><b>${esc(p.plot_id)} ${esc(p.plot_name)}</b><small>${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</small></span>
+            ${kd.k !== 'normal' ? `<span class="pill pill-${kd.k}">${kd.lbl}</span>` : ''}
+          </button>`;
+      }).join('') || '<div class="text-muted p-2">ไม่พบแปลงที่ค้นหา</div>';
+    }
+    function pickPlot(pid) {
+      const p = gData.plots.find(x => x.plot_id === pid);
+      const m = $('pickModal');
+      m.addEventListener('hidden.bs.modal', () => openAct(pid, p.plot_name, 'new'), { once: true });
+      hideModal('pickModal');
+    }
+
+    // ================= แฟ้มข้อมูลแปลง =================
+    function openDossier(pid) {
+      let p = gData.plots.find(x => x.plot_id === pid);
+      if (!p) return;
+      let logs = gData.activities.filter(a => a.plot_id === pid);
+      let chLogs = [...logs].reverse();
+      let ripper = [], plow = [], plant = [], hillUp = [], subFert = [], weed = [];
+      let waterDates = [], sprayList = [], fertList = [], harvList = [];
+      let totalFertBags = 0, totalSprayTanks = 0, totalTrips = 0, totalTons = 0;
+
+      chLogs.forEach(l => {
+        let g = l.activity_group || '', d = l.activity_detail || '', q = l.quantity || '', dt = l.timestamp;
+        if (g === 'รถไถเตรียมดิน/บำรุง') {
+          if (d.includes('ริปเปอร์')) ripper.push(`${dt} (${l.equipment})`);
+          else if (d.includes('ไถพรวน')) plow.push(`${dt} (${l.equipment})`);
+          else if (d.includes('ชักร่อง') || d.includes('ปลูก')) plant.push(`${dt} (${l.equipment})`);
+          else if (d.includes('อุ้มร่อง')) hillUp.push(`${dt} (${l.equipment})`);
+          else if (d.includes('ฝังปุ๋ย')) { subFert.push(`${dt} (${q !== '-' ? q : l.equipment})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
+          else weed.push(`${dt}: ${d}`);
+        } else if (g === 'ขึ้นน้ำ' || g === 'ฝนตก') {
+          waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment !== '-' ? l.equipment : 'ขึ้นน้ำ')})`);
+        } else if (g === 'ฉีดยา') {
+          sprayList.push(`<b>${dt}</b>: ${d} [${q}] โดย ${l.operator}`);
+          let m = q.match(/(\d+(\.\d+)?)/); if (m) totalSprayTanks += parseFloat(m[1]);
+        } else if (g === 'ใส่ปุ๋ย') {
+          if (d.includes('ปลูก')) plant.push(`${dt} (${d})`);
+          fertList.push(`<b>${dt}</b>: ${d} [${q}] โดย ${l.operator}`);
+          let m = q.match(/(\d+(\.\d+)?)/); if (m) totalFertBags += parseFloat(m[1]);
+        } else if (g === 'ตัดอ้อย') {
+          harvList.push(`<b>${dt}</b>: ${d} | 🚛 ${l.equipment} | จำนวน: <b>${q}</b>`);
+          let mTon = q.match(/(\d+(\.\d+)?)\s*ตัน/), mTrip = q.match(/(\d+)\s*เที่ยว/);
+          if (mTon) totalTons += parseFloat(mTon[1]);
+          if (mTrip) totalTrips += parseInt(mTrip[1], 10);
+        }
+      });
+
+      
+      const used = {};
+      (gData.stockLogs || []).forEach(s => { if (s.plot_id === pid && num(s.change_qty) < 0) used[s.item_name] = (used[s.item_name] || 0) - num(s.change_qty); });
+      const usedHtml = Object.keys(used).map(n => `<span class="badge bg-light text-dark border me-1 mb-1 fw-normal">${n}: <b>${fmtQty(invItem(n) || { unit: '' }, used[n])}</b></span>`).join('') || '<span class="text-muted">ยังไม่มี (เริ่มนับตั้งแต่ V7.0)</span>';
+
+      $('dosTitle').innerText = `📓 ${p.plot_id} - ${p.plot_name} (${p.area_rai} ไร่)`;
+      let none = '<span class="text-muted">ยังไม่มีบันทึก</span>';
+      let html = `
+        <div class="p-2 bg-light rounded border mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-success">📌 1. ข้อมูลประจำแปลง</span>
+            <button class="btn btn-sm btn-success fw-bold py-0" id="btnPlotSave" onclick="savePlotProfile('${p.plot_id}')">💾 บันทึกข้อมูลแปลง</button>
+          </div>
+          <div class="row g-2 small">
+            <div class="col-6 col-md-3"><label class="fw-bold">ชื่อแปลง:</label><input type="text" class="form-control form-control-sm" id="dp_name" value="${p.plot_name || ''}"></div>
+            <div class="col-6 col-md-2"><label class="fw-bold">พื้นที่ (ไร่):</label><input type="number" step="0.1" class="form-control form-control-sm" id="dp_rai" value="${p.area_rai || ''}"></div>
+            <div class="col-6 col-md-2"><label class="fw-bold">ประเภทอ้อย:</label>
+              <select class="form-select form-select-sm" id="dp_type">
+                <option value="อ้อยใหม่" ${p.cane_type === 'อ้อยใหม่' ? 'selected' : ''}>🌱 อ้อยใหม่</option>
+                <option value="อ้อยตอ" ${p.cane_type !== 'อ้อยใหม่' ? 'selected' : ''}>🌿 อ้อยตอ</option>
+              </select></div>
+            <div class="col-6 col-md-2"><label class="fw-bold">พันธุ์อ้อย:</label><input type="text" class="form-control form-control-sm" id="dp_var" value="${p.cane_variety && p.cane_variety !== 'nan' ? p.cane_variety : 'ขอนแก่น 3'}"></div>
+            <div class="col-12 col-md-3"><label class="fw-bold">วันปลูก / วันเริ่มบำรุงตอ:</label><input type="date" class="form-control form-control-sm" id="dp_date" value="${beToISO(p.plant_date)}"></div>
+          </div>
+        </div>
+
+        <h6 class="fw-bold text-dark mb-2">📊 2. สรุปกิจกรรมสะสมตั้งแต่เริ่มฤดูกาล</h6>
+        <div class="row g-2 mb-3 small">
+          <div class="col-12 col-md-6"><div class="dossier-stat">
+            <div class="fw-bold text-secondary mb-1">🚜 งานเตรียมดิน / รถไถ / อุ้มร่อง</div>
+            <div>• <b>ลงริปเปอร์/ครูดร่อง:</b> ${ripper.length ? ripper.join(', ') : none}</div>
+            <div>• <b>ไถพรวน:</b> ${plow.length ? plow.join(', ') : none}</div>
+            <div>• <b>ชักร่อง/ปลูก:</b> ${plant.length ? plant.join(', ') : (p.plant_date || none)}</div>
+            <div>• <b>อุ้มร่อง:</b> ${hillUp.length ? hillUp.join(', ') : none}</div>
+            <div>• <b>ฝังปุ๋ย/สับหญ้า:</b> ${[...subFert, ...weed].length ? [...subFert, ...weed].join(', ') : none}</div>
+          </div></div>
+          <div class="col-12 col-md-6"><div class="dossier-stat">
+            <div class="fw-bold text-primary mb-1">💧 ประวัติการขึ้นน้ำ & ฝนตก (รวม ${waterDates.length} รอบ)</div>
+            <div>• <b>วันน้ำล่าสุด:</b> <span class="badge bg-primary">${p.last_water_date || '-'}</span></div>
+            <div class="mt-1" style="max-height:95px;overflow-y:auto;">${waterDates.length ? waterDates.map((w, i) => `<div>รอบที่ ${i + 1}: ${w}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการให้น้ำ</span>'}</div>
+          </div></div>
+          <div class="col-12 col-md-6"><div class="dossier-stat">
+            <div class="fw-bold text-success mb-1">🌱 ประวัติการใส่ปุ๋ย/บำรุง ${totalFertBags > 0 ? `(รวม ~${totalFertBags} กระสอบ)` : ''}</div>
+            <div style="max-height:95px;overflow-y:auto;">${fertList.length ? fertList.map(f => `<div>• ${f}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติใส่ปุ๋ย</span>'}</div>
+          </div></div>
+          <div class="col-12 col-md-6"><div class="dossier-stat">
+            <div class="fw-bold text-dark mb-1">🔫 ประวัติฉีดยาคุมหญ้า ${totalSprayTanks > 0 ? `(รวม ${totalSprayTanks} ถัง 200L)` : ''}</div>
+            <div style="max-height:95px;overflow-y:auto;">${sprayList.length ? sprayList.map(s => `<div>• ${s}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติฉีดยา</span>'}</div>
+          </div></div>
+          <div class="col-12"><div class="dossier-stat border-success">
+            <div class="fw-bold text-success mb-1">📦 ยอดใช้ยา/ปุ๋ยจริงของแปลงนี้ (จากระบบตัดสต็อก)</div>
+            <div>${usedHtml}</div>
+          </div></div>
+          <div class="col-12"><div class="dossier-stat border-danger">
+            <div class="fw-bold text-danger mb-1">🌾 สรุปการตัดอ้อย & ขนส่งหน้าหีบ ${totalTons > 0 ? `(รวม ${totalTons} ตัน | เฉลี่ย ${(totalTons / parseFloat(p.area_rai || 1)).toFixed(2)} ตัน/ไร่)` : ''} ${totalTrips > 0 ? `[${totalTrips} เที่ยว]` : ''}</div>
+            <div>${harvList.length ? harvList.map(h => `<div>• ${h}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการตัดอ้อยในฤดูกาลนี้</span>'}</div>
+          </div></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <h6 class="fw-bold text-dark m-0">🕒 3. ประวัติงานทั้งหมด (${logs.length} รายการ)</h6>
+          <button class="btn btn-sm btn-success fw-bold py-0" onclick="hideModal('dossierModal');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ เพิ่มงานใหม่</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered small mb-0">
+            <thead class="table-light"><tr><th>วันที่ (กดเพื่อแจ้งปัญหา)</th><th>หมวดงาน</th><th>รายละเอียด</th><th>เครื่องจักร/พญานาค</th><th>จำนวน</th><th>คนงาน</th><th>หมายเหตุ</th></tr></thead>
+            <tbody>
+              ${logs.map(l => `
+                <tr style="cursor:pointer;" onclick="hideModal('dossierModal');openLogInspect('${l.log_id}')">
+                  <td class="fw-bold text-primary text-decoration-underline">${l.timestamp}</td><td><b>${l.activity_group}</b></td><td>${l.activity_detail}</td>
+                  <td>${l.equipment}</td><td>${l.quantity}</td><td>${l.operator}</td><td>${l.remark}</td>
+                </tr>`).join('') || '<tr><td colspan="7" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>'}
+            </tbody>
+          </table>
+        </div>`;
+      $('dosBody').innerHTML = html;
+      bootstrap.Modal.getOrCreateInstance($('dossierModal')).show();
+    }
+
+    function savePlotProfile(pid) {
+      let payload = {
+        plot_id: pid, plot_name: $('dp_name').value.trim(), area_rai: $('dp_rai').value.trim(),
+        cane_type: $('dp_type').value, cane_variety: $('dp_var').value.trim(), plant_date: isoToBE($('dp_date').value)
+      };
+      call('updatePlotInfo', [payload], d => { init(d); openDossier(pid); alert('บันทึกข้อมูลประจำแปลงเรียบร้อย!'); }, $('btnPlotSave'));
+    }
+
+    
+    function openLogInspect(logId) {
+      let l = gData.activities.find(a => String(a.log_id) === String(logId));
+      if (!l) return;
+      let p = gData.plots.find(x => x.plot_id === l.plot_id) || { plot_name: l.plot_id };
+      $('inspTitle').innerText = `📌 งานวันที่ ${l.timestamp} (${p.plot_name})`;
+      $('insp_ref_plot').value = `${l.plot_id} (${p.plot_name})`;
+      $('insp_dt').value = beToISO(l.timestamp) || todayISO();
+      $('insp_issue').value = ''; $('insp_parts').value = '';
+      $('inspDetailBox').innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span class="badge bg-success">${l.activity_group}</span> <b>${l.activity_detail}</b>
+            <div class="small mt-1">📅 <b>วันที่:</b> ${l.timestamp} | 📦 <b>ปริมาณ:</b> ${l.quantity}</div>
+            <div class="small">👤 <b>ผู้ปฏิบัติงาน:</b> <span class="text-primary fw-bold">${l.operator}</span></div>
+            <div class="small">🚜/🐍 <b>เครื่องจักรที่ใช้:</b> <span class="text-danger fw-bold">${l.equipment}</span></div>
+            <div class="small text-muted">💬 <b>สถานะ/หมายเหตุ:</b> ${l.remark}</div>
+          </div>
+          <button class="btn btn-sm btn-warning fw-bold py-0" onclick="hideModal('logInspModal');openEditLog('${l.log_id}','${qa(p.plot_name)}')">✏️ แก้ไข</button>
+        </div>`;
+
+      let ops = (l.operator || '').split('+').map(s => s.trim()).filter(s => s && s !== '-' && s !== 'ไม่ระบุ');
+      let eqs = (l.equipment || '').split(',').map(s => s.trim()).filter(s => s && s !== '-');
+      let involved = [...eqs, ...ops];
+      let optsHtml = '';
+      if (involved.length) {
+        optsHtml += `<optgroup label="⚡ เครื่องจักร & คนงานในงานนี้ (${l.timestamp})">`;
+        involved.forEach(item => { optsHtml += `<option value="${item}">👉 ${item} (ในงานนี้)</option>`; });
+        optsHtml += `</optgroup>`;
+      }
+      const grp = (lbl, ic, arr) => `<optgroup label="${lbl}">` + (arr || []).map(x => `<option value="${x}">${ic} ${x}</option>`).join('') + `</optgroup>`;
+      optsHtml += grp('🐍 เครื่องสูบน้ำพญานาคทั้งหมด', '🐍', gData.options.Pump) + grp('🚛 รถสิบล้อทั้งหมด', '🚛', gData.options.Truck)
+        + grp('🚜 รถไถทั้งหมด', '🚜', gData.options.Tractor) + grp('👤 คนงานทั้งหมด', '👤', gData.options.Worker);
+      $('insp_asset_sel').innerHTML = optsHtml;
+      updQuickIssues();
+      bootstrap.Modal.getOrCreateInstance($('logInspModal')).show();
+    }
+
+    function updQuickIssues() {
+      let val = $('insp_asset_sel').value || '';
+      let isWorker = (gData.options.Worker || []).includes(val) || val.includes('ตัวเอง');
+      let isPump = val.includes('พญานาค'), isTruck = val.includes('สิบล้อ');
+      const b = (cls, st, iss, pts, lbl) => `<button type="button" class="btn btn-sm ${cls} py-0" onclick="setInspQuick('${st}','${iss}','${pts}')">${lbl}</button>`;
+      let btns = '';
+      if (isWorker) {
+        $('insp_status_sel').value = 'ป่วย/ลาพัก';
+        btns = b('btn-outline-danger', 'ป่วย/ลาพัก', 'ป่วย ขอลางาน', 'พักรักษาตัว', '🤒 ป่วย/ลางาน') + b('btn-outline-warning text-dark', 'ป่วย/ลาพัก', 'ติดธุระด่วน / ลากิจ', '-', '🏖️ ลากิจ')
+          + b('btn-outline-secondary', 'ป่วย/ลาพัก', 'บาดเจ็บ/ปวดหลังจากงาน', 'หายาทา/พัก', '🩹 บาดเจ็บ/ปวดหลัง') + b('btn-outline-success', 'ปกติ', 'กลับมาทำงานตามปกติ', '-', '🟢 กลับมาทำงานปกติ');
+      } else if (isPump) {
+        $('insp_status_sel').value = 'เสีย/รอซ่อม';
+        btns = b('btn-outline-danger', 'เสีย/รอซ่อม', 'กรองตัน น้ำไม่ขึ้น', 'ต้องเปลี่ยนกรองโซล่า/กรองเครื่อง', '🐍 กรองตัน') + b('btn-outline-danger', 'เสีย/รอซ่อม', 'ยางรั่ว', 'รอปะยาง / รอเปลี่ยนยาง', '🛞 ยางรั่ว')
+          + b('btn-outline-danger', 'เสีย/รอซ่อม', 'สายพานหย่อน/ขาด', 'เปลี่ยนสายพานพญานาค', '⚙️ สายพานขาด/หย่อน') + b('btn-outline-success', 'พร้อมใช้', '-', 'เปลี่ยนอะไหล่/ซ่อมเสร็จแล้ว', '✅ ซ่อมเสร็จพร้อมใช้');
+      } else if (isTruck) {
+        $('insp_status_sel').value = 'เสีย/รอซ่อม';
+        btns = b('btn-outline-danger', 'เสีย/รอซ่อม', 'เบรครั่ว รอซ่อม', 'ชุดลูกยางเบรค / น้ำมันเบรค', '🛑 เบรครั่ว') + b('btn-outline-warning text-dark', 'จอดบ้าน/รอดัดแปลง', 'จอดอยู่ที่บ้าน รอต่อกล่องวิ่งอ้อยรถตัด', 'เหล็กต่อกระบะกรง', '📦 รอต่อกล่อง')
+          + b('btn-outline-danger', 'เสีย/รอซ่อม', 'ยางรั่ว / ยางระเบิด', 'รอปะยาง / เปลี่ยนยางสิบล้อ', '🛞 ยางรั่ว/ระเบิด') + b('btn-outline-success', 'พร้อมใช้', '-', 'ซ่อมเสร็จแล้ว', '✅ ซ่อมเสร็จพร้อมใช้');
+      } else {
+        $('insp_status_sel').value = 'เสีย/รอซ่อม';
+        btns = b('btn-outline-danger', 'เสีย/รอซ่อม', 'จอดนาน แบตเตอรี่เสื่อม สตาร์ทไม่ติด', 'ต้องชาร์จไฟ หรือสลับแบตมาใส่', '🔋 แบตเสื่อม') + b('btn-outline-danger', 'เสีย/รอซ่อม', 'ไฮดรอลิครั่ว / ซีลรั่ว', 'เปลี่ยนซีล / เติมน้ำมันไฮดรอลิค', '🔧 ไฮดรอลิครั่ว')
+          + b('btn-outline-success', 'พร้อมใช้', '-', 'ซ่อมบำรุงเสร็จแล้ว', '✅ ซ่อมเสร็จพร้อมใช้');
+      }
+      $('insp_quick_btns').innerHTML = btns;
+    }
+
+    function setInspQuick(st, iss, pts) { $('insp_status_sel').value = st; $('insp_issue').value = iss; $('insp_parts').value = pts; }
+
+    function catOf(name) {
+      if ((gData.options.Pump || []).includes(name)) return 'Pump';
+      if ((gData.options.Truck || []).includes(name)) return 'Truck';
+      if ((gData.options.Tractor || []).includes(name)) return 'Tractor';
+      if ((gData.options.Worker || []).includes(name)) return 'Worker';
+      return 'Equipment';
+    }
+
+    function submitInspIssue() {
+      let name = $('insp_asset_sel').value, st = $('insp_status_sel').value;
+      if (!checkDate($('insp_dt').value)) return;
+      call('saveAssetEvent', [{
+        asset_name: name, category: catOf(name), status: st, event_type: st,
+        issue_detail: $('insp_issue').value.trim() || st, parts_needed: $('insp_parts').value.trim() || '-',
+        custom_date: isoToBE($('insp_dt').value), ref_plot: $('insp_ref_plot').value
+      }], d => { hideModal('logInspModal'); init(d); alert(`บันทึกสถานะของ "${name}" เรียบร้อย!`); }, $('btnSaveInsp'));
+    }
+
+    
+    const isDown = e => /เสีย|จอด|ป่วย/.test(e) && !/ซ่อมเสร็จ/.test(e);
+    const isUp = e => /พร้อมใช้|ปกติ|ซ่อมเสร็จ/.test(e);
+    function downMap() {
+      const m = {};
+      [...(gData.assetLogs || [])].reverse().forEach(l => {
+        const e = l.event_type || '';
+        if (isDown(e)) { if (!m[l.asset_name]) m[l.asset_name] = l.timestamp; }
+        else if (isUp(e)) delete m[l.asset_name];
+      });
+      return m;
+    }
+
+    function renderFleet() {
+      let activeMap = getActiveDeployments(), dm = downMap();
+      let assets = gData.assets || [];
+      let pumps = assets.filter(a => a.category === 'Pump'), trucks = assets.filter(a => a.category === 'Truck');
+      let tractors = assets.filter(a => a.category === 'Tractor'), workers = assets.filter(a => a.category === 'Worker');
+      const okSt = a => a.status === 'พร้อมใช้' || a.status === 'ปกติ';
+      const countFree = l => l.filter(a => okSt(a) && !activeMap[a.name]).length;
+      const countBusy = l => l.filter(a => Boolean(activeMap[a.name])).length;
+      const countIssue = l => l.filter(a => !okSt(a)).length;
+
+      let totalIssues = countIssue(pumps) + countIssue(trucks) + countIssue(tractors) + countIssue(workers);
+      let fBadge = $('f-cnt');
+      fBadge.style.display = totalIssues > 0 ? 'inline-block' : 'none'; fBadge.innerText = totalIssues;
+
+      const renderCard = (a, icon, showBat) => {
+        let busyAt = activeMap[a.name], isOk = okSt(a);
+        let cardCls = busyAt ? 'busy' : (isOk ? '' : (a.status.includes('จอด') ? 'parked' : 'broken'));
+        let since = !isOk && dm[a.name] ? calcDays(dm[a.name]) : null;
+        let badgeHtml = busyAt ? `<span class="badge bg-primary">🔵 กำลังทำงาน @ ${busyAt}</span>`
+          : (isOk ? `<span class="badge bg-success">🟢 ว่าง / พร้อมใช้</span>` : `<span class="badge bg-danger">🔴 ${a.status}${since !== null ? ` ${since} วัน` : ''}</span>`);
+        let issueHtml = (!isOk || (a.issue_detail && a.issue_detail !== '-'))
+          ? `<div class="small text-danger fw-bold mt-1">⚠️ ${a.issue_detail} ${a.parts_needed && a.parts_needed !== '-' ? `| 🔧 ต้องใช้: <u>${a.parts_needed}</u>` : ''} <span class="text-muted fw-normal">(อัปเดต ${a.updated_at})</span></div>` : '';
+        let batWarn = (a.battery_info || '').includes('ไม่มีแบต');
+        let batAge = calcDays(a.battery_date);
+        let batHtml = showBat ? `<div class="small mt-1 p-1 px-2 rounded ${batWarn ? 'bg-danger text-white fw-bold' : 'bg-light border text-dark'}">
+               🔋 <b>แบต:</b> ${a.battery_info || 'ยังไม่ระบุ'} ${a.battery_date && a.battery_date !== '-' ? `(ตั้งแต่ ${a.battery_date}${batAge !== null ? ` • ${batAge} วัน` : ''})` : ''}</div>` : '';
+        return `
+          <div class="asset-card ${cardCls}">
+            <div class="d-flex justify-content-between align-items-start gap-1">
+              <div><span class="fw-bold fs-6">${icon} ${a.name}</span> ${badgeHtml}</div>
+              <div class="d-flex gap-1 flex-wrap justify-content-end">
+                ${!isOk ? `<button class="btn btn-sm btn-success py-0 px-2 fw-bold" onclick="quickFixAsset('${qa(a.name)}','${a.category}')">✅ ซ่อมเสร็จ</button>` : ''}
+                <button class="btn btn-sm btn-outline-dark py-0 px-2" onclick="openAssetEdit('${qa(a.name)}')">📝 จดซ่อม</button>
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="openAssetHist('${qa(a.name)}')">📜</button>
+              </div>
+            </div>
+            ${issueHtml}${batHtml}
+          </div>`;
+      };
+      const box = (cls, tcls, title, list, busyLbl, issueLbl) => `
+        <div class="col-4"><div class="avail-box ${cls}">
+          <div class="small fw-bold ${tcls}">${title}</div>
+          <div class="fs-4 fw-bold text-success">ว่าง ${countFree(list)}/${list.length}</div>
+          <div class="small text-muted">${busyLbl} ${countBusy(list)} | ${issueLbl} ${countIssue(list)}</div>
+        </div></div>`;
+
+      let html = `
+        <div class="row g-2 mb-3">
+          ${box('border-primary', 'text-primary', '🐍 พญานาค', pumps, 'ใช้อยู่', 'เสีย')}
+          ${box('border-danger', 'text-danger', '🚛 สิบล้อ', trucks, 'วิ่งงาน', 'ซ่อม/จอด')}
+          ${box('border-secondary', 'text-dark', '🚜 รถไถ', tractors, 'ใช้อยู่', 'ซ่อม')}
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold m-0 text-primary">🐍 เครื่องสูบน้ำพญานาค</h6>
+          <button class="btn btn-sm btn-outline-primary py-0" onclick="new bootstrap.Modal($('setModal')).show()">+ เพิ่ม</button>
+        </div>
+        ${pumps.map(a => renderCard(a, '🐍', false)).join('')}
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+          <h6 class="fw-bold m-0 text-danger">🚛 รถสิบล้อ</h6>
+          <button class="btn btn-sm btn-warning fw-bold py-0" onclick="openBatModal()">🔋 สลับแบต</button>
+        </div>
+        ${trucks.map(a => renderCard(a, '🚛', true)).join('')}
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+          <h6 class="fw-bold m-0 text-dark">🚜 รถไถ & เครื่องจักร</h6>
+          <button class="btn btn-sm btn-warning fw-bold py-0" onclick="openBatModal()">🔋 สลับแบต</button>
+        </div>
+        ${tractors.map(a => renderCard(a, '🚜', true)).join('')}
+        <h6 class="fw-bold mt-3 mb-2 text-success">👤 สถานะคนงาน</h6>
+        ${workers.map(a => renderCard(a, '👤', false)).join('')}
+        <div class="bg-white p-3 rounded shadow-sm border mt-3">
+          <h6 class="fw-bold text-dark mb-2">📜 ประวัติซ่อม / บำรุง / สลับแบต / คนงาน (100 รายการล่าสุด)</h6>
+          <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+            <table class="table table-sm table-bordered small mb-0">
+              <thead class="table-light"><tr><th>วันที่</th><th>รถ/พญานาค/คน</th><th>รายการ</th><th>อาการ/รายละเอียด</th><th>อะไหล่/แบต</th><th>แปลง</th></tr></thead>
+              <tbody>
+                ${(gData.assetLogs || []).slice(0, 100).map(al => `
+                  <tr><td class="fw-bold">${al.timestamp}</td><td><b>${al.asset_name}</b></td><td><span class="badge bg-secondary">${al.event_type}</span></td>
+                  <td>${al.detail}</td><td class="text-primary fw-bold">${al.parts_or_battery}</td><td>${al.ref_plot}</td></tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted">ยังไม่มีประวัติ</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      $('fleet-view').innerHTML = html;
+    }
+
+    // ประวัติซ่อมรายคัน + สถิติ
+    function openAssetHist(name) {
+      const a = (gData.assets || []).find(x => x.name === name) || {};
+      const logs = (gData.assetLogs || []).filter(l => l.asset_name === name);
+      let down = null, downDays = 0, breaks = 0;
+      [...logs].reverse().forEach(l => {
+        const e = l.event_type || '';
+        if (isDown(e)) { if (!down) { down = l.timestamp; breaks++; } }
+        else if (isUp(e) && down) { downDays += Math.max(0, (calcDays(down) || 0) - (calcDays(l.timestamp) || 0)); down = null; }
+      });
+      if (down) downDays += calcDays(down) || 0;
+      const lastOf = kw => logs.find(l => (l.detail || '').includes(kw) || (l.parts_or_battery || '').includes(kw));
+      const ago = l => l ? `${l.timestamp} <span class="text-muted">(${calcDays(l.timestamp)} วันก่อน)</span>` : '<span class="text-muted">ยังไม่มีบันทึก</span>';
+      const isWorker = a.category === 'Worker';
+      const stat = (t, v) => `<div class="col-6"><div class="dossier-stat"><div class="small text-muted fw-bold">${t}</div><div class="fw-bold">${v}</div></div></div>`;
+      $('ahTitle').innerText = `📜 ประวัติ: ${name}`;
+      $('ahBody').innerHTML = `
+        <div class="row g-2 mb-3 small">
+          ${stat(isWorker ? '🤒 ลา/ป่วย' : '🔴 เสีย/จอด', `${breaks} ครั้ง`)}
+          ${stat(isWorker ? '📅 รวมวันที่หยุด' : '⏱️ รวมวันที่จอดเสีย', `${downDays} วัน${down ? ' <span class="badge bg-danger">ยังไม่หาย</span>' : ''}`)}
+          ${!isWorker ? stat('🛢️ น้ำมันเครื่องล่าสุด', ago(lastOf('น้ำมันเครื่อง'))) : ''}
+          ${!isWorker ? stat('🧽 เปลี่ยนกรองล่าสุด', ago(lastOf('กรอง'))) : ''}
+          ${(a.category === 'Tractor' || a.category === 'Truck') ? `<div class="col-12"><div class="dossier-stat"><div class="small text-muted fw-bold">🔋 แบตตอนนี้</div><div class="fw-bold">${a.battery_info || '-'} ${a.battery_date && a.battery_date !== '-' ? `(ใช้มา ${calcDays(a.battery_date)} วัน)` : ''}</div></div></div>` : ''}
+        </div>
+        <div class="table-responsive"><table class="table table-sm table-bordered small mb-0">
+          <thead class="table-light"><tr><th>วันที่</th><th>รายการ</th><th>รายละเอียด</th><th>อะไหล่/แบต</th></tr></thead>
+          <tbody>${logs.map(l => `<tr><td class="fw-bold">${l.timestamp}</td><td><span class="badge bg-secondary">${l.event_type}</span></td><td>${l.detail}${l.ref_plot && l.ref_plot !== '-' ? `<div class="text-muted">📍 ${l.ref_plot}</div>` : ''}</td><td class="text-primary">${l.parts_or_battery}</td></tr>`).join('') || '<tr><td colspan="4" class="text-center text-muted">ยังไม่มีประวัติ</td></tr>'}</tbody>
+        </table></div>`;
+      bootstrap.Modal.getOrCreateInstance($('assetHistModal')).show();
+    }
+
+    function openAssetEdit(name) {
+      let a = (gData.assets || []).find(x => x.name === name);
+      if (!a) return;
+      $('aeTitle').innerText = `🔧 ตั้งค่า/แจ้งซ่อม: ${a.name}`;
+      $('ae_name').value = a.name; $('ae_cat').value = a.category; $('ae_status').value = a.status;
+      $('ae_issue').value = a.issue_detail !== '-' ? a.issue_detail : '';
+      $('ae_parts').value = a.parts_needed !== '-' ? a.parts_needed : '';
+      $('ae_bat_info').value = a.battery_info !== '-' ? a.battery_info : '';
+      $('ae_bat_date').value = beToISO(a.battery_date);
+      $('ae_date').value = todayISO();
+      $('ae_mt').value = ''; $('ae_mt_parts').value = '';
+      $('ae_bat_box').style.display = (a.category === 'Tractor' || a.category === 'Truck') ? 'block' : 'none';
+      $('ae_mt_box').style.display = a.category === 'Worker' ? 'none' : 'block';
+      bootstrap.Modal.getOrCreateInstance($('assetEditModal')).show();
+    }
+
+    function setAeQuick(st, iss, pts) { $('ae_status').value = st; $('ae_issue').value = iss === '-' ? '' : iss; $('ae_parts').value = pts; }
+
+    function submitAssetEdit() {
+      if (!checkDate($('ae_date').value)) return;
+      const cat = $('ae_cat').value;
+      const p = {
+        asset_name: $('ae_name').value, category: cat, status: $('ae_status').value, event_type: $('ae_status').value,
+        issue_detail: $('ae_issue').value.trim() || '-', parts_needed: $('ae_parts').value.trim() || '-',
+        custom_date: isoToBE($('ae_date').value)
+      };
+      if (cat === 'Tractor' || cat === 'Truck') { p.battery_info = $('ae_bat_info').value.trim() || '-'; p.battery_date = isoToBE($('ae_bat_date').value) || '-'; }
+      call('saveAssetEvent', [p], d => { hideModal('assetEditModal'); init(d); }, $('btnAeSave'));
+    }
+
+    function submitMaint() {
+      const mt = $('ae_mt').value.trim();
+      if (!mt) return alert('กรุณาเลือกหรือพิมพ์งานบำรุงก่อนครับ');
+      if (!checkDate($('ae_date').value)) return;
+      call('saveAssetEvent', [{
+        asset_name: $('ae_name').value, category: $('ae_cat').value, keep_status: true, event_type: '🛢️ บำรุงรักษา',
+        issue_detail: mt, parts_needed: $('ae_mt_parts').value.trim() || '-', custom_date: isoToBE($('ae_date').value)
+      }], d => { hideModal('assetEditModal'); init(d); alert('บันทึกงานบำรุงเรียบร้อย'); }, $('btnMt'));
+    }
+
+    function quickFixAsset(name, cat) {
+      if (!confirm(`ยืนยันว่า "${name}" ซ่อมเสร็จแล้ว พร้อมใช้งานใช่ไหม?`)) return;
+      call('saveAssetEvent', [{
+        asset_name: name, category: cat, status: cat === 'Worker' ? 'ปกติ' : 'พร้อมใช้',
+        event_type: '✅ ซ่อมเสร็จ/พร้อมใช้', issue_detail: 'ซ่อมบำรุง/เปลี่ยนอะไหล่เสร็จเรียบร้อย', parts_needed: '-'
+      }], init);
+    }
+
+    
+    function openBatModal() {
+      let vehicles = (gData.assets || []).filter(a => a.category === 'Tractor' || a.category === 'Truck');
+      let opts = vehicles.map(v => `<option value="${v.name}">${v.name} [ตอนนี้: ${v.battery_info}]</option>`).join('');
+      $('bat_from').innerHTML = opts; $('bat_to').innerHTML = opts;
+      if (vehicles.length > 1) $('bat_to').selectedIndex = 1;
+      $('bat_label').value = ''; $('bat_date').value = todayISO(); $('bat_rmk').value = '';
+      tglBatMode();
+      bootstrap.Modal.getOrCreateInstance($('batModal')).show();
+    }
+    function tglBatMode() {
+      let isSwap = $('bm_swap').checked;
+      $('bat_from_box').style.display = isSwap ? 'block' : 'none';
+      $('bat_lbl_name').innerText = isSwap ? 'ชื่อเรียกแบตลูกที่ย้าย (เว้นว่าง = ใช้ชื่อเดิม):' : 'ชื่อ/ขนาดแอมป์แบตลูกใหม่ (เช่น แบตใหม่ GS 120A):';
+    }
+    function submitBattery() {
+      let isSwap = $('bm_swap').checked, fromV = $('bat_from').value, toV = $('bat_to').value;
+      if (isSwap && fromV === toV) return alert('กรุณาเลือกรถต้นทางและปลายทางคนละคันครับ');
+      if (!checkDate($('bat_date').value)) return;
+      call('transferBattery', [{
+        mode: isSwap ? 'swap' : 'new', from_vehicle: fromV, to_vehicle: toV,
+        custom_bat_label: $('bat_label').value.trim(), new_bat_name: $('bat_label').value.trim() || 'แบตลูกใหม่',
+        swap_date: isoToBE($('bat_date').value), remark: $('bat_rmk').value.trim()
+      }], d => { hideModal('batModal'); init(d); }, $('btnBatSave'));
+    }
+
+    // ================= 📦 สต็อก =================
+    function renderStock() {
+      const inv = gData.inventory || [];
+      const bad = inv.filter(it => ['neg', 'low'].includes(stockState(it)));
+      const sb = $('s-cnt'); sb.style.display = bad.length ? 'inline-block' : 'none'; sb.innerText = bad.length;
+
+      let html = `<div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+          <div class="small text-muted">ซื้อของมา → กด <b>📥 รับเข้า</b> | ระบบตัดยอดเองทุกครั้งที่บันทึกงานฉีดยา/ใส่ปุ๋ย</div>
+          <button class="btn btn-sm btn-success fw-bold text-nowrap" onclick="openItem('')">+ เพิ่มรายการ</button>
+        </div>`;
+      if (bad.length) html += `<div class="alert alert-danger py-2 small mb-2"><b>⚠️ ต้องเช็ก ${bad.length} รายการ:</b> ${bad.map(it => `${it.name} (${fmtQty(it, num(it.stock))})`).join(', ')}</div>`;
+
+      const card = it => {
+        const st = stockState(it), q = num(it.stock), pt = num(it.per_tank);
+        const cls = (st === 'neg' || st === 'low') ? 'broken' : (st === 'zero' ? 'parked' : '');
+        const badge = { neg: '<span class="badge bg-danger">ติดลบ = ใช้เกินที่รับเข้า</span>', low: '<span class="badge bg-danger">ใกล้หมด</span>', zero: '<span class="badge bg-secondary">ยังไม่มียอด</span>', ok: '<span class="badge bg-success">ปกติ</span>' }[st];
+        const pack = num(it.pack_size) || 1;
+        return `<div class="asset-card ${cls}">
+          <div class="d-flex justify-content-between align-items-start gap-1">
+            <div><span class="fw-bold fs-6">${it.name}</span> ${badge}
+              ${it.note ? `<div class="small text-muted">${it.note}</div>` : ''}</div>
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="openItem('${qa(it.item_id)}')">✏️</button>
+          </div>
+          <div class="fs-5 fw-bold mt-1 ${q < 0 ? 'text-danger' : 'text-dark'}">${fmtQty(it, q)}${pt > 0 && q > 0 ? ` <span class="small text-success">≈ ${Math.floor(q / pt)} ถัง</span>` : ''}</div>
+          <div class="small text-muted">${pt > 0 ? `ใช้ ${pt} ${it.unit}/ถัง • ` : ''}${num(it.reorder_point) > 0 ? `เตือนเมื่อเหลือ ≤ ${r1(num(it.reorder_point) / pack)} ${it.pack_name || it.unit}` : 'ยังไม่ตั้งจุดเตือน'}</div>
+          <div class="d-flex gap-1 mt-2">
+            <button class="btn btn-sm btn-success fw-bold flex-fill" onclick="openStock('${qa(it.name)}','in')">📥 รับเข้า</button>
+            <button class="btn btn-sm btn-outline-dark fw-bold flex-fill" onclick="openStock('${qa(it.name)}','set')">⚖️ นับยอดจริง</button>
+          </div>
+        </div>`;
+      };
+      [['Chemical', '🧪 ยาฉีด (อัตราต่อถัง 200L)'], ['Fertilizer', '🌱 ปุ๋ย'], ['Other', '📦 อื่นๆ']].forEach(([c, t]) => {
+        const list = inv.filter(it => c === 'Other' ? !['Chemical', 'Fertilizer'].includes(it.category) : it.category === c);
+        if (list.length) html += `<h6 class="fw-bold mt-3 mb-2">${t}</h6>` + list.map(card).join('');
+      });
+
+      html += `<div class="bg-white p-3 rounded shadow-sm border mt-3">
+        <h6 class="fw-bold text-dark mb-2">🧾 ความเคลื่อนไหวสต็อก (100 รายการล่าสุด)</h6>
+        <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+          <table class="table table-sm table-bordered small mb-0">
+            <thead class="table-light"><tr><th>วันที่</th><th>รายการ</th><th>เข้า/ออก</th><th>ที่มา</th></tr></thead>
+            <tbody>${(gData.stockLogs || []).slice(0, 100).map(s => {
+              const ch = num(s.change_qty), it = invItem(s.item_name) || { unit: s.unit };
+              const src = s.ref_log_id && !/^[📥⚖]/.test(s.ref_log_id) ? `${s.plot_id} • ${s.note}` : `${s.ref_log_id}${s.note ? ' • ' + s.note : ''}`;
+              return `<tr><td class="fw-bold">${s.timestamp}</td><td>${s.item_name}</td><td class="fw-bold ${ch < 0 ? 'text-danger' : 'text-success'}">${ch > 0 ? '+' : ''}${fmtQty(it, ch)}</td><td>${src}</td></tr>`;
+            }).join('') || '<tr><td colspan="4" class="text-center text-muted">ยังไม่มีความเคลื่อนไหว</td></tr>'}</tbody>
+          </table>
+        </div></div>`;
+      $('stock-view').innerHTML = html;
+    }
+
+    function openStock(name, mode) {
+      const it = invItem(name); if (!it) return;
+      const pack = num(it.pack_size) || 1;
+      $('st_name').value = name; $('st_mode').value = mode;
+      $('stTitle').innerText = (mode === 'in' ? '📥 รับของเข้า: ' : '⚖️ นับยอดจริง: ') + name;
+      $('st_lbl').innerText = mode === 'in' ? 'จำนวนที่ซื้อเข้ามา:' : 'ยอดที่นับได้จริงตอนนี้:';
+      $('st_cur').innerHTML = `ยอดในระบบตอนนี้: <b>${fmtQty(it, num(it.stock))}</b>`;
+      $('st_unit').innerHTML = (pack > 1 ? `<option value="pack">${it.pack_name || 'แพ็ก'} (${pack} ${it.unit})</option>` : '') + `<option value="base">${it.unit}</option>`;
+      $('st_qty').value = ''; $('st_dt').value = todayISO(); $('st_note').value = '';
+      bootstrap.Modal.getOrCreateInstance($('stockModal')).show();
+    }
+
+    function submitStock() {
+      const it = invItem($('st_name').value), mode = $('st_mode').value;
+      const raw = $('st_qty').value;
+      if (raw === '' || (mode === 'in' && num(raw) <= 0)) return alert('กรุณาใส่จำนวนครับ');
+      if (!checkDate($('st_dt').value)) return;
+      const qty = $('st_unit').value === 'pack' ? num(raw) * (num(it.pack_size) || 1) : num(raw);
+      call('receiveStock', [{ name: it.name, mode, qty: r3(qty), date: isoToBE($('st_dt').value), note: $('st_note').value.trim() }],
+        d => { hideModal('stockModal'); init(d); }, $('btnSt'));
+    }
+
+    function openItem(id) {
+      const it = (gData.inventory || []).find(i => i.item_id === id) || { category: 'Fertilizer', unit: 'กระสอบ', pack_size: 1, pack_name: 'กระสอบ' };
+      const pack = num(it.pack_size) || 1;
+      $('it_id').value = id || ''; $('itTitle').innerText = id ? `✏️ แก้ไข: ${it.name}` : '📦 เพิ่มรายการใหม่';
+      $('it_cat').value = it.category || 'Other'; $('it_name').value = it.name || ''; $('it_note').value = it.note || '';
+      $('it_unit').value = it.unit || ''; $('it_pack').value = it.pack_size || ''; $('it_packname').value = it.pack_name || '';
+      $('it_pertank').value = it.per_tank || ''; $('it_reorder').value = num(it.reorder_point) ? r1(num(it.reorder_point) / pack) : '';
+      $('btnItDel').style.display = id ? 'block' : 'none';
+      tglItemCat();
+      bootstrap.Modal.getOrCreateInstance($('itemModal')).show();
+    }
+    function tglItemCat() { $('it_pt_box').style.display = $('it_cat').value === 'Chemical' ? 'block' : 'none'; }
+
+    function saveItem() {
+      const name = $('it_name').value.trim(), unit = $('it_unit').value.trim();
+      if (!name || !unit) return alert('กรุณาใส่ชื่อและหน่วยครับ');
+      const pack = num($('it_pack').value) || 1;
+      const oldIt = (gData.inventory || []).find(i => i.item_id === $('it_id').value);
+      if (oldIt && oldIt.name !== name && !confirm(`เปลี่ยนชื่อจาก "${oldIt.name}" เป็น "${name}"?\nประวัติเก่าจะยังใช้ชื่อเดิม และถ้าชื่อนี้อยู่ในสูตรลัด ต้องแก้ในหน้าตั้งค่าด้วย`)) return;
+      call('saveStockItem', [{
+        item_id: $('it_id').value, category: $('it_cat').value, name, note: $('it_note').value.trim(), unit,
+        pack_size: pack, pack_name: $('it_packname').value.trim() || unit,
+        per_tank: $('it_cat').value === 'Chemical' ? num($('it_pertank').value) : '',
+        reorder_point: r3(num($('it_reorder').value) * pack)
+      }], d => { hideModal('itemModal'); init(d); }, $('btnItSave'));
+    }
+    function delItem() {
+      if (!confirm('ลบรายการนี้ออกจากสต็อก? (ประวัติเดิมยังอยู่)')) return;
+      call('deleteStockItem', [$('it_id').value], d => { hideModal('itemModal'); init(d); }, $('btnItDel'));
+    }
+
+    // ================= ฟอร์มยา / ปุ๋ย =================
+    function chemPreset(key) {
+      const list = String(S(key) || '').split(',').map(s => s.trim()).filter(Boolean);
+      document.querySelectorAll('.c-chk').forEach(c => c.checked = list.includes(c.value));
+      chemPreview();
+    }
+    function chemUsage() {
+      const t = num($('chem_qty').value), out = [];
+      document.querySelectorAll('.c-chk:checked').forEach(c => { const it = invItem(c.value); if (it && num(it.per_tank) > 0 && t > 0) out.push({ name: c.value, qty: r3(num(it.per_tank) * t) }); });
+      return out;
+    }
+    function chemPreview() {
+      const u = chemUsage();
+      $('chem_preview').innerHTML = u.length ? '<b>จะตัดสต็อก:</b> ' + u.map(x => { const it = invItem(x.name); const after = num(it.stock) - x.qty;
+        return `${x.name} −${r1(x.qty)} ${it.unit} <span class="${after < 0 ? 'text-danger' : 'text-muted'}">(เหลือ ${fmtQty(it, after)})</span>`; }).join(' • ') : '';
+    }
+
+    function placeFert() {
+      const g = $('act_grp').value, t = $('trac_task').value, blk = $('fert_block');
+      const target = g === 'ใส่ปุ๋ย' ? 'fert_slot_gen' : ((g === 'รถไถเตรียมดิน/บำรุง' && t === 'ฝังปุ๋ย') ? 'fert_slot_trac' : null);
+      if (target) { $(target).appendChild(blk); blk.style.display = 'block'; } else blk.style.display = 'none';
+    }
+    function collectFert() {
+      const items = [];
+      if ($('fert_block').style.display !== 'none') document.querySelectorAll('.f-qty').forEach(i => { const q = num(i.value); if (q > 0) items.push({ name: i.dataset.name, qty: r3(q) }); });
+      const total = r3(items.reduce((s, x) => s + x.qty, 0));
+      return { items, total, str: items.map(x => `${x.name} x${x.qty}`).join(' + ') };
+    }
+    function fertSum() { const f = collectFert(); $('fert_sum').innerText = f.total ? `รวม ${f.total} กระสอบ` : ''; }
+    function fertPreset(key, task) {
+      const total = num($('fert_total').value);
+      if (!total) return alert('ใส่จำนวนรวม (กี่ลูก) ก่อนครับ แล้วค่อยกดสูตร');
+      const parts = String(S(key) || '').split(',').map(s => s.split(':')).filter(p => p[0]).map(p => ({ f: p[0].trim(), r: num(p[1]) || 1 }));
+      const sumR = parts.reduce((s, p) => s + p.r, 0);
+      document.querySelectorAll('.f-qty').forEach(i => i.value = '');
+      let left = total;
+      parts.forEach((p, idx) => {
+        const q = idx === parts.length - 1 ? left : Math.round(total * p.r / sumR);
+        left -= q;
+        const inputs = [...document.querySelectorAll('.f-qty')].filter(i => i.dataset.name.includes(p.f));
+        if (!inputs.length) return;
+        const pick = inputs.find(i => num((invItem(i.dataset.name) || {}).stock) >= q) || inputs.find(i => num((invItem(i.dataset.name) || {}).stock) > 0) || inputs[0];
+        pick.value = num(pick.value) + q;
+      });
+      if ($('act_grp').value === 'ใส่ปุ๋ย') $('gen_det').value = task;
+      fertSum();
+    }
+    function fillFert(detail) {
+      document.querySelectorAll('.f-qty').forEach(i => { const m = String(detail || '').match(new RegExp(escRe(i.dataset.name) + ' x(\\d+(?:\\.\\d+)?)')); i.value = m ? m[1] : ''; });
+      $('fert_total').value = ''; fertSum();
+    }
+
+    
+    function tglTl(id) { let e = $('tl_' + id); e.style.display = e.style.display === 'block' ? 'none' : 'block'; }
+    function setFilter(f, b) { curFil = f; document.querySelectorAll('.filter-chip').forEach(e => e.classList.remove('active')); b.classList.add('active'); render(); }
+
+    function popOpts() {
+      const tractors = gData.options.Tractor || [], workers = gData.options.Worker || [];
+      const trucks = gData.options.Truck || [], pumps = gData.options.Pump || [];
+      const assetMap = {};
+      (gData.assets || []).forEach(a => assetMap[a.name] = a.status);
+
+      $('act_eq').innerHTML = tractors.map(t => `<option value="${t}">${t} ${assetMap[t] && assetMap[t] !== 'พร้อมใช้' ? '(⚠️ ' + assetMap[t] + ')' : ''}</option>`).join('');
+      $('pump_chks').innerHTML = pumps.map((pm, i) => {
+        let st = assetMap[pm] || 'พร้อมใช้';
+        return `<div class="form-check form-check-inline"><input class="form-check-input pm-chk" type="checkbox" value="${pm}" id="pm_${i}"><label class="form-check-label" for="pm_${i}">${pm} ${st === 'พร้อมใช้' ? '<span class="text-success">(ว่าง)</span>' : `<span class="text-danger fw-bold">(${st})</span>`}</label></div>`;
+      }).join('');
+      $('worker_chks').innerHTML = ['ตัวเอง/แฟน', ...workers].map((w, i) => `<div class="form-check form-check-inline"><input class="form-check-input w-chk" type="checkbox" value="${w}" id="wk_${i}"><label class="form-check-label" for="wk_${i}">${w}</label></div>`).join('');
+      $('truck_chks').innerHTML = trucks.map((tr, i) => {
+        let st = assetMap[tr] || 'พร้อมใช้';
+        return `<div class="form-check form-check-inline"><input class="form-check-input tr-chk" type="checkbox" value="${tr}" id="tr_${i}"><label class="form-check-label" for="tr_${i}">${tr} ${st === 'พร้อมใช้' ? '' : `<span class="text-danger">(${st})</span>`}</label></div>`;
+      }).join('');
+
+      // ยา: ดึงจากชีต Inventory
+      let chems = (gData.inventory || []).filter(i => i.category === 'Chemical');
+      if (!chems.length) chems = (gData.options.Chemical || []).map(n => ({ name: n, per_tank: 0, unit: '' }));
+      $('chem_chks').innerHTML = chems.map((c, i) => `<div class="form-check form-check-inline"><input class="form-check-input c-chk" type="checkbox" value="${c.name}" id="ch_${i}" onchange="chemPreview()"><label class="form-check-label" for="ch_${i}">${c.name}${num(c.per_tank) ? ` <span class="text-muted">(${c.per_tank}${c.unit})</span>` : ''}</label></div>`).join('');
+
+      // ปุ๋ย: ดึงจากชีต Inventory
+      const ferts = (gData.inventory || []).filter(i => i.category === 'Fertilizer');
+      $('fert_rows').innerHTML = ferts.map(f => `<div class="d-flex align-items-center gap-2 mb-1">
+          <span class="flex-fill small">${f.name} <span class="${num(f.stock) <= 0 ? 'text-danger' : 'text-muted'}">(มี ${r1(num(f.stock))})</span></span>
+          <input type="number" inputmode="decimal" min="0" step="any" class="form-control form-control-sm f-qty" data-name="${f.name}" style="width:80px;" oninput="fertSum()" placeholder="0">
+        </div>`).join('') || '<div class="small text-muted">ยังไม่มีรายการปุ๋ย (เพิ่มได้ในแท็บ 📦 สต็อก)</div>';
+
+      const chip = (cat, v) => `<span class="badge bg-light text-dark border p-2">${v} <span class="text-danger ms-1" style="cursor:pointer;" onclick="modOpt('${cat}','remove','','${qa(v)}')">✖</span></span>`;
+      $('list_pump').innerHTML = pumps.map(v => chip('Pump', v)).join('');
+      $('list_worker').innerHTML = workers.map(v => chip('Worker', v)).join('');
+      $('list_tractor').innerHTML = tractors.map(v => chip('Tractor', v)).join('');
+      $('list_truck').innerHTML = trucks.map(v => chip('Truck', v)).join('');
+
+      // ฟอร์มตั้งค่า
+      $('set_token').value = '';
+      $('set_token').placeholder = S('hasToken') ? '✅ ใส่แล้ว (เว้นว่าง = ใช้อันเดิม)' : 'วางโทเคนจาก LINE Developers';
+      $('set_target').value = S('LINE_TARGET_ID') || '';
+      $('set_enabled').value = S('NOTIFY_ENABLED') === 'เปิด' ? 'เปิด' : 'ปิด';
+      const tm = String(S('NOTIFY_TIME') || '04:00').match(/(\d{1,2})[:.](\d{2})/);
+      $('set_time').value = tm ? `${pad(+tm[1])}:${tm[2]}` : '04:00';
+      $('set_wnew').value = S('WATER_DAYS_NEW') || 12; $('set_wrat').value = S('WATER_DAYS_RATOON') || 15;
+      $('set_smin').value = S('SPRAY_DAY_MIN') || 3; $('set_smax').value = S('SPRAY_DAY_MAX') || 5;
+      $('set_cnew').value = S('CHEM_PRESET_NEW') || ''; $('set_cgrow').value = S('CHEM_PRESET_GROW') || '';
+      $('set_fbase').value = S('FERT_PRESET_BASE') || ''; $('set_frat').value = S('FERT_PRESET_RATOON') || '';
+      $('set_status').innerHTML = S('NOTIFY_ENABLED') === 'เปิด'
+        ? `🟢 เปิดอยู่ — ส่งทุกวัน ${$('set_time').value} น.${S('LAST_NOTIFY') ? ` • ส่งล่าสุด ${S('LAST_NOTIFY')}` : ''}` : '⚪ ยังปิดอยู่';
+    }
+
+    function saveSettingsUI() {
+      const o = {
+        LINE_CHANNEL_TOKEN: $('set_token').value.trim(), LINE_TARGET_ID: $('set_target').value.trim(),
+        NOTIFY_ENABLED: $('set_enabled').value, NOTIFY_TIME: $('set_time').value || '04:00',
+        WATER_DAYS_NEW: $('set_wnew').value, WATER_DAYS_RATOON: $('set_wrat').value,
+        SPRAY_DAY_MIN: $('set_smin').value, SPRAY_DAY_MAX: $('set_smax').value,
+        CHEM_PRESET_NEW: $('set_cnew').value, CHEM_PRESET_GROW: $('set_cgrow').value,
+        FERT_PRESET_BASE: $('set_fbase').value, FERT_PRESET_RATOON: $('set_frat').value
+      };
+      if (o.NOTIFY_ENABLED === 'เปิด' && !o.LINE_CHANNEL_TOKEN && !S('hasToken')) return alert('ใส่ Channel access token ก่อนเปิดแจ้งเตือนครับ');
+      call('saveSettings', [o], d => { init(d); alert('✅ บันทึกการตั้งค่าแล้ว' + (o.NOTIFY_ENABLED === 'เปิด' ? `\nLINE จะส่งสรุปทุกวันเวลา ${o.NOTIFY_TIME} น.` : '')); }, $('btnSetSave'));
+    }
+    function previewLine() {
+      call('previewBrief', [], t => { const b = $('set_preview'); b.textContent = t; b.style.display = 'block'; }, $('btnPrev'), '⏳ กำลังสร้างตัวอย่าง...');
+    }
+    function testLine() {
+      if (!S('hasToken')) return alert('กด "บันทึกการตั้งค่า" พร้อมโทเคนก่อนครับ');
+      if (!confirm('ส่งข้อความทดสอบเข้า LINE จริง?\n(นับโควตา 1 ข้อความต่อผู้รับ)')) return;
+      call('testNotify', [], r => alert((r.ok ? '✅ ' : '❌ ') + r.msg), $('btnTest'), '⏳ กำลังส่ง LINE...');
+    }
+
+    function modOpt(cat, act, inputId, valToRemove) {
+      let val = act === 'add' ? $(inputId).value.trim() : valToRemove;
+      if (!val) return;
+      if (act === 'remove' && !confirm(`ต้องการลบ "${val}" ออกจากตัวเลือกใช่ไหม?`)) return;
+      call('updateMasterOption', [cat, act, val], d => { if (act === 'add') $(inputId).value = ''; init(d); });
+    }
+
+    const cleanRmk = r => String(r || '').replace('[⏳กำลังทำ]', '').replace('[✅เสร็จสิ้น]', '').trim();
+
+    function fillFormFromLog(log) {
+      selGrp(log.activity_group);
+      document.querySelectorAll('.w-chk').forEach(c => c.checked = (log.operator || '').includes(c.value));
+      $('act_dt').value = beToISO(log.timestamp) || todayISO();
+      $('act_rmk').value = cleanRmk(log.remark);
+      const det = log.activity_detail || '';
+      if (log.activity_group === 'ขึ้นน้ำ') {
+        document.querySelectorAll('.pm-chk').forEach(c => c.checked = (log.equipment || '').includes(c.value));
+        $('water_det').value = det !== '-' ? det : 'ราดร่อง/ขึ้นน้ำ';
+      } else if (log.activity_group === 'รถไถเตรียมดิน/บำรุง') {
+        $('trac_task').value = det.split(' | ')[0];
+        $('act_eq').value = log.equipment;
+        placeFert(); fillFert(det);
+      } else if (log.activity_group === 'ฉีดยา') {
+        document.querySelectorAll('.c-chk').forEach(c => c.checked = det.split('+').map(s => s.trim()).includes(c.value));
+        $('chem_qty').value = (log.quantity || '').replace(' ถัง', '').replace('-', '');
+        chemPreview();
+      } else if (log.activity_group === 'ใส่ปุ๋ย') {
+        $('gen_det').value = det !== '-' ? det.split(' | ')[0] : '';
+        fillFert(det);
+        $('gen_qty').value = (!det.includes(' | ') && log.quantity !== '-') ? log.quantity : '';
+      } else if (log.activity_group === 'ตัดอ้อย') {
+        $('harv_method').value = det.includes('คนตัด') ? 'คนตัด' : 'รถตัดอ้อย';
+        $('harv_burn').value = det.includes('ไฟไหม้') ? 'อ้อยไฟไหม้' : 'อ้อยสด';
+        document.querySelectorAll('.tr-chk').forEach(c => c.checked = (log.equipment || '').includes(c.value));
+        $('harv_qty').value = log.quantity !== '-' ? log.quantity : '';
+      }
+    }
+
+    function resetActForm() {
+      $('edit_log_id').value = '';
+      $('act_rmk').value = ''; $('act_dt').value = todayISO();
+      document.querySelectorAll('.c-chk, .w-chk, .tr-chk, .pm-chk').forEach(c => c.checked = false);
+      document.querySelectorAll('.f-qty').forEach(i => i.value = '');
+      ['chem_qty', 'gen_det', 'gen_qty', 'harv_qty', 'fert_total'].forEach(id => $(id).value = '');
+      $('water_det').value = 'ราดร่อง/ขึ้นน้ำ'; $('trac_task').selectedIndex = 0;
+      $('chem_preview').innerHTML = ''; $('fert_sum').innerText = '';
+    }
+
+    function openAct(pid, pname, mode) {
+      resetActForm();
+      $('act_pid').value = pid;
+      $('actHeader').className = 'modal-header bg-success text-white py-2';
+      if (mode === 'finish') {
+        
+        $('actTitle').innerText = '✅ งานเสร็จ: ' + pname;
+        $('actHeader').className = 'modal-header bg-primary text-white py-2';
+        const og = gData.activities.find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
+        if (og) {
+          fillFormFromLog(og);
+          $('edit_log_id').value = og.log_id;
+          let rm = cleanRmk(og.remark);
+          if (!rm.includes('เริ่ม')) rm = (rm ? rm + ' ' : '') + 'เริ่ม ' + og.timestamp;
+          $('act_rmk').value = rm;
+        } else selGrp('ขึ้นน้ำ');
+        $('act_dt').value = todayISO();
+        $('mode_done').checked = true;
+      } else {
+        $('actTitle').innerText = '📝 บันทึกงานใหม่: ' + pname;
+        $('mode_ongoing').checked = true;
+        selGrp('ขึ้นน้ำ');
+      }
+      bootstrap.Modal.getOrCreateInstance($('actModal')).show();
+    }
+
+    function openEditLog(logId, pname) {
+      let log = gData.activities.find(a => String(a.log_id) === String(logId));
+      if (!log) return;
+      resetActForm();
+      $('act_pid').value = log.plot_id;
+      $('edit_log_id').value = log.log_id;
+      $('actHeader').className = 'modal-header bg-warning text-dark py-2';
+      $('actTitle').innerText = '✏️ แก้ไขงาน: ' + pname;
+      $((log.remark || '').includes('[⏳กำลังทำ]') ? 'mode_ongoing' : 'mode_done').checked = true;
+      fillFormFromLog(log);
+      bootstrap.Modal.getOrCreateInstance($('actModal')).show();
+    }
+
+    function delLog(logId, plotId) {
+      if (!confirm('ลบรายการนี้ใช่ไหม? (ระบบจะย้อนสถานะแปลง และคืนยอดสต็อกให้อัตโนมัติ)')) return;
+      call('deleteActivity', [logId, plotId], init);
+    }
+
+    function selGrp(g) {
+      $('act_grp').value = g;
+      document.querySelectorAll('.grp-btn').forEach(b => b.classList.remove('active'));
+      const map = { 'ขึ้นน้ำ': 'btn_g_water', 'ฉีดยา': 'btn_g_chem', 'รถไถเตรียมดิน/บำรุง': 'btn_g_trac', 'ใส่ปุ๋ย': 'btn_g_fert', 'ตัดอ้อย': 'btn_g_harv' };
+      if (map[g]) $(map[g]).classList.add('active');
+      $('sub_water').style.display = g === 'ขึ้นน้ำ' ? 'block' : 'none';
+      $('sub_trac').style.display = g === 'รถไถเตรียมดิน/บำรุง' ? 'block' : 'none';
+      $('sub_chem').style.display = g === 'ฉีดยา' ? 'block' : 'none';
+      $('sub_gen').style.display = g === 'ใส่ปุ๋ย' ? 'block' : 'none';
+      $('sub_harv').style.display = g === 'ตัดอ้อย' ? 'block' : 'none';
+      placeFert();
+    }
+
+    function submitAct() {
+      let g = $('act_grp').value, det = 'ราดร่อง/ขึ้นน้ำ', eq = '-', qty = '-', usage = [];
+      const fert = collectFert();
+      if (g === 'ขึ้นน้ำ') {
+        det = $('water_det').value || 'ราดร่อง/ขึ้นน้ำ';
+        let pms = []; document.querySelectorAll('.pm-chk:checked').forEach(c => pms.push(c.value));
+        eq = pms.length ? pms.join(', ') : '-';
+      } else if (g === 'รถไถเตรียมดิน/บำรุง') {
+        det = $('trac_task').value; eq = $('act_eq').value;
+        if (det === 'ฝังปุ๋ย' && fert.items.length) { det = `ฝังปุ๋ย | ${fert.str}`; qty = `${fert.total} กระสอบ`; usage = fert.items; }
+      } else if (g === 'ฉีดยา') {
+        let sc = []; document.querySelectorAll('.c-chk:checked').forEach(c => sc.push(c.value));
+        det = sc.length ? sc.join('+') : 'ฉีดยาคุมหญ้า';
+        let q = $('chem_qty').value; qty = q ? q + ' ถัง' : '-';
+        usage = chemUsage();
+      } else if (g === 'ใส่ปุ๋ย') {
+        det = $('gen_det').value || 'บำรุงรักษา';
+        if (fert.items.length) { det = `${det} | ${fert.str}`; qty = `${fert.total} กระสอบ`; usage = fert.items; }
+        else qty = $('gen_qty').value || '-';
+      } else if (g === 'ตัดอ้อย') {
+        det = `${$('harv_method').value} - ${$('harv_burn').value}`;
+        let trs = []; document.querySelectorAll('.tr-chk:checked').forEach(c => trs.push(c.value));
+        eq = trs.length ? trs.join(', ') : '-';
+        qty = $('harv_qty').value || '-';
+      }
+      if (!checkDate($('act_dt').value)) return;
+      let wks = []; document.querySelectorAll('.w-chk:checked').forEach(c => wks.push(c.value));
+
+      call('saveActivities', [{
+        edit_log_id: $('edit_log_id').value, plotIds: [$('act_pid').value], activity_group: g, activity_detail: det,
+        equipment: eq, quantity: qty, operator: wks.length ? wks.join(' + ') : 'ไม่ระบุ',
+        custom_date: isoToBE($('act_dt').value), remark: $('act_rmk').value,
+        is_ongoing: $('mode_ongoing').checked, usage
+      }], d => { hideModal('actModal'); init(d); }, $('btnSaveAct'));
+    }
+
+    function submitRain() {
+      let ids = []; document.querySelectorAll('.p-chk:checked').forEach(c => ids.push(c.value));
+      if (!ids.length) return alert('เลือกอย่างน้อย 1 แปลง');
+      call('saveActivities', [{ plotIds: ids, activity_group: 'ฝนตก', activity_detail: 'น้ำฝนธรรมชาติ', operator: 'ธรรมชาติ', is_ongoing: false }],
+        d => { hideModal('rainModal'); init(d); }, $('btnRain'));
+    }
+  </script>
+</body>
+</html>
+

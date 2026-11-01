@@ -965,6 +965,7 @@ function readBill(images, mime, opts) {
   const today = getTodayStr();
   const shops = readSheet_(ss, 'Expenses').map(e => e.shop).filter((x, i, a) => x && x !== '-' && a.indexOf(x) === i);
 
+  try { if (!(opts.photo_ids || []).length) cleanBillPhotos(24 * 60); } catch (e) {}
   const t0 = Date.now();
   const ids = (opts.photo_ids || []).slice();
   const folder = billFolder_();
@@ -1080,6 +1081,7 @@ function saveBill(b) {
     [6, 8, 11].forEach(c => sh.getRange(rg.getRow(), c + 1, rows.length, 1).setNumberFormat('#,##0.##'));
     rg.setValues(rows.map(r => r.map((v, c) => [6, 8, 11].indexOf(c) !== -1 ? (v === '' ? '' : Number(v)) : String(v === null || v === undefined ? '' : v))));
     if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
+    nameBillPhotos_(b.photo_id, date, shop);
     return readAll_(ss);
   });
 }
@@ -1136,6 +1138,7 @@ function mergeBills(targetId, sourceId) {
     const photos = [t0[12], d[sRows[0]][12]].join(',').split(',').map(x => x.trim()).filter((x, i, a) => x && a.indexOf(x) === i).join(',');
     const txt = (r, c, v) => sh.getRange(r + 1, c + 1).setNumberFormat('@').setValue(v);
     tRows.forEach(r => txt(r, 12, photos));
+    nameBillPhotos_(photos, date, shop);
     sRows.forEach((r, k) => {
       txt(r, 0, targetId + '_' + (tRows.length + k)); txt(r, 1, date); txt(r, 2, targetId); txt(r, 3, shop); txt(r, 12, photos);
     });
@@ -1190,4 +1193,35 @@ function setBillAsset(billId, asset, noStock) {
     }
     return readAll_(ss);
   });
+}
+
+// ตั้งชื่อรูปบิลให้อ่านง่าย: บิล_21-10-2568_ช่างวิท_หน้า1.jpg
+function nameBillPhotos_(photoIds, date, shop) {
+  const ids = String(photoIds || '').split(',').map(x => x.trim()).filter(Boolean);
+  const base = 'บิล_' + String(date || '').replace(/\//g, '-') + '_' + String(shop || '-').replace(/[\\/:*?"<>|]/g, '').slice(0, 30);
+  ids.forEach((id, k) => {
+    try { DriveApp.getFileById(id).setName(base + (ids.length > 1 ? '_หน้า' + (k + 1) : '') + '.jpg'); } catch (e) {}
+  });
+}
+
+// ทิ้งรูปในโฟลเดอร์บิลที่ไม่ได้อยู่ในบิลไหนเลย (อ่านแล้วไม่ได้บันทึก) และเก่ากว่า maxAgeMin นาที
+function cleanBillPhotos(maxAgeMin) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const used = new Set();
+  readSheet_(ss, 'Expenses').forEach(e => String(e.photo_id || '').split(',').forEach(id => { if (id.trim()) used.add(id.trim()); }));
+  const limit = Date.now() - (Number(maxAgeMin) || 60) * 60000;
+  const it = billFolder_().getFiles();
+  let n = 0;
+  while (it.hasNext()) {
+    const f = it.next();
+    if (used.has(f.getId()) || f.getDateCreated().getTime() > limit) continue;
+    f.setTrashed(true); n++;
+  }
+  return n;
+}
+
+function renameAllBillPhotos() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet(), seen = {};
+  readSheet_(ss, 'Expenses').forEach(e => { if (!seen[e.bill_id]) { seen[e.bill_id] = 1; nameBillPhotos_(e.photo_id, e.timestamp, e.shop); } });
+  return Object.keys(seen).length;
 }

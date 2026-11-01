@@ -2,11 +2,13 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- iOS 26: ใช้ default เท่านั้น ห้ามเปลี่ยนเป็น black-translucent (ปุ่มกดเพี้ยน/มีแถบสี) -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="ไร่อ้อย">
-  <meta name="theme-color" content="#1F5E3B">
+  <meta name="theme-color" content="#F4F3EC">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" href="icon.png">
   <title>ไร่อ้อย V8</title>
@@ -54,8 +56,10 @@
       --doing: #1E4FB8; --doing-ink: #183F94; --doing-soft: #E4ECFB;
       --done-soft: #ECEAE2;
     }
-    html, body { background: var(--ground); }
-    body { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif !important; color: var(--ink); padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+    html, body { background: var(--ground); height: 100%; overflow: hidden; overscroll-behavior: none; }
+    /* เลื่อนเฉพาะในกล่อง #app เพื่อไม่ให้ iOS ใส่เงา/เบลอใต้แถบสถานะ */
+    #app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: none; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    body { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif !important; color: var(--ink); padding-bottom: 0 !important; }
     .modal, .modal * { font-family: 'IBM Plex Sans Thai', 'Sarabun', system-ui, sans-serif; }
     .modal-content { border-radius: 20px; border: 0; }
     .modal-header { border-radius: 20px 20px 0 0; }
@@ -169,6 +173,7 @@
   </style>
 </head>
 <body>
+  <div id="app">
   <header class="hd">
     <div class="hd-top">
       <div>
@@ -218,6 +223,7 @@
     <div id="fleet-view" style="display:none;"></div>
     <div id="stock-view" style="display:none;"></div>
     <div id="table-view" style="display:none;" class="table-responsive bg-white p-2 rounded shadow-sm"></div>
+  </div>
   </div>
 
   <nav class="bnav" id="mainTab" aria-label="เมนูหลัก">
@@ -1002,7 +1008,7 @@
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();
       if (t === 'all') $('sec-sub').innerHTML = '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>';
-      if (!keep) window.scrollTo(0, 0);
+      if (!keep) $('app').scrollTo(0, 0);
     }
 
     function goDoing() {

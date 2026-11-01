@@ -269,6 +269,8 @@
     .fm-lbl { background: rgba(255,255,255,.9); border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 0 5px; box-shadow: none; color: #1F2A24; }
     .fm-lbl::before { display: none; }
     #fmPanel { width: 100%; }
+    .leaflet-control-rotate { border: 0 !important; box-shadow: 0 2px 8px rgba(0,0,0,.25) !important; border-radius: 12px !important; }
+    .leaflet-control-rotate a, .leaflet-control-rotate-toggle { width: 44px !important; height: 44px !important; line-height: 44px !important; border-radius: 12px !important; }
     .wx-strip { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: #fff; color: inherit; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
     .wx-ic { font-size: 28px; line-height: 1; }
     .wx-strip .wx-l { flex: 1; min-width: 0; }
@@ -1019,7 +1021,7 @@
         </div>
         <div class="modal-body">
           <div id="rkMap"></div>
-          <div class="rk-hint" id="rkHint">แตะจุดที่เริ่มลงหิน แล้วแตะไล่ตามถนนไปจนสุด จะได้ระยะทาง</div>
+          <div class="rk-hint" id="rkHint" data-x="">แตะจุดที่เริ่มลงหิน แล้วแตะไล่ตามถนนไปจนสุด จะได้ระยะทาง</div>
           <button type="button" class="rk-fab" style="top:62px" id="rkLayerBtn" onclick="rkToggleLayer()">แผนที่ถนน</button>
           <button type="button" class="rk-fab" style="top:108px" onclick="rkGoMe()">ไปที่ฉัน</button>
         </div>
@@ -3204,7 +3206,11 @@
       return new Promise((ok, bad) => {
         const c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(c);
         const j = document.createElement('script'); j.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-        j.onload = ok; j.onerror = () => bad(new Error('โหลดแผนที่ไม่ได้ ตรวจสัญญาณเน็ต')); document.head.appendChild(j);
+        j.onload = () => {   // ปลั๊กอินหมุนแผนที่ (สองนิ้วหมุน + เข็มทิศกดกลับทิศเหนือ) — โหลดไม่ได้ก็ใช้แผนที่ปกติ
+          const r = document.createElement('script'); r.src = 'https://cdn.jsdelivr.net/npm/leaflet-rotate@0.5.2/dist/leaflet-rotate.js';
+          r.onload = ok; r.onerror = ok; document.head.appendChild(r);
+        };
+        j.onerror = () => bad(new Error('โหลดแผนที่ไม่ได้ ตรวจสัญญาณเน็ต')); document.head.appendChild(j);
       });
     }
     const rkLen = pts => pts.reduce((m, p, i) => i ? m + hav(pts[i - 1], p) : 0, 0);
@@ -3221,7 +3227,8 @@
       showM('rockMapModal');
       loadLeaflet().then(() => {
         if (!rkMap) {
-          rkMap = L.map('rkMap', { zoomControl: false, attributionControl: true });
+          rkMap = L.map('rkMap', { zoomControl: false, attributionControl: true, rotate: true, touchRotate: true,
+            rotateControl: { closeOnZeroBearing: false, position: 'bottomleft' } });
           rkSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'ภาพ © Esri' });
           rkStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
           rkSat.addTo(rkMap);
@@ -3428,7 +3435,8 @@
       showM('farmMapModal');
       loadLeaflet().then(() => {
         if (!fmMap) {
-          fmMap = L.map('fmMap', { zoomControl: false });
+          fmMap = L.map('fmMap', { zoomControl: false, rotate: true, touchRotate: true, shiftKeyRotate: true,
+            rotateControl: { closeOnZeroBearing: false, position: 'bottomleft' } });
           fmSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18, attribution: 'ภาพ © Esri' });
           fmStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19, attribution: '© OpenStreetMap' });
           fmSat.addTo(fmMap);

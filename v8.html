@@ -162,6 +162,8 @@
     .rmk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
     .rmk-lbl { font-size: 13px; color: var(--muted); width: 82px; flex-shrink: 0; }
     .rtag { font-size: 14px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line2); background: #fff; }
+    .ltag { font-size: 14px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line2); background: #fff; }
+    .ltag.on { background: var(--doing); border-color: var(--doing); color: #fff; font-weight: 600; }
     .rtag.on { background: var(--green); border-color: var(--green); color: #fff; font-weight: 600; }
     .pc.edge-red { box-shadow: inset 6px 0 0 var(--red); }
     .pc.edge-urg { box-shadow: inset 6px 0 0 var(--urg); }
@@ -485,8 +487,8 @@
           </div>
 
           <div class="row g-2 mb-2">
-            <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt">
-              <div id="act_dt2_wrap"><small class="fw-bold">ถึงวันที่ <span class="fw-normal text-muted">(ถ้าทำหลายวัน)</span></small><input type="date" class="form-control form-control-sm" id="act_dt2"></div></div>
+            <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt" onchange="syncTags()">
+              <div id="act_dt2_wrap"><small class="fw-bold">ถึงวันที่ <span class="fw-normal text-muted">(ถ้าทำหลายวัน)</span></small><input type="date" class="form-control form-control-sm" id="act_dt2" onchange="syncTags()"></div></div>
             <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="act_rmk" placeholder="พิมพ์เพิ่มได้" oninput="syncTags()"></div>
           </div>
           <div class="rmk-row"><span class="rmk-lbl">ทำได้แค่ไหน</span>
@@ -498,6 +500,11 @@
           <div class="rmk-row"><span class="rmk-lbl">คนงาน</span>
             <button type="button" class="rtag" data-g="time" onclick="tglTag(this)">ค้างคืน</button>
             <button type="button" class="rtag" data-g="time" onclick="tglTag(this)">เลิกเที่ยง</button>
+          </div>
+          <div class="rmk-row" id="last_row" style="display:none"><span class="rmk-lbl" id="last_lbl">วันสุดท้าย</span>
+            <button type="button" class="ltag" data-v="half" onclick="setLast(this)">เลิกเที่ยง กลับบ้าน</button>
+            <button type="button" class="ltag" data-v="full" onclick="setLast(this)">ทำเต็มวัน กลับบ้าน</button>
+            <button type="button" class="ltag" data-v="stay" onclick="setLast(this)">ค้างต่อ (ไปแปลงอื่น)</button>
           </div>
           <div class="small text-muted">กดอีกครั้งเพื่อเอาออก · เลือกได้กลุ่มละ 1</div>
         </div>
@@ -908,6 +915,20 @@
     function syncTags() {
       const v = ' ' + $('act_rmk').value.replace(/\s+/g, ' ') + ' ';
       document.querySelectorAll('.rtag').forEach(b => b.classList.toggle('on', v.includes(' ' + b.textContent.trim() + ' ')));
+      // ทำหลายวัน + ค้างคืน: ถามว่าวันสุดท้ายกลับยังไง (คืนสุดท้ายไม่ได้ค้าง ถ้ากลับบ้าน)
+      const d1 = $('act_dt').value, d2 = $('act_dt2').value;
+      const show = !$('edit_log_id').value && d2 && d2 > d1 && v.includes(' ค้างคืน ');
+      $('last_row').style.display = show ? '' : 'none';
+      if (show) $('last_lbl').textContent = 'วันสุดท้าย ' + thDate(d2).replace(/ \d+$/, '');
+      document.querySelectorAll('.ltag').forEach(b => b.classList.toggle('on', b.dataset.v === lastMode));
+    }
+    let lastMode = 'half';
+    function setLast(btn) { lastMode = btn.dataset.v; syncTags(); }
+    // หมายเหตุของแต่ละวัน: ค้างคืนทุกวัน ยกเว้นวันสุดท้ายตามที่เลือก
+    function dayRmk(base, isLast) {
+      if (!(' ' + base + ' ').includes(' ค้างคืน ') || !isLast || lastMode === 'stay') return base;
+      const b = (' ' + base + ' ').split(' ค้างคืน ').join(' ').replace(/\s+/g, ' ').trim();
+      return lastMode === 'half' ? (b ? b + ' เลิกเที่ยง' : 'เลิกเที่ยง') : b;
     }
 
     function checkDate(iso) {
@@ -1979,7 +2000,7 @@
 
     function resetActForm() {
       $('edit_log_id').value = '';
-      $('act_rmk').value = ''; $('act_dt').value = todayISO(); $('act_dt2').value = ''; $('act_dt2_wrap').style.display = ''; syncTags();
+      $('act_rmk').value = ''; $('act_dt').value = todayISO(); $('act_dt2').value = ''; lastMode = 'half'; $('act_dt2_wrap').style.display = ''; syncTags();
       document.querySelectorAll('.c-chk, .w-chk, .tr-chk, .pm-chk').forEach(c => c.checked = false);
       document.querySelectorAll('.f-qty').forEach(i => i.value = '');
       ['chem_qty', 'gen_det', 'gen_qty', 'harv_qty', 'fert_total'].forEach(id => $(id).value = '');
@@ -2090,14 +2111,15 @@
         if (!checkDate(d2)) return;
         const rng = `${thDate(d1)}–${thDate(d2)}`;
         const pl = (gData.plots || []).find(x => x.plot_id === $('act_pid').value);
-        const msg = `${g} · ${pl ? pl.plot_name : ''}\n${rng} (${days.length} วัน)\nคน: ${wks.length ? wks.join(', ') : 'ไม่ระบุ'}${base.is_ongoing ? '\nสถานะ: ยังไม่เสร็จ' : ''}\n\nถูกต้องไหม?`;
+        const perDay = days.map((d, k) => { const r = dayRmk(base.remark, k === days.length - 1); const tg = wsTags(r); return `${thDate(d).replace(/ \d+$/, '')}${tg.length ? ' ' + tg.join(' ') : ''}`; }).join('\n');
+        const msg = `${g} · ${pl ? pl.plot_name : ''}\nคน: ${wks.length ? wks.join(', ') : 'ไม่ระบุ'}\n\n${perDay}${base.is_ongoing ? '\n\nสถานะ: ยังไม่เสร็จ' : ''}\n\nถูกต้องไหม?`;
         if (!confirm(msg)) return;
         const btn = $('btnSaveAct'); let i = 0;
         const next = d => {
           if (i >= days.length) { hideModal('actModal'); init(d); return; }
           const first = i === 0, last = i === days.length - 1, day = days[i++];
           const p = { ...base, custom_date: isoToBE(day), is_ongoing: last ? base.is_ongoing : false,
-            remark: `${base.remark ? base.remark + ' ' : ''}(ช่วง ${rng} วันที่ ${i}/${days.length})`,
+            remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${i}/${days.length})`)(dayRmk(base.remark, last)),
             quantity: first ? base.quantity : '-', usage: first ? base.usage : undefined };
           call('saveActivities', [p], next, btn, `⏳ กำลังบันทึก ${i}/${days.length} วัน...`);
         };

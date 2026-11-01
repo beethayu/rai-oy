@@ -5,15 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ไร่อ้อย</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ไร่อ้อย">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2e7d32">
 <link rel="apple-touch-icon" href="icon.png">
 <style>
-  html,body{margin:0;height:100%;background:#2e7d32}
-  iframe{border:0;width:100%;height:100%;display:block}
+  html,body{margin:0;padding:0;background:#2e7d32;overflow:hidden;height:100%}
+  iframe{
+    position:fixed;
+    top:env(safe-area-inset-top);
+    left:0;right:0;bottom:0;
+    width:100%;
+    height:calc(100% - env(safe-area-inset-top));
+    border:0;display:block;background:#fff;
+  }
 </style>
 </head>
 <body>
 <iframe src="https://script.google.com/macros/s/AKfycbzWvJ2M0C7ZHQTVTWVCFCh7ugALw9dWws9A52iYEYvpxivqWzRCN22qWa4R6mE5XcZBuA/exec"></iframe>
 </body>
 </html>
+

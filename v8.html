@@ -178,6 +178,24 @@
     .bill-total { font-size: 20px; font-weight: 700; color: #1F5E3B; }
     .exp-cat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #EEF1EF; }
     .exp-bill { display: flex; justify-content: space-between; gap: 8px; padding: 10px 0; border-bottom: 1px solid #EEF1EF; cursor: pointer; }
+    .seg { display: flex; background: #E6EBE7; border-radius: 12px; padding: 4px; gap: 4px; }
+    .seg button { flex: 1; border: 0; background: transparent; color: inherit; font-weight: 600; font-size: 16px; padding: 9px 6px; border-radius: 9px; }
+    .seg button.on { background: #fff; color: #1F5E3B; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .seg-dot { background: #C0392B; color: #fff; border-radius: 999px; font-size: 12px; padding: 1px 7px; margin-left: 4px; }
+    .srow-h { font-weight: 700; color: #1F5E3B; margin: 16px 2px 6px; font-size: 15px; }
+    .srow-box { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; }
+    .srow + .srow { border-top: 1px solid #EEF1EF; }
+    .srow-bad { box-shadow: inset 4px 0 0 #C0392B; }
+    .srow.open { background: #F7FAF8; }
+    .srow-main { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 0; background: transparent; color: inherit; text-align: left; }
+    .srow-l { display: flex; flex-direction: column; min-width: 0; }
+    .srow-n { font-weight: 600; font-size: 16px; }
+    .srow-s { font-size: 13px; color: #6B736E; }
+    .srow-q { font-weight: 700; font-size: 17px; white-space: nowrap; }
+    .srow-zero { color: #9AA39D; font-weight: 600; }
+    .srow-tag { font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-left: 4px; }
+    .srow-tag.bad { background: #FBE3E0; color: #A3271B; }
+    .srow-act { padding: 0 14px 12px; }
     .plan-sec { font-weight: 700; color: #1F5E3B; margin: 14px 0 6px; font-size: 16px; }
     .plan-sec:first-child { margin-top: 0; }
     .plan-it { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #E6EBE7; }
@@ -1259,7 +1277,7 @@
         ? { item: /ส่วนลด/.test(it.item) ? it.item : ('ส่วนลด ' + (it.item || '')).trim(), category: mainCat, qty: 0, unit: '', amount: -Math.abs(num(it.amount)), stock_item: '', stock_qty: 0, asset: '' }
         : { ...it, qty: num(it.qty), amount: num(it.amount), stock_qty: num(it.stock_qty) });
       call('saveBill', [{ date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: clean }],
-        d => { billDraft = null; hideModal('billModal'); init(d); alert('บันทึกบิลแล้ว'); }, $('btnBill'));
+        d => { billDraft = null; stockPane = 'money'; hideModal('billModal'); init(d); alert('บันทึกบิลแล้ว'); }, $('btnBill'));
     }
 
     function cancelBill() {
@@ -1498,7 +1516,7 @@
       $('stock-view').style.display = t === 'stock' ? 'block' : 'none';
       $('table-view').style.display = t === 'table' ? 'block' : 'none';
       $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
-      const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อกปุ๋ยและยา', table: 'ตารางสรุปทุกแปลง' };
+      const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย', table: 'ตารางสรุปทุกแปลง' };
       $('sec-title').innerText = titles[t] || '';
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();
@@ -2056,56 +2074,67 @@
     }
 
     // ================= 📦 สต็อก =================
+    // แท็บสต็อก: แยก 2 หน้า (สต็อก / ค่าใช้จ่าย) + รายการบรรทัดเดียว แตะแล้วค่อยมีปุ่ม
+    let stockPane = 'stock', stockOpenId = '', stockLogOpen = false;
+    function setStockPane(p) { stockPane = p; renderStock(); }
+    function tglStockRow(id) { stockOpenId = stockOpenId === id ? '' : id; renderStock(); }
+    function tglStockLog() { stockLogOpen = !stockLogOpen; renderStock(); }
+
     function renderStock() {
       const inv = gData.inventory || [];
       const bad = inv.filter(it => ['neg', 'low'].includes(stockState(it)));
       const sb = $('s-cnt'); sb.style.display = bad.length ? 'inline-block' : 'none'; sb.innerText = bad.length;
 
-      let html = `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-3" style="font-size:18px;border-radius:14px;" onclick="pickBill()">🧾 ถ่ายรูปบิล ให้ AI ลงให้</button>
-        ${expenseHtml()}
-        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-          <div class="small text-muted">ซื้อของมา → กด <b>📥 รับเข้า</b> | ระบบตัดยอดเองเมื่อบันทึกฉีดยา/ใส่ปุ๋ย แต่จะคลาดจากของจริง ไปดูหน้างานแล้วกด <b>⚖️ นับยอดจริง</b> เป็นระยะ</div>
-          <button class="btn btn-sm btn-success fw-bold text-nowrap" onclick="openItem('')">+ เพิ่มรายการ</button>
+      let html = `<div class="seg mb-3">
+          <button type="button" class="${stockPane === 'stock' ? 'on' : ''}" onclick="setStockPane('stock')">สต็อก${bad.length ? ` <span class="seg-dot">${bad.length}</span>` : ''}</button>
+          <button type="button" class="${stockPane === 'money' ? 'on' : ''}" onclick="setStockPane('money')">ค่าใช้จ่าย / บิล</button>
         </div>`;
-      if (bad.length) html += `<div class="alert alert-danger py-2 small mb-2"><b>⚠️ ต้องเช็ก ${bad.length} รายการ:</b> ${bad.map(it => `${it.name} (${fmtQty(it, num(it.stock))})`).join(', ')}</div>`;
 
-      const card = it => {
-        const st = stockState(it), q = num(it.stock), pt = num(it.per_tank);
-        const cls = (st === 'neg' || st === 'low') ? 'broken' : (st === 'zero' ? 'parked' : '');
-        const badge = { neg: '<span class="badge bg-danger">ติดลบ = ใช้เกินที่รับเข้า</span>', low: '<span class="badge bg-danger">ใกล้หมด</span>', zero: '<span class="badge bg-secondary">ยังไม่มียอด</span>', ok: '<span class="badge bg-success">ปกติ</span>' }[st];
-        const pack = num(it.pack_size) || 1;
-        return `<div class="asset-card ${cls}">
-          <div class="d-flex justify-content-between align-items-start gap-1">
-            <div><span class="fw-bold fs-6">${it.name}</span> ${badge}
-              ${it.note ? `<div class="small text-muted">${it.note}</div>` : ''}</div>
-            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="openItem('${qa(it.item_id)}')">✏️</button>
-          </div>
-          <div class="fs-5 fw-bold mt-1 ${q < 0 ? 'text-danger' : 'text-dark'}">${fmtQty(it, q)}${pt > 0 && q > 0 ? ` <span class="small text-success">≈ ${Math.floor(q / pt)} ถัง</span>` : ''}</div>
-          ${lastCount(it.name)}
-          <div class="small text-muted">${pt > 0 ? `ใช้ ${pt} ${it.unit}/ถัง • ` : ''}${num(it.reorder_point) > 0 ? `เตือนเมื่อเหลือ ≤ ${r1(num(it.reorder_point) / pack)} ${it.pack_name || it.unit}` : 'ยังไม่ตั้งจุดเตือน'}</div>
-          <div class="d-flex gap-1 mt-2">
-            <button class="btn btn-sm btn-success fw-bold flex-fill" onclick="openStock('${qa(it.name)}','in')">📥 รับเข้า</button>
-            <button class="btn btn-sm btn-outline-dark fw-bold flex-fill" onclick="openStock('${qa(it.name)}','set')">⚖️ นับยอดจริง</button>
-          </div>
+      if (stockPane === 'money') {
+        html += `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-3" style="font-size:18px;border-radius:14px;" onclick="pickBill()">🧾 ถ่ายรูปบิล ให้ AI ลงให้</button>${expenseHtml()}`;
+        $('stock-view').innerHTML = html;
+        return;
+      }
+
+      if (bad.length) html += `<div class="alert alert-danger py-2 small mb-2"><b>ต้องเช็ก ${bad.length} รายการ:</b> ${bad.map(it => `${esc(it.name)} (${fmtQty(it, num(it.stock))})`).join(', ')}</div>`;
+
+      const row = it => {
+        const st = stockState(it), q = num(it.stock), pt = num(it.per_tank), open = stockOpenId === it.item_id;
+        const flag = st === 'neg' ? '<span class="srow-tag bad">ติดลบ</span>' : st === 'low' ? '<span class="srow-tag bad">ใกล้หมด</span>' : '';
+        const l = (gData.stockLogs || []).find(x => x.item_name === it.name && String(x.ref_log_id || '').indexOf('⚖') === 0);
+        const sub = l ? `นับล่าสุด ${esc(l.timestamp)}` : '<span style="color:#8A4100">ยังไม่เคยนับ</span>';
+        return `<div class="srow ${st === 'neg' || st === 'low' ? 'srow-bad' : ''} ${open ? 'open' : ''}">
+          <button type="button" class="srow-main" onclick="tglStockRow('${qa(it.item_id)}')">
+            <span class="srow-l"><span class="srow-n">${esc(it.name)} ${flag}</span><span class="srow-s">${sub}</span></span>
+            <span class="srow-q ${q < 0 ? 'text-danger' : q === 0 ? 'srow-zero' : ''}">${fmtQty(it, q)}${pt > 0 && q > 0 ? `<span class="srow-s d-block text-end">≈ ${Math.floor(q / pt)} ถัง</span>` : ''}</span>
+          </button>
+          ${open ? `<div class="srow-act">
+            ${it.note ? `<div class="small text-muted mb-2">${esc(it.note)}${pt > 0 ? ` · ใช้ ${pt} ${esc(it.unit)}/ถัง` : ''}</div>` : ''}
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-success fw-bold flex-fill" onclick="openStock('${qa(it.name)}','in')">📥 รับเข้า</button>
+              <button class="btn btn-sm btn-outline-dark fw-bold flex-fill" onclick="openStock('${qa(it.name)}','set')">⚖️ นับยอดจริง</button>
+              <button class="btn btn-sm btn-outline-secondary" onclick="openItem('${qa(it.item_id)}')">แก้ไข</button>
+            </div></div>` : ''}
         </div>`;
       };
-      [['Chemical', '🧪 ยาฉีด (อัตราต่อถัง 200L)'], ['Fertilizer', '🌱 ปุ๋ย'], ['Fuel', '⛽ น้ำมัน'], ['Other', '📦 อื่นๆ']].forEach(([c, t]) => {
+      [['Chemical', 'ยาฉีด'], ['Fertilizer', 'ปุ๋ย'], ['Fuel', 'น้ำมัน'], ['Other', 'อื่นๆ']].forEach(([c, t]) => {
         const list = inv.filter(it => c === 'Other' ? !['Chemical', 'Fertilizer', 'Fuel'].includes(it.category) : it.category === c);
-        if (list.length) html += `<h6 class="fw-bold mt-3 mb-2">${t}</h6>` + list.map(card).join('');
+        if (list.length) html += `<div class="srow-h">${t}</div><div class="srow-box">${list.map(row).join('')}</div>`;
       });
+      html += `<div class="d-flex gap-2 mt-3">
+          <button class="btn btn-sm btn-outline-success flex-fill" onclick="openItem('')">+ เพิ่มรายการของ</button>
+          <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="tglStockLog()">${stockLogOpen ? 'ซ่อน' : 'ดู'}ความเคลื่อนไหว</button>
+        </div>
+        <div class="small text-muted mt-2">แตะรายการเพื่อ รับเข้า / นับยอดจริง · ระบบตัดยอดเองเมื่อบันทึกฉีดยา/ใส่ปุ๋ย แต่จะคลาดจากของจริง นับหน้างานเป็นระยะ</div>`;
 
-      html += `<div class="bg-white p-3 rounded shadow-sm border mt-3">
-        <h6 class="fw-bold text-dark mb-2">🧾 ความเคลื่อนไหวสต็อก (100 รายการล่าสุด)</h6>
-        <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
-          <table class="table table-sm table-bordered small mb-0">
-            <thead class="table-light"><tr><th>วันที่</th><th>รายการ</th><th>เข้า/ออก</th><th>ที่มา</th></tr></thead>
+      if (stockLogOpen) html += `<div class="bg-white p-2 rounded border mt-2">
+          <table class="table table-sm small mb-0">
             <tbody>${(gData.stockLogs || []).slice(0, 100).map(s => {
               const ch = num(s.change_qty), it = invItem(s.item_name) || { unit: s.unit };
-              const src = s.ref_log_id && !/^[📥⚖]/.test(s.ref_log_id) ? `${s.plot_id} • ${s.note}` : `${s.ref_log_id}${s.note ? ' • ' + s.note : ''}`;
-              return `<tr><td class="fw-bold">${s.timestamp}</td><td>${s.item_name}</td><td class="fw-bold ${ch < 0 ? 'text-danger' : 'text-success'}">${ch > 0 ? '+' : ''}${fmtQty(it, ch)}</td><td>${src}</td></tr>`;
-            }).join('') || '<tr><td colspan="4" class="text-center text-muted">ยังไม่มีความเคลื่อนไหว</td></tr>'}</tbody>
-          </table>
-        </div></div>`;
+              const src = s.ref_log_id && !/^[📥⚖B]/.test(s.ref_log_id) ? `${s.plot_id} • ${s.note}` : (/^B\d/.test(s.ref_log_id) ? s.note : `${s.ref_log_id}${s.note ? ' • ' + s.note : ''}`);
+              return `<tr><td class="text-nowrap">${esc(s.timestamp)}</td><td>${esc(s.item_name)}<div class="text-muted">${esc(src)}</div></td><td class="fw-bold text-end text-nowrap ${ch < 0 ? 'text-danger' : 'text-success'}">${ch > 0 ? '+' : ''}${fmtQty(it, ch)}</td></tr>`;
+            }).join('') || '<tr><td class="text-center text-muted">ยังไม่มีความเคลื่อนไหว</td></tr>'}</tbody>
+          </table></div>`;
       $('stock-view').innerHTML = html;
     }
 

@@ -579,7 +579,7 @@ function saveStockItem(p) {
     if (dup > 0) throw new Error('มีรายการชื่อ "' + p.name + '" อยู่แล้ว');
     let r = p.item_id ? d.findIndex((row, i) => i > 0 && row[h.indexOf('item_id')] === p.item_id) : -1;
     if (r < 1) {
-      const pre = p.category === 'Chemical' ? 'CH_' : (p.category === 'Fertilizer' ? 'FT_' : 'OT_');
+      const pre = { Chemical: 'CH_', Fertilizer: 'FT_', Fuel: 'FU_' }[p.category] || 'OT_';
       r = sh.getLastRow();
       const vals = { item_id: pre + Date.now().toString().slice(-6), stock: 0 };
       h.forEach((k, i) => { if (textCols.includes(k)) sh.getRange(r + 1, i + 1).setNumberFormat('@'); });

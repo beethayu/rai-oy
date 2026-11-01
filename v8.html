@@ -172,6 +172,17 @@
     .chip { font-size: 14px; font-weight: 600; padding: 4px 11px; border-radius: 999px; line-height: 1.35; }
     .chip-new { background: var(--green-soft); color: var(--green-d); }
     .chip-rat { background: #F1E6D6; color: #6B4A1F; }
+    .plan-sec { font-weight: 700; color: #1F5E3B; margin: 14px 0 6px; font-size: 16px; }
+    .plan-sec:first-child { margin-top: 0; }
+    .plan-it { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #E6EBE7; }
+    .plan-it:last-child { border-bottom: 0; }
+    .plan-dot { flex-shrink: 0; font-size: 13px; font-weight: 700; padding: 2px 9px; border-radius: 999px; height: fit-content; white-space: nowrap; }
+    .pd-next { background: #FDE7D2; color: #8A4100; }
+    .pd-wait { background: #E3ECF8; color: #1D4F91; }
+    .pd-later { background: #EEF0EE; color: #4A524D; }
+    .pd-done { background: var(--green-soft); color: var(--green-d); }
+    .plan-t { font-weight: 600; line-height: 1.4; }
+    .plan-n { font-size: 14px; color: #5B635E; margin-top: 2px; line-height: 1.45; }
     .chip-sand { background: #F6EBC9; color: #6E5410; border: 1px dashed #C9A646; }
     .chip-gray { background: var(--done-soft); color: #4A524D; }
     .chip-red { background: var(--red); color: #fff; }
@@ -282,6 +293,7 @@
       <div class="hd-btns">
         <button type="button" class="ibtn ibtn-rain" onclick="showM('rainModal')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
+        <button type="button" class="ibtn ibtn-ghost" onclick="openPlan()">แผน</button>
         <button type="button" class="ibtn ibtn-ghost" onclick="openBatModal()">แบต</button>
         <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="showM('setModal')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
@@ -695,6 +707,18 @@
   </div>
 
   
+  <div class="modal fade" id="planModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
+          <h6 class="modal-title fw-bold">แผนงานที่คุยไว้</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3" id="plan-body">กำลังโหลด…</div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="setModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
@@ -853,7 +877,7 @@
           <div class="row g-2 small">
             <div class="col-6"><label class="fw-bold">หมวด</label>
               <select class="form-select form-select-sm" id="it_cat" onchange="tglItemCat()">
-                <option value="Chemical">🧪 ยาฉีด</option><option value="Fertilizer">🌱 ปุ๋ย</option><option value="Other">📦 อื่นๆ</option>
+                <option value="Chemical">🧪 ยาฉีด</option><option value="Fertilizer">🌱 ปุ๋ย</option><option value="Fuel">⛽ น้ำมัน</option><option value="Other">📦 อื่นๆ</option>
               </select></div>
             <div class="col-6"><label class="fw-bold">ชื่อ (ใช้ตอนบันทึกงาน)</label><input type="text" class="form-control form-control-sm" id="it_name" placeholder="เช่น มหาวงศ์ 21-0-0"></div>
             <div class="col-12"><label class="fw-bold">รายละเอียด</label><input type="text" class="form-control form-control-sm" id="it_note" placeholder="เช่น ไซทรอน มิกซ์ / กระสอบ 50 กก."></div>
@@ -1055,6 +1079,28 @@
       if (wDays >= sMin && wDays <= sMax) return { c: 'urg', t: `หลังน้ำ ${wDays} วัน · ดินหมาด ฉีดยาได้` };
       if (wDays < sMin) return { c: 'blue', t: `เพิ่งให้น้ำ ${wDays} วัน` };
       return { c: 'ok', t: `ให้น้ำ ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
+    }
+
+    // แผนงาน: อ่าน roadmap.json ใน repo เดียวกัน (Claude อัปเดตทุกครั้งที่คุยตกลงกัน)
+    function openPlan() {
+      showM('planModal');
+      const body = $('plan-body');
+      fetch('roadmap.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
+        const LBL = { next: ['pd-next', 'ทำต่อไป'], wait: ['pd-wait', 'รอคุณ'], later: ['pd-later', 'ไว้ทีหลัง'], done: ['pd-done', 'เสร็จแล้ว'] };
+        body.innerHTML = `<div class="small text-muted mb-2">อัปเดต ${esc(j.updated || '')}</div>` + (j.sections || []).map(sec =>
+          `<div class="plan-sec">${esc(sec.title)}</div>` + (sec.items || []).map(it => {
+            const l = LBL[it.status] || LBL.later;
+            return `<div class="plan-it"><span class="plan-dot ${l[0]}">${l[1]}</span><div><div class="plan-t">${esc(it.t)}</div>${it.n ? `<div class="plan-n">${esc(it.n)}</div>` : ''}</div></div>`;
+          }).join('')).join('');
+      }).catch(() => { body.innerHTML = '<div class="text-muted">โหลดแผนงานไม่ได้ ลองใหม่อีกครั้ง</div>'; });
+    }
+
+    // วันที่นับยอดจริงล่าสุดของรายการสต็อก (จาก StockLogs ที่ ref = ⚖️ ปรับยอด)
+    function lastCount(name) {
+      const l = (gData.stockLogs || []).find(s => s.item_name === name && String(s.ref_log_id || '').indexOf('⚖') === 0);
+      if (!l) return '<div class="small fw-bold" style="color:#8A4100;">ยังไม่เคยนับยอดจริง</div>';
+      const d = calcDays(l.timestamp);
+      return `<div class="small text-muted">นับยอดจริงล่าสุด ${esc(l.timestamp)}${d !== null ? ` (${d === 0 ? 'วันนี้' : d + ' วันก่อน'})` : ''}</div>`;
     }
 
     // ป้ายประจำแปลง (คอลัมน์ tags ในชีต Plots คั่นด้วยจุลภาค)
@@ -1753,7 +1799,7 @@
       const sb = $('s-cnt'); sb.style.display = bad.length ? 'inline-block' : 'none'; sb.innerText = bad.length;
 
       let html = `<div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-          <div class="small text-muted">ซื้อของมา → กด <b>📥 รับเข้า</b> | ระบบตัดยอดเองทุกครั้งที่บันทึกงานฉีดยา/ใส่ปุ๋ย</div>
+          <div class="small text-muted">ซื้อของมา → กด <b>📥 รับเข้า</b> | ระบบตัดยอดเองเมื่อบันทึกฉีดยา/ใส่ปุ๋ย แต่จะคลาดจากของจริง ไปดูหน้างานแล้วกด <b>⚖️ นับยอดจริง</b> เป็นระยะ</div>
           <button class="btn btn-sm btn-success fw-bold text-nowrap" onclick="openItem('')">+ เพิ่มรายการ</button>
         </div>`;
       if (bad.length) html += `<div class="alert alert-danger py-2 small mb-2"><b>⚠️ ต้องเช็ก ${bad.length} รายการ:</b> ${bad.map(it => `${it.name} (${fmtQty(it, num(it.stock))})`).join(', ')}</div>`;
@@ -1770,6 +1816,7 @@
             <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="openItem('${qa(it.item_id)}')">✏️</button>
           </div>
           <div class="fs-5 fw-bold mt-1 ${q < 0 ? 'text-danger' : 'text-dark'}">${fmtQty(it, q)}${pt > 0 && q > 0 ? ` <span class="small text-success">≈ ${Math.floor(q / pt)} ถัง</span>` : ''}</div>
+          ${lastCount(it.name)}
           <div class="small text-muted">${pt > 0 ? `ใช้ ${pt} ${it.unit}/ถัง • ` : ''}${num(it.reorder_point) > 0 ? `เตือนเมื่อเหลือ ≤ ${r1(num(it.reorder_point) / pack)} ${it.pack_name || it.unit}` : 'ยังไม่ตั้งจุดเตือน'}</div>
           <div class="d-flex gap-1 mt-2">
             <button class="btn btn-sm btn-success fw-bold flex-fill" onclick="openStock('${qa(it.name)}','in')">📥 รับเข้า</button>
@@ -1777,8 +1824,8 @@
           </div>
         </div>`;
       };
-      [['Chemical', '🧪 ยาฉีด (อัตราต่อถัง 200L)'], ['Fertilizer', '🌱 ปุ๋ย'], ['Other', '📦 อื่นๆ']].forEach(([c, t]) => {
-        const list = inv.filter(it => c === 'Other' ? !['Chemical', 'Fertilizer'].includes(it.category) : it.category === c);
+      [['Chemical', '🧪 ยาฉีด (อัตราต่อถัง 200L)'], ['Fertilizer', '🌱 ปุ๋ย'], ['Fuel', '⛽ น้ำมัน'], ['Other', '📦 อื่นๆ']].forEach(([c, t]) => {
+        const list = inv.filter(it => c === 'Other' ? !['Chemical', 'Fertilizer', 'Fuel'].includes(it.category) : it.category === c);
         if (list.length) html += `<h6 class="fw-bold mt-3 mb-2">${t}</h6>` + list.map(card).join('');
       });
 

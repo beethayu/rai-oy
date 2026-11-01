@@ -2070,7 +2070,9 @@
         if (days.length > 31) return alert('ช่วงวันยาวเกิน 31 วัน');
         if (!checkDate(d2)) return;
         const rng = `${thDate(d1)}–${thDate(d2)}`;
-        if (!confirm(`จะบันทึก ${days.length} วัน (${rng})\nวันละ 1 รายการ คนงานเดิมทุกวัน\nจำนวน/ปุ๋ย/ยา ลงไว้ที่วันแรกวันเดียว\nใช่ไหม?`)) return;
+        const pl = (gData.plots || []).find(x => x.plot_id === $('act_pid').value);
+        const msg = `${g} · ${pl ? pl.plot_name : ''}\n${rng} (${days.length} วัน)\nคน: ${wks.length ? wks.join(', ') : 'ไม่ระบุ'}${base.is_ongoing ? '\nสถานะ: ยังไม่เสร็จ' : ''}\n\nถูกต้องไหม?`;
+        if (!confirm(msg)) return;
         const btn = $('btnSaveAct'); let i = 0;
         const next = d => {
           if (i >= days.length) { hideModal('actModal'); init(d); return; }

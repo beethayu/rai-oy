@@ -1156,7 +1156,24 @@
       }).catch(e => alert(e.message));
     }
 
+    const isDisc = it => it.discount || num(it.amount) < 0 || /ส่วนลด/.test(String(it.item || ''));
+    function discRowHtml(it, i) {
+      return `<div class="bill-row" style="background:#FFF6EE;border-color:#F3C9A3;">
+        <div class="d-flex align-items-center gap-2">
+          <div class="fw-bold" style="color:#B23B1E;white-space:nowrap;">ส่วนลด</div>
+          <div class="input-group input-group-sm flex-fill">
+            <span class="input-group-text fw-bold" style="color:#B23B1E;">−</span>
+            <input type="number" inputmode="decimal" class="form-control fw-bold" style="color:#B23B1E;" value="${Math.abs(num(it.amount)) || ''}" placeholder="0" oninput="billSet(${i},'amount',-Math.abs(num(this.value)))">
+            <span class="input-group-text">บาท</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="billDel(${i})">ลบ</button>
+        </div>
+        <input class="form-control form-control-sm mt-2" value="${esc(String(it.item || '').replace(/^ส่วนลด\s*/, ''))}" placeholder="รายละเอียด เช่น ลดตันละ 100 (ไม่ใส่ก็ได้)" oninput="billSet(${i},'item',('ส่วนลด ' + this.value).trim())">
+      </div>`;
+    }
+
     function billRowHtml(it, i) {
+      if (isDisc(it)) return discRowHtml(it, i);
       const inv = (gData.inventory || []).filter(x => x.category === STOCK_CAT[it.category]);
       const assets = (gData.assets || []).filter(a => a.category !== 'Worker');
       const sIt = invItem(it.stock_item);
@@ -1198,7 +1215,10 @@
             <datalist id="bl_shops">${[...new Set((gData.expenses || []).map(e => e.shop).filter(x => x && x !== '-'))].map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
         </div>
         ${b.items.map(billRowHtml).join('')}
-        <button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="billAdd()">+ เพิ่มรายการ</button>
+        <div class="d-flex gap-2 mb-3">
+          <button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="billAdd()">+ เพิ่มรายการ</button>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="billAdd(true)">+ ส่วนลด</button>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-2"><span class="fw-bold">รวม</span><span class="bill-total" id="bl_sum">${baht(sum)} บาท</span></div>
         <div class="bill-lbl mt-2">หมายเหตุ</div><input class="form-control form-control-sm" id="bl_note" value="${esc(b.note)}">`;
     }
@@ -1211,7 +1231,12 @@
       if (rerender) { billKeep(); renderBill(); }
       else if (k === 'amount') { const sm = billDraft.items.reduce((t, x) => t + num(x.amount), 0); $('bl_sum').innerText = baht(sm) + ' บาท'; $('bl_chk').innerHTML = billChk(billDraft, sm); }
     }
-    function billAdd() { billKeep(); billDraft.items.push({ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }); renderBill(); }
+    function billAdd(disc) {
+      billKeep();
+      billDraft.items.push(disc ? { item: 'ส่วนลด', category: 'อื่นๆ', qty: 0, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '', discount: true }
+        : { item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' });
+      renderBill();
+    }
     function billDel(i) { billKeep(); billDraft.items.splice(i, 1); renderBill(); }
 
     function submitBill() {
@@ -1223,7 +1248,13 @@
       if (!items.length) return alert('ยังไม่มีรายการ');
       const noStock = items.filter(it => it.stock_item && !(num(it.stock_qty) > 0));
       if (noStock.length) return alert('ใส่จำนวนที่รับเข้าสต็อกของ ' + noStock.map(x => x.item).join(', '));
-      call('saveBill', [{ date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: items.map(it => ({ ...it, qty: num(it.qty), amount: num(it.amount), stock_qty: num(it.stock_qty) })) }],
+      const byCat = {};
+      items.filter(it => !isDisc(it)).forEach(it => { byCat[it.category] = (byCat[it.category] || 0) + num(it.amount); });
+      const mainCat = Object.keys(byCat).sort((a, c) => byCat[c] - byCat[a])[0] || 'อื่นๆ';
+      const clean = items.map(it => isDisc(it)
+        ? { item: /ส่วนลด/.test(it.item) ? it.item : ('ส่วนลด ' + (it.item || '')).trim(), category: mainCat, qty: 0, unit: '', amount: -Math.abs(num(it.amount)), stock_item: '', stock_qty: 0, asset: '' }
+        : { ...it, qty: num(it.qty), amount: num(it.amount), stock_qty: num(it.stock_qty) });
+      call('saveBill', [{ date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: clean }],
         d => { billDraft = null; hideModal('billModal'); init(d); alert('บันทึกบิลแล้ว'); }, $('btnBill'));
     }
 

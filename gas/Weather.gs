@@ -93,7 +93,10 @@ function logDailyRain(days) {
   });
 }
 
-function logDailyRainTrigger() { logDailyRain(2); }
+function logDailyRainTrigger() {
+  try { logDailyRain(2); } catch (e) { console.error(e); }
+  try { logSugar_(); } catch (e) { console.error(e); }   // ราคาน้ำตาลโลก (Sugar.gs)
+}
 
 // ตั้งเวลาลงฝนทุกเช้า ~03:30 (ก่อนสรุป LINE) + ลงย้อนหลัง 30 วัน
 function installRainTrigger() {

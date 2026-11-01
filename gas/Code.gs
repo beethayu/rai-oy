@@ -868,6 +868,7 @@ function buildBrief_(ss, s) {
   msg += sec('🔋 รถไม่มีแบต', noBat);
   msg += sec('📦 ของใกล้หมด', low);
   try { msg += wxBrief_(ss); } catch (e) {}
+  try { msg += sugarBrief_(); } catch (e) {}
   if (!water.length && !spray.length && !ongoing.length && !broken.length) msg += '\n✅ วันนี้ไม่มีคิวด่วน\n';
   if (avail) msg += `\nพร้อมใช้: ${avail}`;
   return msg.trim();

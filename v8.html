@@ -213,6 +213,12 @@
     .prow-new { color: var(--green-d); font-weight: 600; }
     .prow-rat { color: #6B4A1F; font-weight: 600; }
     .prow-doing { box-shadow: inset 4px 0 0 #2F5BB7; }
+    .log-head { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-weight: 700; font-size: 17px; }
+    .log-back { border: 1px solid var(--line2); background: #fff; color: inherit; border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+    .log-foot { position: sticky; bottom: 8px; padding-top: 10px; z-index: 5; }
+    .log-foot .btn { border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 17px; }
+    .bnav .fab.active { color: var(--green-d); }
+    .bnav .fab.active span { box-shadow: 0 0 0 4px #CFE3D6, 0 4px 12px rgba(31,94,59,0.35); }
     .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .task-btn { border: 1px solid #DDE3DF; background: #fff; border-radius: 16px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: inherit; }
     .task-btn .ti { font-size: 30px; line-height: 1; }
@@ -223,18 +229,21 @@
     .pk-row + .pk-row { border-top: 1px solid #EEF1EF; }
     .pk-row input { width: 22px; height: 22px; flex-shrink: 0; accent-color: #1F5E3B; }
     .pk-row.on { background: #EEF5F0; }
-    .sec-h { display: flex; justify-content: space-between; align-items: center; margin: 18px 2px 8px; }
+    .sec-h { display: flex; justify-content: space-between; align-items: center; margin: 12px 2px 6px; }
     .sec-h:first-child { margin-top: 4px; }
     .sec-h b { font-size: 17px; }
     .sec-h .n { font-size: 13px; color: #6B736E; font-weight: 500; margin-left: 6px; }
-    .tcard { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+    .tcard { background: #fff; border: 1px solid #E1E6E2; border-radius: 12px; padding: 9px 12px; margin-bottom: 7px; }
     .tcard.watch { border-left: 5px solid #6A3FA0; }
     .tcard.doing { border-left: 5px solid #2F5BB7; }
     .tcard.urg { border-left: 5px solid #C0392B; }
     .tcard-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-    .tcard-n { font-weight: 700; font-size: 17px; line-height: 1.3; }
-    .tcard-s { font-size: 14px; color: #4A524D; margin-top: 3px; line-height: 1.45; }
-    .tcard-m { font-size: 13px; color: #6B736E; margin-top: 2px; }
+    .tcard-n { font-weight: 700; font-size: 16px; line-height: 1.25; }
+    .tcard-s { font-size: 14px; color: #4A524D; margin-top: 1px; line-height: 1.35; }
+    .tcard-m { font-size: 12.5px; color: #6B736E; margin-top: 1px; }
+    .tcard .pq-btns { margin-top: 7px; gap: 6px; }
+    .tcard .pq-btns .bigbtn { min-height: 38px; font-size: 14.5px; border-radius: 10px; }
+    .tcard .pill { font-size: 13px; padding: 2px 9px; }
     .pill-watch { background: #EEE6F8; color: #5A2E8F; }
     .wbtn { border: 1px solid #6A3FA0; color: #5A2E8F; background: #fff; border-radius: 999px; font-weight: 600; font-size: 14px; padding: 4px 12px; }
     .wr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -413,6 +422,19 @@
     </div>
 
     <div id="plot-list"></div>
+    <div id="log-view" style="display:none;">
+      <div class="log-head" id="pickHead" style="display:none">
+        <button type="button" class="log-back" onclick="pickStage('task')">‹ เปลี่ยนงาน</button>
+        <span id="pickTitle"></span>
+      </div>
+      <div id="pickTasks"></div>
+      <div id="pickPlots" style="display:none">
+        <label for="pickQ" class="visually-hidden">ค้นหาแปลง</label>
+        <input id="pickQ" class="pick-q" placeholder="พิมพ์ชื่อหรือรหัสแปลง" oninput="renderPick()">
+        <div id="pickList"></div>
+        <div class="log-foot"><button type="button" class="btn btn-success fw-bold w-100 py-2" id="pickGo" onclick="pickGo()" disabled>เลือกแปลงก่อน</button></div>
+      </div>
+    </div>
     <div id="fleet-view" style="display:none;"></div>
     <div id="stock-view" style="display:none;"></div>
     <div id="table-view" style="display:none;" class="table-responsive bg-white p-2 rounded shadow-sm"></div>
@@ -426,7 +448,7 @@
     <button type="button" class="tab-btn" data-tab="all" onclick="dbg('แตะเมนูล่าง แปลง');switchTab('all')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       แปลง</button>
-    <button type="button" class="fab" onclick="openPick()">
+    <button type="button" class="fab" data-tab="log" onclick="switchTab('log')">
       <span><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
       บันทึกงาน</button>
     <button type="button" class="tab-btn" data-tab="fleet" onclick="switchTab('fleet')">
@@ -436,28 +458,6 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
       สต็อก<span class="nb" id="s-cnt" style="display:none;">0</span></button>
   </nav>
-
-  <div class="modal fade" id="pickModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
-      <div class="modal-content">
-        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
-          <h5 class="modal-title fw-bold d-flex align-items-center gap-2"><button type="button" id="pickBack" class="btn btn-sm btn-light py-0 px-2" style="display:none" onclick="pickStage('task')">‹ กลับ</button><span id="pickTitle">บันทึกงาน: ทำอะไร</span></h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด"></button>
-        </div>
-        <div class="modal-body">
-          <div id="pickTasks"></div>
-          <div id="pickPlots" style="display:none">
-            <label for="pickQ" class="visually-hidden">ค้นหาแปลง</label>
-            <input id="pickQ" class="pick-q" placeholder="พิมพ์ชื่อหรือรหัสแปลง" oninput="renderPick()">
-            <div id="pickList"></div>
-          </div>
-        </div>
-        <div class="modal-footer py-2" id="pickFoot" style="display:none">
-          <button type="button" class="btn btn-success fw-bold w-100 py-2" id="pickGo" onclick="pickGo()" disabled>เลือกแปลงก่อน</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div id="syncToast">⏳ กำลังบันทึก...</div>
 
@@ -1102,6 +1102,7 @@
     let ghostUntil = 0;
     document.addEventListener('hide.bs.modal', e => { ghostUntil = Date.now() + 600; dbg('ปิด ' + (e.target.id || 'หน้าต่าง')); });
     document.addEventListener('show.bs.modal', e => dbg('เปิด ' + (e.target.id || 'หน้าต่าง')));
+    document.addEventListener('hidden.bs.modal', e => { if (e.target.id === 'actModal') pkSavedReset = false; });
     ['click', 'touchend', 'pointerup'].forEach(ev => document.addEventListener(ev, e => {
       if (Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
     }, true));
@@ -1750,7 +1751,7 @@
         tHtml += `<tr><td>${p.plot_id}</td><td><b>${esc(p.plot_name)}</b></td><td>${p.area_rai}</td><td>${p.cane_type}</td><td>${p.last_water_date || '-'}</td><td>${p.status_note !== 'nan' ? esc(p.status_note) : '-'}</td><td>${esc(plain(st.next))}</td><td><button class="btn btn-sm btn-dark py-0" onclick="openDossier('${p.plot_id}')">ดูครบ</button></td></tr>`;
       });
       $('table-view').innerHTML = tHtml + `</tbody></table>`;
-      if ($('pickModal').classList.contains('show')) renderPick();
+      if (curTab === 'log' && pkTask) renderPick();
     }
 
     function switchTab(t, keep) {
@@ -1764,10 +1765,14 @@
       $('plot-list').style.display = plotTab ? 'block' : 'none';
       $('filter-sec').style.setProperty('display', t === 'all' ? 'flex' : 'none', 'important');
       $('fleet-view').style.display = t === 'fleet' ? 'block' : 'none';
+      $('log-view').style.display = t === 'log' ? 'block' : 'none';
+      document.querySelector('#mainTab .fab').classList.toggle('active', t === 'log');
+      document.querySelector('.hd .tiles').style.display = (t === 'urgent' || t === 'log') ? 'none' : '';
+      if (t === 'log') { if (!pkTask) pickStage('task'); else renderPick(); }
       $('stock-view').style.display = t === 'stock' ? 'block' : 'none';
       $('table-view').style.display = t === 'table' ? 'block' : 'none';
       $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
-      const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย', table: 'ตารางสรุปทุกแปลง' };
+      const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย', log: 'บันทึกงาน', table: 'ตารางสรุปทุกแปลง' };
       $('sec-title').innerText = titles[t] || '';
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();
@@ -1793,20 +1798,19 @@
       { k: 'harv', t: 'ตัดอ้อย', i: '🌾', s: 'ตัด / ขนส่ง', g: 'ตัดอ้อย' }
     ];
     let pkTask = null, pkSel = new Set();
-    function openPick() {
-      pkTask = null; pkSel = new Set(); $('pickQ').value = '';
+    function openPick() { pkTask = null; pkSel = new Set(); switchTab('log'); }
+    function renderTasks() {
       $('pickTasks').innerHTML = `<div class="task-grid">${TASKS.map(t => `<button type="button" class="task-btn" onclick="pickTask('${t.k}')"><span class="ti">${t.i}</span><span class="tt">${t.t}</span><span class="ts">${t.s}</span></button>`).join('')}</div>
         <div class="small text-muted mt-3">ฝนตก ใช้ปุ่ม "ฝนตก" ด้านบนของแอป · บันทึกแปลงเดียว แตะแปลงในหน้าแปลงก็ได้</div>`;
-      pickStage('task'); showM('pickModal');
     }
     function pickStage(st) {
-      const plots = st === 'plots';
+      const plots = st === 'plots' && pkTask;
+      if (!plots) { pkTask = null; pkSel = new Set(); renderTasks(); }
       $('pickTasks').style.display = plots ? 'none' : 'block';
       $('pickPlots').style.display = plots ? 'block' : 'none';
-      $('pickFoot').style.display = plots ? 'flex' : 'none';
-      $('pickBack').style.display = plots ? 'inline-block' : 'none';
-      $('pickTitle').innerText = plots ? `${pkTask.t}: เลือกแปลง` : 'บันทึกงาน: ทำอะไร';
-      if (plots) { renderPick(); pkFoot(); }
+      $('pickHead').style.display = plots ? 'flex' : 'none';
+      $('sec-sub').innerText = plots ? '' : 'ทำอะไร';
+      if (plots) { $('pickTitle').innerText = `${pkTask.i} ${pkTask.t}: ติ๊กแปลง`; renderPick(); pkFoot(); $('app').scrollTo(0, 0); }
     }
     function pickTask(k) { pkTask = TASKS.find(t => t.k === k); pkSel = new Set(); $('pickQ').value = ''; pickStage('plots'); }
     function pkToggle(id, on) {
@@ -1849,14 +1853,13 @@
       if (!pkSel.size) return;
       const ids = gData.plots.map(p => p.plot_id).filter(id => pkSel.has(id)), t = pkTask;
       const names = ids.map(id => gData.plots.find(p => p.plot_id === id).plot_name);
-      $('pickModal').addEventListener('hidden.bs.modal', () => {
-        openAct(ids.join(','), ids.length > 1 ? `${ids.length} แปลง (${names.join(', ')})` : names[0], 'new');
-        selGrp(t.g);
-        if (t.det) $('water_det').value = t.det;
-        if (ids.length > 1) $('act_dt2_wrap').style.display = '';
-      }, { once: true });
-      hideModal('pickModal');
+      openAct(ids.join(','), ids.length > 1 ? `${ids.length} แปลง (${names.join(', ')})` : names[0], 'new');
+      selGrp(t.g);
+      if (t.det) $('water_det').value = t.det;
+      pkSavedReset = true; // บันทึกสำเร็จแล้วกลับไปหน้าเลือกงาน
     }
+    let pkSavedReset = false;
+    function pkAfterSave() { if (pkSavedReset) { pkSavedReset = false; pkTask = null; pkSel = new Set(); } }
     function pickPlot(pid) { const p = gData.plots.find(x => x.plot_id === pid); if (p) openAct(pid, p.plot_name, 'new'); }
 
     // ================= V8: เปิดแอป / จำข้อมูลในเครื่อง =================
@@ -2799,7 +2802,7 @@
         if (!confirm(msg)) return;
         const btn = $('btnSaveAct'); let i = 0;
         const next = d => {
-          if (i >= days.length) { hideModal('actModal'); init(d); return; }
+          if (i >= days.length) { hideModal('actModal'); pkAfterSave(); init(d); return; }
           const first = i === 0, last = i === days.length - 1, day = days[i++];
           const p = { ...base, custom_date: isoToBE(day), is_ongoing: last ? base.is_ongoing : false,
             remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${i}/${days.length})`)(dayRmk(base.remark, last)),
@@ -2808,7 +2811,7 @@
         };
         return next();
       }
-      call('saveActivities', [base], d => { hideModal('actModal'); init(d); }, $('btnSaveAct'));
+      call('saveActivities', [base], d => { hideModal('actModal'); pkAfterSave(); init(d); }, $('btnSaveAct'));
     }
 
     function submitRain() {

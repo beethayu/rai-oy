@@ -481,7 +481,8 @@
           </div>
 
           <div class="row g-2 mb-2">
-            <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt"></div>
+            <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt">
+              <div id="act_dt2_wrap"><small class="fw-bold">ถึงวันที่ <span class="fw-normal text-muted">(ถ้าทำหลายวัน)</span></small><input type="date" class="form-control form-control-sm" id="act_dt2"></div></div>
             <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="act_rmk" placeholder="เช่น ล็อก 1, ครึ่งแปลง"></div>
           </div>
           <div class="d-flex gap-1 flex-wrap">
@@ -1959,7 +1960,7 @@
 
     function resetActForm() {
       $('edit_log_id').value = '';
-      $('act_rmk').value = ''; $('act_dt').value = todayISO();
+      $('act_rmk').value = ''; $('act_dt').value = todayISO(); $('act_dt2').value = ''; $('act_dt2_wrap').style.display = '';
       document.querySelectorAll('.c-chk, .w-chk, .tr-chk, .pm-chk').forEach(c => c.checked = false);
       document.querySelectorAll('.f-qty').forEach(i => i.value = '');
       ['chem_qty', 'gen_det', 'gen_qty', 'harv_qty', 'fert_total'].forEach(id => $(id).value = '');
@@ -1979,6 +1980,7 @@
         if (og) {
           fillFormFromLog(og);
           $('edit_log_id').value = og.log_id;
+          $('act_dt2_wrap').style.display = 'none';
           let rm = cleanRmk(og.remark);
           if (!rm.includes('เริ่ม')) rm = (rm ? rm + ' ' : '') + 'เริ่ม ' + og.timestamp;
           $('act_rmk').value = rm;
@@ -1999,6 +2001,7 @@
       resetActForm();
       $('act_pid').value = log.plot_id;
       $('edit_log_id').value = log.log_id;
+      $('act_dt2_wrap').style.display = 'none';
       $('actHeader').className = 'modal-header bg-warning text-dark py-2';
       $('actTitle').innerText = '✏️ แก้ไขงาน: ' + pname;
       $((log.remark || '').includes('[⏳กำลังทำ]') ? 'mode_ongoing' : 'mode_done').checked = true;
@@ -2052,12 +2055,34 @@
       if (!checkDate($('act_dt').value)) return;
       let wks = []; document.querySelectorAll('.w-chk:checked').forEach(c => wks.push(c.value));
 
-      call('saveActivities', [{
+      const base = {
         edit_log_id: $('edit_log_id').value, plotIds: [$('act_pid').value], activity_group: g, activity_detail: det,
         equipment: eq, quantity: qty, operator: wks.length ? wks.join(' + ') : 'ไม่ระบุ',
         custom_date: isoToBE($('act_dt').value), remark: $('act_rmk').value,
         is_ongoing: $('mode_ongoing').checked, usage
-      }], d => { hideModal('actModal'); init(d); }, $('btnSaveAct'));
+      };
+      // ทำหลายวัน (เช่น โทรถามงานแล้วลงย้อนหลัง): บันทึกแยกวันละ 1 รายการ ให้สรุปงานคนงานนับวันถูก
+      const d1 = $('act_dt').value, d2 = $('act_dt2').value;
+      if (!base.edit_log_id && d2 && d2 > d1) {
+        const days = []; for (let t = new Date(d1 + 'T00:00:00'); ; t.setDate(t.getDate() + 1)) {
+          const iso = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; if (iso > d2) break; days.push(iso);
+        }
+        if (days.length > 31) return alert('ช่วงวันยาวเกิน 31 วัน');
+        if (!checkDate(d2)) return;
+        const rng = `${thDate(d1)}–${thDate(d2)}`;
+        if (!confirm(`จะบันทึก ${days.length} วัน (${rng})\nวันละ 1 รายการ คนงานเดิมทุกวัน\nจำนวน/ปุ๋ย/ยา ลงไว้ที่วันแรกวันเดียว\nใช่ไหม?`)) return;
+        const btn = $('btnSaveAct'); let i = 0;
+        const next = d => {
+          if (i >= days.length) { hideModal('actModal'); init(d); return; }
+          const first = i === 0, last = i === days.length - 1, day = days[i++];
+          const p = { ...base, custom_date: isoToBE(day), is_ongoing: last ? base.is_ongoing : false,
+            remark: `${base.remark ? base.remark + ' ' : ''}(ช่วง ${rng} วันที่ ${i}/${days.length})`,
+            quantity: first ? base.quantity : '-', usage: first ? base.usage : undefined };
+          call('saveActivities', [p], next, btn, `⏳ กำลังบันทึก ${i}/${days.length} วัน...`);
+        };
+        return next();
+      }
+      call('saveActivities', [base], d => { hideModal('actModal'); init(d); }, $('btnSaveAct'));
     }
 
     function submitRain() {

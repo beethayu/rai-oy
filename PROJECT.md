@@ -50,6 +50,21 @@
   saveBill ใช้ writeBill_ ร่วมกัน. แถวส่วนลดตอนบันทึกได้หมวด = หมวดหลักของบิล (เก็บ qty/unit เดิมไว้)
 - สต็อกมีหมวด Fuel (⛽ น้ำมัน: ดีเซล เบนซิน น้ำมันเครื่อง ไฮดรอลิก หน่วยลิตร) + การ์ดบอกวันนับยอดจริงล่าสุด
 
+== งานหินคลุก (2 พ.ย. 69) — งานนอกเดือน 11 ==
+- สมาคมไร่อ้อยให้โควต้าหินคลุก ลงทางเข้าไร่สมาชิกที่ฝนตกแล้วเละ ผู้ใช้ให้คนงานขับสิบล้อไปเอาหิน (ท่าทราย ฯลฯ) ไปลง
+  ปัญหาเดิม: สมาชิก 1 คนหลายจุด, หมุด Google Maps พาไปไม่ถึง (ทางทุรกันดาร), รูปปนกัน, ทำ before/after เสียเวลาหารูป
+- ผู้ใช้เลือก: รูปคู่ส่ง LINE / นับเที่ยว / นำทางด้วยจุด Google Maps (ไม่อัดเส้นทาง เพราะต้องเปิดแอปค้าง)
+- v8: แท็บ รถ/คน → seg "หินคลุก" (fleetPane 'rock', rockPaneHtml จัดกลุ่มตามสมาชิก) + แถวสรุปท้ายหน้าวันนี้ (goRock)
+  หน้าจุด rockModal (renderRock): ข้อมูล/ทางไป, พิกัด A ต้นทาง B ปลายทาง (ปักตรงนี้ = geolocation, วางลิงก์ = resolveMapLink, ปุ่มนำทาง = maps dir),
+  รูปก่อน/หลัง (rockFile → shrinkImage 1600 + rockThumb 240 → addRockPhoto ทีละรูป), แตะรูป = ใช้ทำรูปคู่/ดูเต็ม/ลบ,
+  รูปคู่ rockMakePair (canvas ซ้ายก่อน ขวาหลัง หัวเขียวชื่อสมาชิก/จุด/ระยะ/เที่ยว) → rockPairModal → navigator.share
+  เที่ยว: วันที่ กี่เที่ยว คนขับ สิบล้อ → workSumData นับคนขับเป็นวันทำงาน "ขนหินคลุก"
+- GAS gas/Rock.gs: ชีต RockPoints (point_id, member, phone, name, start/end lat/lng, dist_m, quota, note, status รอลง/กำลังลง/ลงเสร็จ, pair_before/after)
+  RockLogs (type before/after/trip, file_id, lat/lng, truck, driver, trips, thumb base64 เล็ก) — readAll_ ส่ง rockLogs ไม่มี thumb (has_thumb) ดึงด้วย rockThumbs(pointId)
+  saveRockPoint(p) เพิ่ม/แก้ (ส่งบางช่องได้) / deleteRockPoint / addRockPhoto(id, stage, b64, {thumb,lat,lng}) รูปแรกก่อนลงปักต้นทางให้ถ้ายังไม่มี
+  addRockTrip (รอลง→กำลังลง) / deleteRockLog / setRockPair / rockPhotos(logIds) รูปเต็ม / resolveMapLink(ลิงก์สั้น maps.app.goo.gl ได้)
+  Drive: โฟลเดอร์ "หินคลุก ไร่อ้อย" (ROCK_FOLDER_ID) / โฟลเดอร์ย่อยชื่อสมาชิก
+
 == หน้าตา v8 (2 พ.ย. 69 รอบดึก) ==
 - วันนี้ = todayHtml บรรทัดเดียวแบบหน้าแปลง (srow) แตะแล้วมีปุ่ม (todayOpen) ผู้ใช้ชอบแบบนี้; ปุ่มบันทึกงานตรงกลางเป็น tab-btn ธรรมดา (ไม่ใช่ fab ใหญ่) ซ่อน .tiles บนหัวในแท็บวันนี้/บันทึกงาน; dbg() จดเหตุการณ์ดูท้ายหน้าแผน
 - (เดิม) วันนี้ = การ์ดใหญ่ (plotCard) / แปลง = plotListHtml บรรทัดเดียว จัดกลุ่มตามสถานที่ (plotLoc ตัดวงเล็บ+เลขท้าย)

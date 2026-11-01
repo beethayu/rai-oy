@@ -172,6 +172,7 @@
     .chip { font-size: 14px; font-weight: 600; padding: 4px 11px; border-radius: 999px; line-height: 1.35; }
     .chip-new { background: var(--green-soft); color: var(--green-d); }
     .chip-rat { background: #F1E6D6; color: #6B4A1F; }
+    .chip-sand { background: #F6EBC9; color: #6E5410; border: 1px dashed #C9A646; }
     .chip-gray { background: var(--done-soft); color: #4A524D; }
     .chip-red { background: var(--red); color: #fff; }
     .chip-urg { background: var(--urg-soft); color: var(--urg-ink); }
@@ -1056,6 +1057,15 @@
       return { c: 'ok', t: `ให้น้ำ ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
     }
 
+    // ป้ายประจำแปลง (คอลัมน์ tags ในชีต Plots คั่นด้วยจุลภาค)
+    const TAG_SAND = 'ดินทราย';
+    function plotTags(p) { return String((p && p.tags) || '').split(',').map(x => x.trim()).filter(Boolean); }
+    function tagChips(p) {
+      return plotTags(p).map(t => t === TAG_SAND
+        ? '<span class="chip chip-sand">ดินทราย แห้งง่าย</span>'
+        : `<span class="chip chip-gray">${esc(t)}</span>`).join('');
+    }
+
     function plotCard(p, st, logs) {
       const kd = kindOf(st);
       const pDays = calcDays(p.plant_date), wDays = calcDays(p.last_water_date);
@@ -1064,7 +1074,7 @@
       const wc = waterChip(p, st, pDays, wDays);
       const isNew = p.cane_type === 'อ้อยใหม่';
       const ageTxt = pDays === null ? (isNew ? 'ยังไม่ปลูก' : 'ไม่รู้อายุ') : `${Math.floor(pDays / 30)} ด. ${pDays % 30} ว.`;
-      const chips = `<span class="chip ${isNew ? 'chip-new' : 'chip-rat'}">${isNew ? 'อ้อยใหม่' : 'อ้อยตอ'} · ${ageTxt}</span>` + (wc ? `<span class="chip chip-${wc.c}">${wc.t}</span>` : '');
+      const chips = `<span class="chip ${isNew ? 'chip-new' : 'chip-rat'}">${isNew ? 'อ้อยใหม่' : 'อ้อยตอ'} · ${ageTxt}</span>` + (wc ? `<span class="chip chip-${wc.c}">${wc.t}</span>` : '') + tagChips(p);
       const edge = st.isOngoing ? 'edge-doing' : (wc && wc.c === 'red') ? 'edge-red' : (wc && wc.c === 'urg') ? 'edge-urg' : '';
 
       let note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')) : '';
@@ -1295,6 +1305,10 @@
               </select></div>
             <div class="col-6 col-md-2"><label class="fw-bold">พันธุ์อ้อย:</label><input type="text" class="form-control form-control-sm" id="dp_var" value="${p.cane_variety && p.cane_variety !== 'nan' ? p.cane_variety : 'ขอนแก่น 3'}"></div>
             <div class="col-12 col-md-3"><label class="fw-bold">วันปลูก / วันเริ่มบำรุงตอ:</label><input type="date" class="form-control form-control-sm" id="dp_date" value="${beToISO(p.plant_date)}"></div>
+            <div class="col-12"><label class="d-flex align-items-center gap-2 fw-bold" style="cursor:pointer;">
+              <input type="checkbox" class="form-check-input m-0" id="dp_sand" ${plotTags(p).includes(TAG_SAND) ? 'checked' : ''}>
+              <span class="chip chip-sand">ดินทราย แห้งง่าย</span>
+              <span class="text-muted fw-normal">(ป้ายบอกเฉย ๆ ไม่เปลี่ยนคิวน้ำ)</span></label></div>
           </div>
         </div>
 
@@ -1356,6 +1370,10 @@
         plot_id: pid, plot_name: $('dp_name').value.trim(), area_rai: $('dp_rai').value.trim(),
         cane_type: $('dp_type').value, cane_variety: $('dp_var').value.trim(), plant_date: isoToBE($('dp_date').value)
       };
+      const p0 = (gData.plots || []).find(x => x.plot_id === pid);
+      const tags = plotTags(p0).filter(t => t !== TAG_SAND);
+      if ($('dp_sand') && $('dp_sand').checked) tags.push(TAG_SAND);
+      payload.tags = tags.join(',');
       call('updatePlotInfo', [payload], d => { init(d); openDossier(pid); alert('บันทึกข้อมูลประจำแปลงเรียบร้อย!'); }, $('btnPlotSave'));
     }
 

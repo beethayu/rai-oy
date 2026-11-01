@@ -303,9 +303,53 @@ function updatePlotInfo(payload) {
       if (data[i][0] === payload.plot_id) {
         sh.getRange(i + 1, 6).setNumberFormat('@');
         sh.getRange(i + 1, 2, 1, 5).setValues([[payload.plot_name, payload.area_rai, payload.cane_type, payload.cane_variety, payload.plant_date]]);
+        if (payload.tags !== undefined) {
+          const c = plotTagCol_(sh);
+          sh.getRange(i + 1, c).setNumberFormat('@').setValue(cleanTags_(payload.tags));
+        }
         break;
       }
     }
+    return readAll_(ss);
+  });
+}
+
+// ป้ายประจำแปลง (คอลัมน์ tags ในชีต Plots คั่นด้วยจุลภาค เช่น "ดินทราย") — สร้างคอลัมน์ให้เองถ้ายังไม่มี
+function plotTagCol_(sh) {
+  const lastCol = Math.max(sh.getLastColumn(), 1);
+  const head = sh.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
+  const i = head.indexOf('tags');
+  if (i !== -1) return i + 1;
+  let c = head.length;
+  while (c > 0 && head[c - 1] === '') c--;
+  sh.getRange(1, c + 1).setValue('tags').setFontWeight('bold');
+  return c + 1;
+}
+
+function cleanTags_(t) {
+  const arr = Array.isArray(t) ? t : String(t || '').split(',');
+  return arr.map(x => String(x).trim()).filter((x, i, a) => x && a.indexOf(x) === i).join(',');
+}
+
+// ติด/เอาป้ายออกหลายแปลงในครั้งเดียว: setPlotTags(['P01','P02'], 'ดินทราย', true)
+function setPlotTags(plotIds, tag, on) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName(SH.PLOTS);
+    const c = plotTagCol_(sh);
+    const d = sh.getDataRange().getDisplayValues();
+    const want = new Set(plotIds || []);
+    const t = String(tag || '').trim();
+    if (!t) throw new Error('ไม่ได้ระบุป้าย');
+    const out = d.slice(1).map(r => {
+      const cur = cleanTags_(r[c - 1] || '').split(',').filter(Boolean);
+      if (!want.has(r[0])) return [r[c - 1] || ''];
+      const has = cur.indexOf(t) !== -1;
+      if (on !== false && !has) cur.push(t);
+      if (on === false && has) cur.splice(cur.indexOf(t), 1);
+      return [cur.join(',')];
+    });
+    if (out.length) sh.getRange(2, c, out.length, 1).setNumberFormat('@').setValues(out);
     return readAll_(ss);
   });
 }

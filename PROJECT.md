@@ -70,6 +70,18 @@
   addRockTrip (รอลง→กำลังลง) / deleteRockLog / setRockPair / rockPhotos(logIds) รูปเต็ม / resolveMapLink(ลิงก์สั้น maps.app.goo.gl ได้)
   Drive: โฟลเดอร์ "หินคลุก ไร่อ้อย" (ROCK_FOLDER_ID) / โฟลเดอร์ย่อยชื่อสมาชิก
 
+== พยากรณ์อากาศ (2 พ.ย. 69 02:40) ==
+- Open-Meteo (ฟรี ไม่มีรหัส) หน้าเว็บเรียกตรง api.open-meteo.com (สำรอง: GAS weatherForecast) cache localStorage raioy_wx 45 นาที
+  จุด = เฉลี่ย center ของแปลงที่วาดขอบ จัดกลุ่มตาม plotLoc (wxLocs) · ไม่มีขอบเลย → Settings WX_LAT/WX_LNG (wxUseMyLoc → setWxHome)
+- หน้าวันนี้: wxStripHtml (วันนี้ฝน %/มม. ลม/กระโชก + ช่วงฉีดยาได้) แตะ → wxModal 7 วัน แตะวัน = รายชั่วโมง 05–20 น., ฝน 7 วันย้อนหลังจาก RainLog
+  ฉีดยาได้ (wxSpray): 06–18 น. ลม ≤ 10 กระโชก ≤ 20 กม./ชม. และ 4 ชม.ข้างหน้าโอกาสฝน ≤ 30% ฝนรวม < 0.3 มม. (อย่างน้อย 2 ชม.ติด)
+- ฝนเมื่อวาน ≥ 10 มม. (RainLog หรือ past_days) → การ์ดถาม "ตกจริง · เลือกแปลง" เปิดหน้าฝนตกพร้อมวันที่เมื่อวาน + ติ๊กแปลงที่ยังไม่ลง / "ไม่ตก" จำใน raioy_rainask
+  ผู้ใช้ยังไม่ได้ตอบว่าจะให้ลงอัตโนมัติไหม → ใช้แบบถามก่อน (ค่าโมเดล ฝนเป็นหย่อม ๆ คลาดได้)
+- หน้าฝนตกมีช่องวันที่ (openRain(ids, iso, note) → saveActivities custom_date + remark)
+- GAS gas/Weather.gs: wxPoints_, wxFetch_, logDailyRain(days) upsert ชีต RainLog (timestamp, loc, rain_mm, rain_hours, wind_max, gust_max),
+  trigger logDailyRainTrigger ทุกวัน ~03:30 (ติดตั้งแล้วด้วย installRainTrigger 2 พ.ย.), setWxHome ลงย้อนหลัง 30 วันถ้า RainLog ว่าง,
+  wxBrief_ ต่อท้ายสรุป LINE ตอนเช้า (ฝนเมื่อวาน + วันนี้), readAll_ มี rainLog (400 แถวล่าสุด)
+
 == แผนที่ไร่ (2 พ.ย. 69 02:20) ==
 - ผู้ใช้อยากลากขอบแปลงในแผนที่ (แปลงห่างกันไม่เกิน 10–15 กม.) + ช่องค้นหาสถานที่ + เผื่อไปเช่าไร่เพิ่ม ได้รู้ขนาดและจำได้
 - v8: ปุ่ม "แผนที่ไร่" บนแท็บแปลง (farmBtnHtml) + ปุ่มในหน้าดูแปลง → farmMapModal (openFarmMap(pid, edit))

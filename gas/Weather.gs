@@ -55,6 +55,7 @@ function setWxHome(lat, lng) {
   if (!Number(lat) || !Number(lng)) throw new Error('พิกัดไม่ถูก');
   setSetting_(ss, 'WX_LAT', Number(lat).toFixed(4));
   setSetting_(ss, 'WX_LNG', Number(lng).toFixed(4));
+  try { if (readSheet_(ss, 'RainLog').length === 0) logDailyRain(30); } catch (e) {}
   return true;
 }
 

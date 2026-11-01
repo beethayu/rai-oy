@@ -269,6 +269,26 @@
     .fm-lbl { background: rgba(255,255,255,.9); border: 0; border-radius: 6px; font-weight: 700; font-size: 12px; padding: 0 5px; box-shadow: none; color: #1F2A24; }
     .fm-lbl::before { display: none; }
     #fmPanel { width: 100%; }
+    .wx-strip { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: #fff; color: inherit; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
+    .wx-ic { font-size: 28px; line-height: 1; }
+    .wx-strip .wx-l { flex: 1; min-width: 0; }
+    .wx-strip b { font-size: 16px; }
+    .wx-ok { color: #1F5E3B; font-weight: 600; }
+    .wx-no { color: #8A4100; font-weight: 600; }
+    .wx-day { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: transparent; color: inherit; text-align: left; padding: 10px 14px; }
+    .wx-day + .wx-day, .wx-hr + .wx-day { border-top: 1px solid #EEF1EF; }
+    .wx-dn { width: 58px; flex-shrink: 0; font-weight: 700; line-height: 1.2; }
+    .wx-dn small { display: block; font-weight: 500; color: #6B736E; font-size: 12px; }
+    .wx-bar { height: 8px; border-radius: 4px; background: #E6EBE7; overflow: hidden; margin-top: 4px; }
+    .wx-bar i { display: block; height: 100%; background: #3B82C4; }
+    .wx-wind { width: 92px; flex-shrink: 0; text-align: right; font-size: 13px; color: #3E4742; }
+    .wx-wind b { font-size: 15px; color: #1F2A24; }
+    .wx-arr { display: inline-block; font-weight: 700; color: #1F5E3B; }
+    .wx-hr { background: #F7FAF8; padding: 6px 14px 10px; font-size: 13.5px; }
+    .wx-hrow { display: grid; grid-template-columns: 46px 1fr 1fr; gap: 6px; padding: 3px 0; }
+    .wx-hrow + .wx-hrow { border-top: 1px dashed #E1E6E2; }
+    .wx-spray { display: inline-block; background: #E3F1E7; color: #1F5E3B; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; font-weight: 700; margin: 2px 4px 2px 0; }
+    .wx-rain-card { background: #EAF2FB; border: 1px solid #C9DDF3; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
     .rk-trip { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; font-size: 14px; }
     .rk-trip + .rk-trip { border-top: 1px solid #EEF1EF; }
     .rk-x { border: 0; background: transparent; color: #A3271B; font-size: 13px; font-weight: 600; padding: 2px 4px; }
@@ -425,7 +445,7 @@
         <div class="hd-rai" id="sub-info">กำลังโหลด…</div>
       </div>
       <div class="hd-btns">
-        <button type="button" class="ibtn ibtn-rain" onclick="showM('rainModal')">
+        <button type="button" class="ibtn ibtn-rain" onclick="openRain()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
         <button type="button" class="ibtn ibtn-ghost" onclick="openPlan()">แผน</button>
         <button type="button" class="ibtn ibtn-ghost" onclick="openBatModal()">แบต</button>
@@ -1037,6 +1057,18 @@
     </div>
   </div>
 
+  <div class="modal fade" id="wxModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">พยากรณ์อากาศ</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="wx-body"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="rockPairModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1063,7 +1095,9 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody">
-          <div class="msub">ฝนตกนับเป็นการให้น้ำ วันน้ำของแปลงที่ติ๊กจะเริ่มนับใหม่จากวันนี้</div>
+          <div class="msub">ฝนตกนับเป็นการให้น้ำ วันน้ำของแปลงที่ติ๊กจะเริ่มนับใหม่จากวันที่ฝนตก</div>
+          <div class="bill-lbl">ฝนตกวันที่</div>
+          <input type="date" class="form-control mb-2" id="rain_date">
           <div class="srow-box"><label class="pk-row" id="rain_all_row"><input type="checkbox" id="selAll" onchange="rainAll(this.checked)">
             <span class="srow-n">เลือกทั้งหมด</span></label></div>
           <div id="chk-list"></div>
@@ -1222,7 +1256,7 @@
       } catch (e) {}
     }
     function init(d, fromCache) {
-      gData = d; if (!gData.lands) gData.lands = []; if (!gData.watches) gData.watches = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
+      gData = d; if (!gData.lands) gData.lands = []; if (!gData.rainLog) gData.rainLog = []; if (!gData.watches) gData.watches = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
       if (!uiRestored) { uiRestored = true; uiRestore(); }
       if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
     }
@@ -1743,7 +1777,8 @@
       const head = (t, n, extra) => `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:center;padding-right:2px;"><span>${t}${n ? ` <span style="font-weight:500;color:#6B736E;font-size:13px;">${n}</span>` : ''}</span>${extra || ''}</div>`;
       const none = t => `<div class="srow-s" style="padding:2px 4px 4px;">${t}</div>`;
 
-      let h = head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
+      let h = wxStripHtml() + wxRainAskHtml();
+      h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
       h += ws.length ? `<div class="srow-box">${ws.map(w => {
         const p = byId[w.plot_id].p, ago = calcDays(w.created);
         const sub = `${w.note ? esc(w.note) + ' · ' : ''}ฝากไว้${ago ? ' ' + ago + ' วันก่อน' : 'วันนี้'}`;
@@ -3610,6 +3645,182 @@
     function fmGoPlot(id) { $('fmRes').style.display = 'none'; fmSel = { kind: 'plot', id }; fmRender(); fmFit(pPath(gData.plots.find(p => p.plot_id === id).boundary)); }
     function fmGoLand(id) { $('fmRes').style.display = 'none'; fmSel = { kind: 'land', id }; fmRender(); fmFit(pPath((gData.lands || []).find(l => l.land_id === id).boundary)); }
 
+
+    // ================= พยากรณ์อากาศ (Open-Meteo) เน้นฝนและลม =================
+    // จุด = จุดกลางขอบแปลง จัดกลุ่มตามพื้นที่ · ยังไม่มีขอบแปลง → WX_LAT/WX_LNG (ตั้งจากตำแหน่งมือถือ)
+    const WX_H = 'precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code';
+    const WX_D = 'precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,weather_code,temperature_2m_max,temperature_2m_min';
+    const WX_STORE = 'raioy_wx', WX_TTL = 45 * 60000;
+    // เกณฑ์ฉีดยา: ลมเฉลี่ย ≤ 10 กม./ชม. กระโชก ≤ 20, 4 ชม.ข้างหน้าโอกาสฝน ≤ 30% และฝนรวม < 0.3 มม. ช่วง 06–18 น.
+    const SPRAY_WIND = 10, SPRAY_GUST = 20, SPRAY_POP = 30;
+    let wxData = null, wxLoading = false, wxLocI = 0, wxOpenDay = -1, wxErr = '';
+    try { wxData = JSON.parse(lsGet(WX_STORE) || 'null'); } catch (e) {}
+
+    function wxLocs() {
+      const g = {}, order = [];
+      (gData.plots || []).forEach(p => {
+        const la = num(p.center_lat), ln = num(p.center_lng); if (!la || !ln) return;
+        const k = plotLoc(p.plot_name);
+        if (!g[k]) { g[k] = { loc: k, la: 0, ln: 0, n: 0, plots: [] }; order.push(k); }
+        g[k].la += la; g[k].ln += ln; g[k].n++; g[k].plots.push(p.plot_id);
+      });
+      const pts = order.map(k => ({ loc: k, lat: +(g[k].la / g[k].n).toFixed(4), lng: +(g[k].ln / g[k].n).toFixed(4), plots: g[k].plots }));
+      if (pts.length) return pts;
+      if (num(S('WX_LAT')) && num(S('WX_LNG'))) return [{ loc: 'ไร่', lat: num(S('WX_LAT')), lng: num(S('WX_LNG')), plots: gData.plots.map(p => p.plot_id), home: true }];
+      return [];
+    }
+    const wxKey = locs => locs.map(l => l.lat + ',' + l.lng).join(';');
+
+    function wxLoad(force) {
+      const locs = wxLocs();
+      if (!locs.length || wxLoading) return;
+      const key = wxKey(locs);
+      if (!force && wxData && wxData.key === key && Date.now() - wxData.t < WX_TTL) return;
+      wxLoading = true; wxErr = '';
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${locs.map(l => l.lat).join(',')}&longitude=${locs.map(l => l.lng).join(',')}&hourly=${WX_H}&daily=${WX_D}&timezone=Asia%2FBangkok&wind_speed_unit=kmh&forecast_days=7&past_days=1`;
+      fetch(url).then(r => r.json()).then(j => { if (j && j.error) throw new Error(j.reason); return Array.isArray(j) ? j : [j]; })
+        .catch(() => callApi('weatherForecast', [locs.map(l => ({ lat: l.lat, lng: l.lng }))]))
+        .then(res => {
+          wxData = { t: Date.now(), key, res };
+          lsSet(WX_STORE, JSON.stringify(wxData));
+        }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; })
+        .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if ($('wxModal').classList.contains('show')) wxRender(); });
+    }
+
+    // ยังไม่มีพิกัด: ขอตำแหน่งมือถือ แล้วจำไว้ในหลังบ้าน (ใช้ลงฝนรายวันด้วย)
+    function wxUseMyLoc() {
+      if (!navigator.geolocation) return alert('มือถือนี้หาตำแหน่งไม่ได้ · วาดขอบแปลงในแผนที่ไร่แทนได้');
+      const t = $('syncToast'); t.innerText = '⏳ กำลังหาตำแหน่ง...'; t.style.display = 'block';
+      navigator.geolocation.getCurrentPosition(p => {
+        const la = +p.coords.latitude.toFixed(4), ln = +p.coords.longitude.toFixed(4);
+        callApi('setWxHome', [la, ln]).catch(() => {});
+        gData.settings = Object.assign({}, gData.settings, { WX_LAT: String(la), WX_LNG: String(ln) });
+        saveCache(gData); t.style.display = 'none'; wxLoad(true); render();
+      }, () => { t.style.display = 'none'; alert('หาตำแหน่งไม่ได้ · อนุญาตตำแหน่งให้แอป หรือวาดขอบแปลงในแผนที่ไร่แทน'); },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+    }
+
+    const wxIcon = (code, rain) => code >= 95 ? '⛈️' : (code >= 61 || rain >= 5) ? '🌧️' : (code >= 51 || rain >= 0.5) ? '🌦️' : code >= 3 ? '☁️' : code >= 1 ? '⛅' : '☀️';
+    const wxDir = deg => ['เหนือ', 'ตอ.เฉียงเหนือ', 'ตะวันออก', 'ตอ.เฉียงใต้', 'ใต้', 'ตต.เฉียงใต้', 'ตะวันตก', 'ตต.เฉียงเหนือ'][Math.round(((deg % 360) + 360) % 360 / 45) % 8];
+    const wxArrow = deg => `<span class="wx-arr" style="transform:rotate(${(deg + 180) % 360}deg)">↑</span>`;
+    const r1x = n => Math.round(num(n) * 10) / 10;
+    const thDay = iso => { const d = new Date(iso + 'T00:00:00'); return `${['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'][d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`; };
+
+    // ช่วงฉีดยาได้ของวัน iso: [{a:'06', b:'10'}]
+    function wxSpray(r, iso) {
+      const H = r.hourly, out = [];
+      let start = null, last = null;
+      for (let i = 0; i < H.time.length; i++) {
+        const [d, hm] = H.time[i].split('T'), hr = +hm.slice(0, 2);
+        if (d !== iso || hr < 6 || hr > 17) continue;
+        let pop = 0, sum = 0;
+        for (let k = i; k < Math.min(i + 4, H.time.length); k++) { pop = Math.max(pop, num(H.precipitation_probability[k])); sum += num(H.precipitation[k]); }
+        const ok = num(H.wind_speed_10m[i]) <= SPRAY_WIND && num(H.wind_gusts_10m[i]) <= SPRAY_GUST && pop <= SPRAY_POP && sum < 0.3;
+        if (ok) { if (start === null) start = hr; last = hr; }
+        else if (start !== null) { if (last - start >= 1) out.push({ a: start, b: last + 1 }); start = null; }
+      }
+      if (start !== null && last - start >= 1) out.push({ a: start, b: last + 1 });
+      return out;
+    }
+    const sprayTxt = w => w.map(x => `${pad(x.a)}–${pad(x.b)} น.`).join(', ');
+
+    function wxStripHtml() {
+      const locs = wxLocs();
+      if (!locs.length) return `<button type="button" class="wx-strip" onclick="wxUseMyLoc()"><span class="wx-ic">🌦️</span>
+        <span class="wx-l"><b>ดูพยากรณ์ฝน/ลม</b><span class="srow-s d-block">แตะเพื่อใช้ตำแหน่งมือถือ (หรือวาดขอบแปลงในแผนที่ไร่)</span></span></button>`;
+      wxLoad();
+      if (!wxData || wxData.key !== wxKey(locs)) return `<button type="button" class="wx-strip" onclick="openWx()"><span class="wx-ic">🌦️</span><span class="wx-l"><b>พยากรณ์อากาศ</b><span class="srow-s d-block">${wxErr ? 'โหลดไม่ได้ · แตะเพื่อลองใหม่' : 'กำลังโหลด…'}</span></span></button>`;
+      const today = todayISO();
+      let best = null;
+      wxData.res.forEach((r, i) => {
+        const k = r.daily.time.indexOf(today); if (k < 0) return;
+        const o = { i, k, r, pop: num(r.daily.precipitation_probability_max[k]), mm: num(r.daily.precipitation_sum[k]) };
+        if (!best || o.pop > best.pop) best = o;
+      });
+      if (!best) return '';
+      const D = best.r.daily, k = best.k;
+      const sp = wxSpray(best.r, today).filter(x => x.b > new Date().getHours());
+      const multi = wxData.res.length > 1 ? ` · ${esc(locs[best.i].loc)}` : '';
+      return `<button type="button" class="wx-strip" onclick="openWx(${best.i})"><span class="wx-ic">${wxIcon(D.weather_code[k], best.mm)}</span>
+        <span class="wx-l"><b>วันนี้ ฝน ${best.pop}%${best.mm >= 0.1 ? ` · ~${r1x(best.mm)} มม.` : ''}</b>${multi}
+          <span class="srow-s d-block">ลม ${Math.round(D.wind_speed_10m_max[k])} กระโชก ${Math.round(D.wind_gusts_10m_max[k])} กม./ชม. · ${sp.length ? `<span class="wx-ok">ฉีดยาได้ ${sprayTxt(sp)}</span>` : '<span class="wx-no">วันนี้ไม่เหมาะฉีดยา</span>'}</span></span>
+        <span class="srow-s">7 วัน ›</span></button>`;
+    }
+
+    // ฝนเมื่อวาน (RainLog จากหลังบ้าน หรือข้อมูลพยากรณ์ย้อนหลัง 1 วัน) ≥ 10 มม. → ถามก่อนลงฝนตก
+    const WX_ASK_MM = 10;
+    function wxRainAsk() {
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      const yIso = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`, yBE = isoToBE(yIso);
+      const locs = wxLocs(), out = [];
+      locs.forEach((l, i) => {
+        const log = (gData.rainLog || []).find(x => x.timestamp === yBE && x.loc === l.loc);
+        let mm = log ? num(log.rain_mm) : null;
+        if (mm === null && wxData && wxData.key === wxKey(locs) && wxData.res[i]) { const k = wxData.res[i].daily.time.indexOf(yIso); if (k >= 0) mm = num(wxData.res[i].daily.precipitation_sum[k]); }
+        if (mm === null || mm < WX_ASK_MM) return;
+        if (lsGet('raioy_rainask') === yIso + '|' + l.loc) return;
+        const ids = l.plots.filter(id => { const p = gData.plots.find(x => x.plot_id === id); const w = p && beToISO(p.last_water_date); return p && (!w || w < yIso); });
+        if (ids.length) out.push({ loc: l.loc, mm, ids, yIso });
+      });
+      return out;
+    }
+    function wxRainAskHtml() {
+      return wxRainAsk().map(a => `<div class="wx-rain-card">
+        <div><b>เมื่อวานฝนประมาณ ${r1x(a.mm)} มม.</b> ${a.loc !== 'ไร่' ? 'แถว' + esc(a.loc) : ''}</div>
+        <div class="srow-s mb-2">ค่าประมาณจากพยากรณ์ ไม่ใช่วัดจริง · ฝนตกจริงไหม? ลงฝนตกให้ ${a.ids.length} แปลงที่ยังไม่ได้ลง</div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-primary fw-bold flex-fill" onclick="openRain(${JSON.stringify(a.ids).replace(/"/g, "'")},'${a.yIso}','(ฝนจากพยากรณ์ ~${r1x(a.mm)} มม.)')">ตกจริง · เลือกแปลง</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="lsSet('raioy_rainask','${a.yIso}|${qa(a.loc)}');render()">ไม่ตก / ไม่ต้อง</button>
+        </div></div>`).join('');
+    }
+
+    function openWx(i) {
+      const locs = wxLocs();
+      if (!locs.length) return wxUseMyLoc();
+      wxLocI = Math.min(i || 0, locs.length - 1); wxOpenDay = -1;
+      wxRender(); showM('wxModal'); wxLoad();
+    }
+    function wxRender() {
+      const locs = wxLocs(), B = $('wx-body');
+      if (!wxData || wxData.key !== wxKey(locs)) {
+        B.innerHTML = `<div class="msub">${wxErr ? 'โหลดพยากรณ์ไม่ได้ (' + esc(wxErr) + ')' : 'กำลังโหลดพยากรณ์…'}</div>${wxErr ? '<button class="btn btn-success w-100" onclick="wxLoad(true)">ลองใหม่</button>' : ''}`;
+        return;
+      }
+      const r = wxData.res[wxLocI], D = r.daily, H = r.hourly, l = locs[wxLocI], today = todayISO();
+      let h = locs.length > 1 ? `<div class="seg mb-3" style="overflow-x:auto">${locs.map((x, i) => `<button type="button" class="${i === wxLocI ? 'on' : ''}" style="white-space:nowrap" onclick="wxLocI=${i};wxOpenDay=-1;wxRender()">${esc(x.loc)}</button>`).join('')}</div>` : '';
+      h += `<div class="msub">${l.home ? 'ตำแหน่งที่ตั้งไว้ (ยังไม่มีขอบแปลง)' : esc(l.loc) + ' · ' + l.plots.length + ' แปลง'} · อัปเดต ${hhmm(wxData.t)} น. <button type="button" class="grp-all ms-1" onclick="wxLoad(true)">โหลดใหม่</button></div>`;
+      // ฝนย้อนหลัง 7 วันจาก RainLog
+      const hist = (gData.rainLog || []).filter(x => x.loc === l.loc).slice(0, 7).reverse();
+      if (hist.length) h += `<div class="card-sec py-2"><div class="bill-lbl mb-1">ฝน 7 วันที่ผ่านมา (ค่าประมาณ)</div><div class="d-flex justify-content-between text-center" style="font-size:12.5px">${hist.map(x => `<div><div class="fw-bold" style="color:${num(x.rain_mm) >= 10 ? '#1E5FA8' : '#3E4742'}">${r1x(x.rain_mm)}</div><div class="srow-s">${esc(x.timestamp.slice(0, 5))}</div></div>`).join('')}</div></div>`;
+      h += `<div class="srow-box">`;
+      D.time.forEach((d, k) => {
+        if (d < today) return;
+        const mm = num(D.precipitation_sum[k]), pop = num(D.precipitation_probability_max[k]), sp = wxSpray(r, d), open = wxOpenDay === k;
+        h += `<button type="button" class="wx-day" onclick="wxOpenDay=${open ? -1 : k};wxRender()">
+          <span class="wx-dn">${d === today ? 'วันนี้' : thDay(d).split(' ')[0]}<small>${thDay(d).split(' ').slice(1).join(' ')}</small></span>
+          <span class="wx-ic" style="font-size:24px">${wxIcon(D.weather_code[k], mm)}</span>
+          <span class="flex-fill" style="min-width:0"><b>ฝน ${pop}%</b> ${mm >= 0.1 ? `· ${r1x(mm)} มม.` : ''}
+            <div class="wx-bar"><i style="width:${Math.min(100, mm / 30 * 100)}%"></i></div>
+            ${sp.length ? `<span class="wx-spray mt-1">ฉีดยา ${sprayTxt(sp)}</span>` : ''}</span>
+          <span class="wx-wind"><b>${Math.round(D.wind_speed_10m_max[k])}</b>/${Math.round(D.wind_gusts_10m_max[k])} กม./ชม.<br>${wxArrow(D.wind_direction_10m_dominant[k])} ${wxDir(D.wind_direction_10m_dominant[k])}</span>
+        </button>`;
+        if (open) {
+          const rows = [];
+          H.time.forEach((t, i) => {
+            const [dd, hm] = t.split('T'), hr = +hm.slice(0, 2);
+            if (dd !== d || hr < 5 || hr > 20) return;
+            if (d === today && hr < new Date().getHours()) return;
+            rows.push(`<div class="wx-hrow"><b>${hm.slice(0, 2)}:00</b><span>${num(H.precipitation[i]) >= 0.1 ? '🌧️ ' + r1x(H.precipitation[i]) + ' มม.' : 'ฝน'} ${H.precipitation_probability[i]}%</span>
+              <span>${wxArrow(H.wind_direction_10m[i])} ลม ${Math.round(H.wind_speed_10m[i])} / ${Math.round(H.wind_gusts_10m[i])}</span></div>`);
+          });
+          h += `<div class="wx-hr">${rows.join('') || '<div class="srow-s">ไม่มีข้อมูลรายชั่วโมง</div>'}</div>`;
+        }
+      });
+      h += `</div>
+        <div class="msub mt-2">ลม: ความเร็วเฉลี่ย/กระโชก กม./ชม. ลูกศรชี้ทางที่ลมพัดไป · "ฉีดยา" = ลมไม่เกิน ${SPRAY_WIND} (กระโชก ${SPRAY_GUST}) และ 4 ชม.ข้างหน้าโอกาสฝนไม่เกิน ${SPRAY_POP}% · ข้อมูล Open-Meteo เป็นค่าพยากรณ์ ฝนฟ้าคะนองเป็นหย่อม ๆ อาจคลาด</div>`;
+      B.innerHTML = h;
+    }
+
     // หน้าฝนตก: จัดกลุ่มตามสถานที่ เหมือนหน้าเลือกแปลงในแท็บบันทึกงาน
     function rainListHtml() {
       const groups = [], idx = {};
@@ -3632,11 +3843,24 @@
       cs.forEach(c => c.checked = on); rainSync();
     }
 
+    // เปิดหน้าฝนตก (ids = ติ๊กแปลงให้ก่อน, iso = วันที่ฝนตก เช่น เมื่อวาน จากพยากรณ์)
+    function openRain(ids, iso, note) {
+      rainAll(false);
+      (ids || []).forEach(id => { const c = document.querySelector(`.p-chk[value="${id}"]`); if (c) c.checked = true; });
+      rainSync();
+      $('rain_date').value = iso || todayISO(); setDateMax();
+      rainNote = note || '';
+      showM('rainModal');
+    }
+    let rainNote = '';
     function submitRain() {
       let ids = []; document.querySelectorAll('.p-chk:checked').forEach(c => ids.push(c.value));
       if (!ids.length) return alert('เลือกอย่างน้อย 1 แปลง');
-      if (!confirm(`ลงฝนตกวันนี้ ${ids.length} แปลง?`)) return;
-      call('saveActivities', [{ plotIds: ids, activity_group: 'ฝนตก', activity_detail: 'น้ำฝนธรรมชาติ', operator: 'ธรรมชาติ', is_ongoing: false }],
+      const iso = $('rain_date').value || todayISO();
+      if (!checkDate(iso)) return;
+      if (!confirm(`ลงฝนตก${iso === todayISO() ? 'วันนี้' : ' ' + isoToBE(iso)} ${ids.length} แปลง?`)) return;
+      call('saveActivities', [{ plotIds: ids, activity_group: 'ฝนตก', activity_detail: 'น้ำฝนธรรมชาติ', operator: 'ธรรมชาติ', is_ongoing: false,
+        custom_date: isoToBE(iso), remark: rainNote }],
         d => { hideModal('rainModal'); init(d); }, $('btnRain'));
     }
   </script>

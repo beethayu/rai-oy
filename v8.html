@@ -2116,7 +2116,7 @@
           </div>
         </div>
 
-        <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="hideModal('dossierModal');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${num(p.map_rai)} ไร่` : 'วาดขอบแปลงบนแผนที่'}</button>
+        <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="hideModal('dossierModal');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${fmtRai(num(p.map_rai) * 1600)}` : 'วาดขอบแปลงบนแผนที่'}</button>
         <h6 class="fw-bold text-dark mb-2">📊 2. สรุปกิจกรรมสะสมตั้งแต่เริ่มฤดูกาล</h6>
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">
@@ -3426,7 +3426,11 @@
       for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; a += (p[1] * kx) * (q[0] * ky) - (q[1] * kx) * (p[0] * ky); }
       return Math.abs(a / 2);
     }
-    const fmtRai = m2 => { const r = m2 / RAI; return r >= 1 ? `${(Math.round(r * 10) / 10).toLocaleString()} ไร่` : `${Math.round(m2 / 4)} ตร.วา`; };
+    // เนื้อที่แบบไทย ไร่-งาน-ตร.วา (1 ไร่ = 4 งาน = 400 ตร.วา, 1 ตร.วา = 4 ตร.ม.) เหมือนแอป Ling / โฉนด
+    const fmtRai = m2 => {
+      let w = Math.round(m2 / 4); const r = Math.floor(w / 400); w -= r * 400; const g = Math.floor(w / 100); w -= g * 100;
+      return [r ? r + ' ไร่' : '', g ? g + ' งาน' : '', w ? w + ' ตร.วา' : ''].filter(Boolean).join(' ') || '0 ตร.วา';
+    };
 
     function farmBtnHtml() {
       const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;
@@ -3548,7 +3552,7 @@
         const p = gData.plots.find(x => x.plot_id === fmSel.id);
         const diff = num(p.area_rai) ? ` · ในระบบ ${num(p.area_rai)} ไร่` : '';
         P.innerHTML = `<div class="fw-bold">${esc(p.plot_name)}</div>
-          <div class="srow-s mb-2">วัดจากแผนที่ ${num(p.map_rai)} ไร่${diff} · ${esc(p.cane_type)}</div>
+          <div class="srow-s mb-2">วัดจากแผนที่ ${fmtRai(num(p.map_rai) * 1600)}${diff} · ${esc(p.cane_type)}</div>
           <div class="d-flex gap-2 mb-2">
             <button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartEdit('plot','${p.plot_id}')">แก้ขอบ</button>
             ${nav(p.center_lat, p.center_lng)}
@@ -3558,7 +3562,7 @@
       }
       if (fmSel && fmSel.kind === 'land') {
         const l = (gData.lands || []).find(x => x.land_id === fmSel.id);
-        P.innerHTML = `<div class="fw-bold">${esc(l.name)} <span class="srow-s">· ${num(l.map_rai)} ไร่</span></div>
+        P.innerHTML = `<div class="fw-bold">${esc(l.name)} <span class="srow-s">· ${fmtRai(num(l.map_rai) * 1600)}</span></div>
           <div class="srow-s mb-2">${[l.owner ? 'เจ้าของ ' + esc(l.owner) : '', l.phone ? `<a href="tel:${esc(l.phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B">${esc(l.phone)}</a>` : '', esc(l.note)].filter(Boolean).join(' · ') || 'ที่ดินดูไว้'}</div>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmStartEdit('land','${l.land_id}')">แก้</button>

@@ -2110,8 +2110,16 @@
         if (!checkDate(d2)) return;
         const rng = `${thDate(d1)}–${thDate(d2)}`;
         const pl = (gData.plots || []).find(x => x.plot_id === $('act_pid').value);
-        const perDay = days.map((d, k) => { const r = dayRmk(base.remark, k === days.length - 1); const tg = wsTags(r); return `${thDate(d).replace(/ \d+$/, '')}${tg.length ? ' ' + tg.join(' ') : ''}`; }).join('\n');
-        const msg = `${g} · ${pl ? pl.plot_name : ''}\nคน: ${wks.length ? wks.join(', ') : 'ไม่ระบุ'}\n\n${perDay}${base.is_ongoing ? '\n\nสถานะ: ยังไม่เสร็จ' : ''}\n\nถูกต้องไหม?`;
+        const stayAll = (' ' + base.remark + ' ').includes(' ค้างคืน ');
+        let nNight = 0;
+        const perDay = days.map((d, k) => {
+          const isLast = k === days.length - 1, tg = wsTags(dayRmk(base.remark, isLast));
+          if (tg.includes('ค้างคืน')) nNight++;
+          let txt = tg.includes('ค้างคืน') ? 'ค้างคืน' : tg.includes('เลิกเที่ยง') ? (stayAll && isLast ? 'เลิกเที่ยง กลับบ้าน' : 'ครึ่งวัน (เลิกเที่ยง)')
+            : (stayAll && isLast ? 'เต็มวัน ไม่ค้างที่นี่ (ไปแปลงอื่นต่อ)' : 'เต็มวัน');
+          return `${thDate(d).replace(/ \d+$/, '')} : ${txt}`;
+        }).join('\n');
+        const msg = `${g} · ${pl ? pl.plot_name : ''}\nคน: ${wks.length ? wks.join(', ') : 'ไม่ระบุ'}\n\n${perDay}\n\nรวม ${days.length} วัน${nNight ? ' · ค้าง ' + nNight + ' คืน' : ''}${base.is_ongoing ? '\n\nสถานะ: ยังไม่เสร็จ' : ''}\n\nถูกต้องไหม?`;
         if (!confirm(msg)) return;
         const btn = $('btnSaveAct'); let i = 0;
         const next = d => {

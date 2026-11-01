@@ -3447,7 +3447,7 @@
           fmMap.on('click', e => {
             $('fmRes').style.display = 'none';
             if (kmItems) return;
-            if (fmEdit) { fmEdit.pts.push([e.latlng.lat, e.latlng.lng]); fmDrawEdit(); }
+            if (fmEdit) { fmEdit.pts.push(fmSnap(e.latlng)); fmDrawEdit(); }
             else if (fmSel) { fmSel = null; fmRender(); }
           });
           $('farmMapModal').addEventListener('shown.bs.modal', () => fmMap.invalidateSize());
@@ -3580,6 +3580,18 @@
       fmRender(); fmDrawEdit();
       if (fmEdit.pts.length) fmFit(fmEdit.pts);
     }
+    // ดูดติดมุม: แตะ/ลากใกล้มุมของแปลงอื่น ที่ดินดูไว้ หรือมุมเดิมของรูปนี้ (ไม่เกิน 22 px) → ใช้มุมนั้นพอดี ขอบติดกันไม่เหลื่อม
+    const FM_SNAP_PX = 22;
+    function fmSnap(ll, selfIdx) {
+      const p0 = fmMap.latLngToContainerPoint(ll);
+      const cand = [];
+      gData.plots.forEach(p => { if (!(fmEdit.kind === 'plot' && fmEdit.id === p.plot_id)) cand.push(...pPath(p.boundary)); });
+      (gData.lands || []).forEach(l => { if (!(fmEdit.kind === 'land' && fmEdit.id === l.land_id)) cand.push(...pPath(l.boundary)); });
+      fmEdit.pts.forEach((p, i) => { if (i !== selfIdx) cand.push(p); });
+      let best = null, bd = FM_SNAP_PX;
+      cand.forEach(c => { const d = fmMap.latLngToContainerPoint(c).distanceTo(p0); if (d < bd) { bd = d; best = c; } });
+      return best ? [best[0], best[1]] : [ll.lat, ll.lng];
+    }
     function fmDrawEdit() {
       fmEditLayer.clearLayers();
       if (!fmEdit) return;
@@ -3591,7 +3603,7 @@
           html: `<div style="width:22px;height:22px;border-radius:50%;background:${i === 0 ? '#1F5E3B' : '#FFD23F'};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)"></div>` });
         L.marker(p, { icon, draggable: true }).addTo(fmEditLayer)
           .on('drag', e => { const ll = e.target.getLatLng(); pts[i] = [ll.lat, ll.lng]; if (poly) poly.setLatLngs(pts); fmEditPanel(true); })
-          .on('dragend', () => fmDrawEdit());
+          .on('dragend', e => { pts[i] = fmSnap(e.target.getLatLng(), i); fmDrawEdit(); });
       });
       fmEditPanel();
     }
@@ -3599,7 +3611,7 @@
       const e = fmEdit, m2 = polyM2(e.pts), H = $('fmHint');
       const o = e.kind === 'plot' ? gData.plots.find(x => x.plot_id === e.id) : null;
       H.style.display = 'block';
-      H.innerHTML = e.pts.length < 3 ? `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · แตะมุมแปลงทีละมุมรอบแปลง (อย่างน้อย 3 มุม) · ลากมุมย้ายได้`
+      H.innerHTML = e.pts.length < 3 ? `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · แตะมุมแปลงทีละมุมรอบแปลง (อย่างน้อย 3 มุม) · แตะใกล้มุมแปลงอื่นจะดูดติดให้`
         : `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · ≈ <b>${fmtRai(m2)}</b>${o && num(o.area_rai) ? ` (ในระบบ ${num(o.area_rai)} ไร่)` : ''} · แตะเพิ่มมุม ลากมุมย้ายได้`;
       if (onlyArea) return;
       $('fmPanel').innerHTML = `${e.kind === 'land' ? `<div class="row g-2 mb-2">

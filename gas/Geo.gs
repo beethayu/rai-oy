@@ -108,6 +108,10 @@ function importBoundaries(items) {
     const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues().map(r => r[0]);
     let done = 0;
     const lands = [];
+    // ที่ดินชื่อซ้ำกับที่มีอยู่ = อัปเดตขอบอันเดิม (นำเข้าไฟล์ Ling ซ้ำแล้วไม่เกิดซ้อน)
+    const lsh = getOrCreate_(ss, 'Lands', LAND_H_), ld = lsh.getDataRange().getDisplayValues();
+    const landRow = {};
+    for (let i = 1; i < ld.length; i++) landRow[String(ld[i][2]).trim()] = i + 1;
     (items || []).forEach(it => {
       const pts = parsePath_(it.path), info = polyInfo_(pts);
       if (!info) return;
@@ -118,12 +122,17 @@ function importBoundaries(items) {
         [[cB, path], [cR, rai], [cLa, info.lat.toFixed(6)], [cLn, info.lng.toFixed(6)]].forEach(([c, v]) => sh.getRange(r + 1, c).setNumberFormat('@').setValue(v));
         done++;
       } else if (it.kind === 'land') {
+        const nm = String(it.name || 'ที่ดินนำเข้า').trim();
+        if (landRow[nm] > 0) {
+          lsh.getRange(landRow[nm], 7, 1, 4).setNumberFormat('@').setValues([[path, rai, info.lat.toFixed(6), info.lng.toFixed(6)]]);
+          done++; return;
+        }
         lands.push(['D' + Date.now() + '_' + lands.length, getTodayStr(), String(it.name || 'ที่ดินนำเข้า').trim(), '', '', String(it.note || '').trim(),
           path, rai, info.lat.toFixed(6), info.lng.toFixed(6)]);
         done++;
       }
     });
-    if (lands.length) appendRows_(getOrCreate_(ss, 'Lands', LAND_H_), lands);
+    if (lands.length) appendRows_(lsh, lands);
     return { plots: readSheet_(ss, SH.PLOTS), lands: readSheet_(ss, 'Lands'), done: done };
   });
 }

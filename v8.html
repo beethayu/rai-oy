@@ -1086,6 +1086,14 @@
     }
     function setDateMax() { document.querySelectorAll('input[type=date]').forEach(i => { if (i.id !== 'ae_bat_date') i.max = todayISO(); }); }
 
+    // iOS แตะทะลุ: กด ✕ ปิดหน้าต่างแล้วแตะเดียวกันไปโดนปุ่มข้างใต้ (เช่นปุ่ม "กำลังทำ" มุมขวาบน → เด้งไปหน้าแปลง)
+    // หลังปิดหน้าต่าง 0.6 วิ ไม่รับแตะนอกหน้าต่าง
+    let ghostUntil = 0;
+    document.addEventListener('hide.bs.modal', () => { ghostUntil = Date.now() + 600; });
+    ['click', 'touchend', 'pointerup'].forEach(ev => document.addEventListener(ev, e => {
+      if (Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
+    }, true));
+
     // จำหน้าที่เปิดล่าสุด (iOS ชอบปิดแอปเบื้องหลัง เปิดใหม่จะได้กลับหน้าเดิม ภายใน 6 ชม.)
     let uiRestored = false;
     function uiSave() { try { lsSet('raioy_ui', JSON.stringify({ t: Date.now(), tab: curTab, fil: curFil, plot: plotOpen, sp: stockPane, fp: fleetPane })); } catch (e) {} }

@@ -235,5 +235,32 @@ async function mount(html) {
   }
 })();
 </script>
+<script>
+(function () {
+  // ยืดกล่องแอปให้เต็มจอจริงในโหมดไอคอน
+  function fitApp() {
+    if (!navigator.standalone) return;
+    const top = document.getElementById('safe-top').offsetHeight;
+    const portrait = window.matchMedia('(orientation: portrait)').matches;
+    const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    APP.style.bottom = 'auto';
+    APP.style.height = (Math.max(window.innerHeight, full) - top) + 'px';
+  }
+  fitApp();
+  window.addEventListener('resize', fitApp);
+  window.addEventListener('orientationchange', () => setTimeout(fitApp, 300));
+
+  // ย้ายสีพื้นของแอปไปไว้ในกล่อง แล้วให้พื้นหลังจริงเป็นสีเขียว
+  const wait = setInterval(() => {
+    if (!booted) return;
+    clearInterval(wait);
+    const cs = getComputedStyle(document.body);
+    APP.style.backgroundColor = cs.backgroundColor;
+    APP.style.backgroundImage = cs.backgroundImage;
+    document.body.style.setProperty('background', '#2e7d32', 'important');
+    fitApp();
+  }, 200);
+})();
+</script>
 </body>
 </html>

@@ -19,13 +19,15 @@
     • บล็อกฟังก์ชันที่ลงท้าย _ และ doGet, doPost, doGetOld, setupV7
   - Index.html: หน้าจอ V7 เดิม (ใช้โดย index.html บน GitHub เท่านั้น)
 - GitHub Pages (beethayu/rai-oy) = หน้าบ้าน, Claude แก้และ push ได้เอง (ติดตั้ง GitHub App แล้ว)
-  - index.html = แอป V7 เดิม (เปลือก ดึงหน้าจาก ?page=html)  https://beethayu.github.io/rai-oy/
-  - v8.html = แอปใหม่ ไฟล์เดียวจบ เรียก API ตรง          https://beethayu.github.io/rai-oy/v8.html
+  - index.html = แอป V8 (ไฟล์เดียวจบ เรียก API ตรง)  https://beethayu.github.io/rai-oy/  ← ลิงก์หลัก (ย้ายมา 2 พ.ย. 22:55)
+  - v8.html = หน้าพาไปลิงก์หลัก (เก็บ ?k= ไว้) สำหรับไอคอน/ลิงก์เก่า · v7.html = แอป V7 เดิม (เปลือก ดึงหน้าจาก ?page=html)
+  - ไอคอน icon.png 180px (ต้นฉบับ icon.svg): พื้นเขียว #1F5E3B + ลำอ้อย 3 ลำ แบบเรียบ เข้าชุดกับ kep-tang/lod-poong (ผู้ใช้ไม่เอารูปถ่าย)
+    เปลี่ยนไอคอนแล้วต้องเพิ่ม ?v= ใน apple-touch-icon และผู้ใช้ต้องลบไอคอนเดิมแล้วเพิ่มใหม่
     • สร้างจาก Index.html เดิม: ฟอร์ม/โมดัล/ตรรกะเดิมทั้งหมด เปลี่ยนแค่หัว, การ์ดแปลง, เมนูล่าง
     • หน้าแรก = "วันนี้" (แปลงถึงคิว + กำลังทำ), ปุ่มบันทึกงานตรงกลางเมนูล่าง → เลือกแปลง → ฟอร์มเดิม
     • ฟอนต์ IBM Plex Sans Thai, สีหลัก #1F5E3B, ส้ม = ถึงคิว, น้ำเงิน = กำลังทำ
     • จำข้อมูลล่าสุดใน localStorage (raioy_v8_data) เปิดแล้วเห็นทันที, เน็ตไม่ดีมีแถบ "ลองใหม่"
-  - รหัส API จำใน localStorage (raioy_key) ใช้ร่วมกันทั้ง index.html และ v8.html
+  - รหัส API จำใน localStorage (raioy_key) ใช้ร่วมกันทุกหน้า (index.html, v7.html)
     ลิงก์ ...?k=รหัส จำรหัสให้อัตโนมัติ (ใช้ส่งให้คนงานทาง LINE)
 
 == บิล / ค่าใช้จ่าย (1 พ.ย. 69) ==
@@ -74,7 +76,7 @@
 - ผู้ใช้ส่งกราฟราคาอ้อยขั้นต้น (บาท/ตัน) เทียบน้ำตาลโลก (¢/ปอนด์) ฤดู 61/62–68/69 + TradingView SB1! อยากดูบ่อย ๆ
 - หน้าวันนี้: sugarStripHtml ใต้แถบอากาศ "น้ำตาลโลก 19.37 ¢ · คาดราคาอ้อย ~1,050" แตะ → sugarModal: ราคา/เปลี่ยนแปลง, กราฟจุดฤดู + เส้นแนวโน้ม + จุดตอนนี้,
   กราฟเส้น 1 ปี, ปุ่ม TradingView · cache localStorage raioy_sugar 1 ชม. ปุ่มรีเฟรช (getSugar(true))
-- SUGAR_SEASONS ใน v8.html = จุดที่ Claude อ่านจากกราฟ (ผู้ใช้ยังไม่ได้ให้ตัวเลขจริง) → เส้น อ้อย ≈ 46.8 × น้ำตาล + 143 (R² 0.99)
+- SUGAR_SEASONS ใน index.html = จุดที่ Claude อ่านจากกราฟ (ผู้ใช้ยังไม่ได้ให้ตัวเลขจริง) → เส้น อ้อย ≈ 46.8 × น้ำตาล + 143 (R² 0.99)
 - GAS gas/Sugar.gs: getSugar(force) Yahoo chart API SB=F 1 ปี (User-Agent) แคช 30 นาที, logSugar_ ลงชีต SugarLog ใน logDailyRainTrigger (03:30), sugarBrief_ ในสรุป LINE
 
 == พยากรณ์อากาศ (2 พ.ย. 69 02:40) ==
@@ -123,7 +125,7 @@
 - สต็อก: seg สต็อก | ค่าใช้จ่าย/บิล (stockPane), รถ/คน: seg รถ/เครื่อง | คนงาน (fleetPane) — สไตล์ .seg .srow .srow-box ใช้ร่วมกัน
 - ประวัติรถ groupAssetLogs รวมแถวจากบิลเดียวกัน (B..._A#) เป็นบรรทัดเดียว แตะเปิดบิล, แถวรถโชว์ค่าซ่อมรวมจาก Expenses.asset
 - หน้าต่างแบบใหม่ (2 พ.ย.): .mhd หัวเขียว + .mbody + .card-sec + .bill-lbl, fullscreen-sm-down — ฝนตก (rainListHtml จัดกลุ่ม) แบต (seg) ตั้งค่า (opt-chip) ทำแล้ว
-- ทดสอบหน้าตาได้ใน workspace: google-chrome + playwright (python) โหลด v8.html แล้ว route API ไปที่ data.json
+- ทดสอบหน้าตาได้ใน workspace: google-chrome + playwright (python) โหลด index.html แล้ว route API ไปที่ data.json
   (bootstrap/ฟอนต์จาก CDN โหลดไม่ได้ใน workspace ปุ่มจะดูเปล่า ๆ แต่ในแอปจริงปกติ)
 
 == กฎ iOS 26 โหมดไอคอน (ห้ามเปลี่ยนกลับ) ==
@@ -150,7 +152,7 @@
 == วิธีทำงาน ==
 - ⭐ แผนงาน: roadmap.json (ปุ่ม "แผน" บนหัวแอป v8) — Claude ต้องอัปเดตทุกครั้งที่คุยตกลงอะไรใหม่ / ทำเสร็จ / เปลี่ยนลำดับ
   status: next = ทำต่อไป, wait = รอผู้ใช้, later = ไว้ทีหลัง, done = เสร็จแล้ว (เก็บ done ล่าสุดไว้ราว 6 อัน)
-- แก้หน้าตา v8 → Claude แก้ v8.html แล้ว push เอง → รอ 1–2 นาที → ปัดปิดแอปแล้วเปิดใหม่
+- แก้หน้าตา v8 → Claude แก้ index.html (แอป v8) แล้ว push เอง → รอ 1–2 นาที → ปัดปิดแอปแล้วเปิดใหม่
 - แก้หลังบ้าน → Claude แก้ไฟล์ใน gas/ แล้ว push เอง → GitHub Action "Deploy Apps Script"
   (.github/workflows/gas-deploy.yml) ทำ clasp push + deploy เวอร์ชันใหม่ให้ URL เดิม + ทดสอบ ?page=html อัตโนมัติ
   ⚠️ ห้ามแก้โค้ดในหน้า Apps Script ตรง ๆ แล้ว (จะถูกทับตอน push ครั้งถัดไป) ถ้าเผลอแก้ ให้ Claude clasp pull มาเข้า repo ก่อน

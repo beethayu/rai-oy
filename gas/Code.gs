@@ -930,7 +930,7 @@ function billFolder_() {
 }
 
 var geminiUsed_ = '';
-function geminiCall_(parts) {
+function geminiCall_(parts, what) {
   const props = PropertiesService.getScriptProperties();
   // อ่านบิลไม่ต้องคิดนาน: ปิด thinking ให้เร็ว (รุ่น 2.5 ใช้ thinkingBudget, รุ่น 3 ขึ้นไปใช้ thinkingLevel)
   // ทดสอบ 1 พ.ย. 69: 2.5 เลิกให้บัญชีใหม่ใช้แล้ว, flash-latest ช้ามาก (นาทีกว่า), 3.5-flash + minimal ~1 วิ
@@ -940,9 +940,9 @@ function geminiCall_(parts) {
   let last = '';
   // รุ่นหลักลอง 2 ครั้ง (ถ้าติดโควตา/คนใช้เยอะ) แล้วค่อยใช้รุ่นสำรอง
   const tries = [];
-  models.forEach((m, k) => { tries.push(m); if (k === 0) tries.push(m); });
+  models.forEach(m => { tries.push(m); tries.push(m); }); // แต่ละรุ่นลอง 2 ครั้ง (503 คนใช้เยอะ มักหายในไม่กี่วิ)
   for (let i = 0; i < tries.length; i++) {
-    if (i === 1) Utilities.sleep(1500);
+    if (i > 0) Utilities.sleep(i === 1 ? 1500 : 2500);
     const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + tries[i] + ':generateContent', {
       method: 'post', contentType: 'application/json', muteHttpExceptions: true,
       headers: { 'x-goog-api-key': geminiKey_() },
@@ -959,9 +959,10 @@ function geminiCall_(parts) {
       return out.map(p => p.text || '').join('');
     }
     last = code + ' ' + txt.slice(0, 200);
-    if (i === 0 && code !== 429 && code < 500) i++; // ผิดแบบถาวร (เช่น 400/404) ไม่ต้องลองซ้ำ
+    if (i % 2 === 0 && code !== 429 && code < 500) i++; // ผิดแบบถาวร (เช่น 400/404) ไม่ต้องลองซ้ำรุ่นเดิม
   }
-  throw new Error('อ่านบิลไม่ได้ (Gemini ' + last + ')');
+  if (/^(429|5\d\d)/.test(last)) throw new Error('Gemini ไม่ว่าง (คนใช้เยอะ) รอสักครู่แล้วกดส่งใหม่');
+  throw new Error((what || 'อ่านบิล') + 'ไม่ได้ (Gemini ' + last.slice(0, 80) + ')');
 }
 
 // อ่านรูปบิล → เก็บรูปใน Drive + ให้ Gemini แยกรายการ (ยังไม่บันทึก รอผู้ใช้ตรวจก่อน)

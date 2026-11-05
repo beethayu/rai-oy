@@ -38,7 +38,7 @@ function chatParse(text, ctx) {
       trucks: ctx.trucks, pumps: ctx.pumps, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
-  const out = geminiCall_([{ text: prompt }]);
+  const out = geminiCall_([{ text: prompt }], 'ตอบแชต');
   let j;
   try { j = JSON.parse(out); } catch (e) {
     const m = out.match(/\{[\s\S]*\}/); j = m ? JSON.parse(m[0]) : { reply: 'อ่านไม่ออก ลองพิมพ์ใหม่อีกครั้งครับ', items: [] };

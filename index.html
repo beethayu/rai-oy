@@ -32,7 +32,7 @@
 
     function callApi(fn, args) {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' ? 150000 : 60000);
+      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' ? 150000 : fn === 'chatParse' ? 120000 : 60000);
       return fetch(API_URL, {
         method: 'POST', redirect: 'follow', signal: ctrl.signal,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -3121,7 +3121,7 @@
         chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
         const items = (r.items || []).map(chatNorm).filter(Boolean);
         chat.msgs.push({ ai: true, t: r.reply || '', items, ask: r.ask || [], state: items.length ? 'draft' : 'info' });
-      }).catch(e => chat.msgs.push({ ai: true, t: '❌ ' + e.message, retry: txt, items: [], state: 'info' }))
+      }).catch(e => chat.msgs.push({ ai: true, t: '❌ ' + String(e.message).slice(0, 140), retry: txt, items: [], state: 'info' }))
         .finally(() => { chatBusy = false; chatSave(); chatRender(true); });
     }
     function chatNorm(it) {

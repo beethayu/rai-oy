@@ -218,6 +218,7 @@
     .log-back { border: 1px solid var(--line2); background: #fff; color: inherit; border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 14px; flex-shrink: 0; }
     /* แชตจดงาน */
     #logSeg { margin: 0 0 12px; }
+    #logSeg button { padding: 6px; font-size: 15px; }
     .ch-ai { font-size: 16px; line-height: 1.55; margin: 0 0 10px; max-width: 94%; }
     .ch-ai small { display: block; color: #5D6B62; font-size: 13px; }
     .ch-me { background: var(--green); color: #fff; margin: 0 0 10px auto; max-width: 86%; width: fit-content; padding: 9px 13px; border-radius: 16px 16px 4px 16px; font-size: 16px; line-height: 1.5; white-space: pre-wrap; }
@@ -246,9 +247,10 @@
     .ch-ex { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #EEF1EF; background: #fff; color: inherit; padding: 11px 12px; font-size: 15px; }
     .ch-ex:last-child { border-bottom: 0; }
     #chatList { padding-bottom: 72px; }
-    .ch-bar { position: fixed; left: 12px; right: 12px; bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 1030; display: flex; gap: 8px; align-items: flex-end; background: #fff; border: 1px solid #D5DDD7; border-radius: 24px; padding: 6px; box-shadow: 0 2px 12px rgba(0,0,0,.14); }
-    .ch-bar textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; font: inherit; font-size: 16px; line-height: 1.4; padding: 8px 10px; max-height: 140px; background: transparent; color: inherit; }
-    .ch-send { width: 42px; height: 42px; border-radius: 21px; border: 0; background: var(--green); color: #fff; font-size: 20px; flex-shrink: 0; }
+    .ch-bar { position: fixed; left: 0; right: 0; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 1030; display: flex; gap: 8px; align-items: flex-end; background: #fff; border-top: 1px solid var(--line); padding: 8px 12px; }
+    .ch-bar textarea { flex: 1; min-width: 0; border: 1px solid #CFD8D1; border-radius: 22px; outline: 0; resize: none; font: inherit; font-size: 16px; line-height: 1.4; padding: 10px 16px; min-height: 44px; max-height: 140px; background: #fff; color: inherit; }
+    .ch-send { width: 44px; height: 44px; border-radius: 22px; flex-shrink: 0; border: 0; background: var(--green); color: #fff; font-size: 20px; }
+    .ch-send-old { width: 42px; height: 42px; border-radius: 21px; border: 0; background: var(--green); color: #fff; font-size: 20px; flex-shrink: 0; }
     .log-foot { position: sticky; bottom: 8px; padding-top: 10px; z-index: 5; }
     .log-foot .btn { border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 17px; }
     .bnav .fab.active { color: var(--green-d); }
@@ -2021,6 +2023,7 @@
       $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
       const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย', log: 'บันทึกงาน', table: 'ตารางสรุปทุกแปลง' };
       $('sec-title').innerText = titles[t] || '';
+      document.querySelector('.sec-hd').style.display = t === 'log' && logMode === 'chat' ? 'none' : '';
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();
       if (t === 'all') $('sec-sub').innerHTML = '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>';
@@ -3091,6 +3094,7 @@
       document.querySelectorAll('#logSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === logMode));
       $('pickWrap').style.display = logMode === 'pick' ? 'block' : 'none';
       $('chatPane').style.display = logMode === 'chat' ? 'block' : 'none';
+      if (curTab === 'log') document.querySelector('.sec-hd').style.display = logMode === 'chat' ? 'none' : '';
       if (logMode === 'chat') chatRender();
     }
     const chPlot = id => (gData.plots || []).find(p => p.plot_id === id);

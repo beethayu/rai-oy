@@ -219,7 +219,7 @@
     /* แชตจดงาน */
     #logSeg { margin: 0 0 12px; }
     #logSeg button { padding: 6px; font-size: 15px; }
-    .ch-ai { font-size: 16px; line-height: 1.55; margin: 0 0 10px; max-width: 94%; }
+    .ch-ai { white-space: pre-line; font-size: 16px; line-height: 1.55; margin: 0 0 10px; max-width: 94%; }
     .ch-ai small { display: block; color: #5D6B62; font-size: 13px; }
     .ch-me { background: var(--green); color: #fff; margin: 0 0 10px auto; max-width: 86%; width: fit-content; padding: 9px 13px; border-radius: 16px 16px 4px 16px; font-size: 16px; line-height: 1.5; white-space: pre-wrap; }
     .ch-card { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; margin: 0 0 12px; }
@@ -3104,7 +3104,7 @@
       const last = chat.msgs.slice().reverse().find(m => m.ai && m.state === 'draft');
       return {
         today: todayISO(),
-        plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '' }; }),
+        plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '' }; }),
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))

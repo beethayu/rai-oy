@@ -216,6 +216,38 @@
     .prow-watchrow { box-shadow: inset 4px 0 0 #6A3FA0; }
     .log-head { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-weight: 700; font-size: 17px; }
     .log-back { border: 1px solid var(--line2); background: #fff; color: inherit; border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+    /* แชตจดงาน */
+    #logSeg { margin: 0 0 12px; }
+    .ch-ai { font-size: 16px; line-height: 1.55; margin: 0 0 10px; max-width: 94%; }
+    .ch-ai small { display: block; color: #5D6B62; font-size: 13px; }
+    .ch-me { background: var(--green); color: #fff; margin: 0 0 10px auto; max-width: 86%; width: fit-content; padding: 9px 13px; border-radius: 16px 16px 4px 16px; font-size: 16px; line-height: 1.5; white-space: pre-wrap; }
+    .ch-card { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; margin: 0 0 12px; }
+    .ch-card.ch-saved { border-color: #9CC5A9; }
+    .ch-hd { display: flex; justify-content: space-between; font-size: 13px; color: #5D6B62; padding: 8px 12px; border-bottom: 1px solid #EEF1EF; }
+    .ch-it { position: relative; padding: 9px 12px; border-bottom: 1px solid #EEF1EF; }
+    .ch-t { font-weight: 700; font-size: 16px; padding-right: 34px; margin-bottom: 2px; }
+    .ch-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; line-height: 1.6; }
+    .ch-row span { color: #5D6B62; flex-shrink: 0; }
+    .ch-row b { font-weight: 600; text-align: right; }
+    .ch-guess { color: #A04A00; border-bottom: 2px dotted #E07B00; }
+    .ch-warn { font-size: 13px; color: #8A3F00; background: #FFF3E5; border-radius: 8px; padding: 4px 8px; margin-top: 4px; }
+    .ch-x { position: absolute; top: 6px; right: 6px; width: 34px; height: 34px; border: 0; background: none; color: #6B736E; font-size: 16px; }
+    .ch-acts { display: flex; gap: 8px; padding: 10px 12px; }
+    .ch-acts .btn { border-radius: 10px; font-weight: 700; min-height: 44px; }
+    .ch-ask { padding: 10px 12px; border-bottom: 1px solid #EEF1EF; }
+    .ch-ask b { display: block; margin-bottom: 6px; }
+    .ch-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ch-chip { border: 1px solid #CFD8D1; background: #fff; color: inherit; border-radius: 999px; min-height: 38px; padding: 4px 14px; font-size: 15px; }
+    .ch-area { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 15px; }
+    .ch-area input { width: 22px; height: 22px; accent-color: var(--green); flex-shrink: 0; }
+    .ch-area .nm { flex: 1; } .ch-area .nm small { display: block; color: #5D6B62; font-size: 12px; }
+    .ch-area .mm { font-weight: 700; color: #1D4F91; width: 64px; text-align: right; }
+    .ch-old { font-size: 13px; color: #6B736E; margin: 0 0 10px; }
+    .ch-ex { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #EEF1EF; background: #fff; color: inherit; padding: 11px 12px; font-size: 15px; }
+    .ch-ex:last-child { border-bottom: 0; }
+    .ch-bar { position: sticky; bottom: 8px; z-index: 5; display: flex; gap: 8px; align-items: flex-end; background: #fff; border: 1px solid #D5DDD7; border-radius: 24px; padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.12); margin-top: 8px; }
+    .ch-bar textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; font: inherit; font-size: 16px; line-height: 1.4; padding: 8px 10px; max-height: 140px; background: transparent; color: inherit; }
+    .ch-send { width: 42px; height: 42px; border-radius: 21px; border: 0; background: var(--green); color: #fff; font-size: 20px; flex-shrink: 0; }
     .log-foot { position: sticky; bottom: 8px; padding-top: 10px; z-index: 5; }
     .log-foot .btn { border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 17px; }
     .bnav .fab.active { color: var(--green-d); }
@@ -517,6 +549,12 @@
 
     <div id="plot-list"></div>
     <div id="log-view" style="display:none;">
+      <div class="seg" id="logSeg"><button type="button" data-m="chat" onclick="setLogMode('chat')">พิมพ์เล่า</button><button type="button" data-m="pick" onclick="setLogMode('pick')">กดเลือกงาน</button></div>
+      <div id="chatPane" style="display:none">
+        <div id="chatList"></div>
+        <div class="ch-bar"><label for="chatIn" class="visually-hidden">เล่างาน</label><textarea id="chatIn" rows="1" placeholder="เล่างานวันนี้…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button type="button" class="ch-send" aria-label="ส่ง" onclick="chatSend()">➤</button></div>
+      </div>
+      <div id="pickWrap">
       <div class="log-head" id="pickHead" style="display:none">
         <button type="button" class="log-back" onclick="pickStage('task')">‹ เปลี่ยนงาน</button>
         <span id="pickTitle"></span>
@@ -528,6 +566,7 @@
         <div id="pickList"></div>
         <div class="log-foot"><button type="button" class="btn btn-success fw-bold w-100 py-2" id="pickGo" onclick="pickGo()" disabled>เลือกแปลงก่อน</button></div>
       </div>
+    </div>
     </div>
     <div id="fleet-view" style="display:none;"></div>
     <div id="stock-view" style="display:none;"></div>
@@ -1975,7 +2014,7 @@
       $('fleet-view').style.display = t === 'fleet' ? 'block' : 'none';
       $('log-view').style.display = t === 'log' ? 'block' : 'none';
       document.querySelector('.hd .tiles').style.display = (t === 'urgent' || t === 'log') ? 'none' : '';
-      if (t === 'log') { if (!pkTask) pickStage('task'); else renderPick(); }
+      if (t === 'log') { logModeApply(); if (!pkTask) pickStage('task'); else renderPick(); }
       $('stock-view').style.display = t === 'stock' ? 'block' : 'none';
       $('table-view').style.display = t === 'table' ? 'block' : 'none';
       $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
@@ -3038,6 +3077,190 @@
     }
 
 
+    // ================= แชตจดงาน (5 พ.ย. 69): พิมพ์เล่า → สรุปให้ตรวจ → กดบันทึก =================
+    // GAS chatParse (Gemini) แยกรายการ ยังไม่บันทึก · chatApply(ops) ลงชีตครั้งเดียว · ประวัติแชตจำใน localStorage raioy_chat
+    const CHAT_STORE = 'raioy_chat';
+    let logMode = lsGet('raioy_logmode') || 'chat', chatBusy = false;
+    let chat = (() => { try { const c = JSON.parse(lsGet(CHAT_STORE) || 'null'); return c && Array.isArray(c.msgs) ? c : { msgs: [] }; } catch (e) { return { msgs: [] }; } })();
+    const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
+    const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค' };
+    function chatSave() { chat.msgs = chat.msgs.slice(-30); lsSet(CHAT_STORE, JSON.stringify(chat)); }
+    function setLogMode(m) { logMode = m; lsSet('raioy_logmode', m); logModeApply(); }
+    function logModeApply() {
+      document.querySelectorAll('#logSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === logMode));
+      $('pickWrap').style.display = logMode === 'pick' ? 'block' : 'none';
+      $('chatPane').style.display = logMode === 'chat' ? 'block' : 'none';
+      if (logMode === 'chat') chatRender();
+    }
+    const chPlot = id => (gData.plots || []).find(p => p.plot_id === id);
+    const chOg = pid => (gData.activities || []).find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
+    function chatCtx() {
+      const O = gData.options || {};
+      const last = chat.msgs.slice().reverse().find(m => m.ai && m.state === 'draft');
+      return {
+        today: todayISO(),
+        plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '' }; }),
+        workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
+        draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; return c; }) : null,
+        history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
+      };
+    }
+    function chatFill(b) { const el = $('chatIn'); el.value = b.dataset.t; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+    function chatSend(txt) {
+      txt = String(txt != null ? txt : $('chatIn').value).trim();
+      if (!txt || chatBusy) return;
+      const ctx = chatCtx();
+      if (txt === $('chatIn').value.trim()) { $('chatIn').value = ''; $('chatIn').style.height = 'auto'; }
+      chat.msgs.push({ me: true, t: txt }); chatBusy = true; chatSave(); chatRender(true);
+      callApi('chatParse', [txt, ctx]).then(r => {
+        chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
+        const items = (r.items || []).map(chatNorm).filter(Boolean);
+        chat.msgs.push({ ai: true, t: r.reply || '', items, ask: r.ask || [], state: items.length ? 'draft' : 'info' });
+      }).catch(e => chat.msgs.push({ ai: true, t: '❌ ' + e.message, retry: txt, items: [], state: 'info' }))
+        .finally(() => { chatBusy = false; chatSave(); chatRender(true); });
+    }
+    function chatNorm(it) {
+      if (!it || !it.type) return null;
+      if (Array.isArray(it.plots)) it.plots = it.plots.filter(chPlot);
+      it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
+      if (it.type === 'rain_pick') { it.date = it.date || todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
+      if (it.type === 'add') return it.name && CH_CAT[it.category] ? it : null;
+      if (!(it.plots || []).length) return null;
+      return it;
+    }
+    function chatRainAreas(iso) {
+      const locs = wxLocs();
+      if (!wxData || wxData.key !== wxKey(locs)) { wxLoad(); return []; }
+      return locs.map((l, i) => {
+        const r = wxData.res[i], k = r ? r.daily.time.indexOf(iso) : -1;
+        return { loc: l.loc, plots: l.plots, mm: k >= 0 ? Math.round(num(r.daily.precipitation_sum[k]) * 10) / 10 : null };
+      }).sort((a, b) => (b.mm || 0) - (a.mm || 0));
+    }
+    function chatRainTgl(mi, i, loc, on) {
+      const it = chat.msgs[mi].items[i];
+      it.sel = it.sel.filter(x => x !== loc); if (on) it.sel.push(loc);
+      chatSave(); chatRender();
+    }
+    function chatRainPlots(it) { return it.areas.filter(a => it.sel.includes(a.loc)).reduce((t, a) => t.concat(a.plots), []); }
+    function chatDrop(mi, i) { const m = chat.msgs[mi]; m.items.splice(i, 1); if (!m.items.length) m.state = 'cancel'; chatSave(); chatRender(); }
+    function chatCancel(mi) { chat.msgs[mi].state = 'cancel'; chatSave(); chatRender(); }
+    function chatClear() { if (!confirm('ล้างข้อความในแชต? (งานที่บันทึกแล้วไม่หาย)')) return; chat = { msgs: [] }; chatSave(); chatRender(); }
+    function chatDays(d1, d2) {
+      const days = [];
+      for (let t = new Date(d1 + 'T00:00:00'); days.length < 32; t.setDate(t.getDate() + 1)) {
+        const iso = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; if (iso > d2) break; days.push(iso);
+      }
+      return days;
+    }
+    function chatOps(items) {
+      const ops = [];
+      items.forEach(it => {
+        let a = it;
+        if (it.type === 'rain_pick') {
+          const ids = chatRainPlots(it); if (!ids.length) return;
+          a = { type: 'activity', group: 'ฝนตก', plots: ids, date: it.date };
+        }
+        if (a.type === 'activity') {
+          const rain = a.group === 'ฝนตก';
+          const base = { plotIds: a.plots, activity_group: a.group, activity_detail: a.detail || (rain ? 'น้ำฝนธรรมชาติ' : '-'),
+            equipment: (a.equipment || []).join(', ') || '-', quantity: a.quantity || '-',
+            operator: rain ? 'ธรรมชาติ' : ((a.workers || []).join(' + ') || 'ไม่ระบุ'), remark: a.remark || '', is_ongoing: !!a.ongoing };
+          const d1 = a.date || todayISO(), d2 = a.date_to && a.date_to > d1 ? a.date_to : '';
+          if (!d2) return ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d1) } });
+          const days = chatDays(d1, d2), rng = `${thDate(d1)}–${thDate(d2)}`;
+          days.forEach((d, k) => {
+            const last = k === days.length - 1;
+            ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d), is_ongoing: last ? base.is_ongoing : false, quantity: k ? '-' : base.quantity,
+              remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${k + 1}/${days.length})`)(dayRmk(base.remark, last)) } });
+          });
+        } else if (a.type === 'finish') {
+          a.plots.forEach(pid => { const og = chOg(pid); if (og) ops.push({ fn: 'finish', log_id: og.log_id, date: isoToBE(a.date || todayISO()) }); });
+        } else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
+        else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
+      });
+      return ops;
+    }
+    function chatCommit(mi) {
+      const m = chat.msgs[mi]; if (!m || m.state !== 'draft' || chatBusy) return;
+      for (const it of m.items) { if (it.date && !checkDate(it.date)) return; if (it.date_to && !checkDate(it.date_to)) return; }
+      const ops = chatOps(m.items);
+      if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
+      chatBusy = true; m.saving = true; chatRender();
+      callApi('chatApply', [ops]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; init(d); })
+        .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message))
+        .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
+    }
+    function chItemHtml(it, i, mi, live) {
+      const pn = ids => (ids || []).map(id => (chPlot(id) || { plot_name: id }).plot_name).join(', ');
+      const un = k => it.unsure.includes(k);
+      const row = (l, v, k) => v ? `<div class="ch-row"><span>${l}</span><b class="${un(k) ? 'ch-guess' : ''}">${esc(v)}${un(k) ? ' ?' : ''}</b></div>` : '';
+      const dt = d => !d || d === todayISO() ? 'วันนี้' : thDate(d);
+      let h = '';
+      if (it.type === 'activity') {
+        const g = it.group === 'รถไถเตรียมดิน/บำรุง' ? 'รถไถ' : it.group;
+        h = `<div class="ch-t">${CH_ICON[it.group] || '📝'} ${esc(g)}${it.detail && it.detail !== '-' && it.group !== 'ฝนตก' ? ' · ' + esc(it.detail) : ''}${it.ongoing ? ' <span class="pill pill-doing">กำลังทำ</span>' : ''}</div>`
+          + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', (it.equipment || []).join(', '), 'equipment')
+          + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity')
+          + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+      } else if (it.type === 'finish') {
+        h = `<div class="ch-t">✅ งานเสร็จ</div>` + it.plots.map(pid => { const og = chOg(pid);
+          return og ? row(esc(chPlot(pid).plot_name), `${og.activity_group} · ${og.activity_detail} (เริ่ม ${og.timestamp})`) : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีงานที่กำลังทำ</div>`; }).join('')
+          + row('วันที่เสร็จ', dt(it.date));
+      } else if (it.type === 'watch') {
+        h = `<div class="ch-t">📌 ฝากดู · ${esc(it.reason || 'ไปดูอาการ')}</div>` + row('แปลง', pn(it.plots), 'plots') + row('หมายเหตุ', it.note);
+      } else if (it.type === 'add') {
+        h = `<div class="ch-t">➕ เพิ่ม${CH_CAT[it.category]}</div>` + row('ชื่อ', it.name);
+      } else if (it.type === 'rain_pick') {
+        if (!it.areas.length && live) { it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); }
+        const n = chatRainPlots(it).length;
+        h = `<div class="ch-t">🌧️ ฝนตก · ${dt(it.date)}</div>`;
+        h += it.areas.length ? `<div class="srow-s">ฝนรายพื้นที่จากพยากรณ์ (ค่าประมาณ ตกเป็นหย่อมอาจคลาด) ติ๊กให้เฉพาะ ≥ 10 มม.</div>` + it.areas.map(a =>
+          `<label class="ch-area"><input type="checkbox" ${it.sel.includes(a.loc) ? 'checked' : ''} ${live ? '' : 'disabled'} onchange="chatRainTgl(${mi},${i},'${esc(a.loc).replace(/'/g, '')}',this.checked)">
+            <span class="nm">${esc(a.loc)}<small>${a.plots.length} แปลง</small></span><span class="mm">${a.mm == null ? '–' : a.mm + ' มม.'}</span></label>`).join('')
+          : `<div class="ch-warn">ยังโหลดพยากรณ์ฝนไม่ได้ กด "เลือกรายแปลง" แทน</div>`;
+        h += `<div class="ch-row"><span>ลงฝนตก</span><b>${n} แปลง</b></div>`;
+        if (live) h += `<button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="openRain(chatRainPlots(chat.msgs[${mi}].items[${i}]),'${it.date}')">เลือกรายแปลง…</button>`;
+      }
+      return `<div class="ch-it">${live ? `<button type="button" class="ch-x" aria-label="เอาออก" onclick="chatDrop(${mi},${i})">✕</button>` : ''}${h}</div>`;
+    }
+    function chatRender(scroll) {
+      const box = $('chatList'); if (!box || !gData) return;
+      let h = '';
+      if (!chat.msgs.length) {
+        const ex = ['หำ ผัน ขึ้นน้ำหนองเฝ้า 1 ค้างคืน ยังไม่เสร็จ', 'พร ขับคูโบต้า สับหญ้าสำนักแจง 3', 'วันนี้ฝนตกหลายแปลง ไม่รู้แปลงไหนบ้าง', 'หนองบวบหอม 1 ขึ้นน้ำเสร็จแล้ว', 'ฝากดู หนองเฝ้า 2 อ้อยเหลือง', 'มีคนงานใหม่ชื่อแดง'];
+        h = `<div class="ch-ai">เล่ามาได้เลยครับ วันนี้ใครทำอะไร แปลงไหน รถคันไหน — ผมจะ<b>สรุปให้ตรวจก่อน</b> กดบันทึกแล้วค่อยลง
+          <small>ไมค์บนคีย์บอร์ด iPhone พูดแทนพิมพ์ได้ · ตอนนี้ยังไม่ตัดสต็อกยา/ปุ๋ย (ใช้ "กดเลือกงาน" ถ้าต้องตัดสต็อก)</small></div>
+          <div class="ch-card"><div class="ch-hd"><span>ตัวอย่าง · แตะเพื่อเติมในช่องพิมพ์</span></div>${ex.map(t => `<button type="button" class="ch-ex" data-t="${esc(t)}" onclick="chatFill(this)">${esc(t)}</button>`).join('')}</div>`;
+      } else h += `<div class="text-end mb-2"><button type="button" class="linkbtn" onclick="chatClear()">ล้างแชต</button></div>`;
+      const lastI = chat.msgs.length - 1;
+      chat.msgs.forEach((m, mi) => {
+        if (m.me) { h += `<div class="ch-me">${esc(m.t)}</div>`; return; }
+        if (m.t) h += `<div class="ch-ai">${esc(m.t)}</div>`;
+        if (m.retry && mi === lastI) h += `<button type="button" class="btn btn-sm btn-outline-success mb-3" onclick="chatSend(chat.msgs[${mi}].retry)">ส่งใหม่</button>`;
+        const live = m.state === 'draft' && !m.saving;
+        if (m.items && m.items.length) {
+          if (m.state === 'old') h += `<div class="ch-old">ฉบับก่อนแก้ · ${m.items.length} รายการ</div>`;
+          else if (m.state === 'cancel') h += `<div class="ch-old">ยกเลิกแล้ว · ไม่ได้บันทึก</div>`;
+          else {
+            h += `<div class="ch-card${m.state === 'saved' ? ' ch-saved' : ''}"><div class="ch-hd"><span>${m.state === 'saved' ? `✅ บันทึกแล้ว · ${m.savedAt}` : 'ตรวจก่อนบันทึก'}</span><span>${m.items.length} รายการ</span></div>`
+              + m.items.map((it, i) => chItemHtml(it, i, mi, live)).join('');
+            if (m.state === 'draft') {
+              if (m.ask && m.ask.length) h += m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" onclick="chatSend(this.textContent)">${esc(o)}</button>`).join('')}</div></div>`).join('');
+              h += `<div class="ch-acts"><button type="button" class="btn btn-light flex-fill" onclick="chatCancel(${mi})" ${live ? '' : 'disabled'}>ยกเลิก</button>
+                <button type="button" class="btn btn-success" style="flex:2" onclick="chatCommit(${mi})" ${live ? '' : 'disabled'}>${m.saving ? '⏳ กำลังบันทึก…' : 'บันทึก ' + m.items.length + ' รายการ'}</button></div>
+                <div class="srow-s px-3 pb-2">ผิดตรงไหน พิมพ์แก้ต่อได้เลย เช่น "พรทำทั้งวัน" · ช่องสีส้ม = เดา ไม่แน่ใจ</div>`;
+            }
+            h += `</div>`;
+          }
+        } else if (m.ask && m.ask.length && mi === lastI) {
+          h += `<div class="ch-card">` + m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" onclick="chatSend(this.textContent)">${esc(o)}</button>`).join('')}</div></div>`).join('') + `</div>`;
+        }
+      });
+      if (chatBusy && !chat.msgs.some(m => m.saving)) h += `<div class="ch-ai">⏳ กำลังอ่าน…</div>`;
+      box.innerHTML = h;
+      if (scroll) setTimeout(() => $('app').scrollTo(0, $('app').scrollHeight), 30);
+    }
+
     // ================= งานหินคลุก (สมาชิก → จุด → รูปก่อน/หลัง + เที่ยวสิบล้อ) =================
     let rockSel = '', rockCur = '', rockEdit = false, rockNew = null, rockStage = 'before', rockPairData = null;
     const rockThumbCache = {};
@@ -3958,7 +4181,7 @@
           wxData = { t: Date.now(), key, res };
           lsSet(WX_STORE, JSON.stringify(wxData));
         }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; })
-        .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if ($('wxModal').classList.contains('show')) wxRender(); });
+        .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if (curTab === 'log' && logMode === 'chat') chatRender(); if ($('wxModal').classList.contains('show')) wxRender(); });
     }
 
     // ยังไม่มีพิกัด: ขอตำแหน่งมือถือ แล้วจำไว้ในหลังบ้าน (ใช้ลงฝนรายวันด้วย)

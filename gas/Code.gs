@@ -270,6 +270,13 @@ function readAll_(ss) {
 function updateMasterOption(category, action, value) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+    masterOpt_(ss, category, action, value);
+    return readAll_(ss);
+  });
+}
+// ใช้ร่วมกับ chatApply (อยู่ใน lock แล้ว)
+function masterOpt_(ss, category, action, value) {
+  {
     const sheet = ss.getSheetByName(SH.OPT);
     const data = sheet.getDataRange().getDisplayValues();
     const headers = data[0];
@@ -295,8 +302,7 @@ function updateMasterOption(category, action, value) {
     if (maxRows > 1) sheet.getRange(2, colIdx + 1, maxRows, 1).clearContent();
     if (colValues.length) sheet.getRange(2, colIdx + 1, colValues.length, 1).setValues(colValues.map(v => [v]));
     if (action === 'add') syncAssets_(ss);
-    return readAll_(ss);
-  });
+  }
 }
 
 function updatePlotInfo(payload) {

@@ -245,7 +245,8 @@
     .ch-old { font-size: 13px; color: #6B736E; margin: 0 0 10px; }
     .ch-ex { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #EEF1EF; background: #fff; color: inherit; padding: 11px 12px; font-size: 15px; }
     .ch-ex:last-child { border-bottom: 0; }
-    .ch-bar { position: sticky; bottom: 8px; z-index: 5; display: flex; gap: 8px; align-items: flex-end; background: #fff; border: 1px solid #D5DDD7; border-radius: 24px; padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.12); margin-top: 8px; }
+    #chatList { padding-bottom: 72px; }
+    .ch-bar { position: fixed; left: 12px; right: 12px; bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 1030; display: flex; gap: 8px; align-items: flex-end; background: #fff; border: 1px solid #D5DDD7; border-radius: 24px; padding: 6px; box-shadow: 0 2px 12px rgba(0,0,0,.14); }
     .ch-bar textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; font: inherit; font-size: 16px; line-height: 1.4; padding: 8px 10px; max-height: 140px; background: transparent; color: inherit; }
     .ch-send { width: 42px; height: 42px; border-radius: 21px; border: 0; background: var(--green); color: #fff; font-size: 20px; flex-shrink: 0; }
     .log-foot { position: sticky; bottom: 8px; padding-top: 10px; z-index: 5; }

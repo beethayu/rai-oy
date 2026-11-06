@@ -24,8 +24,9 @@ function wxPoints_(ss) {
     g[k].la += la; g[k].ln += ln; g[k].n++; g[k].plots.push(p.plot_id);
   });
   const pts = order.map(k => ({ loc: k, lat: +(g[k].la / g[k].n).toFixed(4), lng: +(g[k].ln / g[k].n).toFixed(4), plots: g[k].plots }));
-  if (pts.length) return pts;
   const s = getSettings_(ss);
+  if (Number(s.HOME_LAT) && Number(s.HOME_LNG)) pts.push({ loc: 'บ้าน', lat: Number(s.HOME_LAT), lng: Number(s.HOME_LNG), plots: [] });
+  if (pts.some(x => x.plots.length)) return pts;
   if (Number(s.WX_LAT) && Number(s.WX_LNG)) return [{ loc: 'ไร่', lat: Number(s.WX_LAT), lng: Number(s.WX_LNG), plots: [] }];
   return [];
 }
@@ -50,6 +51,14 @@ function weatherForecast(points) {
 }
 
 // หน้าเว็บตั้งพิกัดสำรอง (ตอนยังไม่มีแปลงไหนวาดขอบ)
+// บ้านผู้ใช้ (6 พ.ย. 69) → แถว "บ้าน" ในพยากรณ์ + RainLog · 0,0 = เอาออก
+function setHomeLoc(lat, lng) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  setSetting_(ss, 'HOME_LAT', Number(lat) ? Number(lat).toFixed(4) : '');
+  setSetting_(ss, 'HOME_LNG', Number(lng) ? Number(lng).toFixed(4) : '');
+  return true;
+}
+
 function setWxHome(lat, lng) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!Number(lat) || !Number(lng)) throw new Error('พิกัดไม่ถูก');

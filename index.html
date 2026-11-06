@@ -347,6 +347,9 @@
     .wx-lg span { display: flex; align-items: center; gap: 4px; } .wx-lg i { width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
     .wx-boxes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
     .wx-boxes > div { border-radius: 10px; padding: 6px 8px; } .wx-boxes small { display: block; font-size: 11.5px; color: #3E4742; } .wx-boxes b { font-size: 14.5px; }
+    .wx-sum { margin-top: 10px; background: #F4F7F5; border-radius: 10px; padding: 8px 10px; font-size: 14px; line-height: 1.5; }
+    .wx-sum b { display: block; color: #1E5FA8; } .wx-sum span { color: #8A4100; font-weight: 600; }
+    .fm-tag-home { background: #8A4100 !important; color: #fff !important; }
     .wx-hbars { display: grid; gap: 2px; align-items: end; height: 32px; margin-top: 4px; } .wx-hbars i { display: block; border-radius: 3px 3px 1px 1px; }
     .sg-strip { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: #fff; color: inherit; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
     .sg-strip .sg-ic { width: 30px; height: 30px; border-radius: 8px; background: #F3EBDD; color: #7A4B12; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -3139,7 +3142,7 @@
       return locs.map((l, i) => {
         const r = wxData.res[i], k = r ? r.daily.time.indexOf(iso) : -1;
         return { loc: l.loc, plots: l.plots, mm: k >= 0 ? Math.round(num(r.daily.precipitation_sum[k]) * 10) / 10 : null };
-      }).sort((a, b) => (b.mm || 0) - (a.mm || 0));
+      }).filter(a => a.plots.length).sort((a, b) => (b.mm || 0) - (a.mm || 0));
     }
     function chatRainTgl(mi, i, loc, on) {
       const it = chat.msgs[mi].items[i];
@@ -3815,6 +3818,7 @@
         if (onTap) m.on('click', e => { L.DomEvent.stopPropagation(e); onTap(); });
       };
       const center = pts => { const b = L.latLngBounds(pts).getCenter(); return [b.lat, b.lng]; };
+      if (num(S('HOME_LAT')) && num(S('HOME_LNG'))) lbl([num(S('HOME_LAT')), num(S('HOME_LNG'))], '🏠 บ้าน', 'fm-tag fm-tag-home');
       const editing = id => fmEdit && fmEdit.id === id;
       if (z >= 15) {
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length >= 3 && !editing(p.plot_id)) lbl(center(pts), esc(p.plot_name), 'fm-tag'); });
@@ -4166,7 +4170,8 @@
         g[k].la += la; g[k].ln += ln; g[k].n++; g[k].plots.push(p.plot_id);
       });
       const pts = order.map(k => ({ loc: k, lat: +(g[k].la / g[k].n).toFixed(4), lng: +(g[k].ln / g[k].n).toFixed(4), plots: g[k].plots }));
-      if (pts.length) return pts;
+      if (num(S('HOME_LAT')) && num(S('HOME_LNG'))) pts.unshift({ loc: 'บ้าน', lat: num(S('HOME_LAT')), lng: num(S('HOME_LNG')), plots: [], isHome: true });
+      if (pts.some(x => !x.isHome)) return pts;
       if (num(S('WX_LAT')) && num(S('WX_LNG'))) return [{ loc: 'ไร่', lat: num(S('WX_LAT')), lng: num(S('WX_LNG')), plots: gData.plots.map(p => p.plot_id), home: true }];
       return [];
     }
@@ -4190,6 +4195,18 @@
     }
 
     // ยังไม่มีพิกัด: ขอตำแหน่งมือถือ แล้วจำไว้ในหลังบ้าน (ใช้ลงฝนรายวันด้วย)
+    // บ้าน (6 พ.ย. 69): ผู้ใช้อยู่บ้านมากกว่าเข้าไร่ → ดูฝนที่บ้านเทียบกับที่ตกจริง · ตั้งจาก GPS มือถือตอนอยู่บ้าน
+    function wxSetHome(clear) {
+      if (clear) { if (!confirm('เอาบ้านออกจากพยากรณ์และแผนที่?')) return; callApi('setHomeLoc', [0, 0]).catch(() => {}); gData.settings = Object.assign({}, gData.settings, { HOME_LAT: '', HOME_LNG: '' }); saveCache(gData); wxLoad(true); return; }
+      if (!navigator.geolocation) return alert('มือถือนี้หาตำแหน่งไม่ได้');
+      if (!confirm('ตั้งตำแหน่งบ้าน = ตำแหน่งมือถือตอนนี้\nกดตอนอยู่ที่บ้านนะครับ')) return;
+      navigator.geolocation.getCurrentPosition(p => {
+        const la = +p.coords.latitude.toFixed(4), ln = +p.coords.longitude.toFixed(4);
+        callApi('setHomeLoc', [la, ln]).catch(() => {});
+        gData.settings = Object.assign({}, gData.settings, { HOME_LAT: String(la), HOME_LNG: String(ln) });
+        saveCache(gData); wxSelA = 0; wxLoad(true); wxRender();
+      }, () => alert('หาตำแหน่งไม่ได้ · อนุญาตตำแหน่งให้แอปก่อน'), { enableHighAccuracy: true, timeout: 15000 });
+    }
     function wxUseMyLoc() {
       if (!navigator.geolocation) return alert('มือถือนี้หาตำแหน่งไม่ได้ · วาดขอบแปลงในแผนที่ไร่แทนได้');
       const t = $('syncToast'); t.innerText = '⏳ กำลังหาตำแหน่ง...'; t.style.display = 'block';
@@ -4331,8 +4348,14 @@
         : wxMode === 'wind' ? [['#FFF1DC', 'กระโชก <20'], ['#F6B26B', '20–29'], ['#C2410C', '30+ กม./ชม.'], ['#FFFFFF', 'ตัวเล็ก ~ = ลมเฉลี่ย']] : [['#2E7D4F', 'ฉีดได้ (ช่วงแรก)'], ['#F1F1EE', 'ไม่เหมาะ']];
       h += `<div class="wx-lg">${lg.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('')}</div></div>`;
       const r = wxData.res[wxSelA], D = r.daily, H = r.hourly, d = days[wxSelD], k = D.time.indexOf(d), sp = sprayOf[wxSelA + '|' + d] || [];
-      const hrs = []; H.time.forEach((t, i) => { const [dd, hm] = t.split('T'), hr = +hm.slice(0, 2); if (dd === d && hr >= 6 && hr <= 18) hrs.push(i); });
-      const maxMm = Math.max(1, ...hrs.map(i => num(H.precipitation[i])));
+      const hrs = []; H.time.forEach((t, i) => { const [dd, hm] = t.split('T'), hr = +hm.slice(0, 2); if (dd === d) hrs.push(i); });
+      const maxMm = Math.max(1, ...hrs.map(i => num(H.precipitation[i]))), maxG = Math.max(20, ...hrs.map(i => num(H.wind_gusts_10m[i])));
+      const wetH = hrs.filter(i => num(H.precipitation[i]) >= 0.2), hh = i => H.time[i].slice(11, 13) + ':00';
+      const pk = wetH.reduce((a, i) => num(H.precipitation[i]) > num(H.precipitation[a]) ? i : a, wetH[0]);
+      const gk = hrs.reduce((a, i) => num(H.wind_gusts_10m[i]) > num(H.wind_gusts_10m[a]) ? i : a, hrs[0]);
+      const rainTxt = wetH.length ? `ฝนตกช่วง ~${hh(wetH[0])}–${String(+hh(wetH[wetH.length - 1]).slice(0, 2) + 1).padStart(2, '0')}:00 · หนักสุด ${hh(pk)} (${r1x(H.precipitation[pk])} มม.)` : 'ทั้งวันไม่มีฝนเป็นเรื่องเป็นราว';
+      const windTxt = hrs.length ? `ลมแรงสุด ~${hh(gk)} กระโชก ${Math.round(H.wind_gusts_10m[gk])} กม./ชม. ${wxArrow(H.wind_direction_10m[gk])}` : '';
+      const wMode = wxMode === 'wind';
       h += `<div class="card-sec mt-2">
         <div class="d-flex justify-content-between align-items-baseline"><b style="font-size:16px">${esc(locs[wxSelA].loc)}</b><span class="srow-s">${d === today ? 'วันนี้ ' : ''}${thDay(d)}</span></div>
         <div class="wx-boxes">
@@ -4340,14 +4363,18 @@
           <div style="background:#FFF4E0"><small>ลม / กระโชก</small><b style="color:#8A4100">${Math.round(D.wind_speed_10m_max[k])} / ${Math.round(D.wind_gusts_10m_max[k])} ${wxArrow(D.wind_direction_10m_dominant[k])}</b></div>
           <div style="background:${sp.length ? '#E3F1E7' : '#F1F1EE'};color:${sp.length ? '#1F5E3B' : '#6B736E'}"><small>ฉีดยา</small><b>${sp.length ? sprayTxt(sp) : 'ไม่เหมาะ'}</b></div>
         </div>
-        <div class="srow-s mt-2">ฝนรายชั่วโมง 06–18 น. · ลมพัดมาจากทิศ${wxDir(D.wind_direction_10m_dominant[k])}</div>
-        <div class="wx-hbars" style="grid-template-columns: repeat(${hrs.length || 1}, minmax(0, 1fr))">${hrs.map(i => `<i style="height:${Math.max(3, Math.round(num(H.precipitation[i]) / maxMm * 30))}px;background:${num(H.precipitation[i]) >= 0.1 ? '#7FB0E3' : '#E6EBE7'}"></i>`).join('')}</div>
-        <div class="d-flex justify-content-between srow-s" style="font-size:10.5px"><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span></div>
+        <div class="wx-sum"><b>${rainTxt}</b><span>${windTxt}</span></div>
+        <div class="srow-s mt-2">${wMode ? 'ลมกระโชกรายชั่วโมง' : 'ฝนรายชั่วโมง'} 00–23 น. · ลมพัดมาจากทิศ${wxDir(D.wind_direction_10m_dominant[k])}</div>
+        <div class="wx-hbars" style="grid-template-columns: repeat(${hrs.length || 1}, minmax(0, 1fr))">${hrs.map(i => wMode
+          ? `<i style="height:${Math.max(3, Math.round(num(H.wind_gusts_10m[i]) / maxG * 30))}px;background:${wxWindCol(num(H.wind_gusts_10m[i]))[0]}"></i>`
+          : `<i style="height:${Math.max(3, Math.round(num(H.precipitation[i]) / maxMm * 30))}px;background:${num(H.precipitation[i]) >= 0.1 ? '#2F6FB3' : '#DCE6F0'}"></i>`).join('')}</div>
+        <div class="d-flex justify-content-between srow-s" style="font-size:10.5px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
         <button type="button" class="grp-all mt-2" onclick="wxShowHrs=!wxShowHrs;wxRender()">${wxShowHrs ? 'ซ่อน' : 'ดู'}ตัวเลขรายชั่วโมง</button>
         ${wxShowHrs ? `<div class="wx-hr mt-1" style="border-radius:10px">${hrs.map(i => `<div class="wx-hrow"><b>${H.time[i].slice(11, 13)}:00</b><span>${num(H.precipitation[i]) >= 0.1 ? r1x(H.precipitation[i]) + ' มม.' : 'ฝน'} ${H.precipitation_probability[i]}%</span><span>${wxArrow(H.wind_direction_10m[i])} ลม ${Math.round(H.wind_speed_10m[i])} / ${Math.round(H.wind_gusts_10m[i])}</span></div>`).join('')}</div>` : ''}
       </div>`;
       const hist = (gData.rainLog || []).filter(x => x.loc === locs[wxSelA].loc).slice(0, 7).reverse();
       if (hist.length) h += `<div class="card-sec py-2"><div class="bill-lbl mb-1">ฝน 7 วันที่ผ่านมา ${esc(locs[wxSelA].loc)} (มม. ค่าประมาณ)</div><div class="d-flex justify-content-between text-center" style="font-size:12.5px">${hist.map(x => `<div><div class="fw-bold" style="color:${num(x.rain_mm) >= 10 ? '#1E5FA8' : '#3E4742'}">${r1x(x.rain_mm)}</div><div class="srow-s">${esc(x.timestamp.slice(0, 5))}</div></div>`).join('')}</div></div>`;
+      h += `<button type="button" class="grp-all mb-2" onclick="wxSetHome(${num(S('HOME_LAT')) ? 'true' : ''})">${num(S('HOME_LAT')) ? 'เอาบ้านออก' : '🏠 เพิ่มบ้าน (กดตอนอยู่บ้าน ใช้ตำแหน่งมือถือ)'}</button>`;
       h += `<div class="msub">อัปเดต ${hhmm(wxData.t)} น. <button type="button" class="grp-all ms-1" onclick="wxLoad(true)">โหลดใหม่</button> · ฉีดยาได้ = ลมไม่เกิน ${SPRAY_WIND} (กระโชก ${SPRAY_GUST}) และ 4 ชม.ข้างหน้าโอกาสฝนไม่เกิน ${SPRAY_POP}% · ข้อมูล Open-Meteo เป็นค่าพยากรณ์ ฝนฟ้าคะนองเป็นหย่อม ๆ อาจคลาด</div>`;
       B.innerHTML = h;
     }

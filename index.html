@@ -4249,30 +4249,39 @@
         <span class="srow-s">7 วัน ›</span></button>`;
     }
 
-    // ฝนเมื่อวาน (RainLog จากหลังบ้าน หรือข้อมูลพยากรณ์ย้อนหลัง 1 วัน) ≥ 10 มม. → ถามก่อนลงฝนตก
+    // ฝนหนัก (≥ 10 มม.) เมื่อวาน + วันนี้ → การ์ดเดียวต่อวัน ถามว่าตกจริงไหม (6 พ.ย. 69: เดิมถามแค่เมื่อวาน การ์ดละพื้นที่)
+    // เมื่อวาน: RainLog จากหลังบ้านก่อน ไม่มีค่อยใช้พยากรณ์ย้อนหลัง · วันนี้: พยากรณ์ทั้งวัน · แปลงที่ลงฝน/ให้น้ำวันนั้นแล้วไม่นับ
     const WX_ASK_MM = 10;
     function wxRainAsk() {
+      const locs = wxLocs(), ok = wxData && wxData.key === wxKey(locs);
+      let skip = []; try { skip = JSON.parse(lsGet('raioy_rainask2') || '[]'); } catch (e) {}
       const y = new Date(); y.setDate(y.getDate() - 1);
-      const yIso = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`, yBE = isoToBE(yIso);
-      const locs = wxLocs(), out = [];
-      locs.forEach((l, i) => {
-        const log = (gData.rainLog || []).find(x => x.timestamp === yBE && x.loc === l.loc);
-        let mm = log ? num(log.rain_mm) : null;
-        if (mm === null && wxData && wxData.key === wxKey(locs) && wxData.res[i]) { const k = wxData.res[i].daily.time.indexOf(yIso); if (k >= 0) mm = num(wxData.res[i].daily.precipitation_sum[k]); }
-        if (mm === null || mm < WX_ASK_MM) return;
-        if (lsGet('raioy_rainask') === yIso + '|' + l.loc) return;
-        const ids = l.plots.filter(id => { const p = gData.plots.find(x => x.plot_id === id); const w = p && beToISO(p.last_water_date); return p && (!w || w < yIso); });
-        if (ids.length) out.push({ loc: l.loc, mm, ids, yIso });
+      const days = [{ iso: `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`, lb: 'เมื่อวาน' }, { iso: todayISO(), lb: 'วันนี้' }];
+      const out = [];
+      days.forEach(d => {
+        if (skip.includes(d.iso)) return;
+        const be = isoToBE(d.iso), areas = [], ids = [];
+        locs.forEach((l, i) => {
+          const log = d.lb === 'เมื่อวาน' && (gData.rainLog || []).find(x => x.timestamp === be && x.loc === l.loc);
+          let mm = log ? num(log.rain_mm) : null;
+          if (mm === null && ok && wxData.res[i]) { const k = wxData.res[i].daily.time.indexOf(d.iso); if (k >= 0) mm = num(wxData.res[i].daily.precipitation_sum[k]); }
+          if (mm === null || mm < WX_ASK_MM) return;
+          const left = l.plots.filter(id => { const p = gData.plots.find(x => x.plot_id === id); const w = p && beToISO(p.last_water_date); return p && (!w || w < d.iso); });
+          if (!left.length) return;
+          areas.push({ loc: l.loc, mm }); left.forEach(id => { if (!ids.includes(id)) ids.push(id); });
+        });
+        if (ids.length) out.push({ iso: d.iso, lb: d.lb, areas, ids, max: Math.max(...areas.map(a => a.mm)) });
       });
       return out;
     }
+    function wxRainSkip(iso) { let s = []; try { s = JSON.parse(lsGet('raioy_rainask2') || '[]'); } catch (e) {} s = s.filter(x => x >= todayISO().slice(0, 7)).concat(iso); lsSet('raioy_rainask2', JSON.stringify(s.slice(-10))); render(); }
     function wxRainAskHtml() {
       return wxRainAsk().map(a => `<div class="wx-rain-card">
-        <div><b>เมื่อวานฝนประมาณ ${r1x(a.mm)} มม.</b> ${a.loc !== 'ไร่' ? 'แถว' + esc(a.loc) : ''}</div>
-        <div class="srow-s mb-2">ค่าประมาณจากพยากรณ์ ไม่ใช่วัดจริง · ฝนตกจริงไหม? ลงฝนตกให้ ${a.ids.length} แปลงที่ยังไม่ได้ลง</div>
+        <div><b>${a.lb}พยากรณ์ฝนหนัก ~${r1x(a.max)} มม. · ตกจริงไหม?</b></div>
+        <div class="srow-s mb-2">${a.areas.map(x => `${esc(x.loc)} ${r1x(x.mm)}`).join(' · ')} มม.<br>ค่าประมาณจากพยากรณ์ ไม่ใช่วัดจริง · ${a.ids.length} แปลงยังไม่ได้ลงฝน</div>
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm btn-primary fw-bold flex-fill" onclick="openRain(${JSON.stringify(a.ids).replace(/"/g, "'")},'${a.yIso}','(ฝนจากพยากรณ์ ~${r1x(a.mm)} มม.)')">ตกจริง · เลือกแปลง</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="lsSet('raioy_rainask','${a.yIso}|${qa(a.loc)}');render()">ไม่ตก / ไม่ต้อง</button>
+          <button type="button" class="btn btn-sm btn-primary fw-bold flex-fill" onclick="openRain(${JSON.stringify(a.ids).replace(/"/g, "'")},'${a.iso}','(ฝนจากพยากรณ์ ~${r1x(a.max)} มม.)')">ตกจริง · เลือกแปลง</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="wxRainSkip('${a.iso}')">ไม่ตก / ไม่ต้อง</button>
         </div></div>`).join('');
     }
 

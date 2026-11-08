@@ -505,6 +505,28 @@
     .app-header { background: linear-gradient(135deg, #155d27, #28a745); color: white; padding: 14px; border-radius: 0 0 18px 18px; }
     .tab-btn { font-weight: 700; background: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 7px 3px; color: #495057; font-size: 0.86rem; }
     .tab-btn.active { background: #198754; color: white; border-color: #198754; }
+    .sat-top { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+    .sat-top b { display: block; font-size: 16px; } .sat-top small { color: var(--muted); }
+    .sat-key { margin-bottom: 4px; } .sat-key small { color: var(--muted); font-size: 11.5px; }
+    .sat-legend { height: 10px; border-radius: 5px; margin-top: 10px; background: linear-gradient(90deg, #A0703A, #D9A23A, #F2D94D, #B9C64A, #62A045, #2E7D32); }
+    .sat-h { font-size: 13px; font-weight: 600; color: var(--muted); margin: 16px 0 6px; }
+    .sat-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 10px 10px; margin-bottom: 8px; }
+    .sat-row:active { background: var(--green-soft); }
+    .sat-sw { width: 12px; align-self: stretch; min-height: 40px; border-radius: 6px; flex: none; }
+    .sat-mid { flex: 1; min-width: 0; } .sat-mid b { display: block; font-size: 15px; } .sat-mid small { color: var(--muted); font-size: 12.5px; }
+    .sat-num { font-size: 22px; font-weight: 700; text-align: right; line-height: 1.05; flex: none; }
+    .sat-num small { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+    .sat-flag { display: block; font-size: 12.5px; color: var(--urg-ink); margin-top: 2px; }
+    .sat-img { background: #fff; border: 1px solid var(--line); border-radius: 16px; min-height: 200px; display: flex; align-items: center; justify-content: center; padding: 14px; }
+    .sat-img img { width: 100%; max-width: 360px; max-height: 360px; object-fit: contain; }
+    .sat-dates { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+    .sat-dates button { flex: none; border: 1px solid var(--line2); background: #fff; border-radius: 10px; padding: 6px 10px; font-size: 13px; }
+    .sat-dates button.on { background: var(--green); color: #fff; border-color: var(--green); }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+    .sat-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .sat-tile, .sat-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+    .sat-tile .v { font-size: 30px; font-weight: 700; line-height: 1.1; }
+    .sat-tile b { display: block; font-size: 14px; } .sat-tile small, .sat-card small { color: var(--muted); font-size: 12px; display: block; }
     .plot-card { border-radius: 14px; border: none; border-left: 7px solid #198754; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: white; }
     .plot-card.ongoing { border-left-color: #0d6efd; }
     .plot-card.urgent-water { border-left-color: #dc3545; }
@@ -4363,93 +4385,149 @@ Export.table.toDrive({
     }
 
     // ===== หน้าดาวเทียมรายแปลง (ข้อมูลจากชีต SatLog / RadarLog ที่ Apps Script ลงให้เอง) =====
-    let satData = null;
+    // หน้ารวม: แถวละแปลง สีตามความเขียวล่าสุด · แตะ → ภาพสีของแปลง (getSatImage) + เลือกวันที่ + ตัวเลขภาษาง่าย + กราฟปี
+    let satData = null, satInfo = null, satSelK = null, satSelD = null;
+    const satImgCache = {};
     function openSat() {
+      satSelK = null;
       $('sat-body').innerHTML = '<div class="empty"><b>กำลังโหลด…</b></div>';
       showM('satModal');
-      call('getSatData', [], d => { satData = d || { sat: [], radar: [] }; satRender(); }, null, '⏳ กำลังโหลดข้อมูลดาวเทียม...');
+      call('getSatData', [], d => { satData = d || { sat: [], radar: [] }; satBuild(); satList(); }, null, '⏳ กำลังโหลดข้อมูลดาวเทียม...');
     }
     const satAge = iso => Math.round((Date.parse(todayISO()) - Date.parse(iso)) / 86400000);
     const satMed = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
     const satD = iso => { const [y, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]} ${String(+y + 543).slice(2)}`; };
+    const satDs = iso => { const [, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]}`; };
     const satType = p => p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'อ้อยตอ';
-    function satLevel(v) { return v < 0.2 ? 'ดินโล่ง / เพิ่งตัด' : v < 0.4 ? 'ใบยังน้อย' : v < 0.6 ? 'กำลังโต' : 'เขียวเต็มแปลง'; }
+    const satLevel = v => v < 0.25 ? 'ดินโล่ง / เพิ่งตัด' : v < 0.4 ? 'ใบยังน้อย' : v < 0.55 ? 'กำลังโต' : v < 0.7 ? 'เขียวดี' : 'เขียวเต็มแปลง';
+    const satColor = v => v == null ? '#C9C6BB' : v < 0.25 ? '#A0703A' : v < 0.4 ? '#D9A23A' : v < 0.55 ? '#B9C64A' : v < 0.7 ? '#62A045' : '#2E7D32';
     function satGroup(rows, conv) {
       const g = {};
       (rows || []).forEach(r => { const o = conv(r); if (o) (g[o.k] = g[o.k] || []).push(o); });
       Object.keys(g).forEach(k => g[k].sort((x, y) => x.d < y.d ? -1 : x.d > y.d ? 1 : 0));
       return g;
     }
-    function satSpark(good, wetD) {
-      const W = 300, H = 56, days = 180, pts = good.filter(q => satAge(q.d) <= days);
-      if (pts.length < 2) return '';
-      const x = d => W - (satAge(d) / days) * W, y = v => H - 4 - Math.max(0, Math.min(0.9, v)) / 0.9 * (H - 8);
-      const line = pts.map(q => x(q.d).toFixed(1) + ',' + y(q.ndvi).toFixed(1)).join(' ');
-      const dots = pts.map(q => `<circle cx="${x(q.d).toFixed(1)}" cy="${y(q.ndvi).toFixed(1)}" r="2" fill="#1F5E3B"/>`).join('');
-      const wet = wetD.filter(d => satAge(d) <= days).map(d => `<rect x="${(x(d) - 2).toFixed(1)}" y="${H - 3}" width="4" height="3" fill="#1E4FB8"/>`).join('');
-      return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;margin-top:8px" role="img" aria-label="กราฟความเขียว 6 เดือน"><line x1="0" y1="${H - 4}" x2="${W}" y2="${H - 4}" stroke="#E2E0D6"/><polyline points="${line}" fill="none" stroke="#1F5E3B" stroke-width="1.5"/>${dots}${wet}</svg>`
-        + `<div class="d-flex justify-content-between text-muted" style="font-size:11px"><span>6 เดือนก่อน</span>${wet ? '<span>แถบน้ำเงิน = เห็นน้ำ</span>' : ''}<span>ตอนนี้</span></div>`;
-    }
-    function satRender() {
-      const sg = satGroup(satData.sat, r => { const v = parseFloat(r[3]), c = parseFloat(r[7]); return isFinite(v) ? { k: r[1] + '|' + r[2], d: r[0], ndvi: v, water: parseFloat(r[6]), clear: isFinite(c) ? c : 0 } : null; });
-      const rg = satGroup(satData.radar, r => { const w = parseFloat(r[4]); return isFinite(w) ? { k: r[1] + '|' + r[2], d: r[0], vv: parseFloat(r[3]), water: w } : null; });
-      if (!(satData.sat || []).length) { $('sat-body').innerHTML = '<div class="empty"><b>ยังไม่มีข้อมูลดาวเทียม</b>ให้รัน logSatelliteBackfill ใน Apps Script ก่อน</div>'; return; }
-      const info = gData.plots.filter(p => p.boundary).map(p => {
-        const key = 'plot|' + p.plot_id, good = (sg[key] || []).filter(q => q.clear >= 0.6), last = good[good.length - 1] || null;
-        return { p, key, good, last, age: last ? satAge(last.d) : null, flags: [], trend: null };
+    function satBuild() {
+      const sg = satGroup(satData.sat, r => { const v = parseFloat(r[3]), c = parseFloat(r[7]); return isFinite(v) ? { k: r[1] + '|' + r[2], d: r[0], ndvi: v, ndre: parseFloat(r[4]), water: parseFloat(r[6]), clear: isFinite(c) ? c : 0 } : null; });
+      const rg = satGroup(satData.radar, r => { const w = parseFloat(r[4]); return isFinite(w) ? { k: r[1] + '|' + r[2], d: r[0], water: w } : null; });
+      const items = [];
+      gData.plots.filter(p => p.boundary).forEach(p => items.push({ key: 'plot|' + p.plot_id, id: p.plot_id, name: p.plot_name, type: satType(p), rai: p.area_rai, land: false }));
+      (gData.lands || []).filter(l => l.boundary).forEach(l => items.push({ key: 'land|' + l.land_id, id: l.land_id, name: l.name, type: 'ที่ดินที่จะเช่า', rai: l.map_rai, land: true }));
+      items.forEach(x => {
+        x.good = (sg[x.key] || []).filter(q => q.clear >= 0.6);
+        x.last = x.good[x.good.length - 1] || null;
+        x.age = x.last ? satAge(x.last.d) : null;
+        x.radar = rg[x.key] || [];
+        x.flags = []; x.trend = null;
       });
       const peer = {};
-      ['อ้อยใหม่', 'อ้อยตอ'].forEach(t => { peer[t] = satMed(info.filter(x => x.last && x.age <= 30 && satType(x.p) === t).map(x => x.last.ndvi)); });
-      info.forEach(x => {
-        const t = satType(x.p);
-        if (x.last) {
-          const ref = satMed(x.good.filter(q => { const a = satAge(q.d) - x.age; return a >= 20 && a <= 45; }).map(q => q.ndvi));
-          x.trend = ref === null ? null : x.last.ndvi - ref;
-          if (x.trend !== null && x.trend <= -0.15) x.flags.push('เขียวลดลงเร็วในรอบเดือน (อาจตัดแล้ว ขาดน้ำ ใบเหลือง หรือน้ำท่วม)');
-          if (peer[t] !== null && x.age <= 30 && x.last.ndvi >= 0.2 && x.last.ndvi <= peer[t] - 0.15) x.flags.push('เขียวน้อยกว่า' + t + 'แปลงอื่นๆ');
-        }
+      ['อ้อยใหม่', 'อ้อยตอ'].forEach(t => { peer[t] = satMed(items.filter(x => !x.land && x.last && x.age <= 30 && x.type === t).map(x => x.last.ndvi)); });
+      items.forEach(x => {
+        if (!x.last) return;
+        const ref = satMed(x.good.filter(q => { const a = satAge(q.d) - x.age; return a >= 20 && a <= 45; }).map(q => q.ndvi));
+        x.trend = ref === null ? null : x.last.ndvi - ref;
+        if (x.land) return;
+        if (x.trend !== null && x.trend <= -0.15) x.flags.push('เขียวลดลงเร็วในรอบเดือน (อาจตัดแล้ว ขาดน้ำ ใบเหลือง หรือน้ำท่วม)');
+        if (peer[x.type] !== null && x.age <= 30 && x.last.ndvi >= 0.2 && x.last.ndvi <= peer[x.type] - 0.15) x.flags.push('เขียวน้อยกว่า' + x.type + 'แปลงอื่นๆ');
         // เรดาร์มองน้ำใต้อ้อยสูงไม่เห็น (น้ำท่วม ต.ค. 68 ที่ยืนยันแล้ว เรดาร์ไม่เห็นเลย) → ใช้เฉพาะตอนอ้อยยังเล็ก/ดินโล่ง
-        const small = !x.last || x.last.ndvi < 0.5;
-        const wr = small ? (rg[x.key] || []).filter(q => satAge(q.d) <= 20 && q.water >= 0.3).pop() : null;
-        const wo = (sg[x.key] || []).filter(q => q.clear >= 0.6 && satAge(q.d) <= 20 && q.water >= 0.3).pop();
-        if (wr) x.flags.push(`เรดาร์เห็นน้ำโล่งราว ${Math.round(wr.water * 100)}% ของแปลง (${satD(wr.d)})`);
-        else if (wo) x.flags.push(`ภาพถ่ายเห็นน้ำขังราว ${Math.round(wo.water * 100)}% ของแปลง (${satD(wo.d)})`);
+        const small = x.last.ndvi < 0.5;
+        const wr = small ? x.radar.filter(q => satAge(q.d) <= 20 && q.water >= 0.3).pop() : null;
+        const wo = x.good.filter(q => satAge(q.d) <= 20 && q.water >= 0.3).pop();
+        if (wr) x.flags.push(`เรดาร์เห็นน้ำขังราว ${Math.round(wr.water * 100)}% ของแปลง (${satDs(wr.d)})`);
+        else if (wo) x.flags.push(`ภาพถ่ายเห็นน้ำขังราว ${Math.round(wo.water * 100)}% ของแปลง (${satDs(wo.d)})`);
       });
-      info.sort((a, b) => b.flags.length - a.flags.length || (a.age === null) - (b.age === null) || a.p.plot_name.localeCompare(b.p.plot_name, 'th'));
-      const cards = info.map(x => {
-        const p = x.p, c = !x.last ? '#6c757d' : x.flags.length ? '#B4410E' : '#198754';
-        const trend = x.trend === null ? '' : x.trend >= 0.1 ? ' · ↑ เขียวขึ้นจากเดือนก่อน' : x.trend <= -0.1 ? ' · ↓ ลดลงจากเดือนก่อน' : ' · → ใกล้เดิม';
-        const head = !x.last ? 'ยังไม่มีภาพใสให้ดู (เมฆบัง)' : `🌱 ${satLevel(x.last.ndvi)} · เขียว ${x.last.ndvi.toFixed(2)}${trend}`;
-        const wetD = (rg[x.key] || []).filter(q => q.water >= 0.3).map(q => q.d);
-        const old = x.last && x.age > 25 ? '<div class="small text-muted mt-1">ภาพใสล่าสุดค่อนข้างเก่า ช่วงนี้เมฆบังบ่อย</div>' : '';
-        return `<div class="plot-card p-3" style="border-left-color:${c}">
-          <div class="d-flex justify-content-between align-items-baseline gap-2"><b>${esc(p.plot_name)}</b><small class="text-muted text-nowrap">${satType(p)} · ${esc(p.area_rai)} ไร่</small></div>
-          <div class="mt-1">${head}</div>
-          ${x.flags.map(f => `<div class="small mt-1" style="color:var(--urg-ink)">⚠️ ${esc(f)}</div>`).join('')}${old}
-          ${satSpark(x.good, wetD)}
-          ${x.last ? `<div class="small text-muted mt-1">ภาพล่าสุด ${satD(x.last.d)} (${x.age} วันก่อน)</div>` : ''}
-        </div>`;
-      }).join('');
-      const lands = (gData.lands || []).filter(l => l.boundary).map(l => {
-        const key = 'land|' + l.land_id, rad = rg[key] || [], byY = {};
-        rad.forEach(r => { const y = r.d.slice(0, 4), o = byY[y] = byY[y] || { n: 0, w: 0 }; o.n++; if (r.water >= 0.3) o.w++; });
-        const ys = Object.keys(byY).sort();
-        const opt = (sg[key] || []).filter(q => q.clear >= 0.6), lo = opt[opt.length - 1];
-        return `<div class="plot-card p-3" style="border-left-color:#1E4FB8">
-          <b>${esc(l.name)}</b>${l.map_rai ? ` <small class="text-muted">· ${esc(l.map_rai)} ไร่</small>` : ''}
-          ${lo ? `<div class="mt-1">🌱 ตอนนี้ ${satLevel(lo.ndvi)} · เขียว ${lo.ndvi.toFixed(2)} <small class="text-muted">(${satD(lo.d)})</small></div>` : ''}
-          ${ys.length ? ys.map(y => `<div class="small mt-1">ปี ${+y + 543}: เห็นน้ำโล่ง ${byY[y].w} จาก ${byY[y].n} ภาพ</div>`).join('') : '<div class="small text-muted mt-1">ยังไม่มีข้อมูลเรดาร์ของที่ดินนี้</div>'}
-        </div>`;
-      }).join('');
-      const latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
-      const nFlag = info.filter(x => x.flags.length).length;
+      satInfo = { items, sg };
+    }
+    function satRow(x) {
+      const v = x.last ? x.last.ndvi : null;
+      const tr = x.trend === null ? '' : x.trend >= 0.1 ? '↑ เขียวขึ้น' : x.trend <= -0.1 ? '↓ ลดลง' : '→ ใกล้เดิม';
+      const sub = [x.land ? '' : x.type, x.rai ? esc(x.rai) + ' ไร่' : '', x.last ? 'ภาพ ' + satDs(x.last.d) : 'ยังไม่มีภาพใส'].filter(Boolean).join(' · ');
+      return `<button type="button" class="sat-row" onclick="satOpen('${qa(x.key)}')">
+        <span class="sat-sw" style="background:${satColor(v)}"></span>
+        <span class="sat-mid"><b>${esc(x.name)}</b><small>${sub}</small>${x.flags.length ? `<span class="sat-flag">⚠️ ${esc(x.flags[0])}${x.flags.length > 1 ? ` (+${x.flags.length - 1})` : ''}</span>` : ''}</span>
+        <span class="sat-num">${v === null ? '–' : v.toFixed(2)}<small>${tr}</small></span>
+      </button>`;
+    }
+    function satList() {
+      satSelK = null;
+      if (!(satData.sat || []).length) { $('sat-body').innerHTML = '<div class="empty"><b>ยังไม่มีข้อมูลดาวเทียม</b>ให้รัน logSatelliteBackfill ใน Apps Script ก่อน</div>'; return; }
+      const it = satInfo.items, ord = (a, b) => b.flags.length - a.flags.length || a.name.localeCompare(b.name, 'th');
+      const sec = (title, list) => list.length ? `<div class="sat-h">${title}</div>` + list.sort(ord).map(satRow).join('') : '';
+      const nFlag = it.filter(x => x.flags.length).length, latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
       $('sat-body').innerHTML = `
-        <div class="small text-muted mb-2">ข้อมูลล่าสุด ${latest ? satD(latest) : '-'} · ลงเองทุกเช้า · ${nFlag ? `มี ${nFlag} แปลงที่ควรไปดู` : 'ยังไม่มีแปลงที่ผิดปกติ'}</div>
-        <details class="mb-3 small"><summary><b>อ่านยังไง</b></summary>
-          <div class="mt-1">เขียว = ใบมากแค่ไหน (0 ดินโล่ง → 0.8 อ้อยเต็มแปลง) · ดาวเทียมผ่านแปลงเดิมราว 5 วันต่อครั้ง หน้าฝนเมฆบังบ่อยจึงเห็นห่างกว่านั้น · เรดาร์มองทะลุเมฆ เห็นน้ำขังได้เฉพาะตอนดินโล่งหรืออ้อยยังเล็ก อ้อยสูงแล้วมองน้ำใต้ใบไม่เห็น (เช็กกับน้ำท่วมปลาย ต.ค. 68 แล้ว เรดาร์ไม่เห็น) · ใช้เป็นตัวช่วยเตือนให้ไปดูหน้างาน ไม่ใช่ตัวตัดสิน</div>
-        </details>
-        ${cards}
-        ${lands ? '<h6 class="mt-3 mb-2">ที่ดินที่จะเช่า (เรดาร์ย้อนหลัง)</h6>' + lands + '<div class="small text-muted">เห็นเฉพาะน้ำโล่งที่ไม่มีพืชบัง ปีที่ภาพน้อยตัวเลขเชื่อถือน้อย</div>' : ''}`;
+        <div class="sat-top"><b>${nFlag ? `⚠️ ${nFlag} แปลงควรไปดู` : '✅ ยังไม่มีแปลงผิดปกติ'}</b><small>ภาพล่าสุด ${latest ? satD(latest) : '-'} · ลงเองทุกเช้า · แตะแปลงเพื่อดูภาพ</small></div>
+        <div class="sat-key">${satKey()}</div>
+        ${sec('อ้อยใหม่', it.filter(x => !x.land && x.type === 'อ้อยใหม่'))}
+        ${sec('อ้อยตอ', it.filter(x => !x.land && x.type === 'อ้อยตอ'))}
+        ${sec('ที่ดินที่จะเช่า', it.filter(x => x.land))}`;
+    }
+    function satKey() {
+      return `<div class="sat-legend"></div><div class="d-flex justify-content-between"><small>ดินโล่ง</small><small>ใบน้อย</small><small>กำลังโต</small><small>เขียวเต็ม</small></div>`;
+    }
+    function satOpen(key) {
+      const x = satInfo.items.find(i => i.key === key);
+      if (!x) return;
+      satSelK = key; satSelD = x.last ? x.last.d : (x.good.length ? x.good[x.good.length - 1].d : null);
+      satDetail();
+      $('sat-body').closest('.modal-body').scrollTop = 0;
+    }
+    function satPick(d) { satSelD = d; satDetail(); }
+    function satDetail() {
+      const x = satInfo.items.find(i => i.key === satSelK);
+      const dates = x.good.slice(-12), cur = x.good.find(q => q.d === satSelD) || x.last;
+      if (cur) satSelD = cur.d;
+      let tiles = '';
+      if (cur) {
+        const peers = satInfo.items.filter(o => !o.land && o.key !== x.key && o.type === x.type).map(o => (o.good.find(q => q.d === cur.d) || {}).ndvi).filter(v => v != null);
+        const pm = peers.length >= 3 ? satMed(peers) : null;
+        const cmp = pm === null || x.land ? '' : cur.ndvi >= pm + 0.08 ? `เขียวกว่า${x.type}แปลงอื่น` : cur.ndvi <= pm - 0.08 ? `เขียวน้อยกว่า${x.type}แปลงอื่น` : `ใกล้เคียง${x.type}แปลงอื่น`;
+        const leaf = !isFinite(cur.ndre) ? '–' : cur.ndre.toFixed(2);
+        const leafW = !isFinite(cur.ndre) ? '' : cur.ndvi < 0.5 ? 'ยังดูไม่ได้ (ใบยังไม่คลุม)' : cur.ndre >= 0.35 ? 'ใบเข้ม แข็งแรง' : cur.ndre >= 0.25 ? 'ปกติ' : 'ใบซีด ควรไปดู';
+        tiles = `<div class="sat-tiles">
+          <div class="sat-tile"><small>ความเขียว</small><div class="v" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b>${satLevel(cur.ndvi)}</b>${cmp ? `<small>${cmp}${pm !== null ? ` (${pm.toFixed(2)})` : ''}</small>` : ''}</div>
+          <div class="sat-tile"><small>ใบสมบูรณ์</small><div class="v">${leaf}</div><b>${leafW}</b><small>ความเข้มของสีใบ</small></div>
+        </div>`;
+      }
+      const chips = dates.map(q => `<button type="button" class="${cur && q.d === cur.d ? 'on' : ''}" onclick="satPick('${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('');
+      let years = '';
+      if (x.land) {
+        const byY = {};
+        x.radar.forEach(r => { const y = r.d.slice(0, 4), o = byY[y] = byY[y] || { n: 0, w: 0 }; o.n++; if (r.water >= 0.3) o.w++; });
+        const ys = Object.keys(byY).sort();
+        years = `<div class="sat-h">เรดาร์ย้อนหลัง: เห็นน้ำขังกี่ครั้ง</div><div class="sat-card">${ys.length ? ys.map(y => `<div class="d-flex justify-content-between"><span>ปี ${+y + 543}</span><b>${byY[y].w} จาก ${byY[y].n} ภาพ</b></div>`).join('') : '<small>ยังไม่มีข้อมูลเรดาร์</small>'}<small class="d-block mt-1">เห็นเฉพาะน้ำบนดินโล่ง ใต้พืชสูงมองไม่เห็น</small></div>`;
+      }
+      $('sat-body').innerHTML = `
+        <button type="button" class="btn btn-link px-0 mb-1 fw-bold" style="color:var(--green);text-decoration:none" onclick="satList()">‹ ทุกแปลง</button>
+        <div class="d-flex justify-content-between align-items-baseline"><h5 class="mb-0 fw-bold">${esc(x.name)}</h5><small class="text-muted">${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}</small></div>
+        ${x.flags.map(f => `<div class="sat-flag mt-1">⚠️ ${esc(f)}</div>`).join('')}
+        <div class="sat-img mt-2" id="satImg">${cur ? '<small class="text-muted">กำลังโหลดภาพ…</small>' : '<small class="text-muted">ยังไม่มีภาพใสของแปลงนี้</small>'}</div>
+        ${satKey()}<div class="d-flex gap-3 mt-1"><small><span class="dot" style="background:#3373D9"></span>น้ำบนผิวดิน</small><small><span class="dot" style="background:#C7C7C7"></span>เมฆบัง</small></div>
+        ${dates.length ? `<div class="sat-h">เลือกวันที่ (ภาพที่ไม่มีเมฆบัง)</div><div class="sat-dates" id="satDates">${chips}</div>` : ''}
+        ${tiles}
+        <div class="sat-h">ความเขียว 12 เดือน</div><div class="sat-card">${satChart(x, cur)}</div>
+        ${years}`;
+      const dd = $('satDates'); if (dd) dd.scrollLeft = dd.scrollWidth;
+      if (cur) satLoadImg(x, cur.d);
+    }
+    function satLoadImg(x, d) {
+      const show = r => { if (satSelK !== x.key || satSelD !== d) return; const el = $('satImg'); if (el) el.innerHTML = `<img src="${r.img}" alt="ภาพสีแปลง ${esc(x.name)} ${satD(d)}">`; };
+      const ck = x.id + '|' + d;
+      if (satImgCache[ck]) return show(satImgCache[ck]);
+      google.script.run.withSuccessHandler(r => { satImgCache[ck] = r; show(r); })
+        .withFailureHandler(e => { const el = $('satImg'); if (el) el.innerHTML = `<small class="text-muted">โหลดภาพไม่ได้: ${esc(e.message || e)}</small>`; })
+        .getSatImage(x.id, d);
+    }
+    function satChart(x, cur) {
+      const W = 320, H = 130, L = 26, B = 18, days = 365, pts = x.good.filter(q => satAge(q.d) <= days);
+      if (pts.length < 2) return '<small class="text-muted">ข้อมูลยังน้อยเกินไป</small>';
+      const X = d => L + (1 - satAge(d) / days) * (W - L - 6), Y = v => 6 + (1 - Math.max(0, Math.min(0.9, v)) / 0.9) * (H - B - 6);
+      const grid = [0.2, 0.4, 0.6, 0.8].map(v => `<line x1="${L}" x2="${W - 6}" y1="${Y(v)}" y2="${Y(v)}" stroke="#ECEAE2"/><text x="${L - 4}" y="${Y(v) + 3}" font-size="9" text-anchor="end" fill="#8A8F8B">${v}</text>`).join('');
+      const t = new Date(Date.parse(todayISO())), months = [];
+      for (let i = 11; i >= 0; i -= 2) { const m = new Date(t.getFullYear(), t.getMonth() - i, 1); const iso = `${m.getFullYear()}-${pad(m.getMonth() + 1)}-01`; if (satAge(iso) <= days) months.push(iso); }
+      const mt = months.map(iso => `<text x="${X(iso)}" y="${H - 4}" font-size="9" text-anchor="middle" fill="#8A8F8B">${TH_MON[+iso.slice(5, 7) - 1]}</text>`).join('');
+      const line = pts.map(q => X(q.d).toFixed(1) + ',' + Y(q.ndvi).toFixed(1)).join(' ');
+      const dots = pts.map(q => `<circle cx="${X(q.d).toFixed(1)}" cy="${Y(q.ndvi).toFixed(1)}" r="${cur && q.d === cur.d ? 5 : 2.5}" fill="${satColor(q.ndvi)}" stroke="${cur && q.d === cur.d ? '#1C2320' : 'none'}" stroke-width="1.5"/>`).join('');
+      return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="กราฟความเขียว 12 เดือน">${grid}${mt}<polyline points="${line}" fill="none" stroke="#1F5E3B" stroke-width="1.5"/>${dots}</svg>`;
     }
 
     function farmBtnHtml() {

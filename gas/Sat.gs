@@ -329,7 +329,7 @@ function getSatImage(id, dateISO) {
   const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
   const lat0 = (Math.min(...lats) + Math.max(...lats)) / 2;
   const wm = (Math.max(...lngs) - Math.min(...lngs)) * 111320 * Math.cos(lat0 * Math.PI / 180), hm = (Math.max(...lats) - Math.min(...lats)) * 110540;
-  const k = Math.min(360 / Math.max(wm, hm), 1 / 2.5);        // ~2.5 ม./จุด ด้านยาวไม่เกิน 360 จุด
+  const k = Math.min(480 / Math.max(wm, hm), 1 / 1.5);        // ~1.5 ม./จุด (ขยายจากภาพ 10 ม. แบบนุ่ม) ด้านยาวไม่เกิน 480 จุด
   const w = Math.max(40, Math.round(wm * k)), h = Math.max(40, Math.round(hm * k));
   const d0 = new Date(dateISO + 'T00:00:00Z'), d1 = new Date(d0.getTime() + 86400000);
   const body = {

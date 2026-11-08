@@ -4263,9 +4263,81 @@
       return [r ? r + ' ไร่' : '', g ? g + ' งาน' : '', w ? w + ' ตร.วา' : ''].filter(Boolean).join(' ') || '0 ตร.วา';
     };
 
+    // ===== สคริปต์ Google Earth Engine: NDVI / NDRE / NDWI รายแปลงจาก Sentinel-2 (ทดลอง) =====
+    // ฝังขอบแปลงจากแอปลงสคริปต์ คัดลอกไปวางใน code.earthengine.google.com แล้วกด Run
+    function eeScript() {
+      const ps = gData.plots.filter(p => pPath(p.boundary).length >= 3);
+      const feats = ps.map(p => `  ee.Feature(ee.Geometry.Polygon([${JSON.stringify(pPath(p.boundary).map(([la, ln]) => [ln, la]))}]), ${JSON.stringify({ id: p.plot_id, name: p.plot_id + ' ' + p.plot_name, type: p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'อ้อยตอ', rai: num(p.area_rai) })})`).join(',\n');
+      const y = new Date().getFullYear();
+      return `// ไร่อ้อย: ดัชนีดาวเทียมรายแปลง (Sentinel-2) · สร้างจากแอป ${todayISO()} · ${ps.length} แปลง
+// วิธีใช้: วางทั้งหมดใน https://code.earthengine.google.com แล้วกด Run · กราฟอยู่แท็บ Console ทางขวา
+// NDVI = ความเขียว/มวลใบ · NDRE = คลอโรฟิลล์ (ไวกว่าตอนใบหนา) · NDWI = น้ำในใบ (NIR-SWIR) ค่าตก = เริ่มขาดน้ำ
+var START = '${y - 1}-10-01';            // ช่วงที่ดู (แก้ได้)
+var END = ee.Date(Date.now());
+var MIN_CLEAR = 0.6;                    // Cloud Score+ ≥ 0.6 = ใสพอ (เพิ่มเป็น 0.7 ถ้ายังมีเมฆปน)
+
+var plots = ee.FeatureCollection([
+${feats}
+]);
+
+var s2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+  .filterBounds(plots).filterDate(START, END)
+  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80));
+var cs = ee.ImageCollection('GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED');
+
+var union = plots.geometry();
+var idx = s2.linkCollection(cs, ['cs_cdf']).map(function (img) {
+  var clear = img.select('cs_cdf').gte(MIN_CLEAR);
+  // สัดส่วนพื้นที่แปลงทั้งหมดที่ไม่มีเมฆในภาพนี้
+  var frac = clear.reduceRegion({ reducer: ee.Reducer.mean(), geometry: union, scale: 20, maxPixels: 1e9 }).get('cs_cdf');
+  var ndvi = img.normalizedDifference(['B8', 'B4']).rename('NDVI');
+  var ndre = img.normalizedDifference(['B8', 'B5']).rename('NDRE');
+  var ndwi = img.normalizedDifference(['B8', 'B11']).rename('NDWI');
+  return ndvi.addBands(ndre).addBands(ndwi).updateMask(clear)
+    .set('clear', frac).set('system:time_start', img.get('system:time_start'));
+}).filter(ee.Filter.gte('clear', 0.8));   // เอาเฉพาะวันที่เห็นแปลงใส ≥ 80%
+print('ภาพที่ใช้ได้ (ใส ≥ 80%)', idx.size(), 'จากทั้งหมด', s2.size());
+
+function chart(type, band) {
+  print(ui.Chart.image.seriesByRegion({
+    imageCollection: idx, regions: plots.filter(ee.Filter.eq('type', type)),
+    reducer: ee.Reducer.mean(), band: band, scale: 10,
+    xProperty: 'system:time_start', seriesProperty: 'name'
+  }).setOptions({ title: band + ' · ' + type, pointSize: 3, lineWidth: 1, vAxis: { title: band } }));
+}
+['อ้อยใหม่', 'อ้อยตอ'].forEach(function (t) { chart(t, 'NDVI'); chart(t, 'NDRE'); chart(t, 'NDWI'); });
+
+// ตารางค่าเฉลี่ยรายแปลง-รายวัน สำหรับส่งออก
+var table = idx.map(function (img) {
+  var date = img.date().format('YYYY-MM-dd'), clr = img.get('clear');
+  return img.reduceRegions({ collection: plots, reducer: ee.Reducer.mean(), scale: 10 })
+    .map(function (f) { return f.set('date', date).set('clear', clr); });
+}).flatten();
+
+// แผนที่: NDRE ล่าสุด (ค่ากลาง 30 วันหลังสุด) ตัดเฉพาะในแปลง · แดง = ต่ำ เขียว = สูง
+var recent = idx.filterDate(END.advance(-30, 'day'), END).median().clipToCollection(plots);
+Map.centerObject(plots, 13);
+Map.addLayer(recent.select('NDVI'), { min: 0.2, max: 0.9, palette: ['d73027', 'fee08b', '1a9850'] }, 'NDVI 30 วันล่าสุด', false);
+Map.addLayer(recent.select('NDRE'), { min: 0.1, max: 0.6, palette: ['d73027', 'fee08b', '1a9850'] }, 'NDRE 30 วันล่าสุด');
+Map.addLayer(ee.Image().byte().paint(plots, 0, 2), { palette: ['ffffff'] }, 'ขอบแปลง');
+
+// ส่งตารางเข้า Google Drive (กดปุ่ม RUN ที่แท็บ Tasks) แล้วส่งไฟล์ CSV ให้ Claude อ่านต่อได้
+Export.table.toDrive({
+  collection: table, selectors: ['id', 'name', 'type', 'rai', 'date', 'clear', 'NDVI', 'NDRE', 'NDWI'],
+  description: 'raioy_s2_index', fileFormat: 'CSV'
+});
+`;
+    }
+    function copyEeScript() {
+      const t = eeScript();
+      const dl = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain' })); a.download = 'raioy-earth-engine.js'; a.click(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => alert('ก๊อปสคริปต์แล้ว\nเปิด code.earthengine.google.com บนคอม วางในช่องกลาง แล้วกด Run'), dl);
+      else dl();
+    }
+
     function farmBtnHtml() {
       const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;
-      return `<button type="button" class="btn btn-outline-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openFarmMap()">แผนที่ไร่ · วาดขอบแล้ว ${n}/${gData.plots.length} แปลง${nl ? ` · ที่ดินดูไว้ ${nl}` : ''}</button>`;
+      return `<button type="button" class="btn btn-outline-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openFarmMap()">แผนที่ไร่ · วาดขอบแล้ว ${n}/${gData.plots.length} แปลง${nl ? ` · ที่ดินดูไว้ ${nl}` : ''}</button>` + (n ? `<button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" style="border-radius:12px;" onclick="copyEeScript()">🛰️ คัดลอกสคริปต์ดาวเทียม (Earth Engine · ทดลอง)</button>` : '');
     }
 
     function openFarmMap(pid, edit) {

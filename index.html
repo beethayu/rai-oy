@@ -2055,11 +2055,22 @@
       const after = (logs || []).filter(a => beToISO(a.timestamp) >= ciso && a !== cut);
       const did = (g, det) => after.some(a => a.activity_group === g && (!det || String(a.activity_detail || '').includes(det)));
       const todo = [];
-      if (cd <= 14 && !did('รถไถเตรียมดิน/บำรุง', 'สับ')) todo.push(`สับ/พรวนใบอ้อย (ควรภายใน 1–7 วันหลังตัด${cd > 7 ? ' · เลยแล้ว' : ''})`);
+      if (cd <= 14 && !did('รถไถเตรียมดิน/บำรุง')) todo.push(`สับ/พรวนใบอ้อย (ควรภายใน 1–7 วันหลังตัด${cd > 7 ? ' · เลยแล้ว' : ''})`); // งานรถไถใดก็ได้หลังตัด (ไถพรวน/สับหญ้า/ริปเปอร์) ฟอร์มไม่มีชื่อ "สับใบ"
       if (cd <= 21 && !did('ขึ้นน้ำ') && !did('ฝนตก')) todo.push('ให้น้ำทันทีหลังแต่งตอ');
       if (cd <= 45 && !did('ใส่ปุ๋ย')) todo.push('ใส่ปุ๋ยครั้งที่ 1 (ทันทีหลังแต่งตอ)');
       if (cd <= 30 && !did('ใส่ปุ๋ย', 'ซ่อมอ้อย')) todo.push('ซ่อมอ้อยให้เสร็จภายใน 1 เดือน');
       return todo.length ? { cd, todo } : null;
+    }
+
+    // ช่วงฉีดยาที่ยังทันวันนี้ ถ้าหมดแล้ว (เช่น เปิดแอปตอนค่ำ) ดูพรุ่งนี้แทน — เดิมขึ้น "ไม่เหมาะ" ทั้งที่แค่เลยเวลา
+    function sprayWhen(r) {
+      const now = new Date().getHours(), t0 = todayISO(), d1 = new Date(); d1.setDate(d1.getDate() + 1);
+      const t1 = `${d1.getFullYear()}-${pad(d1.getMonth() + 1)}-${pad(d1.getDate())}`;
+      const all0 = wxSpray(r, t0), left = all0.filter(x => x.b > now);
+      if (left.length) return { ok: true, t: `ฉีดยาได้ ${sprayTxt(left)}` };
+      if (!all0.length && now < 15) return { ok: false, t: 'วันนี้ลม/ฝนไม่เหมาะฉีดยา' };
+      const tm = r.daily.time.includes(t1) ? wxSpray(r, t1) : [];
+      return tm.length ? { ok: true, t: `พรุ่งนี้ฉีดยาได้ ${sprayTxt(tm)}` } : { ok: false, t: 'พรุ่งนี้ลม/ฝนไม่เหมาะฉีดยา' };
     }
 
     // ===== พยากรณ์ฝนช่วยตัดสินใจในหน้าวันนี้ (แปลงถึงคิวน้ำ/ฉีดยา) =====
@@ -2075,8 +2086,7 @@
           const hit = [[mm(t0), 'วันนี้'], [mm(t1), 'พรุ่งนี้']].find(x => x[0] !== null && x[0] >= WX_ASK_MM);
           return hit ? ` · 🌧️ พยากรณ์ฝน${hit[1]} ~${Math.round(hit[0])} มม. อาจรอดูฝนก่อนได้` : '';
         }
-        const sp = wxSpray(r, t0).filter(x => x.b > new Date().getHours());
-        return sp.length ? ` · ฉีดยาได้ ${sprayTxt(sp)}` : ' · วันนี้ลม/ฝนไม่เหมาะฉีดยา';
+        return ' · ' + sprayWhen(r).t;
       } catch (e) { return ''; }
     }
 
@@ -3468,7 +3478,7 @@
     }
 
     // ---- ถามจากประวัติงาน (รอบ 2): สรุปทั้งไร่ในเครื่อง ส่งไปใน ctx.stats (ไม่ส่งทุกแถว) ----
-    const CH_ASK_RE = /[?？]|ไหม|หรือเปล่า|หรือยัง|กี่|เท่าไร|เท่าไหร่|อะไร|ยังไง|อย่างไร|ทำไม|เมื่อไร|เมื่อไหร่|ที่ไหน|ใคร|ที่ผ่านมา|ทั้งหมด|รวม|เฉลี่ย|เปรียบเทียบ|ต่างกัน|สรุป|ประวัติ|สถิติ/;
+    const CH_ASK_RE = /[?？]|ไหม|หรือเปล่า|หรือยัง|กี่|เท่าไร|เท่าไหร่|อะไร|ยังไง|อย่างไร|ทำไม|เมื่อไร|เมื่อไหร่|ที่ไหน|ใคร|ที่ผ่านมา|ทั้งหมด|รวม|เฉลี่ย|เปรียบเทียบ|ต่างกัน|สรุป|ประวัติ|สถิติ|ผลผลิต|ตันต่อไร่|ตัน\/ไร่/;
     const looksAsk = t => CH_ASK_RE.test(String(t || ''));
     function chatStats() {
       const ymOf = ts => { const s = String(ts || ''); if (/^\d{4}-\d{2}/.test(s)) return s.slice(0, 7); const iso = beToISO(s); return iso ? iso.slice(0, 7) : ''; };
@@ -3544,6 +3554,8 @@
         range: isos.length ? `${isos[0]} ถึง ${isos[isos.length - 1]} (${isos.length} รายการ)` : 'ยังไม่มีบันทึกงาน',
         note: 'นับเป็น "แปลง-วัน" (1 แปลง 1 วัน 1 ชนิดงาน = 1) · งานช่วงวันลงวันละรายการ · ประวัติ ก.พ.–พ.ค. 69 ลงย้อนหลังจากไฟล์จดมือ (วันที่เป็นช่วงลงวันแรกวันเดียว) · มิ.ย.–ต.ค. แทบไม่มีบันทึก (ก่อนเริ่มใช้แอป) เดือนว่างจึงไม่ได้แปลว่าไม่มีงาน · rain = ฝนจากโมเดล RainLog เริ่ม 2 พ.ย. 69 (ย้อนหลัง 30 วัน)',
         today: todayISO(), byType, perPlot: perPlotTxt, workers, cost, assets, rock, rain,
+        // ผลผลิตส่งโรงงาน (ชีต Yields) ให้แชตตอบ "อ้อยใหม่กับตอให้ผลต่างกันแค่ไหน" ได้
+        yields: (gData.yields || []).map(y => { const r = ylRai(y); return `${y.plot_id} ${y.stage} ${y.season || ''}: ${num(y.tons)} ตัน${r ? ' = ' + (num(y.tons) / r).toFixed(2) + ' ตัน/ไร่' : ''}${num(y.ccs) ? ' CCS ' + num(y.ccs) : ''}`; }),
         stock: (gData.inventory || []).slice(0, 50).map(i => `${i.name}: ${i.stock} ${i.unit || ''}`.trim())
       };
       if (JSON.stringify(s).length > 26000) delete s.perPlot;
@@ -4876,11 +4888,10 @@
       });
       if (!best) return '';
       const D = best.r.daily, k = best.k;
-      const sp = wxSpray(best.r, today).filter(x => x.b > new Date().getHours());
       const multi = wxData.res.length > 1 ? ` · ${esc(locs[best.i].loc)}` : '';
       return `<button type="button" class="wx-strip" onclick="openWx(${best.i})"><span class="wx-ic">${wxIcon(D.weather_code[k], best.mm)}</span>
         <span class="wx-l"><b>วันนี้ ฝน ${best.pop}%${best.mm >= 0.1 ? ` · ~${r1x(best.mm)} มม.` : ''}</b>${multi}
-          <span class="srow-s d-block">ลม ${Math.round(D.wind_speed_10m_max[k])} กระโชก ${Math.round(D.wind_gusts_10m_max[k])} กม./ชม. · ${sp.length ? `<span class="wx-ok">ฉีดยาได้ ${sprayTxt(sp)}</span>` : '<span class="wx-no">วันนี้ไม่เหมาะฉีดยา</span>'}</span></span>
+          <span class="srow-s d-block">ลม ${Math.round(D.wind_speed_10m_max[k])} กระโชก ${Math.round(D.wind_gusts_10m_max[k])} กม./ชม. · ${(w => `<span class="wx-${w.ok ? 'ok' : 'no'}">${w.t}</span>`)(sprayWhen(best.r))}</span></span>
         <span class="srow-s">7 วัน ›</span></button>`;
     }
 

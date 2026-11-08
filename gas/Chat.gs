@@ -20,6 +20,8 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 5) {"type":"add","category":C,"name":"ชื่อ"} = เพิ่มคนงาน/รถใหม่ C: "Worker","Tractor","Truck","Pump"
 6) {"type":"asset_note","asset":"ชื่อรถ","event":"ดัดแปลง","detail":"ต่อกล่อง","shop":"ร้านช่างวุท","place":"","date":"YYYY-MM-DD","plates":[{"role":"หัว","plate":"70-1234"},{"role":"พ่วง","plate":"71-5678"}],"photos":[0,1],"unsure":[]} = ลงประวัติรถ/เครื่อง (ซ่อม ดัดแปลง ตรวจ) พร้อมทะเบียนที่อ่านจากรูป
 7) {"type":"plot_photo","plots":["P01"],"diagnosis":"","note":"","date":"YYYY-MM-DD","photos":[0]} = รูปสภาพแปลง (อ้อยเหลือง หญ้า น้ำขัง ฯลฯ) แนบกับแปลงนั้น
+8) {"type":"new_chem","name":"ชื่อการค้า","active":"สารออกฤทธิ์","use":"ใช้ทำอะไร","unit":"g","pack_name":"กล่อง","pack_size":100,"qty":0,"label_dose":"","per_tank":0,"photos":[0],"unsure":[]} = ยาตัวใหม่ที่ยังไม่มีในสต็อก (สร้างรายการสต็อก)
+9) {"type":"bill","photos":[1]} = รูปใบเสร็จ/บิล (ส่งต่อให้ตัวอ่านบิล)
 
 รูปภาพ (ถ้ามี จะแนบท้ายข้อความ เรียงตามลำดับ เลข 0,1,2…) ส่วนใหญ่เป็นรูปหน้างาน ไม่ใช่บิล:
 - รูปรถ/เครื่องจักร (สิบล้อ รถพ่วง รถไถ ที่ไปต่อกล่อง/ซ่อม/ดัดแปลง): ใช้ item asset_note
@@ -29,7 +31,14 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
   • event เลือก: "ซ่อม","ดัดแปลง","ตรวจ/ถ่ายรูป" · detail = ทำอะไร (เช่น "ต่อกล่อง") · shop = ร้าน/ช่างที่ผู้ใช้บอกหรือเห็นในรูป · place = สถานที่ (ถ้าไม่ใช่ร้าน) · date จากข้อความ ไม่บอก = ctx.today
   • photos = เลขรูปที่เกี่ยวกับรายการนี้ (ใส่ทุกรูปของรถคันนั้น)
 - รูปสภาพแปลงอ้อย: ใช้ plot_photo — diagnosis บอกว่า "น่าจะเป็น…" จากรูป (เช่น ใบเหลืองคล้ายขาดไนโตรเจน/น้ำขัง/หญ้าขึ้นแน่น/หนอน) พูดให้ชัดว่าเดาจากรูป ไม่ฟันธง · ถ้าผู้ใช้ไม่บอกแปลงให้ใส่ใน ask ห้ามเดาแปลง · ถ้าควรกลับไปดู/จัดการ เพิ่ม item watch แยกอีกอัน
-- รูปบิล/ใบเสร็จ: items ว่าง reply บอกให้ไปแท็บสต็อก → 🧾 ถ่ายรูปบิล (ตัวอ่านบิลแม่นกว่า)
+- รูปตัวยา/ถุงปุ๋ยน้ำ/กล่องยา (ยาตัวใหม่): ใช้ item new_chem อ่านจากฉลากเท่านั้น: name = ชื่อการค้า, active = สารออกฤทธิ์, label_dose = อัตราตามฉลาก (ข้อความสั้น ๆ ตามที่เขียน)
+  • unit: ของแห้ง/ผง/เม็ด = "g", ของเหลว = "ml" · pack_size = ขนาดบรรจุแปลงเป็น g/ml (4 ลิตร = 4000, 100 กรัม = 100, 1 กก. = 1000) · pack_name = "กล่อง","ขวด","ถุง","แกลลอน" ตามภาชนะจริง
+  • ชื่อตรงกับที่มีแล้วใน ctx.chems → ห้ามสร้างซ้ำ บอกใน reply · 1 ชนิดยา = 1 item (ซื้อมาหลายขนาดบรรจุ = ชื่อต่างกัน/คนละ item)
+  • qty = จำนวนหน่วยบรรจุที่ซื้อ (เช่น 3 ขวด = 3) ผู้ใช้ไม่บอก/ไม่รู้ = 0 (ถ้ามีรูปใบเสร็จด้วย ใส่ 0 เสมอ ใบเสร็จจะเป็นตัวรับเข้าสต็อก)
+  • use = ใช้ทำอะไร (คุมหญ้า/กำจัดหนอน/ฆ่าแมลง/บำรุง ฯลฯ) ผู้ใช้บอกก็ใช้ตามนั้น ไม่บอกให้เดาจากฉลากแล้วใส่ "use" ใน unsure · ฉลากอ่านไม่ออกว่าใช้ทำอะไร ให้ใส่ใน ask พร้อม options ["คุมหญ้า","กำจัดหนอน/แมลง","บำรุง/ฮอร์โมน","อื่น ๆ"]
+  • per_tank = ปริมาณ g/ml ต่อ 1 ถังของไร่: ห้ามเดาลอย ๆ ฉลากบอกแค่อัตราต่อน้ำ (เช่น 20 มล./น้ำ 20 ลิตร) แต่ขนาดถังของไร่ไม่รู้ → ดู ctx.chems (ยาตัวอื่นที่มี per_tank + note อัตราฉลาก) ถ้าเทียบขนาดถังได้ให้คำนวณใส่ per_tank พร้อม "per_tank" ใน unsure · เทียบไม่ได้ใส่ 0 และถามใน ask "ผสมยานี้กี่ g/ml ต่อถัง" พร้อม options คำนวณจากฉลาก (ไม่เกิน 4 ตัวเลือก)
+  • ต้องถามต่อให้ครบ (use / per_tank) ก่อนสรุปเป็นการ์ด แต่ถ้าผู้ใช้ตอบแล้วหรือเดาได้ค่อนข้างแน่ ให้ออก item พร้อมคำถามค้างได้ (ช่องที่เดาใส่ unsure)
+- รูปบิล/ใบเสร็จ: ใส่ item {"type":"bill","photos":[เลขรูปใบเสร็จ]} (ห้ามอ่านรายการเอง หน้าเว็บจะส่งให้ตัวอ่านบิลเดิมหลังบันทึกยาใหม่) ถ้ามีรูปบิลอย่างเดียวไม่มีรูปอื่นก็ใช้ bill item เช่นกัน
 - รูปไม่เกี่ยวกับไร่/ดูไม่ออก: items ว่าง บอกตรง ๆ ว่าเห็นอะไร อ่านไม่ได้เพราะอะไร
 - ข้อความประกอบรูปมีน้ำหนักกว่าที่เดาจากรูป (เช่น ผู้ใช้บอกชื่อแปลง/ร้าน/วันที่)
 
@@ -102,7 +111,7 @@ function chatParse(text, ctx, images, reuse) {
   const hist = (ctx.history || []).slice(-8).map(h => (h.me ? 'ผู้ใช้: ' : 'ผู้ช่วย: ') + h.t).join('\n');
   const prompt = CHAT_RULES_ +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
-      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], stats: ctx.stats || undefined, draft: ctx.draft || null }) +
+      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], stats: ctx.stats || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
@@ -135,6 +144,15 @@ function nameChatPhotos_(ids, label, date) {
 
 // ดูรูปที่เก็บไว้ (เปิดดูเต็มในแอป) — ยอมให้อ่านเฉพาะไฟล์ในโฟลเดอร์รูปแชตเท่านั้น
 function chatPhotos(ids) { return chatBlobs_(ids); }
+
+// รูปใบเสร็จที่ส่งในแชต → ตัวอ่านบิลเดิม (readBill เก็บสำเนาในโฟลเดอร์บิลเอง) คืนข้อมูลบิล + pages_b64 ให้หน้าตรวจ "เพิ่มหน้าบิล" ได้
+function chatBillRead(ids) {
+  const bl = chatBlobs_(ids), pages = (ids || []).map(id => bl[id]).filter(Boolean);
+  if (!pages.length) throw new Error('ไม่พบรูปใบเสร็จ (อาจหมดอายุ ส่งรูปใหม่อีกครั้ง)');
+  const data = readBill(pages, 'image/jpeg', {});
+  data.pages_b64 = pages;
+  return data;
+}
 
 const PLOT_PHOTO_H_ = ['photo_id', 'timestamp', 'plot_id', 'file_ids', 'diagnosis', 'note'];
 
@@ -207,6 +225,20 @@ function chatApply(ops) {
         appendRows_(lSh, [rowv]);
         nameChatPhotos_(ids, 'รถ_' + name, date);
         done++;
+      } else if (op.fn === 'chem') {
+        // ยาตัวใหม่จากแชต: สร้างรายการสต็อก (หมวดยา) ถ้ายังไม่มีชื่อนี้ + รับเข้าถ้าไม่มีใบเสร็จ
+        const name = String(op.name || '').trim();
+        if (!name) return;
+        const exists = readSheet_(ss, SH.INV).some(i => i.name === name);
+        if (!exists) {
+          saveStockItem_(ss, { category: 'Chemical', name, note: String(op.note || ''), unit: op.unit === 'ml' ? 'ml' : 'g',
+            pack_size: Number(op.pack_size) > 0 ? Number(op.pack_size) : 1, pack_name: String(op.pack_name || '').trim() || (op.unit === 'ml' ? 'ขวด' : 'ถุง'),
+            per_tank: Number(op.per_tank) > 0 ? Number(op.per_tank) : '', reorder_point: '' });
+          done++;
+        }
+        const si = Number(op.stock_in) || 0;
+        if (si > 0) { addStock_(ss, name, si, op.date || getTodayStr(), '📥 รับเข้า', 'ซื้อยาใหม่ (บันทึกจากแชต)'); }
+        nameChatPhotos_((op.photo_ids || []).filter(Boolean), 'ยา_' + name, op.date || getTodayStr());
       } else if (op.fn === 'plotphoto') {
         // รูปสภาพแปลง: ชีต PlotPhotos (รูปเก็บใน Drive) ดูได้ในหน้าดูแปลง
         const ids = (op.photo_ids || []).filter(Boolean), pids = (op.plotIds || []).filter(Boolean);

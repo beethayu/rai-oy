@@ -32,7 +32,7 @@
 
     function callApi(fn, args) {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' ? 150000 : fn === 'chatParse' ? 120000 : 60000);
+      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' ? 120000 : 60000);
       return fetch(API_URL, {
         method: 'POST', redirect: 'follow', signal: ctrl.signal,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1522,16 +1522,18 @@
       Promise.all(files.map(shrinkImage)).then(newPages => {
         const pages = (prev ? prev.pages : []).concat(newPages);
         const ids = prev && prev.photo_id ? prev.photo_id.split(',') : [];
-        call('readBill', [pages, 'image/jpeg', { photo_ids: ids }], d => {
-          const items = (d.items && d.items.length) ? d.items : [{ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }];
-          const age = calcDays(d.date);
-          const old = age !== null && age > 30 && items.some(it => it.stock_item);
-          if (old) items.forEach(it => { it.stock_item = ''; it.stock_qty = 0; });
-          billDraft = { pages, date: d.date || '', shop: d.shop || (prev ? prev.shop : ''), photo_id: d.photo_id || '', note: prev ? prev.note : '',
-            total: num(d.total), err: d.error || '', oldNoStock: old ? age : 0, items };
-          renderBill(); showM('billModal');
-        }, null, `🤖 AI กำลังอ่านบิล ${pages.length > 1 ? pages.length + ' หน้า ' : ''}รอสักครู่...`);
+        call('readBill', [pages, 'image/jpeg', { photo_ids: ids }], d => billOpenFrom(d, pages, prev), null, `🤖 AI กำลังอ่านบิล ${pages.length > 1 ? pages.length + ' หน้า ' : ''}รอสักครู่...`);
       }).catch(e => alert(e.message));
+    }
+    // ผลอ่านบิล → หน้าตรวจบิล (ใช้ร่วมกับบิลที่ส่งมาจากแชต)
+    function billOpenFrom(d, pages, prev) {
+      const items = (d.items && d.items.length) ? d.items : [{ item: '', category: 'อื่นๆ', qty: 1, unit: '', amount: 0, stock_item: '', stock_qty: 0, asset: '' }];
+      const age = calcDays(d.date);
+      const old = age !== null && age > 30 && items.some(it => it.stock_item);
+      if (old) items.forEach(it => { it.stock_item = ''; it.stock_qty = 0; });
+      billDraft = { pages, date: d.date || '', shop: d.shop || (prev ? prev.shop : ''), photo_id: d.photo_id || '', note: prev ? prev.note : '',
+        total: num(d.total), err: d.error || '', oldNoStock: old ? age : 0, items };
+      renderBill(); showM('billModal');
     }
 
     const isDisc = it => it.discount || num(it.amount) < 0 || /ส่วนลด/.test(String(it.item || ''));
@@ -3139,8 +3141,9 @@
         today: todayISO(),
         plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '' }; }),
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
+        chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '' })),
-        draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; return c; }) : null,
+        draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
       };
     }
@@ -3163,6 +3166,10 @@
       $('chatList').style.paddingBottom = chatPics.length ? '150px' : '';
     }
     function chatPicDrop(i) { chatPics.splice(i, 1); chatPvRender(); }
+    function chatOpenBill(mi, i, btn) {
+      const it = chat.msgs[mi].items[i];
+      call('chatBillRead', [it.photo_ids], d => billOpenFrom(d, d.pages_b64 || [], null), btn, '🤖 AI กำลังอ่านใบเสร็จ รอสักครู่...');
+    }
     const thImgs = th => (th || []).length ? `<div class="ch-th">${th.map(t => `<img src="data:image/jpeg;base64,${t}" alt="รูปหน้างาน">`).join('')}</div>` : '';
 
     // ดูรูปเต็มที่เก็บใน Drive (โหลดตอนแตะ ไม่ฝังในข้อมูลหลัก)
@@ -3299,6 +3306,15 @@
       ph = ph || [];
       if (Array.isArray(it.plots)) it.plots = it.plots.filter(chPlot);
       it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
+      if (it.type === 'new_chem' || it.type === 'bill') {
+        let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]);
+        if (!idx.length && it.type === 'new_chem') idx = ph.map((_, k) => k);
+        it.photos = idx; it.photo_ids = idx.map(k => ph[k]);
+        if (it.type === 'bill') return it.photo_ids.length ? it : null;
+        it.name = String(it.name || '').trim(); if (!it.name) return null;
+        it.unit = it.unit === 'ml' ? 'ml' : 'g'; it.pack_size = num(it.pack_size) || 1; it.qty = num(it.qty); it.per_tank = num(it.per_tank);
+        it.exists = !!invItem(it.name); return it;
+      }
       if (it.type === 'asset_note' || it.type === 'plot_photo') {
         let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]);
         if (!idx.length) idx = ph.map((_, k) => k); // AI ไม่ได้ระบุเลขรูป = ใช้ทุกรูปของข้อความนั้น
@@ -3365,6 +3381,9 @@
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
           date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [] }); }
+        else if (a.type === 'new_chem') ops.push({ fn: 'chem', name: a.name, unit: a.unit, pack_size: a.pack_size, pack_name: a.pack_name || (a.unit === 'ml' ? 'ขวด' : 'ถุง'), per_tank: a.per_tank || 0,
+          note: [a.use, a.active && 'สารออกฤทธิ์ ' + a.active, a.label_dose && 'ฉลาก: ' + a.label_dose].filter(Boolean).join(' · '),
+          stock_in: items.some(x => x.type === 'bill') ? 0 : r3(num(a.qty) * a.pack_size), date: isoToBE(todayISO()), photo_ids: a.photo_ids || [] });
         else if (a.type === 'plot_photo') ops.push({ fn: 'plotphoto', plotIds: a.plots, diagnosis: a.diagnosis || '', note: a.note || '', date: isoToBE(a.date || todayISO()), photo_ids: a.photo_ids || [] });
       });
       return ops;
@@ -3410,6 +3429,22 @@
           + (!it.plates.length ? `<div class="ch-warn">${un('plates') ? 'อ่านทะเบียนจากรูปไม่ชัด — พิมพ์บอกทะเบียนได้เลย' : 'ไม่เห็นทะเบียนในรูป'} (ไม่ใส่ก็บันทึกประวัติได้)</div>` : '')
           + oldP.map(([o, n]) => `<div class="ch-warn">ทะเบียนเดิมในข้อมูลรถ ${esc(o)} → จะเปลี่ยนเป็น ${esc(n.plate)} ถ้าไม่ใช่ ให้พิมพ์แก้</div>`).join('')
           + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — รายการนี้จะไม่ถูกบันทึก (พิมพ์แก้ชื่อรถ หรือเพิ่มรถก่อน)</div>` : '');
+      } else if (it.type === 'new_chem') {
+        const m = chat.msgs[mi] || {}, th = m.th || [], shown = (it.photos || []).map(k => th[k]).filter(Boolean), hasBill = (m.items || []).some(x => x.type === 'bill');
+        const f = n => (Math.round(n * 10) / 10).toLocaleString('th-TH');
+        h = `<div class="ch-t">🧪 ยาใหม่ · ${esc(it.name)}</div>` + thImgs(shown)
+          + row('ใช้ทำอะไร', it.use, 'use') + row('สารออกฤทธิ์', it.active) + row('อัตราตามฉลาก', it.label_dose)
+          + row('ขนาดบรรจุ', `${it.pack_name || 'หน่วย'} ละ ${f(it.pack_size)} ${it.unit}`, 'pack_size')
+          + row('ซื้อมา', hasBill ? 'ตามใบเสร็จ' : (it.qty > 0 ? `${f(it.qty)} ${it.pack_name || ''}` : ''), 'qty')
+          + row('ผสมต่อถัง', it.per_tank > 0 ? `${f(it.per_tank)} ${it.unit}` : '', 'per_tank')
+          + (it.per_tank > 0 ? '' : `<div class="ch-warn">ยังไม่รู้ว่าผสมกี่ ${it.unit} ต่อถัง — พิมพ์ตอบได้เลย หรือบันทึกก่อนแล้วไปแก้ที่แท็บสต็อกทีหลัง (ตัดสต็อกตามถังจะยังไม่ทำงานจนกว่าจะใส่)</div>`)
+          + (it.exists ? `<div class="ch-warn">มียาชื่อนี้ในสต็อกแล้ว — จะไม่สร้างซ้ำ${!hasBill && it.qty > 0 ? ' (รับเข้าจำนวนที่ซื้อให้)' : ''}</div>` : '');
+      } else if (it.type === 'bill') {
+        const m = chat.msgs[mi] || {}, th = m.th || [], shown = (it.photos || []).map(k => th[k]).filter(Boolean);
+        const wait = m.state !== 'saved' && (m.items || []).some(x => x.type === 'new_chem');
+        h = `<div class="ch-t">🧾 ใบเสร็จ ${it.photo_ids.length} รูป</div>` + thImgs(shown)
+          + `<div class="srow-s">${wait ? 'บันทึกยาใหม่ก่อน แล้วกดอ่านใบเสร็จ — ยอดที่ซื้อจะเข้าสต็อกตามใบเสร็จ' : 'ส่งให้ตัวอ่านบิลเดิม ได้หน้าตรวจบิลก่อนบันทึก (ลงค่าใช้จ่าย + รับเข้าสต็อก)'}</div>`
+          + `<button type="button" class="btn btn-sm btn-success mt-1" ${wait ? 'disabled' : ''} onclick="chatOpenBill(${mi},${i},this)">🧾 อ่านใบเสร็จ → หน้าตรวจบิล</button>`;
       } else if (it.type === 'plot_photo') {
         const th = ((chat.msgs[mi] || {}).th || []), shown = (it.photos || []).map(k => th[k]).filter(Boolean);
         h = `<div class="ch-t">📷 รูปสภาพแปลง</div>` + thImgs(shown) + row('แปลง', pn(it.plots), 'plots')
@@ -3451,8 +3486,10 @@
           else {
             h += `<div class="ch-card${m.state === 'saved' ? ' ch-saved' : ''}"><div class="ch-hd"><span>${m.state === 'saved' ? `✅ บันทึกแล้ว · ${m.savedAt}` : 'ตรวจก่อนบันทึก'}</span><span>${m.items.length} รายการ</span></div>`
               + m.items.map((it, i) => chItemHtml(it, i, mi, live)).join('');
-            if (m.state === 'draft') {
-              if (m.ask && m.ask.length) h += m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" onclick="chatSend(this.textContent)">${esc(o)}</button>`).join('')}</div></div>`).join('');
+            if (m.state === 'draft' && !m.items.some(it => it.type !== 'bill')) {
+              h += `<div class="ch-acts"><button type="button" class="btn btn-light flex-fill" onclick="chatCancel(${mi})">ปิดรายการนี้</button></div>`;
+            } else if (m.state === 'draft') {
+              if (m.ask && m.ask.length) h += m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" data-t="${esc(q.q + ' → ' + o)}" onclick="chatSend(this.dataset.t)">${esc(o)}</button>`).join('')}</div></div>`).join('');
               h += `<div class="ch-acts"><button type="button" class="btn btn-light flex-fill" onclick="chatCancel(${mi})" ${live ? '' : 'disabled'}>ยกเลิก</button>
                 <button type="button" class="btn btn-success" style="flex:2" onclick="chatCommit(${mi})" ${live ? '' : 'disabled'}>${m.saving ? '⏳ กำลังบันทึก…' : 'บันทึก ' + m.items.length + ' รายการ'}</button></div>
                 <div class="srow-s px-3 pb-2">ผิดตรงไหน พิมพ์แก้ต่อได้เลย เช่น "พรทำทั้งวัน" · ช่องสีส้ม = เดา ไม่แน่ใจ</div>`;
@@ -3460,7 +3497,7 @@
             h += `</div>`;
           }
         } else if (m.ask && m.ask.length && mi === lastI) {
-          h += `<div class="ch-card">` + m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" onclick="chatSend(this.textContent)">${esc(o)}</button>`).join('')}</div></div>`).join('') + `</div>`;
+          h += `<div class="ch-card">` + m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" data-t="${esc(q.q + ' → ' + o)}" onclick="chatSend(this.dataset.t)">${esc(o)}</button>`).join('')}</div></div>`).join('') + `</div>`;
         }
       });
       if (chatBusy && !chat.msgs.some(m => m.saving)) h += `<div class="ch-ai">⏳ กำลังอ่าน…</div>`;

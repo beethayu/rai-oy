@@ -583,6 +583,14 @@ function receiveStock(p) {
 function saveStockItem(p) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+    saveStockItem_(ss, p);
+    return readAll_(ss);
+  });
+}
+
+// เพิ่ม/แก้รายการสต็อก (เรียกในล็อกเดียวกับ chatApply ได้)
+function saveStockItem_(ss, p) {
+  {
     const sh = ss.getSheetByName(SH.INV);
     const d = sh.getDataRange().getDisplayValues();
     const h = d[0];
@@ -607,8 +615,7 @@ function saveStockItem(p) {
       });
       sh.getRange(r + 1, h.indexOf('updated_at') + 1).setNumberFormat('@').setValue(getTodayStr());
     }
-    return readAll_(ss);
-  });
+  }
 }
 
 function deleteStockItem(itemId) {

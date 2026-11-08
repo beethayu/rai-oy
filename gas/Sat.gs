@@ -287,3 +287,66 @@ function satProbe(id, fromISO, toISO, radar) {
   const got = satFetch_([t], fromISO, toISO, radar ? RAD_OPT_ : undefined);
   return got;
 }
+
+// ===== ภาพสีของแปลง (Process API) ให้หน้าดาวเทียมในแอป: เขียวเข้ม = อ้อยเต็ม · เหลือง = บาง · น้ำตาล = ดินโล่ง · เทา = เมฆ =====
+const SAT_PROC_URL_ = 'https://sh.dataspace.copernicus.eu/process/v1';
+const SAT_IMG_EVAL_ = `//VERSION=3
+function setup() {
+  return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'SCL', 'dataMask'] }], output: { bands: 4 } };
+}
+var ST = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
+var CO = [[0.55, 0.38, 0.22], [0.80, 0.55, 0.25], [0.95, 0.85, 0.30], [0.62, 0.80, 0.30], [0.25, 0.62, 0.22], [0.08, 0.40, 0.12]];
+function ramp(v) {
+  if (v <= ST[0]) return CO[0];
+  for (var i = 1; i < ST.length; i++) if (v <= ST[i]) {
+    var t = (v - ST[i - 1]) / (ST[i] - ST[i - 1]), a = CO[i - 1], b = CO[i];
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  }
+  return CO[CO.length - 1];
+}
+function evaluatePixel(s) {
+  if (s.dataMask !== 1) return [0, 0, 0, 0];
+  var mn = (s.B03 - s.B11) / (s.B03 + s.B11 || 1);
+  if (mn > 0 && s.SCL !== 8 && s.SCL !== 9 && s.SCL !== 10) return [0.20, 0.45, 0.85, 1];      // น้ำบนผิว
+  if ([0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) return [0.78, 0.78, 0.78, 1];              // เมฆ/เงา
+  var c = ramp((s.B08 - s.B04) / (s.B08 + s.B04 || 1));
+  return [c[0], c[1], c[2], 1];
+}`;
+
+// คืน { img: 'data:image/png;base64,…', w, h } ของแปลง/ที่ดิน id วันที่ dateISO (YYYY-MM-DD) · แคช 6 ชม.
+function getSatImage(id, dateISO) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateISO))) throw new Error('วันที่ไม่ถูก');
+  const cache = CacheService.getScriptCache(), ck = 'satimg_' + id + '_' + dateISO;
+  const hit = cache.get(ck);
+  if (hit) return JSON.parse(hit);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let b = '';
+  readSheet_(ss, SH.PLOTS).forEach(p => { if (p.plot_id === id) b = p.boundary; });
+  if (!b) readSheet_(ss, 'Lands').forEach(l => { if (l.land_id === id) b = l.boundary; });
+  const pts = parsePath_(b);
+  if (pts.length < 3) throw new Error('แปลงนี้ยังไม่ได้วาดขอบ');
+  const ring = pts.map(p => [Number(p[1].toFixed(6)), Number(p[0].toFixed(6))]); ring.push(ring[0]);
+  const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
+  const lat0 = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const wm = (Math.max(...lngs) - Math.min(...lngs)) * 111320 * Math.cos(lat0 * Math.PI / 180), hm = (Math.max(...lats) - Math.min(...lats)) * 110540;
+  const k = Math.min(360 / Math.max(wm, hm), 1 / 2.5);        // ~2.5 ม./จุด ด้านยาวไม่เกิน 360 จุด
+  const w = Math.max(40, Math.round(wm * k)), h = Math.max(40, Math.round(hm * k));
+  const d0 = new Date(dateISO + 'T00:00:00Z'), d1 = new Date(d0.getTime() + 86400000);
+  const body = {
+    input: {
+      bounds: { geometry: { type: 'Polygon', coordinates: [ring] }, properties: { crs: 'http://www.opengis.net/def/crs/OGC/1.3/CRS84' } },
+      data: [{ type: 'sentinel-2-l2a', dataFilter: { timeRange: { from: d0.toISOString(), to: d1.toISOString() }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }]
+    },
+    output: { width: w, height: h, responses: [{ identifier: 'default', format: { type: 'image/png' } }] },
+    evalscript: SAT_IMG_EVAL_
+  };
+  const r = UrlFetchApp.fetch(SAT_PROC_URL_, {
+    method: 'post', contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + satToken_(), Accept: 'image/png' },
+    payload: JSON.stringify(body), muteHttpExceptions: true
+  });
+  if (r.getResponseCode() !== 200) throw new Error('ขอภาพไม่ได้ (' + r.getResponseCode() + '): ' + r.getContentText().slice(0, 160));
+  const out = { img: 'data:image/png;base64,' + Utilities.base64Encode(r.getBlob().getBytes()), w: w, h: h, date: dateISO };
+  try { cache.put(ck, JSON.stringify(out), 21600); } catch (e) {}   // เกิน 100KB = ไม่แคช
+  return out;
+}

@@ -4405,7 +4405,7 @@ Export.table.toDrive({
         if (x.last) {
           const ref = satMed(x.good.filter(q => { const a = satAge(q.d) - x.age; return a >= 20 && a <= 45; }).map(q => q.ndvi));
           x.trend = ref === null ? null : x.last.ndvi - ref;
-          if (x.trend !== null && x.trend <= -0.15) x.flags.push('เขียวลดลงเร็วในรอบเดือน (อาจตัดแล้ว ขาดน้ำ หรือใบเหลือง)');
+          if (x.trend !== null && x.trend <= -0.15) x.flags.push('เขียวลดลงเร็วในรอบเดือน (อาจตัดแล้ว ขาดน้ำ ใบเหลือง หรือน้ำท่วม)');
           if (peer[t] !== null && x.age <= 30 && x.last.ndvi >= 0.2 && x.last.ndvi <= peer[t] - 0.15) x.flags.push('เขียวน้อยกว่า' + t + 'แปลงอื่นๆ');
         }
         // เรดาร์มองน้ำใต้อ้อยสูงไม่เห็น (น้ำท่วม ต.ค. 68 ที่ยืนยันแล้ว เรดาร์ไม่เห็นเลย) → ใช้เฉพาะตอนอ้อยยังเล็ก/ดินโล่ง

@@ -36,8 +36,9 @@ function setup() {
 }
 function nd(a, b) { var s = a + b; return s === 0 ? NaN : (a - b) / s; }
 function evaluatePixel(s) {
-  var bad = [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0;
   var ndvi = nd(s.B08, s.B04), ndre = nd(s.B08, s.B05), ndwi = nd(s.B08, s.B11), mn = nd(s.B03, s.B11);
+  // น้ำท่วมมักถูกจัดเป็น "เงาเมฆ" (SCL 3) → เก็บไว้ถ้าดูเป็นน้ำ (MNDWI > 0) ไม่งั้นวันที่น้ำท่วมเต็มแปลงจะหายไปทั้งวัน
+  var bad = [0, 1, 8, 9, 10, 11].indexOf(s.SCL) >= 0 || (s.SCL === 3 && !(mn > 0));
   var ok = s.dataMask === 1 && !bad && isFinite(ndvi) && isFinite(ndre) && isFinite(ndwi) && isFinite(mn);
   return { ndvi: [ndvi], ndre: [ndre], ndwi: [ndwi], water: [mn > 0 ? 1 : 0], dataMask: [ok ? 1 : 0] };
 }`;

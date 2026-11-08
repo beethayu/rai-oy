@@ -333,14 +333,25 @@ function evaluatePixel(s) {
   var mn = (s.B03 - s.B11) / (s.B03 + s.B11 || 1);
   if (mn > 0 && s.SCL !== 8 && s.SCL !== 9 && s.SCL !== 10) return [0.20, 0.45, 0.85, 1];      // น้ำบนผิว
   if ([0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) return [0.78, 0.78, 0.78, 1];              // เมฆ/เงา
-  var c = ramp((s.B08 - s.B04) / (s.B08 + s.B04 || 1));
+  var v = (s.B08 - s.B04) / (s.B08 + s.B04 || 1);
+  if (REF > 0) {                                                  // โหมดเทียบในแปลง: สีบอกว่าตรงนี้ดี/แย่กว่าค่าเฉลี่ยของแปลงเอง
+    var d = v - REF;
+    if (d <= -0.15) return [0.80, 0.15, 0.12, 1];
+    if (d <= -0.07) return [0.96, 0.55, 0.20, 1];
+    if (d < 0.05) return [0.93, 0.90, 0.72, 1];
+    return [0.18, 0.55, 0.22, 1];
+  }
+  var c = ramp(v);
   return [c[0], c[1], c[2], 1];
 }`;
 
 // คืน { img: 'data:image/png;base64,…', w, h } ของแปลง/ที่ดิน id วันที่ dateISO (YYYY-MM-DD) · แคช 6 ชม.
-function getSatImage(id, dateISO) {
+// ref = ค่าความเขียวเฉลี่ยของแปลงวันนั้น (ใส่ = โหมดเทียบในแปลง: แดง/ส้ม = อ่อนกว่าส่วนอื่นของแปลงเดียวกัน)
+function getSatImage(id, dateISO, ref) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateISO))) throw new Error('วันที่ไม่ถูก');
-  const cache = CacheService.getScriptCache(), ck = 'satimg_' + id + '_' + dateISO;
+  ref = Math.round((Number(ref) || 0) * 1000) / 1000;
+  if (!(ref > 0 && ref < 1)) ref = 0;
+  const cache = CacheService.getScriptCache(), ck = 'satimg_' + id + '_' + dateISO + '_' + ref;
   const hit = cache.get(ck);
   if (hit) return JSON.parse(hit);
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -362,7 +373,7 @@ function getSatImage(id, dateISO) {
       data: [{ type: 'sentinel-2-l2a', dataFilter: { timeRange: { from: d0.toISOString(), to: d1.toISOString() }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }]
     },
     output: { width: w, height: h, responses: [{ identifier: 'default', format: { type: 'image/png' } }] },
-    evalscript: SAT_IMG_EVAL_
+    evalscript: SAT_IMG_EVAL_.replace('//VERSION=3', '//VERSION=3\nvar REF = ' + ref + ';')
   };
   const r = UrlFetchApp.fetch(SAT_PROC_URL_, {
     method: 'post', contentType: 'application/json',

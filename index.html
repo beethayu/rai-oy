@@ -185,6 +185,9 @@
     .chip-rat { background: #F1E6D6; color: #6B4A1F; }
     .bill-row { border: 1px solid #DDE3DF; border-radius: 12px; padding: 10px; margin-bottom: 10px; background: #FAFBFA; }
     .bill-row .form-control, .bill-row .form-select { font-size: 16px; }
+    #photoModal { z-index: 1075; }
+    .hrow-t { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .hrow-t .linkbtn { padding: 4px 0; min-height: 32px; }
     .bill-row.bl-c { padding: 8px 10px; margin-bottom: 8px; }
     .bl-x { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid #E3B8B0; border-radius: 10px; background: #fff; color: #B23B1E; font-size: 14px; padding: 0; }
     .bl-g { display: grid; grid-template-columns: 1.2fr .75fr 1fr 1.05fr; gap: 6px; }
@@ -854,6 +857,7 @@
               <option value="พร้อมใช้">🟢 ว่าง / พร้อมใช้งาน</option>
               <option value="เสีย/รอซ่อม">🔴 เสีย / รอซ่อม / รอเปลี่ยนอะไหล่</option>
               <option value="จอดบ้าน/รอดัดแปลง">🟡 จอดอยู่ที่บ้าน / รอต่อกล่อง / จอดนาน</option>
+              <option value="อยู่ร้านช่าง">🟠 อยู่ร้านช่าง / อู่ (ซ่อม-ดัดแปลง)</option>
               <option value="ปกติ">🟢 มาทำงานปกติ (สำหรับคนงาน)</option>
               <option value="ป่วย/ลาพัก">🤒 ป่วย / ลากิจ / มีปัญหา (สำหรับคนงาน)</option>
             </select>
@@ -903,6 +907,29 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-2" id="phBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="regModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header py-2"><h6 class="modal-title fw-bold" id="regTitle">🪪 ต่อทะเบียน</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body p-3">
+          <input type="hidden" id="rg_name">
+          <label class="small fw-bold">ทะเบียนรถ</label>
+          <input type="text" class="form-control mb-2" id="rg_plate" placeholder="เช่น 70-1234 ชม.">
+          <label class="small fw-bold">ครบกำหนดต่อทะเบียน/ภาษี</label>
+          <input type="date" class="form-control mb-2" id="rg_exp">
+          <div id="rg_tr_box">
+            <label class="small fw-bold">ทะเบียนพ่วง (ถ้ามี)</label>
+            <input type="text" class="form-control mb-2" id="rg_tplate">
+            <label class="small fw-bold">พ่วงครบกำหนด</label>
+            <input type="date" class="form-control mb-2" id="rg_texp">
+          </div>
+          <div class="text-muted small mb-2">ถ่ายรูปป้ายภาษี/เล่มทะเบียนส่งในแชทก็ได้ ระบบอ่านวันให้</div>
+          <button type="button" class="btn btn-success w-100 fw-bold" id="btnRg" onclick="submitReg()">💾 บันทึก</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1922,6 +1949,8 @@
       const none = t => `<div class="srow-s" style="padding:2px 4px 4px;">${t}</div>`;
 
       let h = wxStripHtml() + sugarStripHtml() + wxRainAskHtml();
+      const rd = regDue();
+      if (rd.length) h += `<button type="button" class="srow-main" style="background:#FFF4E0;border-radius:12px;margin-bottom:8px;width:100%" onclick="fleetPane='mach';switchTab('fleet');renderFleet();uiSave()"><span class="srow-l"><span class="srow-n">🪪 ใกล้หมดทะเบียน ${rd.length} คัน</span><span class="srow-s">${rd.slice(0, 3).map(i => esc(i.label) + ' ' + regInfo(i.exp).txt).join(' · ')}</span></span></button>`;
       h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
       h += ws.length ? `<div class="srow-box">${ws.map(w => {
         const p = byId[w.plot_id].p, ago = calcDays(w.created);
@@ -2409,8 +2438,8 @@
     }
 
     
-    const isDown = e => /เสีย|จอด|ป่วย/.test(e) && !/ซ่อมเสร็จ/.test(e);
-    const isUp = e => /พร้อมใช้|ปกติ|ซ่อมเสร็จ/.test(e);
+    const isDown = e => /เสีย|จอด|ป่วย|ร้านช่าง/.test(e) && !/ซ่อมเสร็จ|รับรถกลับ/.test(e);
+    const isUp = e => /พร้อมใช้|ปกติ|ซ่อมเสร็จ|รับรถกลับ/.test(e);
     function downMap() {
       const m = {};
       [...(gData.assetLogs || [])].reverse().forEach(l => {
@@ -2423,6 +2452,48 @@
 
     // แท็บรถ/คน: แยก 2 หน้า + รายการบรรทัดเดียว แตะแล้วค่อยมีปุ่ม (แบบเดียวกับหน้าสต็อก)
     let fleetPane = 'mach', fleetOpen = '', fleetLogOpen = false;
+    // ===== ต่อทะเบียน/ภาษี (เฉพาะรถไถ + สิบล้อของไร่) =====
+    function regDays(be) { // วันที่เหลือ (ติดลบ = เกินกำหนดแล้ว)
+      const p = String(be || '').trim().split('/'); if (p.length !== 3) return null;
+      let y = parseInt(p[2], 10); if (y > 2400) y -= 543;
+      const t = new Date(y, parseInt(p[1], 10) - 1, parseInt(p[0], 10)), n = new Date(); n.setHours(0, 0, 0, 0); t.setHours(0, 0, 0, 0);
+      return isNaN(t) ? null : Math.round((t - n) / 86400000);
+    }
+    function regInfo(be) {
+      const d = regDays(be); if (d === null) return null;
+      return { d, cls: d < 0 ? 'pill-urgent' : d <= 30 ? 'pill-doing' : 'pill-normal', txt: d < 0 ? `เกิน ${-d} วัน` : d === 0 ? 'วันนี้' : `อีก ${d} วัน` };
+    }
+    function regItems() {
+      const out = [];
+      (gData.assets || []).filter(a => a.category === 'Truck' || a.category === 'Tractor').forEach(a => {
+        out.push({ a, label: a.name, plate: a.plate, exp: a.reg_expire });
+        if (a.trailer_plate || a.trailer_reg_expire) out.push({ a, label: a.name + ' (พ่วง)', plate: a.trailer_plate, exp: a.trailer_reg_expire, tr: true });
+      });
+      return out.sort((x, y) => { const dx = regDays(x.exp), dy = regDays(y.exp); return (dx === null ? 9999 : dx) - (dy === null ? 9999 : dy); });
+    }
+    function regDue() { return regItems().filter(i => { const r = regInfo(i.exp); return r && r.d <= 30; }); }
+    function regPaneHtml() {
+      const its = regItems(); if (!its.length) return '';
+      return `<div class="srow-h">🪪 ต่อทะเบียน / ภาษี</div><div class="srow-box">${its.map(i => {
+        const r = regInfo(i.exp);
+        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${esc(i.label)}</span>
+          <span class="srow-s">${esc(i.plate || 'ยังไม่ระบุทะเบียน')}${r ? ' · หมด ' + esc(i.exp) : ''}</span></span>
+          ${r ? `<span class="pill ${r.cls}">${r.txt}</span>` : '<span class="pill pill-normal" style="background:#eee;color:#666">แตะเพิ่ม</span>'}</button>`;
+      }).join('')}</div>`;
+    }
+    function openReg(name) {
+      const a = (gData.assets || []).find(x => x.name === name); if (!a) return;
+      $('regTitle').innerText = '🪪 ต่อทะเบียน: ' + a.name;
+      $('rg_name').value = a.name; $('rg_plate').value = a.plate || ''; $('rg_exp').value = beToISO(a.reg_expire) || '';
+      $('rg_tplate').value = a.trailer_plate || ''; $('rg_texp').value = beToISO(a.trailer_reg_expire) || '';
+      $('rg_tr_box').style.display = a.category === 'Truck' ? 'block' : 'none';
+      bootstrap.Modal.getOrCreateInstance($('regModal')).show();
+    }
+    function submitReg() {
+      const p = { plate: $('rg_plate').value.trim(), expire: $('rg_exp').value ? isoToBE($('rg_exp').value) : '' };
+      if ($('rg_tr_box').style.display !== 'none') { p.trailer_plate = $('rg_tplate').value.trim(); p.trailer_expire = $('rg_texp').value ? isoToBE($('rg_texp').value) : ''; }
+      call('setAssetReg', [$('rg_name').value, p], d => { hideModal('regModal'); init(d); }, $('btnRg'), 'บันทึกแล้ว');
+    }
     function setFleetPane(p) { fleetPane = p; fleetOpen = ''; renderFleet(); uiSave(); }
     function tglFleet(n) { fleetOpen = fleetOpen === n ? '' : n; renderFleet(); }
     function tglFleetLog() { fleetLogOpen = !fleetLogOpen; renderFleet(); }
@@ -2443,6 +2514,10 @@
       });
       return out;
     }
+    function delAssetLog(id, name) {
+      if (!confirm('ลบรายการประวัตินี้? (เช่น บันทึกซ้ำ) รูปที่ไม่มีรายการอื่นใช้จะถูกลบด้วย')) return;
+      call('deleteAssetLog', [id], d => { init(d); if ($('assetHistModal').classList.contains('show')) openAssetHist(name); }, null, '⏳ กำลังลบ...');
+    }
     function logRow(l, showName) {
       if (l.bill) return `<button type="button" class="hrow" onclick="openBillView('${qa(l.bill)}')">
           <span class="hrow-d">${esc(l.timestamp)}</span>
@@ -2452,7 +2527,8 @@
           <span class="hrow-d">${esc(l.timestamp)}</span>
           <span class="hrow-b">${showName ? `<b>${esc(l.asset_name)}</b> · ` : ''}${esc(l.event_type)}
             <span class="hrow-s">${esc(l.detail || '')}${l.parts_or_battery && l.parts_or_battery !== '-' ? ' · ' + esc(l.parts_or_battery) : ''}${l.ref_plot && l.ref_plot !== '-' ? ' · 📍 ' + esc(l.ref_plot) : ''}</span>
-            ${l.photo_id ? `<button type="button" class="linkbtn" onclick="viewPhotos('${qa(l.asset_name)}','${qa(l.photo_id)}')">📷 ดูรูป (${String(l.photo_id).split(',').filter(Boolean).length})</button>` : ''}</span></div>`;
+            <span class="hrow-t">${l.photo_id ? `<button type="button" class="linkbtn" onclick="viewPhotos('${qa(l.asset_name)}','${qa(l.photo_id)}')">📷 ดูรูป (${String(l.photo_id).split(',').filter(Boolean).length})</button>` : ''}
+              <button type="button" class="linkbtn muted" onclick="delAssetLog('${qa(l.log_id)}','${qa(l.asset_name)}')">ลบรายการนี้</button></span></span></div>`;
     }
 
     function renderFleet() {
@@ -2512,7 +2588,7 @@
       } else if (fleetPane === 'work') {
         html += grp('คนงาน', workers, '👤') + `<div class="bg-white p-3 rounded border mt-3" id="wsum-box">${workSumHtml()}</div>`;
       } else {
-        html += grp('พญานาค', pumps, '🐍') + grp('รถไถ', tractors, '🚜') + grp('สิบล้อ', trucks, '🚛');
+        html += grp('พญานาค', pumps, '🐍') + grp('รถไถ', tractors, '🚜') + grp('สิบล้อ', trucks, '🚛') + regPaneHtml();
         const logs = groupAssetLogs((gData.assetLogs || []).filter(l => { const a = assets.find(x => x.name === l.asset_name); return !a || a.category !== 'Worker'; }));
         html += `<div class="d-flex gap-2 mt-3">
             <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="tglFleetLog()">${fleetLogOpen ? 'ซ่อน' : 'ดู'}ประวัติซ่อม / บำรุงทั้งหมด</button>
@@ -3172,7 +3248,7 @@
         plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '' }; }),
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
         chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
-        vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '' })),
+        vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
       };
@@ -3213,6 +3289,7 @@
       const draw = () => { $('phBody').innerHTML = ids.map(id => !(id in photoCache) ? '<div class="text-muted p-3">⏳ กำลังโหลดรูป…</div>'
         : photoCache[id] ? `<img class="w-100 rounded mb-2" src="data:image/jpeg;base64,${photoCache[id]}" alt="รูปหน้างาน">` : '<div class="text-muted p-3">ไม่พบรูป (อาจถูกลบจาก Drive)</div>').join(''); };
       draw(); bootstrap.Modal.getOrCreateInstance($('photoModal')).show();
+      setTimeout(() => { const bd = document.querySelectorAll('.modal-backdrop'); if (bd.length) bd[bd.length - 1].style.zIndex = 1070; }, 60); // เปิดซ้อนบนหน้าประวัติรถ ต้องอยู่เหนือหน้านั้น
       const need = ids.filter(id => !(id in photoCache));
       if (need.length) callApi('chatPhotos', [need]).then(r => { need.forEach(id => { photoCache[id] = (r || {})[id] || ''; }); draw(); })
         .catch(e => { $('phBody').innerHTML = `<div class="text-danger p-3">❌ ${esc(e.message)}</div>`; });
@@ -3339,6 +3416,11 @@
       ph = ph || [];
       if (Array.isArray(it.plots)) it.plots = it.plots.filter(chPlot);
       it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
+      if (it.type === 'asset_status') { it.known = !!chAsset(it.asset); it.date = it.date || todayISO(); return it.asset && ['at_shop', 'done'].includes(it.state) ? it : null; }
+      if (it.type === 'asset_reg') {
+        const ra = chAsset(it.asset); it.known = !!ra && ['Truck', 'Tractor'].includes(ra.category);
+        return it.asset && (it.plate || it.trailer_plate || it.expire || it.trailer_expire) ? it : null;
+      }
       if (it.type === 'new_chem' || it.type === 'bill') {
         let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]);
         if (!idx.length && it.type === 'new_chem') idx = ph.map((_, k) => k);
@@ -3356,7 +3438,7 @@
         if (it.type === 'plot_photo') return (it.plots || []).length ? it : null;
         if (!String(it.asset || '').trim()) return null;
         it.plates = (Array.isArray(it.plates) ? it.plates : []).filter(x => x && String(x.plate || '').trim());
-        it.date = it.date || todayISO(); it.known = !!chAsset(it.asset); return it;
+        it.date = it.date || todayISO(); it.known = !!chAsset(it.asset); it.state = ['at_shop', 'done'].includes(it.state) ? it.state : ''; return it;
       }
       if (it.type === 'rain_pick') { it.date = it.date || todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
       if (it.type === 'add') return it.name && CH_CAT[it.category] ? it : null;
@@ -3413,7 +3495,10 @@
         } else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
-          date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [] }); }
+          date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [], state: a.state || '' }); }
+        else if (a.type === 'asset_status') { if (a.known) ops.push({ fn: 'astatus', asset: a.asset.trim(), state: a.state, detail: a.detail || '', shop: a.shop || '', date: isoToBE(a.date || todayISO()) }); }
+        else if (a.type === 'asset_reg') { if (a.known) ops.push({ fn: 'reg', asset: a.asset.trim(), plate: a.plate || undefined, trailer_plate: a.trailer_plate || undefined,
+          expire: a.expire ? isoToBE(a.expire) : undefined, trailer_expire: a.trailer_expire ? isoToBE(a.trailer_expire) : undefined }); }
         else if (a.type === 'new_chem') ops.push({ fn: 'chem', name: a.name, unit: a.unit, pack_size: a.pack_size, pack_name: a.pack_name || (a.unit === 'ml' ? 'ขวด' : 'ถุง'), per_tank: a.per_tank || 0,
           note: [a.use, a.active && 'สารออกฤทธิ์ ' + a.active, a.label_dose && 'ฉลาก: ' + a.label_dose].filter(Boolean).join(' · '),
           stock_in: items.some(x => x.type === 'bill') ? 0 : r3(num(a.qty) * a.pack_size), date: isoToBE(todayISO()), photo_ids: a.photo_ids || [] });
@@ -3426,9 +3511,10 @@
       for (const it of m.items) { if (it.date && !checkDate(it.date)) return; if (it.date_to && !checkDate(it.date_to)) return; }
       const ops = chatOps(m.items);
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
-      chatBusy = true; m.saving = true; chatRender();
-      callApi('chatApply', [ops]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; init(d); if (after) setTimeout(after, 250); })
-        .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message))
+      m.rid = m.rid || 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); // รหัสครั้งนี้ — กดซ้ำตอนเน็ตหลุด เซิร์ฟเวอร์ไม่ลงซ้ำ
+      chatBusy = true; m.saving = true; chatSave(); chatRender();
+      callApi('chatApply', [ops, m.rid]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; init(d); if (after) setTimeout(after, 250); })
+        .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message + '\nถ้าเน็ตหลุดระหว่างรอ อาจบันทึกไปแล้ว — กดบันทึกอีกครั้งได้เลย ระบบกันไม่ให้ลงซ้ำ'))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }
     function chItemHtml(it, i, mi, live) {
@@ -3458,10 +3544,19 @@
           .filter(([o, n]) => o && n && o.replace(/\s/g, '') !== String(n.plate).replace(/\s/g, '')) : [];
         h = `<div class="ch-t">🚛 ${esc(it.event || 'ลงประวัติรถ')} · ${esc(it.asset)}${un('asset') ? ' <span class="ch-guess">?</span>' : ''}</div>` + thImgs(shown)
           + row('ทำอะไร', it.detail, 'detail') + row('ร้าน/ที่', [it.shop, it.place].filter(Boolean).join(' · '), 'shop') + row('วันที่', dt(it.date), 'date')
+          + (it.state ? row('สถานะรถ', it.state === 'at_shop' ? 'อยู่ร้านช่าง (แท็บรถจะขึ้นไม่ว่าง)' : 'รับรถกลับแล้ว → พร้อมใช้') : '')
           + it.plates.map(x => row('ทะเบียน' + (x.role ? ' ' + x.role : ''), x.plate, 'plates')).join('')
           + (!it.plates.length ? `<div class="ch-warn">${un('plates') ? 'อ่านทะเบียนจากรูปไม่ชัด — พิมพ์บอกทะเบียนได้เลย' : 'ไม่เห็นทะเบียนในรูป'} (ไม่ใส่ก็บันทึกประวัติได้)</div>` : '')
           + oldP.map(([o, n]) => `<div class="ch-warn">ทะเบียนเดิมในข้อมูลรถ ${esc(o)} → จะเปลี่ยนเป็น ${esc(n.plate)} ถ้าไม่ใช่ ให้พิมพ์แก้</div>`).join('')
           + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — รายการนี้จะไม่ถูกบันทึก (พิมพ์แก้ชื่อรถ หรือเพิ่มรถก่อน)</div>` : '');
+      } else if (it.type === 'asset_status') {
+        h = `<div class="ch-t">🚛 สถานะรถ · ${esc(it.asset)}</div>` + row('สถานะ', it.state === 'at_shop' ? 'อยู่ร้านช่าง (แท็บรถจะขึ้นไม่ว่าง)' : 'รับรถกลับแล้ว → พร้อมใช้')
+          + row('ทำอะไร', it.detail) + row('ร้าน/ที่', it.shop) + row('วันที่', dt(it.date))
+          + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — จะไม่ถูกบันทึก</div>` : '');
+      } else if (it.type === 'asset_reg') {
+        h = `<div class="ch-t">🪪 ต่อทะเบียน/ภาษี · ${esc(it.asset)}</div>` + row('ทะเบียน', it.plate, 'plate') + row('ครบกำหนด', it.expire ? thDate(it.expire) : '', 'expire')
+          + row('ทะเบียนพ่วง', it.trailer_plate, 'trailer_plate') + row('พ่วงครบกำหนด', it.trailer_expire ? thDate(it.trailer_expire) : '', 'trailer_expire')
+          + (!it.known ? `<div class="ch-warn">"${esc(it.asset)}" ไม่ใช่รถไถ/สิบล้อในรายการของไร่ — จะไม่ถูกบันทึก (จดเฉพาะรถของไร่)</div>` : '');
       } else if (it.type === 'new_chem') {
         const m = chat.msgs[mi] || {}, th = m.th || [], shown = (it.photos || []).map(k => th[k]).filter(Boolean), hasBill = (m.items || []).some(x => x.type === 'bill');
         const f = n => (Math.round(n * 10) / 10).toLocaleString('th-TH');

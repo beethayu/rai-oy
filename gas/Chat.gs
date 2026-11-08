@@ -22,6 +22,8 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 7) {"type":"plot_photo","plots":["P01"],"diagnosis":"","note":"","date":"YYYY-MM-DD","photos":[0]} = รูปสภาพแปลง (อ้อยเหลือง หญ้า น้ำขัง ฯลฯ) แนบกับแปลงนั้น
 8) {"type":"new_chem","name":"ชื่อการค้า","active":"สารออกฤทธิ์","use":"ใช้ทำอะไร","unit":"g","pack_name":"กล่อง","pack_size":100,"qty":0,"label_dose":"","per_tank":0,"photos":[0],"unsure":[]} = ยาตัวใหม่ที่ยังไม่มีในสต็อก (สร้างรายการสต็อก)
 9) {"type":"bill","photos":[1]} = รูปใบเสร็จ/บิล (ส่งต่อให้ตัวอ่านบิล)
+10) {"type":"asset_status","asset":"ชื่อรถ","state":"at_shop","detail":"ต่อกล่อง","shop":"ร้านช่างวุท","date":"YYYY-MM-DD"} = บอกสถานะรถ (ไม่มีรูป ก็ใช้ได้) state: "at_shop" = รถยังอยู่ที่ร้าน/อู่ (หน้ารถ/คนจะขึ้นว่าไม่ว่าง) · "done" = ซ่อม/ดัดแปลงเสร็จ เอารถกลับมาแล้ว (กลับเป็นพร้อมใช้)
+11) {"type":"asset_reg","asset":"ชื่อรถ","plate":"","trailer_plate":"","expire":"YYYY-MM-DD","trailer_expire":"","unsure":[]} = ทะเบียน + วันครบกำหนดต่อทะเบียน/ภาษี ของรถไร่ (หัว/รถเดี่ยว = plate/expire, พ่วง = trailer_plate/trailer_expire) ใส่เฉพาะที่รู้
 
 รูปภาพ (ถ้ามี จะแนบท้ายข้อความ เรียงตามลำดับ เลข 0,1,2…) ส่วนใหญ่เป็นรูปหน้างาน ไม่ใช่บิล:
 - รูปรถ/เครื่องจักร (สิบล้อ รถพ่วง รถไถ ที่ไปต่อกล่อง/ซ่อม/ดัดแปลง): ใช้ item asset_note
@@ -30,6 +32,9 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
   • asset ใช้ชื่อตรงตาม ctx.vehicles (ดูทะเบียนที่เคยจำไว้ประกอบได้) ไม่ตรง/ไม่รู้ ใส่ตามที่ผู้ใช้พิมพ์ + "asset" ใน unsure
   • event เลือก: "ซ่อม","ดัดแปลง","ตรวจ/ถ่ายรูป" · detail = ทำอะไร (เช่น "ต่อกล่อง") · shop = ร้าน/ช่างที่ผู้ใช้บอกหรือเห็นในรูป · place = สถานที่ (ถ้าไม่ใช่ร้าน) · date จากข้อความ ไม่บอก = ctx.today
   • photos = เลขรูปที่เกี่ยวกับรายการนี้ (ใส่ทุกรูปของรถคันนั้น)
+  • state (สถานะรถ ณ ตอนนี้): ผู้ใช้บอกว่ารถยังอยู่ที่ร้าน/ยังไม่เสร็จ = "at_shop" · เอารถกลับมาแล้ว/เสร็จแล้ว = "done" · ไม่ได้พูดถึงเลยและงานนั้นเกิดที่ร้าน = ใส่ ask "ตอนนี้รถคันนี้ยังอยู่ที่ร้านไหม" options ["ยังอยู่ที่ร้าน","เอากลับมาแล้ว"] และ state "" · งานที่ทำเองที่ไร่ state ""
+- รูปป้ายภาษี (วงกลมติดกระจก)/เล่มทะเบียน/ใบเสร็จต่อภาษี/ผู้ใช้เล่าวันต่อทะเบียน: ใช้ asset_reg · อ่านวันหมดอายุจากรูปหรือข้อความเท่านั้น (ปีบนป้ายเป็น พ.ศ. ลบ 543 เป็น ค.ศ.) ป้ายที่มีแค่เดือน/ปี → ใช้วันสิ้นเดือนนั้น และใส่ "expire" ใน unsure · ไม่เห็นวันที่ใส่ "" ห้ามเดา · ใช้กับรถไร่ใน ctx.vehicles เท่านั้น (ไม่ใช่รถส่วนตัวหรือรถที่ไม่เกี่ยวกับไร่ → บอกใน reply ว่าไม่จด)
+  • ctx.vehicles มี reg/regTrailer (วันหมดที่จดไว้แล้ว) ใช้ประกอบเมื่อผู้ใช้ถามว่าคันไหนหมดเมื่อไร
 - รูปสภาพแปลงอ้อย: ใช้ plot_photo — diagnosis บอกว่า "น่าจะเป็น…" จากรูป (เช่น ใบเหลืองคล้ายขาดไนโตรเจน/น้ำขัง/หญ้าขึ้นแน่น/หนอน) พูดให้ชัดว่าเดาจากรูป ไม่ฟันธง · ถ้าผู้ใช้ไม่บอกแปลงให้ใส่ใน ask ห้ามเดาแปลง · ถ้าควรกลับไปดู/จัดการ เพิ่ม item watch แยกอีกอัน
 - รูปตัวยา/ถุงปุ๋ยน้ำ/กล่องยา (ยาตัวใหม่): ใช้ item new_chem อ่านจากฉลากเท่านั้น: name = ชื่อการค้า, active = สารออกฤทธิ์, label_dose = อัตราตามฉลาก (ข้อความสั้น ๆ ตามที่เขียน)
   • unit: ของแห้ง/ผง/เม็ด = "g", ของเหลว = "ml" · pack_size = ขนาดบรรจุแปลงเป็น g/ml (4 ลิตร = 4000, 100 กรัม = 100, 1 กก. = 1000) · pack_name = "กล่อง","ขวด","ถุง","แกลลอน" ตามภาชนะจริง
@@ -44,6 +49,7 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 
 ถามจากประวัติงาน (ctx.stats = สรุปประวัติทั้งไร่ที่คำนวณไว้แล้ว):
 - ถ้าผู้ใช้ถามเรื่องที่ผ่านมา/สถิติ/เปรียบเทียบ/นับ (เช่น "อ้อยใหม่กับอ้อยตอมีงานต่างกันยังไง", "เดือนนี้หำทำกี่วัน", "ขึ้นน้ำกี่รอบแล้ว", "ค่าซ่อมรถเท่าไหร่") → items ว่าง ตอบใน reply จาก ctx.stats เท่านั้น
+- ถามว่ารถคันไหนทะเบียนหมดเมื่อไร ตอบจาก ctx.vehicles (reg/regTrailer) ได้เลย (วันนี้ = ctx.today)
 - ถ้า ctx ไม่มี stats แต่คำถามต้องใช้ประวัติ → ตอบ {"reply":"","items":[],"need_history":true} อย่างเดียว ไม่ต้องตอบอย่างอื่น
 - หน่วยนับงานในไร่ = "แปลง-วัน" (ทำ 1 แปลง 1 วัน = 1) เทียบอ้อยใหม่กับอ้อยตอให้ใช้ค่าต่อแปลง (perPlot) หรือต่อไร่ เพราะจำนวนแปลงไม่เท่ากัน
 - ห้ามแต่งตัวเลข ถ้า stats ไม่มีข้อมูลนั้นให้บอกตรง ๆ · บอกช่วงข้อมูล (stats.range) และข้อจำกัด (stats.note) สั้น ๆ เมื่อมีผลต่อคำตอบ · อธิบายเป็นภาษาชาวไร่ ไม่ต้องเรียงตารางยาว
@@ -160,9 +166,12 @@ const PLOT_PHOTO_H_ = ['photo_id', 'timestamp', 'plot_id', 'file_ids', 'diagnosi
 // · {fn:'watch', plotIds, reason, note} · {fn:'opt', category, name}
 // · {fn:'asset', asset, event, detail, shop, place, date(พ.ศ.), plates:[{role,plate}], photo_ids}
 // · {fn:'plotphoto', plotIds, diagnosis, note, date(พ.ศ.), photo_ids}
-function chatApply(ops) {
+function chatApply(ops, rid) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+    // กดบันทึกซ้ำ (เน็ตหลุดตอนรอผล แต่ฝั่งเซิร์ฟเวอร์บันทึกไปแล้ว) → rid เดิม = ไม่ลงซ้ำ ส่งข้อมูลล่าสุดกลับ
+    const cache = CacheService.getScriptCache();
+    if (rid && cache.get('chatrid_' + rid)) { const dup = readAll_(ss); dup.chatDone = 0; dup.chatDup = true; return dup; }
     const sh = ss.getSheetByName(SH.ACT);
     const touched = new Set();
     let base = Date.now(), done = 0;
@@ -202,8 +211,8 @@ function chatApply(ops) {
         if (['Worker', 'Tractor', 'Truck', 'Pump'].includes(op.category) && String(op.name || '').trim()) {
           masterOpt_(ss, op.category, 'add', String(op.name).trim()); done++;
         }
-      } else if (op.fn === 'asset') {
-        // ลงประวัติรถจากแชต (+ จำทะเบียนหัว/พ่วงไว้ในข้อมูลรถ + แนบรูป)
+      } else if (op.fn === 'asset' || op.fn === 'astatus') {
+        // ลงประวัติรถจากแชต (+ จำทะเบียนหัว/พ่วง + แนบรูป + สถานะรถ: อยู่ร้านช่าง / รับกลับแล้ว)
         const name = String(op.asset || '').trim();
         const aSh = ss.getSheetByName(SH.ASSET), lSh = ss.getSheetByName(SH.ALOG);
         const ad = aSh.getDataRange().getDisplayValues();
@@ -215,16 +224,30 @@ function chatApply(ops) {
         const head = plates.filter(x => x.role !== 'พ่วง')[0], trl = plates.filter(x => x.role === 'พ่วง')[0];
         if (head) { const rg = aSh.getRange(row, headCol_(aSh, 'plate')); rg.setNumberFormat('@'); rg.setValue(String(head.plate).trim()); }
         if (trl) { const rg = aSh.getRange(row, headCol_(aSh, 'trailer_plate')); rg.setNumberFormat('@'); rg.setValue(String(trl.plate).trim()); }
+        const where = [op.shop ? 'ร้าน ' + op.shop : '', op.place ? 'ที่ ' + op.place : ''].filter(Boolean).join(' · ');
+        const detail = [op.detail, where].filter(Boolean).join(' · ') || '-';
+        const evName = op.event || (op.fn === 'astatus' ? 'ซ่อม' : 'ถ่ายรูป');
+        if (op.state === 'at_shop' || op.state === 'done') {
+          const atShop = op.state === 'at_shop';
+          const r4 = aSh.getRange(row, 4, 1, 2); r4.setNumberFormat('@'); r4.setValues([[atShop ? 'อยู่ร้านช่าง' : 'พร้อมใช้', atShop ? detail : '-']]);
+          const r9 = aSh.getRange(row, 9); r9.setNumberFormat('@'); r9.setValue(date);
+        }
+        const label = op.state === 'at_shop' ? '🔧 จอดอยู่ร้านช่าง (' + evName + ')' : op.state === 'done' ? '✅ ' + evName + 'เสร็จ รับรถกลับ' : '🔧 ' + evName;
         const ids = (op.photo_ids || []).filter(Boolean);
-        const pc = headCol_(lSh, 'photo_id');
-        const detail = [op.detail, op.shop ? 'ร้าน ' + op.shop : '', op.place ? 'ที่ ' + op.place : ''].filter(Boolean).join(' · ') || '-';
-        const rowv = ['AL' + (base++), date, name, ad[row - 1][1] || '-', '🔧 ' + (op.event || 'ถ่ายรูป'), detail,
-          plates.map(x => (x.role || 'รถ') + ' ' + x.plate).join(', ') || '-', '-'];
-        while (rowv.length < pc) rowv.push('');
-        rowv[pc - 1] = ids.join(',');
-        appendRows_(lSh, [rowv]);
+        const pc = headCol_(lSh, 'photo_id'), ld = lSh.getDataRange().getDisplayValues();
+        // ซ้ำ (รูปชุดเดียวกัน วันเดียวกัน รถคันเดียวกัน) = ข้าม ไม่ลงแถวซ้ำ
+        const dupRow = ids.length && ld.some((r, i) => i > 0 && r[2] === name && r[1] === date && String(r[pc - 1] || '') === ids.join(','));
+        if (!dupRow) {
+          const rowv = ['AL' + (base++), date, name, ad[row - 1][1] || '-', label, detail, plates.map(x => (x.role || 'รถ') + ' ' + x.plate).join(', ') || '-', '-'];
+          while (rowv.length < pc) rowv.push('');
+          rowv[pc - 1] = ids.join(',');
+          appendRows_(lSh, [rowv]);
+          done++;
+        }
         nameChatPhotos_(ids, 'รถ_' + name, date);
-        done++;
+      } else if (op.fn === 'reg') {
+        // ทะเบียน/ภาษีรถ: จำทะเบียน + วันครบกำหนดต่อ
+        if (setAssetReg_(ss, String(op.asset || '').trim(), op)) done++;
       } else if (op.fn === 'chem') {
         // ยาตัวใหม่จากแชต: สร้างรายการสต็อก (หมวดยา) ถ้ายังไม่มีชื่อนี้ + รับเข้าถ้าไม่มีใบเสร็จ
         const name = String(op.name || '').trim();
@@ -251,8 +274,54 @@ function chatApply(ops) {
       }
     });
     if (touched.size) syncPlots_(ss, [...touched]);
+    if (rid) { try { cache.put('chatrid_' + rid, '1', 21600); } catch (e) {} }
     const all = readAll_(ss);
     all.chatDone = done;
     return all;
+  });
+}
+
+
+// ทะเบียน/ต่อภาษีรถ: คอลัมน์ plate, trailer_plate, reg_expire, trailer_reg_expire (วันที่เก็บเป็น dd/mm/พ.ศ.)
+// p.plate/p.trailer_plate/p.expire/p.trailer_expire ส่งเฉพาะที่จะเปลี่ยน (undefined = ไม่แตะ, '' = ล้าง) คืน true ถ้าเจอรถ
+function setAssetReg_(ss, name, p) {
+  const aSh = ss.getSheetByName(SH.ASSET), ad = aSh.getDataRange().getDisplayValues();
+  let row = 0;
+  for (let i = 1; i < ad.length; i++) if (ad[i][2] === name) { row = i + 1; break; }
+  if (!row) return false;
+  const set = (col, v) => { if (v === undefined || v === null) return; const rg = aSh.getRange(row, headCol_(aSh, col)); rg.setNumberFormat('@'); rg.setValue(String(v).trim()); };
+  set('plate', p.plate); set('trailer_plate', p.trailer_plate);
+  set('reg_expire', p.expire); set('trailer_reg_expire', p.trailer_expire);
+  const parts = [];
+  if (p.expire) parts.push((p.plate ? p.plate + ' ' : '') + 'ครบ ' + p.expire);
+  if (p.trailer_expire) parts.push('พ่วง ' + (p.trailer_plate ? p.trailer_plate + ' ' : '') + 'ครบ ' + p.trailer_expire);
+  if (parts.length) {
+    const lSh = ss.getSheetByName(SH.ALOG), pc = headCol_(lSh, 'photo_id');
+    const rowv = ['AL' + Date.now() + '_R', getTodayStr(), name, ad[row - 1][1] || '-', '🪪 ต่อทะเบียน/ภาษี', parts.join(' · '), '-', '-'];
+    while (rowv.length < pc) rowv.push('');
+    appendRows_(lSh, [rowv]);
+  }
+  return true;
+}
+
+function setAssetReg(name, p) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!setAssetReg_(ss, String(name || '').trim(), p || {})) throw new Error('ไม่พบรถ ' + name);
+    return readAll_(ss);
+  });
+}
+
+// ลบรายการประวัติรถ 1 แถว (เช่น บันทึกซ้ำ) — ทิ้งรูปเฉพาะที่ไม่มีรายการอื่นใช้อยู่
+function deleteAssetLog(logId) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ALOG);
+    const d = sh.getDataRange().getDisplayValues(), pc = headCol_(sh, 'photo_id');
+    let gone = '';
+    for (let i = d.length - 1; i >= 1; i--) if (d[i][0] === String(logId)) { gone = String(d[i][pc - 1] || ''); sh.deleteRow(i + 1); break; }
+    const left = new Set();
+    sh.getDataRange().getDisplayValues().slice(1).forEach(r => String(r[pc - 1] || '').split(',').forEach(x => { if (x.trim()) left.add(x.trim()); }));
+    gone.split(',').map(x => x.trim()).filter(x => x && !left.has(x)).forEach(id => { try { DriveApp.getFileById(id).setTrashed(true); } catch (e) {} });
+    return readAll_(ss);
   });
 }

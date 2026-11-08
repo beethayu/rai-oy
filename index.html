@@ -251,6 +251,16 @@
     .ch-bar textarea { flex: 1; min-width: 0; border: 1px solid #CFD8D1; border-radius: 22px; outline: 0; resize: none; font: inherit; font-size: 16px; line-height: 1.4; padding: 10px 16px; min-height: 44px; max-height: 140px; background: #fff; color: inherit; }
     .ch-send { width: 44px; height: 44px; border-radius: 22px; flex-shrink: 0; border: 0; background: var(--green); color: #fff; font-size: 20px; }
     .ch-send-old { width: 42px; height: 42px; border-radius: 21px; border: 0; background: var(--green); color: #fff; font-size: 20px; flex-shrink: 0; }
+    .ch-bar { flex-wrap: wrap; }
+    .ch-pv { flex: 0 0 100%; display: flex; gap: 10px; overflow-x: auto; padding: 4px 4px 2px; }
+    .ch-pv:empty { display: none; }
+    .ch-pv .pv { position: relative; width: 58px; height: 58px; flex-shrink: 0; }
+    .ch-pv img { width: 58px; height: 58px; object-fit: cover; border-radius: 10px; border: 1px solid #CFD8D1; }
+    .ch-pv .pv button { position: absolute; top: -7px; right: -7px; width: 24px; height: 24px; border-radius: 12px; border: 0; background: #3B413D; color: #fff; font-size: 12px; line-height: 1; padding: 0; }
+    .ch-cam { width: 44px; height: 44px; border-radius: 22px; flex-shrink: 0; border: 1px solid #CFD8D1; background: #fff; color: inherit; font-size: 20px; padding: 0; }
+    .ch-th { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+    .ch-me .ch-th { justify-content: flex-end; }
+    .ch-th img { width: 74px; height: 74px; object-fit: cover; border-radius: 10px; }
     .log-foot { position: sticky; bottom: 8px; padding-top: 10px; z-index: 5; }
     .log-foot .btn { border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 17px; }
     .bnav .fab.active { color: var(--green-d); }
@@ -558,7 +568,7 @@
       <div class="seg" id="logSeg"><button type="button" data-m="chat" onclick="setLogMode('chat')">พิมพ์เล่า</button><button type="button" data-m="pick" onclick="setLogMode('pick')">กดเลือกงาน</button></div>
       <div id="chatPane" style="display:none">
         <div id="chatList"></div>
-        <div class="ch-bar"><label for="chatIn" class="visually-hidden">เล่างาน</label><textarea id="chatIn" rows="1" placeholder="เล่างานวันนี้…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button type="button" class="ch-send" aria-label="ส่ง" onclick="chatSend()">➤</button></div>
+        <div class="ch-bar"><div class="ch-pv" id="chatPv"></div><button type="button" class="ch-cam" aria-label="ถ่ายรูปหรือเลือกรูปหน้างาน" onclick="chatCam()">📷</button><label for="chatIn" class="visually-hidden">เล่างาน</label><textarea id="chatIn" rows="1" placeholder="เล่างาน / ถามประวัติ / ส่งรูป…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button type="button" class="ch-send" aria-label="ส่ง" onclick="chatSend()">➤</button><input type="file" id="chatFile" accept="image/*" multiple hidden onchange="chatPick(this)"></div>
       </div>
       <div id="pickWrap">
       <div class="log-head" id="pickHead" style="display:none">
@@ -874,7 +884,18 @@
     </div>
   </div>
 
-  
+  <div class="modal fade" id="photoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white py-2">
+          <h6 class="modal-title fw-bold" id="phTitle">📷 รูป</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-2" id="phBody"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="assetHistModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
@@ -2204,6 +2225,8 @@
         </div>
 
         <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="hideModal('dossierModal');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${fmtRai(num(p.map_rai) * 1600)}` : 'วาดขอบแปลงบนแผนที่'}</button>
+        ${(() => { const pp = (gData.plotPhotos || []).filter(x => x.plot_id === p.plot_id); return pp.length ? `<div class="p-2 bg-light rounded border mb-3"><div class="fw-bold text-success mb-1">📷 รูปหน้างาน (${pp.length})</div>
+          ${pp.slice(0, 8).map(x => `<button type="button" class="hrow" onclick="viewPhotos('${qa(p.plot_name)}','${qa(x.file_ids)}')"><span class="hrow-d">${esc(x.timestamp)}</span><span class="hrow-b">${esc(x.diagnosis || 'รูปสภาพแปลง')}<span class="hrow-s">${esc(x.note || '')}${x.note ? ' · ' : ''}แตะดูรูป</span></span></button>`).join('')}</div>` : ''; })()}
         <h6 class="fw-bold text-dark mb-2">📊 2. สรุปกิจกรรมสะสมตั้งแต่เริ่มฤดูกาล</h6>
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">
@@ -2396,7 +2419,8 @@
       return `<div class="hrow">
           <span class="hrow-d">${esc(l.timestamp)}</span>
           <span class="hrow-b">${showName ? `<b>${esc(l.asset_name)}</b> · ` : ''}${esc(l.event_type)}
-            <span class="hrow-s">${esc(l.detail || '')}${l.parts_or_battery && l.parts_or_battery !== '-' ? ' · ' + esc(l.parts_or_battery) : ''}${l.ref_plot && l.ref_plot !== '-' ? ' · 📍 ' + esc(l.ref_plot) : ''}</span></span></div>`;
+            <span class="hrow-s">${esc(l.detail || '')}${l.parts_or_battery && l.parts_or_battery !== '-' ? ' · ' + esc(l.parts_or_battery) : ''}${l.ref_plot && l.ref_plot !== '-' ? ' · 📍 ' + esc(l.ref_plot) : ''}</span>
+            ${l.photo_id ? `<button type="button" class="linkbtn" onclick="viewPhotos('${qa(l.asset_name)}','${qa(l.photo_id)}')">📷 ดูรูป (${String(l.photo_id).split(',').filter(Boolean).length})</button>` : ''}</span></div>`;
     }
 
     function renderFleet() {
@@ -2576,6 +2600,7 @@
         <div class="row g-2 mb-3 small">
           ${stat(isWorker ? '🤒 ลา/ป่วย' : '🔴 เสีย/จอด', `${breaks} ครั้ง`)}
           ${stat(isWorker ? '📅 รวมวันที่หยุด' : '⏱️ รวมวันที่จอดเสีย', `${downDays} วัน${down ? ' <span class="badge bg-danger">ยังไม่หาย</span>' : ''}`)}
+          ${!isWorker && (a.plate || a.trailer_plate) ? `<div class="col-12"><div class="dossier-stat"><div class="small text-muted fw-bold">🪪 ทะเบียน</div><div class="fw-bold">${[a.plate && 'หัว/รถ ' + esc(a.plate), a.trailer_plate && 'พ่วง ' + esc(a.trailer_plate)].filter(Boolean).join(' · ')}</div></div></div>` : ''}
           ${!isWorker ? stat('🛢️ น้ำมันเครื่องล่าสุด', ago(lastOf('น้ำมันเครื่อง'))) : ''}
           ${!isWorker ? stat('🧽 เปลี่ยนกรองล่าสุด', ago(lastOf('กรอง'))) : ''}
           ${(a.category === 'Tractor' || a.category === 'Truck') ? `<div class="col-12"><div class="dossier-stat"><div class="small text-muted fw-bold">🔋 แบตตอนนี้</div><div class="fw-bold">${a.battery_info || '-'} ${a.battery_date && a.battery_date !== '-' ? `(ใช้มา ${calcDays(a.battery_date)} วัน)` : ''}</div></div></div>` : ''}
@@ -3091,7 +3116,12 @@
     let chat = (() => { try { const c = JSON.parse(lsGet(CHAT_STORE) || 'null'); return c && Array.isArray(c.msgs) ? c : { msgs: [] }; } catch (e) { return { msgs: [] }; } })();
     const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
     const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค' };
-    function chatSave() { chat.msgs = chat.msgs.slice(-30); lsSet(CHAT_STORE, JSON.stringify(chat)); }
+    function chatSave() {
+      chat.msgs = chat.msgs.slice(-30);
+      let keep = 4; // รูปย่อเก็บเฉพาะ 4 ข้อความล่าสุด (กัน localStorage เต็ม)
+      for (let i = chat.msgs.length - 1; i >= 0; i--) { const m = chat.msgs[i]; if (!m.th) continue; if (keep-- <= 0) delete m.th; }
+      lsSet(CHAT_STORE, JSON.stringify(chat));
+    }
     function setLogMode(m) { logMode = m; lsSet('raioy_logmode', m); logModeApply(); }
     function logModeApply() {
       document.querySelectorAll('#logSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === logMode));
@@ -3109,28 +3139,176 @@
         today: todayISO(),
         plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '' }; }),
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
-        draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; return c; }) : null,
+        vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '' })),
+        draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
       };
     }
+
+    // ---- รูปหน้างานในแชต (รอบ 2): 📷 → ย่อ 1600 → chatParse ส่งให้ Gemini อ่านด้วย ----
+    let chatPics = []; // {b64, th} ที่เลือกไว้ รอส่ง
+    function chatCam() {
+      if (chatBusy) return;
+      if (chatPics.length >= 4) return alert('ส่งได้ครั้งละ 4 รูป');
+      const f = $('chatFile'); f.value = ''; f.click();
+    }
+    function chatPick(inp) {
+      const files = [...(inp.files || [])].slice(0, 4 - chatPics.length); if (!files.length) return;
+      Promise.all(files.map(f => Promise.all([shrinkImage(f), rockThumb(f)]).then(([b64, th]) => ({ b64, th }))))
+        .then(a => { chatPics = chatPics.concat(a); chatPvRender(); })
+        .catch(e => alert('❌ ' + e.message));
+    }
+    function chatPvRender() {
+      $('chatPv').innerHTML = chatPics.map((p, i) => `<div class="pv"><img src="data:image/jpeg;base64,${p.th}" alt="รูปที่ ${i + 1}"><button type="button" aria-label="เอารูปออก" onclick="chatPicDrop(${i})">✕</button></div>`).join('');
+      $('chatList').style.paddingBottom = chatPics.length ? '150px' : '';
+    }
+    function chatPicDrop(i) { chatPics.splice(i, 1); chatPvRender(); }
+    const thImgs = th => (th || []).length ? `<div class="ch-th">${th.map(t => `<img src="data:image/jpeg;base64,${t}" alt="รูปหน้างาน">`).join('')}</div>` : '';
+
+    // ดูรูปเต็มที่เก็บใน Drive (โหลดตอนแตะ ไม่ฝังในข้อมูลหลัก)
+    const photoCache = {};
+    function viewPhotos(title, ids) {
+      ids = String(ids || '').split(',').map(x => x.trim()).filter(Boolean); if (!ids.length) return;
+      $('phTitle').innerText = '📷 ' + title;
+      const draw = () => { $('phBody').innerHTML = ids.map(id => !(id in photoCache) ? '<div class="text-muted p-3">⏳ กำลังโหลดรูป…</div>'
+        : photoCache[id] ? `<img class="w-100 rounded mb-2" src="data:image/jpeg;base64,${photoCache[id]}" alt="รูปหน้างาน">` : '<div class="text-muted p-3">ไม่พบรูป (อาจถูกลบจาก Drive)</div>').join(''); };
+      draw(); bootstrap.Modal.getOrCreateInstance($('photoModal')).show();
+      const need = ids.filter(id => !(id in photoCache));
+      if (need.length) callApi('chatPhotos', [need]).then(r => { need.forEach(id => { photoCache[id] = (r || {})[id] || ''; }); draw(); })
+        .catch(e => { $('phBody').innerHTML = `<div class="text-danger p-3">❌ ${esc(e.message)}</div>`; });
+    }
+
+    // ---- ถามจากประวัติงาน (รอบ 2): สรุปทั้งไร่ในเครื่อง ส่งไปใน ctx.stats (ไม่ส่งทุกแถว) ----
+    const CH_ASK_RE = /[?？]|ไหม|หรือเปล่า|หรือยัง|กี่|เท่าไร|เท่าไหร่|อะไร|ยังไง|อย่างไร|ทำไม|เมื่อไร|เมื่อไหร่|ที่ไหน|ใคร|ที่ผ่านมา|ทั้งหมด|รวม|เฉลี่ย|เปรียบเทียบ|ต่างกัน|สรุป|ประวัติ|สถิติ/;
+    const looksAsk = t => CH_ASK_RE.test(String(t || ''));
+    function chatStats() {
+      const ymOf = ts => { const s = String(ts || ''); if (/^\d{4}-\d{2}/.test(s)) return s.slice(0, 7); const iso = beToISO(s); return iso ? iso.slice(0, 7) : ''; };
+      const r1 = n => Math.round(n * 10) / 10, r2 = n => Math.round(n * 100) / 100;
+      const plots = gData.plots || [], byId = {}; plots.forEach(p => byId[p.plot_id] = p);
+      const typeOf = p => p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'อ้อยตอ';
+      const acts = (gData.activities || []).map(a => ({ ...a, iso: beToISO(a.timestamp) })).filter(a => a.iso);
+      const key = a => (a.activity_group === 'รถไถเตรียมดิน/บำรุง' || a.activity_group === 'ใส่ปุ๋ย') && a.activity_detail && a.activity_detail !== '-' ? a.activity_group + ' · ' + a.activity_detail : a.activity_group;
+
+      // งานตามชนิดอ้อย × ชนิดงาน × เดือน (นับ แปลง-วัน ไม่ซ้ำ)
+      const seen = new Set(), byType = {}, perPlot = {};
+      plots.forEach(p => { const t = typeOf(p), T = byType[t] = byType[t] || { plots: 0, rai: 0, groups: {} }; T.plots++; T.rai += num(p.area_rai); });
+      acts.forEach(a => {
+        const p = byId[a.plot_id]; if (!p) return;
+        const k = key(a), sk = a.plot_id + '|' + a.iso + '|' + k; if (seen.has(sk)) return; seen.add(sk);
+        const T = byType[typeOf(p)], g = T.groups[k] = T.groups[k] || { plotDays: 0, months: {} };
+        g.plotDays++; const ym = a.iso.slice(0, 7); g.months[ym] = (g.months[ym] || 0) + 1;
+        const pp = perPlot[p.plot_name] = perPlot[p.plot_name] || {}, q = pp[a.activity_group] = pp[a.activity_group] || [0, ''];
+        q[0]++; if (a.iso > q[1]) q[1] = a.iso;
+      });
+      Object.keys(byType).forEach(t => {
+        const T = byType[t]; T.rai = r1(T.rai);
+        const ds = plots.filter(p => typeOf(p) === t).map(p => beToISO(p.plant_date)).filter(Boolean).sort();
+        if (ds.length) T.plantDates = [ds[0], ds[ds.length - 1]];
+        const top = Object.entries(T.groups).sort((a, b) => b[1].plotDays - a[1].plotDays).slice(0, 14);
+        T.groups = {}; top.forEach(([k, g]) => { g.perPlot = r2(g.plotDays / Math.max(1, T.plots)); T.groups[k] = g; });
+      });
+      const perPlotTxt = {};
+      Object.keys(perPlot).forEach(n => { perPlotTxt[n] = Object.entries(perPlot[n]).map(([g, [c, l]]) => `${g} ${c} (ล่าสุด ${l})`).join(' · '); });
+
+      // งานต่อคน (วันทำงาน ค้างคืน ครึ่งวัน) ตามเดือน — นับแบบเดียวกับ "สรุปงานคนงาน"
+      const wk = {}, ourW = new Set((gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name));
+      const addDay = (w, iso, rm) => { ((wk[w] = wk[w] || {})[iso] = wk[w][iso] || []).push(rm || ''); };
+      acts.forEach(a => {
+        if (/^ฝนตก/.test(a.activity_group)) return;
+        String(a.operator || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ').forEach(w => addDay(w, a.iso, a.remark));
+      });
+      (gData.rockLogs || []).filter(l => l.type === 'trip' && ourW.has(l.driver)).forEach(l => { const iso = beToISO(l.timestamp); if (iso) addDay(l.driver, iso, ''); });
+      const workers = {};
+      Object.keys(wk).forEach(w => {
+        const W = workers[w] = { total: { days: 0, nights: 0, half: 0 }, months: {} };
+        Object.keys(wk[w]).sort().forEach(iso => {
+          const ls = wk[w][iso], ym = iso.slice(0, 7), M = W.months[ym] = W.months[ym] || { days: 0, nights: 0, half: 0 };
+          const night = ls.some(r => r.includes('ค้างคืน')) ? 1 : 0, half = ls.every(r => r.includes('เลิกเที่ยง')) ? 1 : 0;
+          M.days++; M.nights += night; M.half += half; W.total.days++; W.total.nights += night; W.total.half += half;
+        });
+      });
+
+      // ค่าใช้จ่าย / รถ / สต็อก / หินคลุก / ฝน
+      const cost = { byCategory: {}, byMonth: {}, byAsset: {} };
+      (gData.expenses || []).forEach(e => {
+        const amt = num(e.amount), c = e.category || 'อื่นๆ', ym = ymOf(e.timestamp);
+        cost.byCategory[c] = r1((cost.byCategory[c] || 0) + amt);
+        if (ym) cost.byMonth[ym] = r1((cost.byMonth[ym] || 0) + amt);
+        if (e.asset && e.asset !== '-') cost.byAsset[e.asset] = r1((cost.byAsset[e.asset] || 0) + amt);
+      });
+      const assets = {};
+      (gData.assetLogs || []).forEach(l => {
+        const A = assets[l.asset_name] = assets[l.asset_name] || { n: 0, byEvent: {}, recent: [] };
+        const ev = String(l.event_type || '').replace(/^[^A-Za-z0-9ก-๙]+/, ''); A.n++; A.byEvent[ev] = (A.byEvent[ev] || 0) + 1;
+        if (A.recent.length < 4) A.recent.push(`${l.timestamp} ${ev} ${String(l.detail || '').slice(0, 60)}`);
+      });
+      const rock = { points: (gData.rockPoints || []).length, tripsByMonth: {}, tripsByDriver: {} };
+      (gData.rockLogs || []).filter(l => l.type === 'trip').forEach(l => {
+        const ym = ymOf(l.timestamp), n = num(l.trips) || 1; if (ym) rock.tripsByMonth[ym] = (rock.tripsByMonth[ym] || 0) + n;
+        if (l.driver) rock.tripsByDriver[l.driver] = (rock.tripsByDriver[l.driver] || 0) + n;
+      });
+      const rain = {};
+      (gData.rainLog || []).forEach(r => { const ym = ymOf(r.timestamp); if (!ym) return; const L = rain[r.loc] = rain[r.loc] || {}; L[ym] = r1((L[ym] || 0) + num(r.rain_mm)); });
+
+      const isos = acts.map(a => a.iso).sort();
+      const s = {
+        range: isos.length ? `${isos[0]} ถึง ${isos[isos.length - 1]} (${isos.length} รายการ)` : 'ยังไม่มีบันทึกงาน',
+        note: 'นับเป็น "แปลง-วัน" (1 แปลง 1 วัน 1 ชนิดงาน = 1) · งานช่วงวันลงวันละรายการ · ประวัติ ก.พ.–พ.ค. 69 ลงย้อนหลังจากไฟล์จดมือ (วันที่เป็นช่วงลงวันแรกวันเดียว) · มิ.ย.–ต.ค. แทบไม่มีบันทึก (ก่อนเริ่มใช้แอป) เดือนว่างจึงไม่ได้แปลว่าไม่มีงาน · rain = ฝนจากโมเดล RainLog เริ่ม 2 พ.ย. 69 (ย้อนหลัง 30 วัน)',
+        today: todayISO(), byType, perPlot: perPlotTxt, workers, cost, assets, rock, rain,
+        stock: (gData.inventory || []).slice(0, 50).map(i => `${i.name}: ${i.stock} ${i.unit || ''}`.trim())
+      };
+      if (JSON.stringify(s).length > 26000) delete s.perPlot;
+      return s;
+    }
     function chatFill(b) { const el = $('chatIn'); el.value = b.dataset.t; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
     function chatSend(txt) {
-      txt = String(txt != null ? txt : $('chatIn').value).trim();
-      if (!txt || chatBusy) return;
-      const ctx = chatCtx();
-      if (txt === $('chatIn').value.trim()) { $('chatIn').value = ''; $('chatIn').style.height = 'auto'; }
-      chat.msgs.push({ me: true, t: txt }); chatBusy = true; chatSave(); chatRender(true);
-      callApi('chatParse', [txt, ctx]).then(r => {
-        chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
-        const items = (r.items || []).map(chatNorm).filter(Boolean);
-        chat.msgs.push({ ai: true, t: r.reply || '', items, ask: r.ask || [], state: items.length ? 'draft' : 'info' });
-      }).catch(e => chat.msgs.push({ ai: true, t: '❌ ' + String(e.message).slice(0, 140), retry: txt, items: [], state: 'info' }))
-        .finally(() => { chatBusy = false; chatSave(); chatRender(true); });
+      const box = $('chatIn');
+      const typed = txt == null || String(txt).trim() === box.value.trim(); // พิมพ์ในช่อง (แนบรูปที่เลือกไว้ได้) ไม่ใช่แตะชิป/ส่งใหม่
+      txt = String(txt != null ? txt : box.value).trim();
+      const pics = typed ? chatPics : [];
+      if ((!txt && !pics.length) || chatBusy) return;
+      if (!txt) txt = 'ส่งรูป';
+      // ไม่มีรูปใหม่ แต่ข้อความก่อนหน้ายังรอตอบเรื่องรูปอยู่ (ถามแปลง/พิมพ์แก้) = ใช้รูปชุดเดิม ไม่อัปโหลดซ้ำ
+      const lastAi = chat.msgs.slice().reverse().find(m => m.ai);
+      const reuse = !pics.length && chat.pics && lastAi && (lastAi.state === 'draft' || (lastAi.ask || []).length) ? chat.pics : null;
+      const ctx = chatCtx(), withStats = looksAsk(txt);
+      if (typed) { box.value = ''; box.style.height = 'auto'; chatPics = []; chatPvRender(); }
+      const mine = { me: true, t: txt }; if (pics.length) mine.th = pics.map(p => p.th);
+      chat.msgs.push(mine); chatBusy = true; chatSave(); chatRender(true);
+      const imgs = pics.map(p => p.b64);
+      callApi('chatParse', [txt, withStats ? { ...ctx, stats: chatStats() } : ctx, imgs, reuse ? reuse.ids : null])
+        // ถามเรื่องประวัติแต่ยังไม่ได้ส่งสรุปไป → ส่งซ้ำพร้อมสรุป (รูปที่อัปโหลดแล้วใช้ id เดิม)
+        .then(r => r.need_history && !withStats
+          ? callApi('chatParse', [txt, { ...ctx, stats: chatStats() }, [], pics.length ? r.photos : (reuse ? reuse.ids : null)]) : r)
+        .then(r => {
+          chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
+          const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
+          const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
+          const m = { ai: true, t: r.reply || '', items, ask: r.ask || [], state: items.length ? 'draft' : 'info' };
+          // เก็บรูปชุดนี้ไว้ใช้ต่อเมื่อยังรอตอบ/แก้ (มีรายการที่แนบรูป หรือมีคำถามค้าง) ไม่งั้นปล่อย
+          if (ph.length && (items.some(it => (it.photo_ids || []).length) || (m.ask.length && !items.length))) { chat.pics = { ids: ph, th }; m.th = th; } else chat.pics = null;
+          chat.msgs.push(m);
+        }).catch(e => {
+          if (pics.length) { chatPics = pics; if (txt !== 'ส่งรูป') box.value = txt; chatPvRender(); } // คืนรูปในช่องพิมพ์ ส่งใหม่ได้
+          chat.msgs.push({ ai: true, t: '❌ ' + String(e.message).slice(0, 140) + (pics.length ? '\nรูปยังอยู่ในช่องพิมพ์ กดส่งใหม่ได้' : ''), retry: pics.length ? undefined : txt, items: [], state: 'info' });
+        }).finally(() => { chatBusy = false; chatSave(); chatRender(true); });
     }
-    function chatNorm(it) {
+    const chAsset = n => (gData.assets || []).find(a => a.category !== 'Worker' && a.name === String(n || '').trim());
+    function chatNorm(it, ph) {
       if (!it || !it.type) return null;
+      ph = ph || [];
       if (Array.isArray(it.plots)) it.plots = it.plots.filter(chPlot);
       it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
+      if (it.type === 'asset_note' || it.type === 'plot_photo') {
+        let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]);
+        if (!idx.length) idx = ph.map((_, k) => k); // AI ไม่ได้ระบุเลขรูป = ใช้ทุกรูปของข้อความนั้น
+        it.photos = idx; it.photo_ids = idx.map(k => ph[k]);
+        if (!it.photo_ids.length) return null;
+        if (it.type === 'plot_photo') return (it.plots || []).length ? it : null;
+        if (!String(it.asset || '').trim()) return null;
+        it.plates = (Array.isArray(it.plates) ? it.plates : []).filter(x => x && String(x.plate || '').trim());
+        it.date = it.date || todayISO(); it.known = !!chAsset(it.asset); return it;
+      }
       if (it.type === 'rain_pick') { it.date = it.date || todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
       if (it.type === 'add') return it.name && CH_CAT[it.category] ? it : null;
       if (!(it.plots || []).length) return null;
@@ -3151,7 +3329,7 @@
     }
     function chatRainPlots(it) { return it.areas.filter(a => it.sel.includes(a.loc)).reduce((t, a) => t.concat(a.plots), []); }
     function chatDrop(mi, i) { const m = chat.msgs[mi]; m.items.splice(i, 1); if (!m.items.length) m.state = 'cancel'; chatSave(); chatRender(); }
-    function chatCancel(mi) { chat.msgs[mi].state = 'cancel'; chatSave(); chatRender(); }
+    function chatCancel(mi) { chat.msgs[mi].state = 'cancel'; chat.pics = null; chatSave(); chatRender(); }
     function chatClear() { if (!confirm('ล้างข้อความในแชต? (งานที่บันทึกแล้วไม่หาย)')) return; chat = { msgs: [] }; chatSave(); chatRender(); }
     function chatDays(d1, d2) {
       const days = [];
@@ -3185,6 +3363,9 @@
           a.plots.forEach(pid => { const og = chOg(pid); if (og) ops.push({ fn: 'finish', log_id: og.log_id, date: isoToBE(a.date || todayISO()) }); });
         } else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
+        else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
+          date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [] }); }
+        else if (a.type === 'plot_photo') ops.push({ fn: 'plotphoto', plotIds: a.plots, diagnosis: a.diagnosis || '', note: a.note || '', date: isoToBE(a.date || todayISO()), photo_ids: a.photo_ids || [] });
       });
       return ops;
     }
@@ -3194,7 +3375,7 @@
       const ops = chatOps(m.items);
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
       chatBusy = true; m.saving = true; chatRender();
-      callApi('chatApply', [ops]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; init(d); })
+      callApi('chatApply', [ops]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; init(d); })
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }
@@ -3218,6 +3399,22 @@
         h = `<div class="ch-t">📌 ฝากดู · ${esc(it.reason || 'ไปดูอาการ')}</div>` + row('แปลง', pn(it.plots), 'plots') + row('หมายเหตุ', it.note);
       } else if (it.type === 'add') {
         h = `<div class="ch-t">➕ เพิ่ม${CH_CAT[it.category]}</div>` + row('ชื่อ', it.name);
+      } else if (it.type === 'asset_note') {
+        const th = ((chat.msgs[mi] || {}).th || []), a = chAsset(it.asset);
+        const shown = (it.photos || []).map(k => th[k]).filter(Boolean);
+        const oldP = a ? [[(a.plate || ''), it.plates.filter(x => x.role !== 'พ่วง')[0]], [(a.trailer_plate || ''), it.plates.filter(x => x.role === 'พ่วง')[0]]]
+          .filter(([o, n]) => o && n && o.replace(/\s/g, '') !== String(n.plate).replace(/\s/g, '')) : [];
+        h = `<div class="ch-t">🚛 ${esc(it.event || 'ลงประวัติรถ')} · ${esc(it.asset)}${un('asset') ? ' <span class="ch-guess">?</span>' : ''}</div>` + thImgs(shown)
+          + row('ทำอะไร', it.detail, 'detail') + row('ร้าน/ที่', [it.shop, it.place].filter(Boolean).join(' · '), 'shop') + row('วันที่', dt(it.date), 'date')
+          + it.plates.map(x => row('ทะเบียน' + (x.role ? ' ' + x.role : ''), x.plate, 'plates')).join('')
+          + (!it.plates.length ? `<div class="ch-warn">${un('plates') ? 'อ่านทะเบียนจากรูปไม่ชัด — พิมพ์บอกทะเบียนได้เลย' : 'ไม่เห็นทะเบียนในรูป'} (ไม่ใส่ก็บันทึกประวัติได้)</div>` : '')
+          + oldP.map(([o, n]) => `<div class="ch-warn">ทะเบียนเดิมในข้อมูลรถ ${esc(o)} → จะเปลี่ยนเป็น ${esc(n.plate)} ถ้าไม่ใช่ ให้พิมพ์แก้</div>`).join('')
+          + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — รายการนี้จะไม่ถูกบันทึก (พิมพ์แก้ชื่อรถ หรือเพิ่มรถก่อน)</div>` : '');
+      } else if (it.type === 'plot_photo') {
+        const th = ((chat.msgs[mi] || {}).th || []), shown = (it.photos || []).map(k => th[k]).filter(Boolean);
+        h = `<div class="ch-t">📷 รูปสภาพแปลง</div>` + thImgs(shown) + row('แปลง', pn(it.plots), 'plots')
+          + row('น่าจะเป็น', it.diagnosis, 'diagnosis') + row('หมายเหตุ', it.note) + row('วันที่', dt(it.date))
+          + (it.diagnosis ? `<div class="srow-s">เดาจากรูป ไม่ใช่ผลวินิจฉัยแน่นอน — ไปดูหน้างานอีกที</div>` : '');
       } else if (it.type === 'rain_pick') {
         if (!it.areas.length && live) { it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); }
         const n = chatRainPlots(it).length;
@@ -3235,14 +3432,16 @@
       const box = $('chatList'); if (!box || !gData) return;
       let h = '';
       if (!chat.msgs.length) {
-        const ex = ['หำ ผัน ขึ้นน้ำหนองเฝ้า 1 ค้างคืน ยังไม่เสร็จ', 'พร ขับคูโบต้า สับหญ้าสำนักแจง 3', 'วันนี้ฝนตกหลายแปลง ไม่รู้แปลงไหนบ้าง', 'หนองบวบหอม 1 ขึ้นน้ำเสร็จแล้ว', 'ฝากดู หนองเฝ้า 2 อ้อยเหลือง', 'มีคนงานใหม่ชื่อแดง'];
+        const ex = ['หำ ผัน ขึ้นน้ำหนองเฝ้า 1 ค้างคืน ยังไม่เสร็จ', 'พร ขับคูโบต้า สับหญ้าสำนักแจง 3', 'วันนี้ฝนตกหลายแปลง ไม่รู้แปลงไหนบ้าง', 'หนองบวบหอม 1 ขึ้นน้ำเสร็จแล้ว', 'ฝากดู หนองเฝ้า 2 อ้อยเหลือง', 'มีคนงานใหม่ชื่อแดง',
+          'ที่ผ่านมา อ้อยใหม่กับอ้อยตอที่ไร่ มีงานต่างกันยังไง', 'เดือนนี้หำทำกี่วัน', 'ขึ้นน้ำกี่รอบแล้ว แปลงไหนนานสุด'];
         h = `<div class="ch-ai">เล่ามาได้เลยครับ วันนี้ใครทำอะไร แปลงไหน รถคันไหน — ผมจะ<b>สรุปให้ตรวจก่อน</b> กดบันทึกแล้วค่อยลง
+          <small>📷 ส่งรูปหน้างานได้ (รถ ทะเบียน แปลงอ้อย) ผมอ่านให้ แล้วจดลงประวัติรถ/แปลง · ถามย้อนหลังได้ เช่น "เดือนนี้ใครทำกี่วัน"</small>
           <small>ไมค์บนคีย์บอร์ด iPhone พูดแทนพิมพ์ได้ · ตอนนี้ยังไม่ตัดสต็อกยา/ปุ๋ย (ใช้ "กดเลือกงาน" ถ้าต้องตัดสต็อก)</small></div>
           <div class="ch-card"><div class="ch-hd"><span>ตัวอย่าง · แตะเพื่อเติมในช่องพิมพ์</span></div>${ex.map(t => `<button type="button" class="ch-ex" data-t="${esc(t)}" onclick="chatFill(this)">${esc(t)}</button>`).join('')}</div>`;
       } else h += `<div class="text-end mb-2"><button type="button" class="linkbtn" onclick="chatClear()">ล้างแชต</button></div>`;
       const lastI = chat.msgs.length - 1;
       chat.msgs.forEach((m, mi) => {
-        if (m.me) { h += `<div class="ch-me">${esc(m.t)}</div>`; return; }
+        if (m.me) { h += `<div class="ch-me">${thImgs(m.th)}${esc(m.t)}</div>`; return; }
         if (m.t) h += `<div class="ch-ai">${esc(m.t)}</div>`;
         if (m.retry && mi === lastI) h += `<button type="button" class="btn btn-sm btn-outline-success mb-3" onclick="chatSend(chat.msgs[${mi}].retry)">ส่งใหม่</button>`;
         const live = m.state === 'draft' && !m.saving;

@@ -261,6 +261,7 @@ function readAll_(ss) {
     expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
     ...readRock_(ss),
     lands: readSheet_(ss, 'Lands'),
+    plotPhotos: sortDesc_(readSheet_(ss, 'PlotPhotos')),
     rainLog: readRain_(ss),
     settings: pub
   };

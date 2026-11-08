@@ -114,7 +114,7 @@ function satBodyWith_(t, fromISO, toISO, dataItem, evalscript) {
 
 function satBody_(t, fromISO, toISO) {
   const b = satBodyWith_(t, fromISO, toISO, { type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC' } }, SAT_EVAL_);
-  b.calculations = { ndvi: { histograms: { default: { nBins: 50, lowEdge: 0, highEdge: 1 } } } };
+  b.calculations = { ndvi: { histograms: { default: { binWidth: 0.02, lowEdge: 0.001, highEdge: 1.001 } } } };   // ขอบเป็นทศนิยม ไม่งั้น API ถือเป็นฮิสโตแกรมจำนวนเต็ม
   return b;
 }
 

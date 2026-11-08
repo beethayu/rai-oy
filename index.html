@@ -3130,7 +3130,7 @@
       $('pickWrap').style.display = logMode === 'pick' ? 'block' : 'none';
       $('chatPane').style.display = logMode === 'chat' ? 'block' : 'none';
       if (curTab === 'log') document.querySelector('.sec-hd').style.display = logMode === 'chat' ? 'none' : '';
-      if (logMode === 'chat') chatRender();
+      if (logMode === 'chat') chatRender(true); // เปิดแท็บ/สลับโหมดแล้วเลื่อนไปข้อความล่าสุด
     }
     const chPlot = id => (gData.plots || []).find(p => p.plot_id === id);
     const chOg = pid => (gData.activities || []).find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
@@ -3167,8 +3167,11 @@
     }
     function chatPicDrop(i) { chatPics.splice(i, 1); chatPvRender(); }
     function chatOpenBill(mi, i, btn) {
-      const it = chat.msgs[mi].items[i];
-      call('chatBillRead', [it.photo_ids], d => billOpenFrom(d, d.pages_b64 || [], null), btn, '🤖 AI กำลังอ่านใบเสร็จ รอสักครู่...');
+      const m = chat.msgs[mi], it = m.items[i];
+      const go = b => call('chatBillRead', [it.photo_ids], d => billOpenFrom(d, d.pages_b64 || [], null), b, '🤖 AI กำลังอ่านใบเสร็จ รอสักครู่...');
+      // ยังไม่ได้บันทึกรายการอื่น (เช่น ยาใหม่) → บันทึกก่อน เพื่อให้ตัวอ่านบิลเห็นยาใหม่ในสต็อก แล้วค่อยอ่านบิล
+      if (m.state === 'draft' && m.items.some(x => x.type !== 'bill')) return chatCommit(mi, () => go(null));
+      go(btn);
     }
     const thImgs = th => (th || []).length ? `<div class="ch-th">${th.map(t => `<img src="data:image/jpeg;base64,${t}" alt="รูปหน้างาน">`).join('')}</div>` : '';
 
@@ -3388,13 +3391,13 @@
       });
       return ops;
     }
-    function chatCommit(mi) {
+    function chatCommit(mi, after) {
       const m = chat.msgs[mi]; if (!m || m.state !== 'draft' || chatBusy) return;
       for (const it of m.items) { if (it.date && !checkDate(it.date)) return; if (it.date_to && !checkDate(it.date_to)) return; }
       const ops = chatOps(m.items);
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
       chatBusy = true; m.saving = true; chatRender();
-      callApi('chatApply', [ops]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; init(d); })
+      callApi('chatApply', [ops]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; init(d); if (after) setTimeout(after, 250); })
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }
@@ -3441,10 +3444,10 @@
           + (it.exists ? `<div class="ch-warn">มียาชื่อนี้ในสต็อกแล้ว — จะไม่สร้างซ้ำ${!hasBill && it.qty > 0 ? ' (รับเข้าจำนวนที่ซื้อให้)' : ''}</div>` : '');
       } else if (it.type === 'bill') {
         const m = chat.msgs[mi] || {}, th = m.th || [], shown = (it.photos || []).map(k => th[k]).filter(Boolean);
-        const wait = m.state !== 'saved' && (m.items || []).some(x => x.type === 'new_chem');
+        const wait = m.state === 'draft' && (m.items || []).some(x => x.type !== 'bill');
         h = `<div class="ch-t">🧾 ใบเสร็จ ${it.photo_ids.length} รูป</div>` + thImgs(shown)
-          + `<div class="srow-s">${wait ? 'บันทึกยาใหม่ก่อน แล้วกดอ่านใบเสร็จ — ยอดที่ซื้อจะเข้าสต็อกตามใบเสร็จ' : 'ส่งให้ตัวอ่านบิลเดิม ได้หน้าตรวจบิลก่อนบันทึก (ลงค่าใช้จ่าย + รับเข้าสต็อก)'}</div>`
-          + `<button type="button" class="btn btn-sm btn-success mt-1" ${wait ? 'disabled' : ''} onclick="chatOpenBill(${mi},${i},this)">🧾 อ่านใบเสร็จ → หน้าตรวจบิล</button>`;
+          + `<div class="srow-s">${wait ? 'กดปุ่มนี้ได้เลย — ระบบจะบันทึกรายการอื่นในข้อความนี้ (เช่น ยาใหม่) ก่อน แล้วเปิดหน้าตรวจบิลให้ ยอดที่ซื้อจะเข้าสต็อกตามใบเสร็จ' : 'ส่งให้ตัวอ่านบิลเดิม ได้หน้าตรวจบิลก่อนบันทึก (ลงค่าใช้จ่าย + รับเข้าสต็อก)'}</div>`
+          + `<button type="button" class="btn btn-sm btn-success mt-1" ${chatBusy ? 'disabled' : ''} onclick="chatOpenBill(${mi},${i},this)">${wait ? '💾 บันทึกยาใหม่ แล้ว ' : ''}🧾 อ่านใบเสร็จ → หน้าตรวจบิล</button>`;
       } else if (it.type === 'plot_photo') {
         const th = ((chat.msgs[mi] || {}).th || []), shown = (it.photos || []).map(k => th[k]).filter(Boolean);
         h = `<div class="ch-t">📷 รูปสภาพแปลง</div>` + thImgs(shown) + row('แปลง', pn(it.plots), 'plots')
@@ -3502,7 +3505,7 @@
       });
       if (chatBusy && !chat.msgs.some(m => m.saving)) h += `<div class="ch-ai">⏳ กำลังอ่าน…</div>`;
       box.innerHTML = h;
-      if (scroll) setTimeout(() => $('app').scrollTo(0, $('app').scrollHeight), 30);
+      if (scroll) { const down = () => $('app').scrollTo(0, $('app').scrollHeight); setTimeout(down, 30); setTimeout(down, 300); } // รอบสองกันรูปย่อโหลดช้าทำให้ความสูงเปลี่ยน
     }
 
     // ================= งานหินคลุก (สมาชิก → จุด → รูปก่อน/หลัง + เที่ยวสิบล้อ) =================

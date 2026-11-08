@@ -396,7 +396,7 @@
 - ✅ ทดสอบกับ API จริงแล้ว (9 พ.ย. 69): testSatellite ผ่าน · logSatelliteBackfill ลง 2,188 แถว / 26 แปลง (13 เดือน) ไม่มี error · ตั้งรหัส CDSE ใน Script Properties แล้ว (client ไม่หมดอายุ)
 - ปุ่ม 🛰️ Earth Engine ยังอยู่ใน index.html (เก็บไว้เทียบ ลบเมื่อ Copernicus ใช้ได้จริง)
 
-### เรดาร์ Sentinel-1 + หน้าจอดาวเทียมในแอป (เพิ่ม 9 พ.ย. 69 — ⚠️ ยังไม่ทดสอบกับ API จริง)
+### เรดาร์ Sentinel-1 + หน้าจอดาวเทียมในแอป (เพิ่ม 9 พ.ย. 69 — ผู้ใช้รัน testRadar / logRadarBackfill / logRadarLandHistory ผ่านหมดแล้ว · เกณฑ์น้ำยังไม่ได้ปรับ)
 - `gas/Radar.gs`: ลงชีต `RadarLog` (date, kind, id, name, vv_db, vh_db, water, pixels) · water = สัดส่วนแปลงที่ VV < -16 dB (น้ำโล่ง) · เกณฑ์ -16 เป็นค่ากลางทั่วไป ยังไม่ได้ปรับกับไร่นี้ · เห็นเฉพาะน้ำโล่งไม่มีใบบัง (อ้อยสูงมองน้ำใต้ใบไม่ชัด)
 - ปุ่มกดจากหน้าแก้โค้ด: `testRadar` (ลองต่อ ไม่เขียนชีต) → `logRadarBackfill` (400 วัน ทุกแปลง+ที่ดิน) → `logRadarLandHistory` (ที่ดินที่จะเช่า ย้อนถึงปี 2018 ทีละปี ถ้าเกิน ~4 นาทีหยุดจำปีค้างใน Script Properties `RADAR_HIST_YEAR` กดซ้ำต่อ) · trigger รายวัน (`logSatelliteTrigger`) รันเรดาร์ 14 วันย้อนหลังด้วย
 - `getSatData()` (Sat.gs) ส่ง SatLog/RadarLog แบบย่อให้แอป (เรียกเมื่อเปิดหน้า ไม่ได้รวมใน getInitialData เพราะข้อมูลโตขึ้นทุกวัน)

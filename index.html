@@ -185,6 +185,17 @@
     .chip-rat { background: #F1E6D6; color: #6B4A1F; }
     .bill-row { border: 1px solid #DDE3DF; border-radius: 12px; padding: 10px; margin-bottom: 10px; background: #FAFBFA; }
     .bill-row .form-control, .bill-row .form-select { font-size: 16px; }
+    .bill-row.bl-c { padding: 8px 10px; margin-bottom: 8px; }
+    .bl-x { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid #E3B8B0; border-radius: 10px; background: #fff; color: #B23B1E; font-size: 14px; padding: 0; }
+    .bl-g { display: grid; grid-template-columns: 1.2fr .75fr 1fr 1.05fr; gap: 6px; }
+    .bl-g label { margin: 0; min-width: 0; } .bl-g label span { display: block; font-size: 11px; font-weight: 600; color: #5B635E; }
+    .bl-g .form-control, .bl-g .form-select { padding-left: 6px; padding-right: 6px; }
+    .bl-g .form-select { padding-right: 22px; background-position: right 5px center; background-size: 12px; }
+    .bl-s { display: grid; grid-template-columns: auto 1fr 88px auto; gap: 6px; align-items: center; margin-top: 6px; }
+    .bl-s.bl-a { grid-template-columns: auto 1fr; }
+    .bl-s small { color: #5B635E; font-size: 13px; min-width: 22px; }
+    .bl-inf { margin-top: 6px; font-size: 13px; line-height: 1.5; color: #1F5E3B; background: #EEF5F0; border-radius: 8px; padding: 4px 9px; }
+    .bl-inf:empty { display: none; }
     .bill-lbl { font-size: 13px; font-weight: 600; color: #5B635E; margin-bottom: 2px; }
     .bill-total { font-size: 20px; font-weight: 700; color: #1F5E3B; }
     .exp-cat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #EEF1EF; }
@@ -1552,28 +1563,46 @@
       </div>`;
     }
 
+    // สรุปขนาดบรรจุ + ราคาต่อหน่วยบรรจุ (เช่น กล่องละ 100 g · กล่องละ 170 บาท) คำนวณสดจากจำนวนเงิน/จำนวนที่รับเข้าสต็อก
+    function billInfoHtml(it) {
+      const sIt = invItem(it.stock_item), amt = num(it.amount), q = num(it.qty), sq = num(it.stock_qty);
+      const f = n => (Math.round(n * 100) / 100).toLocaleString('th-TH');
+      if (sIt && sq > 0) {
+        const pack = num(sIt.pack_size) || 1, pn = pack > 1 ? (sIt.pack_name || sIt.unit) : sIt.unit, parts = [];
+        if (pack > 1) parts.push(`📦 ${esc(pn)}ละ <b>${f(pack)} ${esc(sIt.unit)}</b>`);
+        if (amt > 0) parts.push(`💰 ${esc(pn)}ละ <b>${f(amt / (sq / pack))} บาท</b>`);
+        if (pack > 1 && amt > 0) parts.push(`${f(amt / sq)}/${esc(sIt.unit)}`);
+        return parts.join(' · ');
+      }
+      return q > 0 && amt > 0 ? `💰 ${esc(it.unit || 'หน่วย')}ละ <b>${f(amt / q)} บาท</b>` : '';
+    }
+    function billInfo(i) { const el = $('bl_inf_' + i); if (el) el.innerHTML = billInfoHtml(billDraft.items[i]); }
+
     function billRowHtml(it, i) {
       if (isDisc(it)) return discRowHtml(it, i);
       const inv = (gData.inventory || []).filter(x => x.category === STOCK_CAT[it.category]);
       const assets = (gData.assets || []).filter(a => a.category !== 'Worker');
       const sIt = invItem(it.stock_item);
       const opt = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
-      return `<div class="bill-row">
-        <div class="d-flex gap-2 mb-2">
-          <div class="flex-fill"><div class="bill-lbl">รายการ</div><input class="form-control form-control-sm" value="${esc(it.item)}" oninput="billSet(${i},'item',this.value)"></div>
-          <button type="button" class="btn btn-sm btn-outline-danger align-self-end" onclick="billDel(${i})">ลบ</button>
+      return `<div class="bill-row bl-c">
+        <div class="d-flex gap-2 align-items-center mb-2">
+          <input class="form-control form-control-sm fw-bold" aria-label="ชื่อรายการ" placeholder="ชื่อรายการ" value="${esc(it.item)}" oninput="billSet(${i},'item',this.value)">
+          <button type="button" class="bl-x" aria-label="ลบรายการนี้" onclick="billDel(${i})">✕</button>
         </div>
-        <div class="row g-2">
-          <div class="col-6"><div class="bill-lbl">หมวด</div><select class="form-select form-select-sm" onchange="billSet(${i},'category',this.value,true)">${BILL_CATS.map(c => opt(c, c, c === it.category)).join('')}</select></div>
-          <div class="col-6"><div class="bill-lbl">เงิน (บาท)</div><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.amount || ''}" oninput="billSet(${i},'amount',this.value)"></div>
-          <div class="col-6"><div class="bill-lbl">จำนวน</div><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.qty || ''}" oninput="billSet(${i},'qty',this.value)"></div>
-          <div class="col-6"><div class="bill-lbl">หน่วย</div><input class="form-control form-control-sm" value="${esc(it.unit)}" oninput="billSet(${i},'unit',this.value)"></div>
-          ${STOCK_CAT[it.category] ? `
-          <div class="col-7"><div class="bill-lbl">รับเข้าสต็อก</div><select class="form-select form-select-sm" onchange="billSet(${i},'stock_item',this.value,true)">${opt('', 'ไม่รับเข้าสต็อก', !it.stock_item)}${inv.map(x => opt(x.name, x.name, x.name === it.stock_item)).join('')}</select></div>
-          <div class="col-5"><div class="bill-lbl">จำนวน${sIt ? ' (' + esc(sIt.unit) + ')' : ''}</div><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.stock_qty || ''}" ${it.stock_item ? '' : 'disabled'} oninput="billSet(${i},'stock_qty',this.value)"></div>` : ''}
-          ${it.category === 'อะไหล่' ? `
-          <div class="col-12"><div class="bill-lbl">ของรถ/เครื่องคันไหน</div><select class="form-select form-select-sm" onchange="billSet(${i},'asset',this.value)">${opt('', 'ไม่ระบุ', !it.asset)}${assets.map(a => opt(a.name, a.name, a.name === it.asset)).join('')}</select></div>` : ''}
-        </div></div>`;
+        <div class="bl-g">
+          <label><span>หมวด</span><select class="form-select form-select-sm" onchange="billSet(${i},'category',this.value,true)">${BILL_CATS.map(c => opt(c, c, c === it.category)).join('')}</select></label>
+          <label><span>จำนวน</span><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.qty || ''}" oninput="billSet(${i},'qty',this.value)"></label>
+          <label><span>หน่วย</span><input class="form-control form-control-sm" value="${esc(it.unit)}" oninput="billSet(${i},'unit',this.value)"></label>
+          <label><span>รวม (บาท)</span><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.amount || ''}" oninput="billSet(${i},'amount',this.value)"></label>
+        </div>
+        ${STOCK_CAT[it.category] ? `
+        <div class="bl-s"><span title="รับเข้าสต็อก">📥</span>
+          <select class="form-select form-select-sm" aria-label="รับเข้าสต็อก" onchange="billSet(${i},'stock_item',this.value,true)">${opt('', 'ไม่รับเข้าสต็อก', !it.stock_item)}${inv.map(x => opt(x.name, x.name, x.name === it.stock_item)).join('')}</select>
+          <input type="number" inputmode="decimal" class="form-control form-control-sm" aria-label="จำนวนที่รับเข้าสต็อก" placeholder="จำนวน" value="${it.stock_qty || ''}" ${it.stock_item ? '' : 'disabled'} oninput="billSet(${i},'stock_qty',this.value)">
+          <small>${sIt ? esc(sIt.unit) : ''}</small></div>` : ''}
+        ${it.category === 'อะไหล่' ? `
+        <div class="bl-s bl-a"><span title="ของรถ/เครื่อง">🚜</span><select class="form-select form-select-sm" aria-label="ของรถหรือเครื่องคันไหน" onchange="billSet(${i},'asset',this.value)">${opt('', 'ของรถ/เครื่องคันไหน (ไม่ระบุ)', !it.asset)}${assets.map(a => opt(a.name, a.name, a.name === it.asset)).join('')}</select></div>` : ''}
+        <div class="bl-inf" id="bl_inf_${i}">${billInfoHtml(it)}</div></div>`;
     }
 
     function billChk(b, sum) {
@@ -1613,7 +1642,8 @@
       if (k === 'category') { it.stock_item = ''; it.stock_qty = 0; if (v !== 'อะไหล่') it.asset = ''; }
       if (k === 'stock_item' && !v) it.stock_qty = 0;
       if (rerender) { billKeep(); renderBill(); }
-      else if (k === 'amount') { const sm = billDraft.items.reduce((t, x) => t + num(x.amount), 0); $('bl_sum').innerText = baht(sm) + ' บาท'; $('bl_chk').innerHTML = billChk(billDraft, sm); }
+      else if (k === 'amount' || k === 'qty' || k === 'stock_qty' || k === 'unit') billInfo(i);
+      if (!rerender && k === 'amount') { const sm = billDraft.items.reduce((t, x) => t + num(x.amount), 0); $('bl_sum').innerText = baht(sm) + ' บาท'; $('bl_chk').innerHTML = billChk(billDraft, sm); }
     }
     function billAdd(disc) {
       billKeep();

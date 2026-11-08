@@ -201,6 +201,12 @@ function logSatellite(days, includeLands) {
 
 // ลองต่อ: เช็กรหัส → ขอ token → ถามแปลงแรก 30 วัน (ไม่เขียนชีต) แล้วรายงานผล
 function testSatellite() {
+  const r = satTest_();
+  console.log(r);
+  return r;
+}
+
+function satTest_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const out = [];
   try { satCreds_(); out.push('รหัสครบ'); } catch (e) { return e.message; }
@@ -218,9 +224,17 @@ function logSatelliteTrigger() {
   try { console.log(logSatellite(12)); } catch (e) { console.error(e); }
 }
 
+// กดรันจากหน้าแก้โค้ด (รายการเลือกฟังก์ชันใส่ตัวเลขไม่ได้): ลงย้อนหลัง ~13 เดือน รวมที่ดินที่จะเช่า
+function logSatelliteBackfill() {
+  const r = logSatellite(400, true);
+  console.log(r);
+  return r;
+}
+
 // ตั้งให้รันทุกวันจันทร์ ~04:00 (ไม่ผูกกับ logDailyRainTrigger เพื่อให้พังแยกกัน)
 function installSatTrigger() {
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'logSatelliteTrigger').forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('logSatelliteTrigger').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(4).inTimezone('Asia/Bangkok').create();
+  console.log('ตั้งเวลาแล้ว: ทุกวันจันทร์ ~04:00');
   return 'ตั้งเวลาแล้ว: ทุกวันจันทร์ ~04:00';
 }

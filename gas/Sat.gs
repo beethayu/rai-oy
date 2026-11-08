@@ -240,9 +240,33 @@ function logSatelliteTrigger() {
   try { console.log(logRadar(14)); } catch (e) { console.error(e); }   // เรดาร์ (Radar.gs)
 }
 
-// กดรันจากหน้าแก้โค้ด (รายการเลือกฟังก์ชันใส่ตัวเลขไม่ได้): ลงย้อนหลัง ~13 เดือน รวมที่ดินที่จะเช่า
+// ลงย้อนหลังแบบทำต่อได้: ทีละ 3 แปลง เขียนชีตทุกชุด · ใกล้ครบเวลา Apps Script (6 นาที) หยุดจำแปลงที่ค้าง → กดรันซ้ำทำต่อ
+function satBackfill_(propKey, sheet, headers, days, opt, label) {
+  const t0 = Date.now(), props = PropertiesService.getScriptProperties();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const targets = satTargets_(ss, true);
+  if (!targets.length) return 'ยังไม่มีแปลงที่วาดขอบ';
+  const now = new Date();
+  const toISO = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);
+  const fromISO = new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10);
+  let i = Number(props.getProperty(propKey)) || 0, rows = 0, errs = [];
+  while (i < targets.length) {
+    const got = satFetch_(targets.slice(i, i + 3), fromISO, toISO, opt);
+    satUpsert_(ss, sheet, headers, got.rows);
+    rows += got.rows.length; errs = errs.concat(got.errors);
+    i += 3;
+    if (i < targets.length && Date.now() - t0 > 240000) {
+      props.setProperty(propKey, String(i));
+      return label + ': ทำได้ ' + i + '/' + targets.length + ' แปลง (' + rows + ' แถว) · กดรันซ้ำเพื่อทำต่อ' + (errs.length ? ' · ผิดพลาด ' + errs.length + ': ' + errs[0] : '');
+    }
+  }
+  props.deleteProperty(propKey);
+  return label + ': ครบแล้ว ' + targets.length + ' แปลง · รอบนี้ ' + rows + ' แถว · ' + fromISO + ' ถึง ' + toISO + (errs.length ? ' · ผิดพลาด ' + errs.length + ': ' + errs[0] : '');
+}
+
+// กดรันจากหน้าแก้โค้ด (ปุ่ม "เรียกใช้" ไม่ใช่ "แก้ปัญหา"): ลงย้อนหลัง ~13 เดือน รวมที่ดินที่จะเช่า · ขึ้นว่า "กดรันซ้ำ" = กดอีกรอบ
 function logSatelliteBackfill() {
-  const r = logSatellite(400, true);
+  const r = satBackfill_('SAT_BACKFILL_NEXT', 'SatLog', SAT_H_, 400, undefined, 'ดาวเทียม');
   console.log(r);
   return r;
 }

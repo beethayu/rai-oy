@@ -95,7 +95,7 @@ function testRadar() {
 
 // ลงเรดาร์ย้อนหลัง ~13 เดือน ทุกแปลง + ที่ดินที่จะเช่า
 function logRadarBackfill() {
-  const r = logRadar(400, true);
+  const r = satBackfill_('RADAR_BACKFILL_NEXT', 'RadarLog', RAD_H_, 400, RAD_OPT_, 'เรดาร์');
   console.log(r);
   return r;
 }

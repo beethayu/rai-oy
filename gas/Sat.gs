@@ -3,7 +3,8 @@
 // ค่าที่ได้ (ต่อแปลง ต่อวันที่ดาวเทียมผ่านและเห็นแปลงใส):
 //   ndvi  = ความเขียว (มีใบมากแค่ไหน)        ndre = ใบสมบูรณ์ (ใบเขียวเข้มแข็งแรงไหม)
 //   ndwi  = น้ำในใบ                          water = สัดส่วนของแปลงที่เห็นน้ำบนผิวดิน 0–1
-//   clear = สัดส่วนของแปลงที่ไม่มีเมฆ/เงาเมฆ 0–1 (ค่าต่ำ = ภาพวันนั้นเชื่อถือน้อย)
+//   clear = (ดิบ) พิกเซลใส / พิกเซลในกรอบสี่เหลี่ยมรอบแปลง — นับพิกเซลนอกแปลงด้วย (API นับเป็น noData)
+//           จึงต้องหารด้วยค่าสูงสุดของแปลงนั้น (= วันที่ใสทั้งแปลง) ก่อนใช้ → getSatData ทำให้แล้ว
 //
 // ตั้งค่าครั้งเดียว (ห้ามใส่รหัสในโค้ดหรือ repo):
 //   Apps Script > ตั้งค่าโปรเจกต์ (รูปเฟือง) > คุณสมบัติของสคริปต์ > เพิ่ม
@@ -110,7 +111,7 @@ function satBodyWith_(t, fromISO, toISO, dataItem, evalscript) {
 }
 
 function satBody_(t, fromISO, toISO) {
-  return satBodyWith_(t, fromISO, toISO, { type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC', maxCloudCoverage: 80 } }, SAT_EVAL_);
+  return satBodyWith_(t, fromISO, toISO, { type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC' } }, SAT_EVAL_);
 }
 
 // อ่านผลตอบกลับ → [{date, ndvi, ndre, ndwi, water, clear}] (ข้ามวันที่ไม่มีพิกเซลใส)
@@ -266,8 +267,22 @@ function getSatData() {
     if (ix.some(i => i < 0)) return [];
     return d.slice(1).filter(r => r[0]).map(r => ix.map(i => r[i]));
   };
+  // clear ในชีตเป็นค่าดิบ (หารด้วยกรอบสี่เหลี่ยม) → หารด้วยค่าสูงสุดของแปลงนั้น ให้เป็นสัดส่วนของแปลงที่ใสจริง 0–1
+  const sat = pick('SatLog', ['date', 'kind', 'id', 'ndvi', 'ndre', 'ndwi', 'water', 'clear']);
+  const mx = {};
+  sat.forEach(r => { const k = r[1] + '|' + r[2], c = Number(r[7]) || 0; if (!(mx[k] >= c)) mx[k] = c; });
+  sat.forEach(r => { const m = mx[r[1] + '|' + r[2]]; r[7] = m > 0 ? String(Math.round((Number(r[7]) || 0) / m * 100) / 100) : '0'; });
   return {
-    sat: pick('SatLog', ['date', 'kind', 'id', 'ndvi', 'ndre', 'ndwi', 'water', 'clear']),
+    sat: sat,
     radar: pick('RadarLog', ['date', 'kind', 'id', 'vv_db', 'water'])
   };
+}
+
+// ถามดาวเทียมของแปลงเดียวช่วงวันที่ที่กำหนด ไม่เขียนชีต (ใช้ตรวจเหตุการณ์ย้อนหลัง) · radar=true = เรดาร์
+function satProbe(id, fromISO, toISO, radar) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const t = satTargets_(ss, true).filter(x => x.id === id)[0];
+  if (!t) throw new Error('ไม่พบแปลง/ที่ดินที่วาดขอบ: ' + id);
+  const got = satFetch_([t], fromISO, toISO, radar ? RAD_OPT_ : undefined);
+  return got;
 }

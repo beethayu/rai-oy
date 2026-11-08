@@ -89,18 +89,37 @@ function cleanChatPhotos_(maxAgeMin) {
   return n;
 }
 
-// ไฟล์รูปในโฟลเดอร์แชต → base64 (ข้ามไฟล์ที่ไม่ใช่ของโฟลเดอร์นี้) คืน {id: b64}
+// อยู่ใต้โฟลเดอร์ใน okIds ไหม (ไล่ขึ้นไปไม่เกิน 3 ชั้น: รูปแชต/หมวด/ชื่อ/ไฟล์)
+function underFolder_(file, okIds) {
+  let level = [file], depth = 0;
+  while (level.length && depth < 3) {
+    const next = [];
+    for (const x of level) {
+      const ps = x.getParents();
+      while (ps.hasNext()) { const p = ps.next(); if (okIds.indexOf(p.getId()) >= 0) return true; next.push(p); }
+    }
+    level = next; depth++;
+  }
+  return false;
+}
+
+// ไฟล์รูปในโฟลเดอร์แชต (รวมโฟลเดอร์ย่อย) → base64 (ข้ามไฟล์ที่ไม่ใช่ของโฟลเดอร์นี้) คืน {id: b64}
 function chatBlobs_(ids) {
   const okIds = [chatFolder_().getId(), billFolder_().getId()], out = {}; // รูปแชต + รูปบิล
   (ids || []).slice(0, 6).forEach(id => {
     try {
       const f = DriveApp.getFileById(String(id));
-      const ps = f.getParents(); let ok = false;
-      while (ps.hasNext()) { if (okIds.indexOf(ps.next().getId()) >= 0) { ok = true; break; } }
-      if (ok) out[id] = Utilities.base64Encode(f.getBlob().getBytes());
+      if (underFolder_(f, okIds)) out[id] = Utilities.base64Encode(f.getBlob().getBytes());
     } catch (e) {}
   });
   return out;
+}
+
+// โฟลเดอร์ย่อย รูปแชต/<หมวด>/<ชื่อ> (สร้างให้ถ้ายังไม่มี) เช่น รถ/สิบล้อ · แปลง/หนองเฝ้า (ข้าง รร.) · ยา/อามีทรีน
+function chatSub_(kind, item) {
+  const clean = x => String(x || '').replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 60) || 'อื่นๆ';
+  const sub = (parent, name) => { const it = parent.getFoldersByName(name); return it.hasNext() ? it.next() : parent.createFolder(name); };
+  return sub(sub(chatFolder_(), clean(kind)), clean(item));
 }
 
 // images = array ของ base64 JPEG (หน้าเว็บย่อ 1600px แล้ว) สูงสุด 4 รูป
@@ -141,12 +160,39 @@ function chatParse(text, ctx, images, reuse) {
   return j;
 }
 
-// ตั้งชื่อรูปแชตที่บันทึกแล้ว (เอา tmp_ ออก) เช่น รถ_สิบล้อ_02-11-2569_1.jpg
-function nameChatPhotos_(ids, label, date) {
+// ตั้งชื่อรูปแชตที่บันทึกแล้ว (เอา tmp_ ออก) เช่น รถ_สิบล้อ_02-11-2569_1.jpg แล้วย้ายเข้าโฟลเดอร์ย่อย รูปแชต/<หมวด>/<ชื่อ>
+// kind = รถ | ยา | แปลง · item = ชื่อรถ/ยา/แปลง (ชื่อ ไม่ใช่รหัส)
+function nameChatPhotos_(ids, label, date, kind, item) {
   const base = String(label || 'รูป').replace(/[\\/:*?"<>|]/g, '').slice(0, 30) + '_' + String(date || '').replace(/\//g, '-');
+  let dest = null;
+  if (kind) { try { dest = chatSub_(kind, item); } catch (e) {} }
   (ids || []).forEach((id, k) => {
-    try { DriveApp.getFileById(id).setName(base + '_' + (k + 1) + '.jpg'); } catch (e) {}
+    try {
+      const f = DriveApp.getFileById(id);
+      f.setName(base + '_' + (k + 1) + '.jpg');
+      if (dest) f.moveTo(dest);
+    } catch (e) {}
   });
+}
+
+// ย้ายรูปแชตเก่าที่บันทึกแล้ว (อยู่ชั้นบนสุด) เข้าโฟลเดอร์ย่อยตามชื่อไฟล์ · กดรันครั้งเดียวจากหน้าแก้โค้ด
+// รถ_<ชื่อ>_… → รถ/<ชื่อ> · ยา_<ชื่อ>_… → ยา/<ชื่อ> · แปลง_P17-P18_… → แปลง/<ชื่อแปลง>
+function sortChatPhotos() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet(), nm = {};
+  readSheet_(ss, SH.PLOTS).forEach(p => { nm[p.plot_id] = p.plot_name; });
+  const it = chatFolder_().getFiles();
+  let n = 0, skip = 0;
+  while (it.hasNext()) {
+    const f = it.next(), name = f.getName();
+    const m = name.match(/^(รถ|ยา|แปลง)_(.+)_\d{1,2}-\d{1,2}-\d{4}_\d+\.jpg$/);
+    if (!m) { skip++; continue; }
+    let item = m[2];
+    if (m[1] === 'แปลง') item = item.split('-').map(id => nm[id] || id).join(' + ');
+    try { f.moveTo(chatSub_(m[1], item)); n++; } catch (e) { skip++; }
+  }
+  const msg = 'ย้ายแล้ว ' + n + ' รูป · ข้าม ' + skip + ' (รูปที่ยังไม่บันทึก/ชื่อไม่ตรงแบบ)';
+  console.log(msg);
+  return msg;
 }
 
 // ดูรูปที่เก็บไว้ (เปิดดูเต็มในแอป) — ยอมให้อ่านเฉพาะไฟล์ในโฟลเดอร์รูปแชตเท่านั้น
@@ -245,7 +291,7 @@ function chatApply(ops, rid) {
           appendRows_(lSh, [rowv]);
           done++;
         }
-        nameChatPhotos_(ids, 'รถ_' + name, date);
+        nameChatPhotos_(ids, 'รถ_' + name, date, 'รถ', name);
       } else if (op.fn === 'reg') {
         // ทะเบียน/ภาษีรถ: จำทะเบียน + วันครบกำหนดต่อ
         if (setAssetReg_(ss, String(op.asset || '').trim(), op)) done++;
@@ -262,7 +308,7 @@ function chatApply(ops, rid) {
         }
         const si = Number(op.stock_in) || 0;
         if (si > 0) { addStock_(ss, name, si, op.date || getTodayStr(), '📥 รับเข้า', 'ซื้อยาใหม่ (บันทึกจากแชต)'); }
-        nameChatPhotos_((op.photo_ids || []).filter(Boolean), 'ยา_' + name, op.date || getTodayStr());
+        nameChatPhotos_((op.photo_ids || []).filter(Boolean), 'ยา_' + name, op.date || getTodayStr(), 'ยา', name);
       } else if (op.fn === 'plotphoto') {
         // รูปสภาพแปลง: ชีต PlotPhotos (รูปเก็บใน Drive) ดูได้ในหน้าดูแปลง
         const ids = (op.photo_ids || []).filter(Boolean), pids = (op.plotIds || []).filter(Boolean);
@@ -270,7 +316,10 @@ function chatApply(ops, rid) {
         const sh = getOrCreate_(ss, 'PlotPhotos', PLOT_PHOTO_H_), date = op.date || getTodayStr();
         const b = base++;
         appendRows_(sh, pids.map((pid, i) => ['PP' + b + '_' + i, date, pid, ids.join(','), String(op.diagnosis || ''), String(op.note || '')]));
-        nameChatPhotos_(ids, 'แปลง_' + pids.join('-'), date);
+        {
+          const pn = {}; readSheet_(ss, SH.PLOTS).forEach(p => { pn[p.plot_id] = p.plot_name; });
+          nameChatPhotos_(ids, 'แปลง_' + pids.join('-'), date, 'แปลง', pids.map(id => pn[id] || id).join(' + '));
+        }
         done++;
       }
     });

@@ -362,18 +362,57 @@ function evaluatePixel(s) {
 // คืน { img: 'data:image/png;base64,…', w, h } ของแปลง/ที่ดิน id วันที่ dateISO (YYYY-MM-DD) · แคช 6 ชม.
 // ref = ค่าความเขียวเฉลี่ยของแปลงวันนั้น (ใส่ = โหมดเทียบในแปลง: แดง/ส้ม = อ่อนกว่าส่วนอื่นของแปลงเดียวกัน)
 function getSatImage(id, dateISO, ref) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateISO))) throw new Error('วันที่ไม่ถูก');
-  ref = Math.round((Number(ref) || 0) * 1000) / 1000;
-  if (!(ref > 0 && ref < 1)) ref = 0;
-  const cache = CacheService.getScriptCache(), ck = 'satimg_' + id + '_' + dateISO + '_' + ref;
-  const hit = cache.get(ck);
-  if (hit) return JSON.parse(hit);
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let b = '';
-  readSheet_(ss, SH.PLOTS).forEach(p => { if (p.plot_id === id) b = p.boundary; });
-  if (!b) readSheet_(ss, 'Lands').forEach(l => { if (l.land_id === id) b = l.boundary; });
-  const pts = parsePath_(b);
-  if (pts.length < 3) throw new Error('แปลงนี้ยังไม่ได้วาดขอบ');
+  const r = getSatImages([[id, dateISO, ref]]), k = Object.keys(r)[0];
+  if (!r[k]) throw new Error('ขอภาพไม่ได้');
+  return { img: r[k], date: dateISO };
+}
+
+// หลายภาพในครั้งเดียว (แอปเปิดแผนที่/รายการ = ภาพทุกแปลง) · reqs = [[id, dateISO, ref], …] สูงสุด 40
+// คืน { 'id|date|ref': 'data:image/png;base64,…' | '' } · ถามพร้อมกันทีละ 8 · แคช 6 ชม.
+function getSatImages(reqs) {
+  const cache = CacheService.getScriptCache(), out = {}, need = [];
+  let bmap = null;
+  const bound = id => {
+    if (!bmap) {
+      bmap = {}; const ss = SpreadsheetApp.getActiveSpreadsheet();
+      readSheet_(ss, SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
+      readSheet_(ss, 'Lands').forEach(l => { bmap[l.land_id] = l.boundary; });
+    }
+    return bmap[id] || '';
+  };
+  (reqs || []).slice(0, 40).forEach(q => {
+    const id = String(q[0] || ''), d = String(q[1] || '');
+    let ref = Math.round((Number(q[2]) || 0) * 1000) / 1000; if (!(ref > 0 && ref < 1)) ref = 0;
+    const key = id + '|' + d + '|' + ref;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { out[key] = ''; return; }
+    const hit = cache.get('satimg2_' + key);
+    if (hit) { out[key] = hit; return; }
+    const pts = parsePath_(bound(id));
+    if (pts.length < 3) { out[key] = ''; return; }
+    need.push({ key: key, body: satImgBody_(pts, d, ref) });
+  });
+  if (need.length) {
+    const token = satToken_();
+    for (let i = 0; i < need.length; i += 8) {
+      const part = need.slice(i, i + 8);
+      const res = UrlFetchApp.fetchAll(part.map(n => ({
+        url: SAT_PROC_URL_, method: 'post', contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + token, Accept: 'image/png' },
+        payload: JSON.stringify(n.body), muteHttpExceptions: true
+      })));
+      part.forEach((n, j) => {
+        const r = res[j];
+        if (r.getResponseCode() !== 200) { out[n.key] = ''; console.warn('satimg ' + n.key + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 120)); return; }
+        const img = 'data:image/png;base64,' + Utilities.base64Encode(r.getBlob().getBytes());
+        out[n.key] = img;
+        try { cache.put('satimg2_' + n.key, img, 21600); } catch (e) {}   // เกิน 100KB = ไม่แคช
+      });
+    }
+  }
+  return out;
+}
+
+function satImgBody_(pts, dateISO, ref) {
   const ring = pts.map(p => [Number(p[1].toFixed(6)), Number(p[0].toFixed(6))]); ring.push(ring[0]);
   const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
   const lat0 = (Math.min(...lats) + Math.max(...lats)) / 2;
@@ -381,7 +420,7 @@ function getSatImage(id, dateISO, ref) {
   const k = Math.min(480 / Math.max(wm, hm), 1 / 1.5);        // ~1.5 ม./จุด (ขยายจากภาพ 10 ม. แบบนุ่ม) ด้านยาวไม่เกิน 480 จุด
   const w = Math.max(40, Math.round(wm * k)), h = Math.max(40, Math.round(hm * k));
   const d0 = new Date(dateISO + 'T00:00:00Z'), d1 = new Date(d0.getTime() + 86400000);
-  const body = {
+  return {
     input: {
       bounds: { geometry: { type: 'Polygon', coordinates: [ring] }, properties: { crs: 'http://www.opengis.net/def/crs/OGC/1.3/CRS84' } },
       data: [{ type: 'sentinel-2-l2a', dataFilter: { timeRange: { from: d0.toISOString(), to: d1.toISOString() }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }]
@@ -389,13 +428,4 @@ function getSatImage(id, dateISO, ref) {
     output: { width: w, height: h, responses: [{ identifier: 'default', format: { type: 'image/png' } }] },
     evalscript: SAT_IMG_EVAL_.replace('//VERSION=3', '//VERSION=3\nvar REF = ' + ref + ';')
   };
-  const r = UrlFetchApp.fetch(SAT_PROC_URL_, {
-    method: 'post', contentType: 'application/json',
-    headers: { Authorization: 'Bearer ' + satToken_(), Accept: 'image/png' },
-    payload: JSON.stringify(body), muteHttpExceptions: true
-  });
-  if (r.getResponseCode() !== 200) throw new Error('ขอภาพไม่ได้ (' + r.getResponseCode() + '): ' + r.getContentText().slice(0, 160));
-  const out = { img: 'data:image/png;base64,' + Utilities.base64Encode(r.getBlob().getBytes()), w: w, h: h, date: dateISO };
-  try { cache.put(ck, JSON.stringify(out), 21600); } catch (e) {}   // เกิน 100KB = ไม่แคช
-  return out;
 }

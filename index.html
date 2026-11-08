@@ -340,6 +340,18 @@
     .fm-tag { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; background: rgba(255,255,255,.92); color: #1F2A24; border-radius: 7px; padding: 1px 7px; font-size: 13.5px; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
     .fm-tag-grp { background: #1F5E3B; color: #fff; font-size: 15px; padding: 5px 10px; border-radius: 10px; }
     .fm-tag-grp span { font-weight: 500; font-size: 13.5px; color: #DDE9E1; }
+    .fm-tag-rain span { color: inherit; opacity: .9; }
+    .fm-rain-img { filter: blur(5px); pointer-events: none; }
+    .fm-rbar { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 600; background: #fff; border-radius: 14px; padding: 8px 10px; box-shadow: 0 2px 10px rgba(0,0,0,.25); display: grid; gap: 5px; }
+    .fm-rseg { display: flex; gap: 3px; background: #E6ECE7; border-radius: 10px; padding: 3px; flex: none; }
+    .fm-rseg button { border: 0; border-radius: 8px; padding: 5px 10px; font-weight: 700; font-size: 14.5px; background: transparent; color: #5D6B60; }
+    .fm-rseg button.on { background: #fff; color: #1F2A24; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    .fm-rrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15.5px; }
+    .fm-rrow small { color: #5D6B60; font-size: 13.5px; }
+    .fm-rsum { background: #EAF2FD; color: #163A6B; border-radius: 10px; padding: 6px 10px; font-size: 14.5px; line-height: 1.4; }
+    .fm-rbar input[type=range] { width: 100%; accent-color: #2B6FD1; }
+    .rk-fab.on { background: #2B6FD1; color: #fff; }
+    #fmMap.fm-raining .leaflet-bottom { bottom: 175px; }
     .fm-tag-land { background: rgba(243,234,255,.95); color: #4B2A7A; }
     #fmPanel { width: 100%; max-height: 52vh; overflow-y: auto; }
     .km-row { padding: 8px 0; }
@@ -1197,6 +1209,13 @@
           <button type="button" class="rk-fab" style="top:166px" onclick="fmGoMe()">ไปที่ฉัน</button>
           <button type="button" class="rk-fab" style="top:212px" id="fmPoiBtn" onclick="poiToggle()">ซ่อนชื่อสถานที่</button>
           <button type="button" class="rk-fab" style="top:258px" id="fmLandBtn" onclick="fmToggleLands()">โชว์ที่ดินดูไว้</button>
+          <button type="button" class="rk-fab" style="top:304px" id="fmRainBtn" onclick="fmRainToggle()">🌧️ ฝน</button>
+          <div class="fm-rbar" id="fmRainBar" style="display:none">
+            <div class="fm-rrow"><div class="fm-rseg"><button type="button" id="fmRainH" onclick="fmRainMode('h')">รายชั่วโมง</button><button type="button" id="fmRainD" onclick="fmRainMode('d')">รายวัน</button></div><b id="fmRainLbl" class="text-end">…</b></div>
+            <div class="fm-rsum" id="fmRainSum">กำลังโหลดพยากรณ์…</div>
+            <input type="range" id="fmRainSl" min="0" max="24" value="0" step="1" oninput="fmRainT=+this.value;fmRainRender()" aria-label="เลื่อนเวลา">
+            <div class="fm-rrow"><small id="fmRainL0"></small><small id="fmRainL1"></small></div>
+          </div>
         </div>
         <div class="modal-footer py-2"><div id="fmPanel"></div></div>
       </div>
@@ -4211,7 +4230,9 @@
         if (onTap) m.on('click', e => { L.DomEvent.stopPropagation(e); onTap(); });
       };
       const center = pts => { const b = L.latLngBounds(pts).getCenter(); return [b.lat, b.lng]; };
-      if (num(S('HOME_LAT')) && num(S('HOME_LNG'))) lbl([num(S('HOME_LAT')), num(S('HOME_LNG'))], '🏠 บ้าน', 'fm-tag fm-tag-home');
+      const rv = fmRain ? fmRainVals() : null, rtag = k => { const v = rv && rv[k]; if (!v) return null; const [bg, fg] = fmRainCol(v.mm, fmRainM === 'h');
+        return { st: `background:${bg};color:${fg}`, txt: v.mm < 0.05 ? (fmRainM === 'h' ? 'ไม่มีฝน' : 'แห้ง') : r1x(v.mm) + (fmRainM === 'h' ? ' มม./ชม.' : ' มม.') }; };
+      if (num(S('HOME_LAT')) && num(S('HOME_LNG'))) { const t = rtag('บ้าน'); lbl([num(S('HOME_LAT')), num(S('HOME_LNG'))], t ? `🏠 บ้าน <span>· ${t.txt}</span>` : '🏠 บ้าน', t ? 'fm-tag fm-tag-grp fm-tag-rain" style="' + t.st : 'fm-tag fm-tag-home'); }
       const editing = id => fmEdit && fmEdit.id === id;
       if (z >= 15) {
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length >= 3 && !editing(p.plot_id)) lbl(center(pts), esc(p.plot_name), 'fm-tag'); });
@@ -4220,8 +4241,88 @@
       }
       const g = {};
       gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3) return; const k = plotLoc(p.plot_name); (g[k] = g[k] || { pts: [], n: 0, rai: 0 }); g[k].pts.push(...pts); g[k].n++; g[k].rai += num(p.area_rai); });
-      Object.entries(g).forEach(([k, v]) => lbl(center(v.pts), `${esc(k)} <span>· ${v.n} แปลง ${Math.round(v.rai)} ไร่</span>`, 'fm-tag fm-tag-grp', () => fmFit(v.pts)));
+      Object.entries(g).forEach(([k, v]) => { const t = rtag(k);
+        lbl(center(v.pts), t ? `${esc(k)} <span>· ${t.txt}</span>` : `${esc(k)} <span>· ${v.n} แปลง ${Math.round(v.rai)} ไร่</span>`, t ? 'fm-tag fm-tag-grp fm-tag-rain" style="' + t.st : 'fm-tag fm-tag-grp', () => fmFit(v.pts)); });
       if (z >= 13) (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
+    }
+
+    // ===== ชั้นฝนบนแผนที่ไร่ (8 พ.ย. 69) =====
+    // รายชั่วโมง: วาดแผ่นฝนจากพยากรณ์รายชั่วโมงของแต่ละจุด (Open-Meteo) ประมาณค่าระหว่างจุด → เห็นกลุ่มฝนเคลื่อน
+    // รายวัน: ไม่ทาสีทั้งแผนที่ (อ่านยาก) → ป้ายสถานที่บอก มม. + สีตามระดับฝน + กล่องสรุป/คำแนะนำ
+    let fmRain = false, fmRainM = 'h', fmRainT = 0, fmRainOv = null;
+    function fmRainCol(mm, hourly) {
+      const a = hourly ? mm * 2.5 : mm, l = a < 0.5 ? 0 : a < 2 ? 1 : a < 5 ? 2 : 3;
+      return [['#4D6B52', '#fff'], ['#9CCBF2', '#12304F'], ['#3B86F0', '#fff'], ['#1B4FD8', '#fff']][l];
+    }
+    function fmRainData() {
+      const locs = wxLocs(); if (!wxData || !locs.length || wxData.key !== wxKey(locs) || wxData.res.length !== locs.length) return null;
+      const H = wxData.res[0].hourly, D = wxData.res[0].daily, n = new Date();
+      const nowH = `${todayISO()}T${pad(n.getHours())}:00`;
+      let h0 = H.time.indexOf(nowH); if (h0 < 0) h0 = Math.max(0, H.time.findIndex(t => t > nowH) - 1);
+      let d0 = D.time.indexOf(todayISO()); if (d0 < 0) d0 = 0;
+      return { locs, h0, d0, hMax: Math.min(24, H.time.length - 1 - h0), dMax: Math.min(6, D.time.length - 1 - d0) };
+    }
+    function fmRainVals() {
+      const R = fmRainData(); if (!R) return null; const out = {};
+      R.locs.forEach((l, i) => { const r = wxData.res[i];
+        out[l.loc] = fmRainM === 'h' ? { mm: num(r.hourly.precipitation[R.h0 + fmRainT]), pop: num(r.hourly.precipitation_probability[R.h0 + fmRainT]), lat: l.lat, lng: l.lng }
+          : { mm: num(r.daily.precipitation_sum[R.d0 + fmRainT]), pop: num(r.daily.precipitation_probability_max[R.d0 + fmRainT]), lat: l.lat, lng: l.lng }; });
+      return out;
+    }
+    function fmRainToggle() {
+      fmRain = !fmRain; $('fmRainBtn').classList.toggle('on', fmRain); $('fmRainBar').style.display = fmRain ? '' : 'none'; $('fmMap').classList.toggle('fm-raining', fmRain);
+      if (fmRain) { fmRainT = 0; fmRainMode(fmRainM); wxLoad();
+        const all = gData.plots.flatMap(p => pPath(p.boundary)).concat(num(S('HOME_LAT')) ? [[num(S('HOME_LAT')), num(S('HOME_LNG'))]] : []);
+        if (all.length) fmMap.fitBounds(L.latLngBounds(all), { paddingTopLeft: [30, 130], paddingBottomRight: [30, 200], maxZoom: 14 }); } else { if (fmRainOv) { fmMap.removeLayer(fmRainOv); fmRainOv = null; } fmLabels(); }
+    }
+    function fmRainMode(m) { fmRainM = m; fmRainT = 0; $('fmRainH').classList.toggle('on', m === 'h'); $('fmRainD').classList.toggle('on', m === 'd'); fmRainRender(); }
+    const FM_DAY = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+    function fmRainRender() {
+      if (!fmRain || !fmMap) return;
+      const R = fmRainData(), sl = $('fmRainSl');
+      if (fmRainOv) { fmMap.removeLayer(fmRainOv); fmRainOv = null; }
+      if (!R) { $('fmRainSum').innerText = wxErr ? 'โหลดพยากรณ์ไม่ได้: ' + wxErr : (wxLocs().length ? 'กำลังโหลดพยากรณ์…' : 'ยังไม่มีพิกัดแปลง (วาดขอบแปลงก่อน)'); fmLabels(); return; }
+      const hr = fmRainM === 'h', mx = hr ? R.hMax : R.dMax; sl.max = mx; if (fmRainT > mx) fmRainT = mx; sl.value = fmRainT;
+      const H = wxData.res[0].hourly, D = wxData.res[0].daily, dayName = iso => { const d = new Date(iso + 'T00:00'); return FM_DAY[d.getDay()] + ' ' + d.getDate(); };
+      if (hr) {
+        const t = H.time[R.h0 + fmRainT], dd = t.slice(0, 10), tm = t.slice(11, 16);
+        $('fmRainLbl').innerText = (fmRainT === 0 ? 'ตอนนี้ · ' : '') + tm + (dd !== todayISO() ? ' · พรุ่งนี้' : '');
+        $('fmRainL0').innerText = 'ตอนนี้ ' + H.time[R.h0].slice(11, 16); $('fmRainL1').innerText = '+' + mx + ' ชม.';
+      } else {
+        const d = D.time[R.d0 + fmRainT];
+        $('fmRainLbl').innerText = (fmRainT === 0 ? 'วันนี้ · ' : '') + dayName(d);
+        $('fmRainL0').innerText = 'วันนี้'; $('fmRainL1').innerText = dayName(D.time[R.d0 + mx]);
+      }
+      const V = Object.values(fmRainVals()), wetMin = hr ? 0.2 : 0.5, wet = V.filter(v => v.mm >= wetMin), maxMm = Math.max(...V.map(v => v.mm)), maxPop = Math.max(...V.map(v => v.pop));
+      let head, tip;
+      if (!wet.length) { head = `<b>ไม่มีฝนทุกจุด</b> (โอกาสสูงสุด ${maxPop}%)`; tip = hr ? 'ช่วงนี้ทำงานกลางแจ้งได้' : 'เหมาะลงแปลง ฉีดยา ใส่ปุ๋ย ขึ้นน้ำ'; }
+      else {
+        const lo = Math.min(...wet.map(v => v.mm));
+        head = `<b>${wet.length === V.length ? 'ฝนเกือบทุกจุด' : `ฝน ${wet.length} จาก ${V.length} จุด`}</b> ${r1x(lo)}–${r1x(maxMm)} มม.${hr ? '/ชม.' : ''} · โอกาส ${maxPop}%`;
+        tip = hr ? (maxMm >= 4 ? 'ฝนแรง พักงานกลางแจ้ง' : maxMm >= 1 ? 'ฝนปานกลาง งานกลางแจ้งลำบาก' : 'ฝนเบา เตรียมเสื้อกันฝน') : (maxMm >= 5 ? 'งดรถหนัก ระวังน้ำขัง ยังไม่ต้องขึ้นน้ำ' : 'ฝนเล็กน้อย ดูรายชั่วโมงก่อนส่งคนงาน');
+      }
+      $('fmRainSum').innerHTML = head + '<br>' + tip;
+      if (hr) fmRainDraw(Object.values(fmRainVals()));
+      fmLabels();
+    }
+    // แผ่นฝน: ประมาณค่าระหว่างจุด (IDW) จางลงเมื่อไกลจากจุดพยากรณ์ ~4 กม. + ลายสุ่มคงที่ให้ขอบไม่กลม
+    function fmRainDraw(V) {
+      if (!V.length || !V.some(v => v.mm >= 0.05)) return;
+      const la0 = Math.min(...V.map(v => v.lat)) - 0.05, la1 = Math.max(...V.map(v => v.lat)) + 0.05, ln0 = Math.min(...V.map(v => v.lng)) - 0.05, ln1 = Math.max(...V.map(v => v.lng)) + 0.05;
+      const W = 90, Hh = Math.max(20, Math.round(W * (la1 - la0) / (ln1 - ln0))), c = document.createElement('canvas'); c.width = W; c.height = Hh;
+      const cx = c.getContext('2d'), img = cx.createImageData(W, Hh), kx = Math.cos(la0 * Math.PI / 180);
+      const ST = [[0, [190, 225, 255, 0]], [.25, [190, 225, 255, .45]], [.5, [59, 134, 240, .6]], [.8, [27, 79, 216, .75]], [1, [20, 60, 190, .82]]];
+      const col = a => { a = Math.max(0, Math.min(1, a)); for (let k = 1; k < ST.length; k++) if (a <= ST[k][0]) { const p = ST[k - 1], q = ST[k], f = (a - p[0]) / (q[0] - p[0]); return p[1].map((v, m) => v + (q[1][m] - v) * f); } return ST[ST.length - 1][1]; };
+      for (let j = 0; j < Hh; j++) for (let i = 0; i < W; i++) {
+        const la = la1 - (j + .5) / Hh * (la1 - la0), ln = ln0 + (i + .5) / W * (ln1 - ln0);
+        let sw = 0, sv = 0, dmin = 1e9;
+        V.forEach(v => { const dx = (ln - v.lng) * kx * 111, dy = (la - v.lat) * 111, d2 = dx * dx + dy * dy; dmin = Math.min(dmin, d2); const w = 1 / (d2 + 0.3); sw += w; sv += w * v.mm; });
+        const nz = .75 + .2 * Math.sin(ln * 900 + la * 400) + .15 * Math.sin(la * 1300 - ln * 500 + 1.7);
+        const mm = sv / sw * Math.exp(-dmin / 16) * nz, cc = col(mm / 2.2), o = (j * W + i) * 4;
+        img.data[o] = cc[0]; img.data[o + 1] = cc[1]; img.data[o + 2] = cc[2]; img.data[o + 3] = Math.round(cc[3] * 255);
+      }
+      cx.putImageData(img, 0, 0);
+      fmRainOv = L.imageOverlay(c.toDataURL(), [[la0, ln0], [la1, ln1]], { interactive: false, className: 'fm-rain-img' }).addTo(fmMap);
     }
 
     // แปลงถัดไปที่ยังไม่วาด: พื้นที่เดียวกับแปลงล่าสุดก่อน
@@ -4584,7 +4685,7 @@
           wxData = { t: Date.now(), key, res };
           lsSet(WX_STORE, JSON.stringify(wxData));
         }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; })
-        .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if (curTab === 'log' && logMode === 'chat') chatRender(); if ($('wxModal').classList.contains('show')) wxRender(); });
+        .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if (curTab === 'log' && logMode === 'chat') chatRender(); if ($('wxModal').classList.contains('show')) wxRender(); if (fmRain && $('farmMapModal').classList.contains('show')) fmRainRender(); });
     }
 
     // ยังไม่มีพิกัด: ขอตำแหน่งมือถือ แล้วจำไว้ในหลังบ้าน (ใช้ลงฝนรายวันด้วย)

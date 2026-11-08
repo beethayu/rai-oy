@@ -91,22 +91,26 @@ function satTargets_(ss, includeLands) {
   return out;
 }
 
-function satBody_(t, fromISO, toISO) {
+function satBodyWith_(t, fromISO, toISO, dataItem, evalscript) {
   return {
     input: {
       bounds: {
         geometry: { type: 'Polygon', coordinates: [t.ring] },
         properties: { crs: 'http://www.opengis.net/def/crs/EPSG/0/4326' }
       },
-      data: [{ type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC', maxCloudCoverage: 80 } }]
+      data: [dataItem]
     },
     aggregation: {
       timeRange: { from: fromISO + 'T00:00:00Z', to: toISO + 'T00:00:00Z' },
       aggregationInterval: { of: 'P1D' },
-      evalscript: SAT_EVAL_,
+      evalscript: evalscript,
       resx: SAT_RES_DEG_, resy: SAT_RES_DEG_
     }
   };
+}
+
+function satBody_(t, fromISO, toISO) {
+  return satBodyWith_(t, fromISO, toISO, { type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC', maxCloudCoverage: 80 } }, SAT_EVAL_);
 }
 
 // อ่านผลตอบกลับ → [{date, ndvi, ndre, ndwi, water, clear}] (ข้ามวันที่ไม่มีพิกเซลใส)
@@ -135,7 +139,10 @@ function satReq_(token, body) {
 }
 
 // ถามทีละช่วงเวลา/ทีละชุดแปลง → { rows:[[...]], errors:[...] }
-function satFetch_(targets, fromISO, toISO) {
+function satFetch_(targets, fromISO, toISO, opt) {
+  opt = opt || {};   // opt: { body(t,from,to), parse(json), row(t,v) } · ไม่ใส่ = Sentinel-2
+  const bodyFn = opt.body || satBody_, parseFn = opt.parse || satParse_;
+  const rowFn = opt.row || ((t, v) => [v.date, t.kind, t.id, t.name, v.ndvi, v.ndre, v.ndwi, v.water, v.clear, getTodayStr()]);
   const token = satToken_();
   const rows = [], errors = [];
   const chunks = [];
@@ -150,12 +157,12 @@ function satFetch_(targets, fromISO, toISO) {
   targets.forEach(t => chunks.forEach(c => jobs.push({ t: t, c: c })));
   for (let i = 0; i < jobs.length; i += SAT_BATCH_) {
     const batch = jobs.slice(i, i + SAT_BATCH_);
-    let res = UrlFetchApp.fetchAll(batch.map(x => satReq_(token, satBody_(x.t, x.c[0], x.c[1]))));
+    let res = UrlFetchApp.fetchAll(batch.map(x => satReq_(token, bodyFn(x.t, x.c[0], x.c[1]))));
     batch.forEach((x, k) => {
       let r = res[k];
       if (r.getResponseCode() === 429 || r.getResponseCode() >= 500) {   // ลองใหม่ 1 ครั้ง
         Utilities.sleep(5000);
-        r = UrlFetchApp.fetch(SAT_STATS_URL_, satReq_(token, satBody_(x.t, x.c[0], x.c[1])));
+        r = UrlFetchApp.fetch(SAT_STATS_URL_, satReq_(token, bodyFn(x.t, x.c[0], x.c[1])));
       }
       if (r.getResponseCode() !== 200) {
         errors.push(x.t.name + ': ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 160));
@@ -163,11 +170,30 @@ function satFetch_(targets, fromISO, toISO) {
       }
       let j = null;
       try { j = JSON.parse(r.getContentText()); } catch (e) { errors.push(x.t.name + ': อ่านผลไม่ได้'); return; }
-      satParse_(j).forEach(v => rows.push([v.date, x.t.kind, x.t.id, x.t.name, v.ndvi, v.ndre, v.ndwi, v.water, v.clear, getTodayStr()]));
+      parseFn(j).forEach(v => rows.push(rowFn(x.t, v)));
     });
     if (i + SAT_BATCH_ < jobs.length) Utilities.sleep(500);
   }
   return { rows: rows, errors: errors };
+}
+
+// เขียนแถวลงชีต: คีย์ = 3 คอลัมน์แรก (date|kind|id) ซ้ำ = ทับ · คืนจำนวนแถวใหม่
+function satUpsert_(ss, name, headers, rows) {
+  return withLock_(() => {
+    const sh = getOrCreate_(ss, name, headers);
+    const cur = sh.getDataRange().getDisplayValues();
+    const idx = {};
+    for (let i = 1; i < cur.length; i++) idx[cur[i][0] + '|' + cur[i][1] + '|' + cur[i][2]] = i + 1;
+    const add = [];
+    rows.forEach(r => {
+      const v = r.map(x => (x === null || x === undefined) ? '' : String(x));
+      const at = idx[r[0] + '|' + r[1] + '|' + r[2]];
+      if (at) sh.getRange(at, 1, 1, v.length).setNumberFormat('@').setValues([v]);
+      else add.push(v);
+    });
+    appendRows_(sh, add);
+    return add.length;
+  });
 }
 
 // ลงค่าดาวเทียมย้อนหลัง days วัน (ค่าเริ่ม 12 ≈ ดาวเทียมผ่าน 2 รอบ) ลงชีต SatLog
@@ -181,21 +207,8 @@ function logSatellite(days, includeLands) {
   const toISO = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);
   const fromISO = new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10);
   const got = satFetch_(targets, fromISO, toISO);
-  const msg = withLock_(() => {
-    const sh = getOrCreate_(ss, 'SatLog', SAT_H_);
-    const cur = sh.getDataRange().getDisplayValues();
-    const idx = {};
-    for (let i = 1; i < cur.length; i++) idx[cur[i][0] + '|' + cur[i][1] + '|' + cur[i][2]] = i + 1;
-    const add = [];
-    got.rows.forEach(r => {
-      const v = r.map(x => (x === null || x === undefined) ? '' : String(x));
-      const at = idx[r[0] + '|' + r[1] + '|' + r[2]];
-      if (at) sh.getRange(at, 1, 1, v.length).setNumberFormat('@').setValues([v]);
-      else add.push(v);
-    });
-    appendRows_(sh, add);
-    return 'ลง ' + got.rows.length + ' แถว (ใหม่ ' + add.length + ') จาก ' + targets.length + ' แปลง · ' + fromISO + ' ถึง ' + toISO;
-  });
+  const up = satUpsert_(ss, 'SatLog', SAT_H_, got.rows);
+  const msg = 'ลง ' + got.rows.length + ' แถว (ใหม่ ' + up + ') จาก ' + targets.length + ' แปลง · ' + fromISO + ' ถึง ' + toISO;
   return msg + (got.errors.length ? ' · ผิดพลาด ' + got.errors.length + ': ' + got.errors.slice(0, 3).join(' | ') : '');
 }
 
@@ -222,6 +235,7 @@ function satTest_() {
 
 function logSatelliteTrigger() {
   try { console.log(logSatellite(8)); } catch (e) { console.error(e); }
+  try { console.log(logRadar(14)); } catch (e) { console.error(e); }   // เรดาร์ (Radar.gs)
 }
 
 // กดรันจากหน้าแก้โค้ด (รายการเลือกฟังก์ชันใส่ตัวเลขไม่ได้): ลงย้อนหลัง ~13 เดือน รวมที่ดินที่จะเช่า
@@ -238,4 +252,22 @@ function installSatTrigger() {
   ScriptApp.newTrigger('logSatelliteTrigger').timeBased().atHour(5).nearMinute(10).everyDays(1).inTimezone('Asia/Bangkok').create();
   console.log('ตั้งเวลาแล้ว: ทุกวัน ~05:10');
   return 'ตั้งเวลาแล้ว: ทุกวัน ~05:10';
+}
+
+// ส่งให้หน้าจอดาวเทียมในแอป (เรียกตอนเปิดหน้าเท่านั้น ไม่รวมใน getInitialData) แถวแบบย่อ
+// sat:   [date, kind, id, ndvi, ndre, ndwi, water, clear]
+// radar: [date, kind, id, vv_db, water]
+function getSatData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pick = (name, cols) => {
+    const sh = ss.getSheetByName(name);
+    if (!sh || sh.getLastRow() < 2) return [];
+    const d = sh.getDataRange().getDisplayValues(), h = d[0], ix = cols.map(c => h.indexOf(c));
+    if (ix.some(i => i < 0)) return [];
+    return d.slice(1).filter(r => r[0]).map(r => ix.map(i => r[i]));
+  };
+  return {
+    sat: pick('SatLog', ['date', 'kind', 'id', 'ndvi', 'ndre', 'ndwi', 'water', 'clear']),
+    radar: pick('RadarLog', ['date', 'kind', 'id', 'vv_db', 'water'])
+  };
 }

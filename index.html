@@ -1261,6 +1261,18 @@
     </div>
   </div>
 
+  <div class="modal fade" id="satModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">🛰️ ดาวเทียมรายแปลง</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="sat-body"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="sugarModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -4350,9 +4362,97 @@ Export.table.toDrive({
       else dl();
     }
 
+    // ===== หน้าดาวเทียมรายแปลง (ข้อมูลจากชีต SatLog / RadarLog ที่ Apps Script ลงให้เอง) =====
+    let satData = null;
+    function openSat() {
+      $('sat-body').innerHTML = '<div class="empty"><b>กำลังโหลด…</b></div>';
+      showM('satModal');
+      call('getSatData', [], d => { satData = d || { sat: [], radar: [] }; satRender(); }, null, '⏳ กำลังโหลดข้อมูลดาวเทียม...');
+    }
+    const satAge = iso => Math.round((Date.parse(todayISO()) - Date.parse(iso)) / 86400000);
+    const satMed = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+    const satD = iso => { const [y, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]} ${String(+y + 543).slice(2)}`; };
+    const satType = p => p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'อ้อยตอ';
+    function satLevel(v) { return v < 0.2 ? 'ดินโล่ง / เพิ่งตัด' : v < 0.4 ? 'ใบยังน้อย' : v < 0.6 ? 'กำลังโต' : 'เขียวเต็มแปลง'; }
+    function satGroup(rows, conv) {
+      const g = {};
+      (rows || []).forEach(r => { const o = conv(r); if (o) (g[o.k] = g[o.k] || []).push(o); });
+      Object.keys(g).forEach(k => g[k].sort((x, y) => x.d < y.d ? -1 : x.d > y.d ? 1 : 0));
+      return g;
+    }
+    function satSpark(good, wetD) {
+      const W = 300, H = 56, days = 180, pts = good.filter(q => satAge(q.d) <= days);
+      if (pts.length < 2) return '';
+      const x = d => W - (satAge(d) / days) * W, y = v => H - 4 - Math.max(0, Math.min(0.9, v)) / 0.9 * (H - 8);
+      const line = pts.map(q => x(q.d).toFixed(1) + ',' + y(q.ndvi).toFixed(1)).join(' ');
+      const dots = pts.map(q => `<circle cx="${x(q.d).toFixed(1)}" cy="${y(q.ndvi).toFixed(1)}" r="2" fill="#1F5E3B"/>`).join('');
+      const wet = wetD.filter(d => satAge(d) <= days).map(d => `<rect x="${(x(d) - 2).toFixed(1)}" y="${H - 3}" width="4" height="3" fill="#1E4FB8"/>`).join('');
+      return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;margin-top:8px" role="img" aria-label="กราฟความเขียว 6 เดือน"><line x1="0" y1="${H - 4}" x2="${W}" y2="${H - 4}" stroke="#E2E0D6"/><polyline points="${line}" fill="none" stroke="#1F5E3B" stroke-width="1.5"/>${dots}${wet}</svg>`
+        + `<div class="d-flex justify-content-between text-muted" style="font-size:11px"><span>6 เดือนก่อน</span>${wet ? '<span>แถบน้ำเงิน = เห็นน้ำ</span>' : ''}<span>ตอนนี้</span></div>`;
+    }
+    function satRender() {
+      const sg = satGroup(satData.sat, r => { const v = parseFloat(r[3]), c = parseFloat(r[7]); return isFinite(v) ? { k: r[1] + '|' + r[2], d: r[0], ndvi: v, water: parseFloat(r[6]), clear: isFinite(c) ? c : 0 } : null; });
+      const rg = satGroup(satData.radar, r => { const w = parseFloat(r[4]); return isFinite(w) ? { k: r[1] + '|' + r[2], d: r[0], vv: parseFloat(r[3]), water: w } : null; });
+      if (!(satData.sat || []).length) { $('sat-body').innerHTML = '<div class="empty"><b>ยังไม่มีข้อมูลดาวเทียม</b>ให้รัน logSatelliteBackfill ใน Apps Script ก่อน</div>'; return; }
+      const info = gData.plots.filter(p => p.boundary).map(p => {
+        const key = 'plot|' + p.plot_id, good = (sg[key] || []).filter(q => q.clear >= 0.6), last = good[good.length - 1] || null;
+        return { p, key, good, last, age: last ? satAge(last.d) : null, flags: [], trend: null };
+      });
+      const peer = {};
+      ['อ้อยใหม่', 'อ้อยตอ'].forEach(t => { peer[t] = satMed(info.filter(x => x.last && x.age <= 30 && satType(x.p) === t).map(x => x.last.ndvi)); });
+      info.forEach(x => {
+        const t = satType(x.p);
+        if (x.last) {
+          const ref = satMed(x.good.filter(q => { const a = satAge(q.d) - x.age; return a >= 20 && a <= 45; }).map(q => q.ndvi));
+          x.trend = ref === null ? null : x.last.ndvi - ref;
+          if (x.trend !== null && x.trend <= -0.15) x.flags.push('เขียวลดลงเร็วในรอบเดือน (อาจตัดแล้ว ขาดน้ำ หรือใบเหลือง)');
+          if (peer[t] !== null && x.age <= 30 && x.last.ndvi >= 0.2 && x.last.ndvi <= peer[t] - 0.15) x.flags.push('เขียวน้อยกว่า' + t + 'แปลงอื่นๆ');
+        }
+        const wr = (rg[x.key] || []).filter(q => satAge(q.d) <= 20 && q.water >= 0.3).pop();
+        const wo = (sg[x.key] || []).filter(q => q.clear >= 0.6 && satAge(q.d) <= 20 && q.water >= 0.3).pop();
+        if (wr) x.flags.push(`เรดาร์เห็นน้ำโล่งราว ${Math.round(wr.water * 100)}% ของแปลง (${satD(wr.d)})`);
+        else if (wo) x.flags.push(`ภาพถ่ายเห็นน้ำขังราว ${Math.round(wo.water * 100)}% ของแปลง (${satD(wo.d)})`);
+      });
+      info.sort((a, b) => b.flags.length - a.flags.length || (a.age === null) - (b.age === null) || a.p.plot_name.localeCompare(b.p.plot_name, 'th'));
+      const cards = info.map(x => {
+        const p = x.p, c = !x.last ? '#6c757d' : x.flags.length ? '#B4410E' : '#198754';
+        const trend = x.trend === null ? '' : x.trend >= 0.1 ? ' · ↑ เขียวขึ้นจากเดือนก่อน' : x.trend <= -0.1 ? ' · ↓ ลดลงจากเดือนก่อน' : ' · → ใกล้เดิม';
+        const head = !x.last ? 'ยังไม่มีภาพใสให้ดู (เมฆบัง)' : `🌱 ${satLevel(x.last.ndvi)} · เขียว ${x.last.ndvi.toFixed(2)}${trend}`;
+        const wetD = (rg[x.key] || []).filter(q => q.water >= 0.3).map(q => q.d);
+        const old = x.last && x.age > 25 ? '<div class="small text-muted mt-1">ภาพใสล่าสุดค่อนข้างเก่า ช่วงนี้เมฆบังบ่อย</div>' : '';
+        return `<div class="plot-card p-3" style="border-left-color:${c}">
+          <div class="d-flex justify-content-between align-items-baseline gap-2"><b>${esc(p.plot_name)}</b><small class="text-muted text-nowrap">${satType(p)} · ${esc(p.area_rai)} ไร่</small></div>
+          <div class="mt-1">${head}</div>
+          ${x.flags.map(f => `<div class="small mt-1" style="color:var(--urg-ink)">⚠️ ${esc(f)}</div>`).join('')}${old}
+          ${satSpark(x.good, wetD)}
+          ${x.last ? `<div class="small text-muted mt-1">ภาพล่าสุด ${satD(x.last.d)} (${x.age} วันก่อน)</div>` : ''}
+        </div>`;
+      }).join('');
+      const lands = (gData.lands || []).filter(l => l.boundary).map(l => {
+        const key = 'land|' + l.land_id, rad = rg[key] || [], byY = {};
+        rad.forEach(r => { const y = r.d.slice(0, 4), o = byY[y] = byY[y] || { n: 0, w: 0 }; o.n++; if (r.water >= 0.3) o.w++; });
+        const ys = Object.keys(byY).sort();
+        const opt = (sg[key] || []).filter(q => q.clear >= 0.6), lo = opt[opt.length - 1];
+        return `<div class="plot-card p-3" style="border-left-color:#1E4FB8">
+          <b>${esc(l.name)}</b>${l.map_rai ? ` <small class="text-muted">· ${esc(l.map_rai)} ไร่</small>` : ''}
+          ${lo ? `<div class="mt-1">🌱 ตอนนี้ ${satLevel(lo.ndvi)} · เขียว ${lo.ndvi.toFixed(2)} <small class="text-muted">(${satD(lo.d)})</small></div>` : ''}
+          ${ys.length ? ys.map(y => `<div class="small mt-1">ปี ${+y + 543}: เห็นน้ำโล่ง ${byY[y].w} จาก ${byY[y].n} ภาพ</div>`).join('') : '<div class="small text-muted mt-1">ยังไม่มีข้อมูลเรดาร์ของที่ดินนี้</div>'}
+        </div>`;
+      }).join('');
+      const latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
+      const nFlag = info.filter(x => x.flags.length).length;
+      $('sat-body').innerHTML = `
+        <div class="small text-muted mb-2">ข้อมูลล่าสุด ${latest ? satD(latest) : '-'} · ลงเองทุกเช้า · ${nFlag ? `มี ${nFlag} แปลงที่ควรไปดู` : 'ยังไม่มีแปลงที่ผิดปกติ'}</div>
+        <details class="mb-3 small"><summary><b>อ่านยังไง</b></summary>
+          <div class="mt-1">เขียว = ใบมากแค่ไหน (0 ดินโล่ง → 0.8 อ้อยเต็มแปลง) · ดาวเทียมผ่านแปลงเดิมราว 5 วันต่อครั้ง หน้าฝนเมฆบังบ่อยจึงเห็นห่างกว่านั้น · เรดาร์มองทะลุเมฆ เห็นน้ำโล่งที่ไม่มีใบบัง ถ้าอ้อยสูงแล้วมองน้ำใต้ใบไม่ชัด · ใช้เป็นตัวช่วยเตือนให้ไปดูหน้างาน ไม่ใช่ตัวตัดสิน</div>
+        </details>
+        ${cards}
+        ${lands ? '<h6 class="mt-3 mb-2">ที่ดินที่จะเช่า (เรดาร์ย้อนหลัง)</h6>' + lands + '<div class="small text-muted">เห็นเฉพาะน้ำโล่งที่ไม่มีพืชบัง ปีที่ภาพน้อยตัวเลขเชื่อถือน้อย</div>' : ''}`;
+    }
+
     function farmBtnHtml() {
       const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;
-      return `<button type="button" class="btn btn-outline-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openFarmMap()">แผนที่ไร่ · วาดขอบแล้ว ${n}/${gData.plots.length} แปลง${nl ? ` · ที่ดินดูไว้ ${nl}` : ''}</button>` + (n ? `<button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" style="border-radius:12px;" onclick="copyEeScript()">🛰️ คัดลอกสคริปต์ดาวเทียม (Earth Engine · ทดลอง)</button>` : '');
+      return `<button type="button" class="btn btn-outline-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openFarmMap()">แผนที่ไร่ · วาดขอบแล้ว ${n}/${gData.plots.length} แปลง${nl ? ` · ที่ดินดูไว้ ${nl}` : ''}</button>` + (n ? `<button type="button" class="btn btn-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openSat()">🛰️ ดาวเทียมรายแปลง</button><button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" style="border-radius:12px;" onclick="copyEeScript()">🛰️ คัดลอกสคริปต์ดาวเทียม (Earth Engine · ทดลอง)</button>` : '');
     }
 
     function openFarmMap(pid, edit) {

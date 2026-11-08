@@ -383,5 +383,14 @@
 4. ร่าง flowchart อ้อยใหม่/อ้อยตอ (เอกสาร Claude Docs https://claude.ai/artifact/LSXmG8xnBJBq4F673AueLa) รอผู้ใช้ยืนยัน 3 ข้อ:
    ริปเปอร์ก่อนน้ำแรกทุกแปลงไหม · ตอใส่ปุ๋ยทันทีหลังตัดไหม · เผาใบหรือตัดสด
 5. เช็กรูปบิล "ไม่พบรูป" หลัง deploy · โฟลเดอร์ Drive รูปแชต แยกย่อยไหม
-6. ถ้าจะใช้ดาวเทียมเตือนประจำในแอป → ย้ายไป Copernicus Data Space (ใช้กับไร่ที่ขายได้ชัดเจน) ไม่ขยาย Earth Engine เกินที่แจ้ง Google
+6. ~~ดาวเทียมเตือนประจำ → ย้ายไป Copernicus Data Space~~ เริ่มแล้ว 9 พ.ย. 69 (ดูหัวข้อ "ดาวเทียมอัตโนมัติ" ด้านล่าง) · ไม่ขยาย Earth Engine เกินที่แจ้ง Google
 - รหัส API: ผู้ใช้บอกในแชตได้ (ห้ามเก็บใน repo) · ดึงข้อมูล: GET {API_URL}?fn=getInitialData&k=รหัส (POST ผ่าน curl -L โดน redirect เป็น GET แล้วพัง)
+
+## 🛰️ ดาวเทียมอัตโนมัติ (Copernicus Data Space) — เริ่ม 9 พ.ย. 69
+ไฟล์ `gas/Sat.gs` · Apps Script เรียก Sentinel Hub Statistical API (`sh.dataspace.copernicus.eu/statistics/v1`) เอง ไม่ต้องก๊อปสคริปต์วาง Earth Engine
+- ผู้ใช้สมัคร CDSE แล้ว (9 พ.ย. 69) · ต้องสร้าง OAuth client ที่ shapps.dataspace.copernicus.eu/dashboard → ใส่ใน Script Properties: `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET` (**ห้ามใส่ใน repo/แชต**)
+- ลำดับตั้งค่า: ใส่รหัส → รัน `testSatellite()` (ต่อ API ลองแปลงแรก 30 วัน ไม่เขียนชีต) → `logSatellite(400)` ลงย้อนหลัง → `installSatTrigger()` (ทุกจันทร์ ~04:00 ลงย้อนหลัง 12 วัน)
+- ผลลงชีต `SatLog`: date(ISO), kind(plot/land), id, name, ndvi, ndre, ndwi, water, clear(สัดส่วนที่ไม่มีเมฆ), logged_at · วัน+แปลงซ้ำ = ทับ · `logSatellite(days, true)` รวมที่ดินที่จะเช่า
+- มาสก์เมฆด้วยแถบ SCL (ไม่มี Cloud Score+ แบบ Earth Engine) · หดขอบ ~10 ม. แบบประมาณ (ย่อเข้าหาจุดกลาง ไม่ใช่ buffer จริง, หดไม่เกิน 40%) · ยังไม่มีค่าฝน CHIRPS (ใช้ RainLog/Open-Meteo แทนได้)
+- ⚠️ ยังไม่ได้ทดสอบกับ API จริง (Claude ไม่มีรหัส) — ทดสอบแล้วเฉพาะตรรกะในเครื่อง (ไวยากรณ์, หดขอบ, อ่านผลตอบกลับ, สูตรดัชนี) · ยังไม่ยืนยัน: โควตาฟรีของ CDSE พอสำหรับ 15 แปลง/สัปดาห์ไหม (ดู dashboard) · sampleCount รวมพิกเซลที่ถูกมาสก์ (ใช้คำนวณ clear) · หน่วย resx/resy เป็นองศา
+- ยังไม่ได้ทำ: แสดงผล SatLog ในแอป (ต้องเพิ่ม `satLog` ใน getInitialData + หน้าจอ) · เรดาร์ Sentinel-1 จับน้ำขัง (ข้อ 1 งานค้าง) · ปุ่ม 🛰️ Earth Engine ยังอยู่ใน index.html (เก็บไว้เทียบ ลบเมื่อ Copernicus ใช้ได้จริง)

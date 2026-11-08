@@ -14,7 +14,8 @@
 
 const SAT_TOKEN_URL_ = 'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token';
 const SAT_STATS_URL_ = 'https://sh.dataspace.copernicus.eu/statistics/v1';
-const SAT_H_ = ['date', 'kind', 'id', 'name', 'ndvi', 'ndre', 'ndwi', 'water', 'clear', 'logged_at'];
+const SAT_H_ = ['date', 'kind', 'id', 'name', 'ndvi', 'ndre', 'ndwi', 'water', 'clear', 'logged_at', 'weak', 'weak2'];
+// weak / weak2 = สัดส่วนของแปลง (หดขอบแล้ว) ที่ความเขียวต่ำกว่าค่าเฉลี่ยของแปลงเองเกิน 0.07 / 0.15 = จุดอ่อนในแปลง (คิดจากฮิสโตแกรม)
 const SAT_RES_DEG_ = 0.00009;   // ~10 ม. (ขอบเขตส่งเป็นองศา WGS84 จึงบอกความละเอียดเป็นองศา)
 const SAT_SHRINK_M_ = 10;       // หดขอบเข้า ~10 ม. กันถนน/ต้นไม้/แปลงข้างเคียงปน
 const SAT_CHUNK_DAYS_ = 90;     // แบ่งช่วงเวลาถามทีละไม่เกิน 90 วัน
@@ -112,7 +113,17 @@ function satBodyWith_(t, fromISO, toISO, dataItem, evalscript) {
 }
 
 function satBody_(t, fromISO, toISO) {
-  return satBodyWith_(t, fromISO, toISO, { type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC' } }, SAT_EVAL_);
+  const b = satBodyWith_(t, fromISO, toISO, { type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC' } }, SAT_EVAL_);
+  b.calculations = { ndvi: { histograms: { default: { nBins: 50, lowEdge: 0, highEdge: 1 } } } };
+  return b;
+}
+
+// ฮิสโตแกรมความเขียว → สัดส่วนที่ต่ำกว่าค่าเฉลี่ย - d (ใช้จุดกึ่งกลางช่อง)
+function satWeak_(hist, mean, d) {
+  const bins = (hist && hist.bins) || [];
+  let n = 0, w = 0;
+  bins.forEach(b => { const c = Number(b.count) || 0, mid = (Number(b.lowEdge) + Number(b.highEdge)) / 2; n += c; if (mid < mean - d) w += c; });
+  return n > 0 ? Math.round(w / n * 1000) / 1000 : null;
 }
 
 // อ่านผลตอบกลับ → [{date, ndvi, ndre, ndwi, water, clear}] (ข้ามวันที่ไม่มีพิกเซลใส)
@@ -127,7 +138,9 @@ function satParse_(j) {
     const g = k => { const s = st(k), v = s ? Number(s.mean) : NaN; return isFinite(v) ? Math.round(v * 10000) / 10000 : null; };
     const v = { ndvi: g('ndvi'), ndre: g('ndre'), ndwi: g('ndwi'), water: g('water') };
     if (v.ndvi === null) return;
-    rows.push({ date: String(d.interval.from).slice(0, 10), ndvi: v.ndvi, ndre: v.ndre, ndwi: v.ndwi, water: v.water, clear: Math.round(clear * 100) / 100 });
+    const h = o.ndvi && o.ndvi.bands && o.ndvi.bands.B0 && o.ndvi.bands.B0.histogram;
+    rows.push({ date: String(d.interval.from).slice(0, 10), ndvi: v.ndvi, ndre: v.ndre, ndwi: v.ndwi, water: v.water, clear: Math.round(clear * 100) / 100,
+      weak: satWeak_(h, a.mean, 0.07), weak2: satWeak_(h, a.mean, 0.15) });
   });
   return rows;
 }
@@ -144,7 +157,7 @@ function satReq_(token, body) {
 function satFetch_(targets, fromISO, toISO, opt) {
   opt = opt || {};   // opt: { body(t,from,to), parse(json), row(t,v) } · ไม่ใส่ = Sentinel-2
   const bodyFn = opt.body || satBody_, parseFn = opt.parse || satParse_;
-  const rowFn = opt.row || ((t, v) => [v.date, t.kind, t.id, t.name, v.ndvi, v.ndre, v.ndwi, v.water, v.clear, getTodayStr()]);
+  const rowFn = opt.row || ((t, v) => [v.date, t.kind, t.id, t.name, v.ndvi, v.ndre, v.ndwi, v.water, v.clear, getTodayStr(), v.weak, v.weak2]);
   const token = satToken_();
   const rows = [], errors = [];
   const chunks = [];
@@ -183,6 +196,7 @@ function satFetch_(targets, fromISO, toISO, opt) {
 function satUpsert_(ss, name, headers, rows) {
   return withLock_(() => {
     const sh = getOrCreate_(ss, name, headers);
+    if (sh.getLastColumn() < headers.length) sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');   // คอลัมน์ใหม่
     const cur = sh.getDataRange().getDisplayValues();
     const idx = {};
     for (let i = 1; i < cur.length; i++) idx[cur[i][0] + '|' + cur[i][1] + '|' + cur[i][2]] = i + 1;
@@ -281,19 +295,19 @@ function installSatTrigger() {
 }
 
 // ส่งให้หน้าจอดาวเทียมในแอป (เรียกตอนเปิดหน้าเท่านั้น ไม่รวมใน getInitialData) แถวแบบย่อ
-// sat:   [date, kind, id, ndvi, ndre, ndwi, water, clear]
+// sat:   [date, kind, id, ndvi, ndre, ndwi, water, clear, weak, weak2]
 // radar: [date, kind, id, vv_db, water]
 function getSatData() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const pick = (name, cols) => {
+  const pick = (name, cols, opt) => {
     const sh = ss.getSheetByName(name);
     if (!sh || sh.getLastRow() < 2) return [];
-    const d = sh.getDataRange().getDisplayValues(), h = d[0], ix = cols.map(c => h.indexOf(c));
+    const d = sh.getDataRange().getDisplayValues(), h = d[0], ix = cols.map(c => h.indexOf(c)), ox = (opt || []).map(c => h.indexOf(c));
     if (ix.some(i => i < 0)) return [];
-    return d.slice(1).filter(r => r[0]).map(r => ix.map(i => r[i]));
+    return d.slice(1).filter(r => r[0]).map(r => ix.map(i => r[i]).concat(ox.map(i => i < 0 ? '' : (r[i] || ''))));
   };
   // clear ในชีตเป็นค่าดิบ (หารด้วยกรอบสี่เหลี่ยม) → หารด้วยค่าสูงสุดของแปลงนั้น ให้เป็นสัดส่วนของแปลงที่ใสจริง 0–1
-  const sat = pick('SatLog', ['date', 'kind', 'id', 'ndvi', 'ndre', 'ndwi', 'water', 'clear']);
+  const sat = pick('SatLog', ['date', 'kind', 'id', 'ndvi', 'ndre', 'ndwi', 'water', 'clear'], ['weak', 'weak2']);
   const mx = {};
   sat.forEach(r => { const k = r[1] + '|' + r[2], c = Number(r[7]) || 0; if (!(mx[k] >= c)) mx[k] = c; });
   sat.forEach(r => { const m = mx[r[1] + '|' + r[2]]; r[7] = m > 0 ? String(Math.round((Number(r[7]) || 0) / m * 100) / 100) : '0'; });

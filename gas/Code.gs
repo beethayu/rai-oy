@@ -220,7 +220,7 @@ function syncAssets_(ss, options, assets) {
   const names = new Set((assets || readSheet_(ss, SH.ASSET)).map(a => a.name));
   const today = getTodayStr();
   const rows = []; let n = 0;
-  [['Tractor', 'TR', 'พร้อมใช้', true], ['Truck', 'TK', 'พร้อมใช้', true], ['Pump', 'PM', 'พร้อมใช้', false], ['Worker', 'WK', 'ปกติ', false]]
+  [['Tractor', 'TR', 'พร้อมใช้', true], ['Truck', 'TK', 'พร้อมใช้', true], ['Pump', 'PM', 'พร้อมใช้', false], ['Worker', 'WK', 'ปกติ', false], ['Car', 'CR', 'พร้อมใช้', false]]
     .forEach(([cat, pre, st, hasBat]) => {
       (options[cat] || []).forEach(name => {
         if (names.has(name)) return;

@@ -188,7 +188,7 @@
     .chip-rat { background: #F1E6D6; color: #6B4A1F; }
     .bill-row { border: 1px solid #DDE3DF; border-radius: 12px; padding: 10px; margin-bottom: 10px; background: #FAFBFA; }
     .bill-row .form-control, .bill-row .form-select { font-size: 16px; }
-    #photoModal { z-index: 1075; }
+    #photoModal, #yieldModal { z-index: 1075; }
     .bv-row { padding: 8px 0; border-bottom: 1px solid var(--line, #e6e9e6); }
     .bv-sub { font-size: 13.5px; color: #6B736E; margin-top: 2px; }
     .bv-cat { display: inline-block; font-size: 12px; background: #eef3ee; color: #3d5a45; border-radius: 6px; padding: 0 6px; margin-right: 2px; }
@@ -1035,6 +1035,33 @@
     </div>
   </div>
 
+  <div class="modal fade" id="yieldModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
+          <h6 class="modal-title fw-bold" id="yl_title">บันทึกผลผลิต</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3">
+          <div class="bill-lbl">รอบที่ตัด</div>
+          <select class="form-select mb-2" id="yl_stage"><option>อ้อยใหม่</option><option>ตอ 1</option><option>ตอ 2</option><option>ตอ 3+</option></select>
+          <div class="bill-lbl">ฤดูหีบ (เช่น 2569/70)</div>
+          <input class="form-control mb-2" id="yl_season" placeholder="2569/70">
+          <div class="bill-lbl">วันที่ตัดเสร็จ</div>
+          <input type="date" class="form-control mb-2" id="yl_date">
+          <div class="bill-lbl">น้ำหนักอ้อยรวมที่ส่งโรงงาน (ตัน)</div>
+          <input type="number" inputmode="decimal" step="0.01" class="form-control mb-2" id="yl_tons" placeholder="เช่น 215.4">
+          <div class="bill-lbl">ค่าความหวาน CCS (ไม่ใส่ก็ได้)</div>
+          <input type="number" inputmode="decimal" step="0.01" class="form-control mb-2" id="yl_ccs" placeholder="เช่น 12.5">
+          <div class="bill-lbl">หมายเหตุ (ไม่ใส่ก็ได้)</div>
+          <input class="form-control" id="yl_note" placeholder="เช่น ตัดรถ / ตัดคน">
+          <div class="small text-muted mt-2" id="yl_hint"></div>
+        </div>
+        <div class="modal-footer py-2"><button type="button" class="btn fw-bold w-100 text-white" style="background:#1F5E3B;" id="btnYield" onclick="submitYield()">บันทึก</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="watchModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -1433,7 +1460,7 @@
       } catch (e) {}
     }
     function init(d, fromCache) {
-      gData = d; if (!gData.lands) gData.lands = []; if (!gData.rainLog) gData.rainLog = []; if (!gData.watches) gData.watches = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
+      gData = d; if (!gData.lands) gData.lands = []; if (!gData.rainLog) gData.rainLog = []; if (!gData.watches) gData.watches = []; if (!gData.yields) gData.yields = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
       if (!uiRestored) { uiRestored = true; uiRestore(); }
       if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
     }
@@ -1963,6 +1990,96 @@
     // ===== แท็บวันนี้: ฝากดู → กำลังทำ → ถึงคิว เป็นบรรทัดเดียวแบบหน้าแปลง แตะแล้วมีปุ่ม =====
     let todayOpen = '';
     function tglToday(k) { todayOpen = todayOpen === k ? '' : k; render(); }
+    // ===== ผลผลิตต่อแปลง: เทียบอ้อยใหม่ / ตอ 1 / ตอ 2 (ชีต Yields) =====
+    let ylPid = '', ylId = '';
+    const YL_STAGES = ['อ้อยใหม่', 'ตอ 1', 'ตอ 2', 'ตอ 3+'];
+    const ylRai = y => num(y.area_rai) || num(((gData.plots || []).find(p => p.plot_id === y.plot_id) || {}).area_rai);
+    function ylSeasonGuess() { const n = new Date(), y = n.getFullYear() + 543, m = n.getMonth(); const a = m >= 9 ? y : y - 1; return `${a}/${String(a + 1).slice(2)}`; }
+    function openYield(pid, id) {
+      const p = (gData.plots || []).find(x => x.plot_id === pid); if (!p) return;
+      const y = id ? (gData.yields || []).find(x => x.yield_id === id) : null;
+      ylPid = pid; ylId = id || '';
+      $('yl_title').innerText = `ผลผลิต ${p.plot_id} ${p.plot_name}`;
+      $('yl_stage').value = y ? y.stage : (p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'ตอ 1');
+      $('yl_season').value = y ? y.season : ylSeasonGuess();
+      $('yl_date').value = y ? beToISO(y.cut_date) : '';
+      $('yl_tons').value = y ? num(y.tons) : '';
+      $('yl_ccs').value = y && num(y.ccs) ? num(y.ccs) : '';
+      $('yl_note').value = y ? (y.note || '') : '';
+      $('yl_hint').innerText = `เนื้อที่ ${p.area_rai || '?'} ไร่ · ตัน/ไร่ คำนวณให้เอง`;
+      showM('yieldModal');
+    }
+    function submitYield() {
+      const tons = num($('yl_tons').value); if (!(tons > 0)) return alert('ใส่น้ำหนักอ้อย (ตัน) ก่อนครับ');
+      const iso = $('yl_date').value, pid = ylPid;
+      call('saveYield', [{ yield_id: ylId, plot_id: pid, stage: $('yl_stage').value, season: $('yl_season').value.trim(), cut_date: iso ? isoToBE(iso) : '', tons, ccs: num($('yl_ccs').value) || '', note: $('yl_note').value.trim() }],
+        d => { hideModal('yieldModal'); init(d); openDossier(pid); }, $('btnYield'));
+    }
+    function delYield(id, pid) {
+      if (!confirm('ลบรายการผลผลิตนี้?')) return;
+      call('deleteYield', [id], d => { init(d); openDossier(pid); });
+    }
+    // เฉลี่ยตัน/ไร่ ถ่วงด้วยเนื้อที่ (รวมตัน ÷ รวมไร่) แยกตามรอบที่ตัด
+    function yieldCompareHtml() {
+      const ys = (gData.yields || []).filter(y => num(y.tons) > 0 && ylRai(y) > 0);
+      if (!ys.length) return '';
+      const rows = YL_STAGES.map(st => {
+        const a = ys.filter(y => y.stage === st); if (!a.length) return '';
+        const t = a.reduce((s, y) => s + num(y.tons), 0), r = a.reduce((s, y) => s + ylRai(y), 0);
+        const cs = a.filter(y => num(y.ccs) > 0), ccs = cs.length ? (cs.reduce((s, y) => s + num(y.ccs), 0) / cs.length).toFixed(1) : '-';
+        return `<tr><td><b>${st}</b></td><td class="text-end">${a.length}</td><td class="text-end">${r.toFixed(1)}</td><td class="text-end"><b>${(t / r).toFixed(2)}</b></td><td class="text-end">${ccs}</td></tr>`;
+      }).join('');
+      return `<div class="table-responsive"><table class="table table-sm small mb-1"><thead class="table-light"><tr><th>รอบที่ตัด</th><th class="text-end">แปลง-ครั้ง</th><th class="text-end">ไร่</th><th class="text-end">ตัน/ไร่</th><th class="text-end">CCS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+    function dossierYieldHtml(p) {
+      const mine = (gData.yields || []).filter(y => y.plot_id === p.plot_id).sort((a, b) => (beToISO(b.cut_date) || '').localeCompare(beToISO(a.cut_date) || ''));
+      const list = mine.map(y => {
+        const r = ylRai(y), tpr = r > 0 ? (num(y.tons) / r).toFixed(2) : '-';
+        return `<div class="d-flex justify-content-between align-items-center border-bottom py-1"><span><b>${esc(y.stage)}</b> · ${esc(y.season || '')}${y.cut_date ? ' · ตัด ' + esc(y.cut_date) : ''}<br><span class="text-muted">${num(y.tons)} ตัน · <b>${tpr} ตัน/ไร่</b>${num(y.ccs) ? ' · CCS ' + num(y.ccs) : ''}${y.note ? ' · ' + esc(y.note) : ''}</span></span>
+          <span class="text-nowrap"><button type="button" class="btn btn-sm btn-outline-success py-0" onclick="openYield('${p.plot_id}','${qa(y.yield_id)}')">แก้</button> <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="delYield('${qa(y.yield_id)}','${p.plot_id}')">ลบ</button></span></div>`;
+      }).join('');
+      return `<div class="p-2 bg-light rounded border mb-3"><div class="d-flex justify-content-between align-items-center mb-1"><div class="fw-bold text-success">⚖️ ผลผลิตส่งโรงงาน (${mine.length})</div>
+        <button type="button" class="btn btn-sm btn-success fw-bold py-0" onclick="openYield('${p.plot_id}')">+ บันทึกผลผลิต</button></div>
+        ${list || '<div class="small text-muted">ยังไม่มี · พอตัดเสร็จและรู้น้ำหนักจากโรงงาน กด + บันทึก</div>'}
+        ${(gData.yields || []).length ? `<div class="fw-bold text-secondary small mt-2 mb-1">เทียบทั้งไร่ (ทุกแปลงที่บันทึก)</div>${yieldCompareHtml()}` : ''}</div>`;
+    }
+
+    // ===== งานหลังตัดอ้อย (อ้อยตอ): แนะนำตามเล่ม กรมส่งเสริมฯ 2564 / ภาคกลาง 2558 =====
+    // นับจากวันที่บันทึก "ตัดอ้อย" ล่าสุด ไม่ต้องรอป้ายสถานะ (ป้ายหายเมื่อลงงานอื่น)
+    function ratoonTodo(logs) {
+      const cuts = (logs || []).filter(a => a.activity_group === 'ตัดอ้อย' && !(a.remark || '').includes('กำลังทำ') && beToISO(a.timestamp));
+      if (!cuts.length) return null;
+      const cut = cuts.reduce((m, a) => beToISO(a.timestamp) > beToISO(m.timestamp) ? a : m);
+      const ciso = beToISO(cut.timestamp), cd = calcDays(cut.timestamp);
+      if (cd === null || cd > 45 || ciso > todayISO()) return null;
+      const after = (logs || []).filter(a => beToISO(a.timestamp) >= ciso && a !== cut);
+      const did = (g, det) => after.some(a => a.activity_group === g && (!det || String(a.activity_detail || '').includes(det)));
+      const todo = [];
+      if (cd <= 14 && !did('รถไถเตรียมดิน/บำรุง', 'สับ')) todo.push(`สับ/พรวนใบอ้อย (ควรภายใน 1–7 วันหลังตัด${cd > 7 ? ' · เลยแล้ว' : ''})`);
+      if (cd <= 21 && !did('ขึ้นน้ำ') && !did('ฝนตก')) todo.push('ให้น้ำทันทีหลังแต่งตอ');
+      if (cd <= 45 && !did('ใส่ปุ๋ย')) todo.push('ใส่ปุ๋ยครั้งที่ 1 (ทันทีหลังแต่งตอ)');
+      if (cd <= 30 && !did('ใส่ปุ๋ย', 'ซ่อมอ้อย')) todo.push('ซ่อมอ้อยให้เสร็จภายใน 1 เดือน');
+      return todo.length ? { cd, todo } : null;
+    }
+
+    // ===== พยากรณ์ฝนช่วยตัดสินใจในหน้าวันนี้ (แปลงถึงคิวน้ำ/ฉีดยา) =====
+    function wxHint(p, st) {
+      try {
+        if (st.cls !== 'urgent-water' && st.cls !== 'urgent-spray') return '';
+        const locs = wxLocs(); if (!wxData || wxData.key !== wxKey(locs)) return '';
+        const i = locs.findIndex(l => (l.plots || []).includes(p.plot_id)); if (i < 0 || !wxData.res[i]) return '';
+        const r = wxData.res[i], t0 = todayISO(), d1 = new Date(); d1.setDate(d1.getDate() + 1);
+        const t1 = `${d1.getFullYear()}-${pad(d1.getMonth() + 1)}-${pad(d1.getDate())}`;
+        const mm = iso => { const k = r.daily.time.indexOf(iso); return k < 0 ? null : num(r.daily.precipitation_sum[k]); };
+        if (st.cls === 'urgent-water') {
+          const hit = [[mm(t0), 'วันนี้'], [mm(t1), 'พรุ่งนี้']].find(x => x[0] !== null && x[0] >= WX_ASK_MM);
+          return hit ? ` · 🌧️ พยากรณ์ฝน${hit[1]} ~${Math.round(hit[0])} มม. อาจรอดูฝนก่อนได้` : '';
+        }
+        const sp = wxSpray(r, t0).filter(x => x.b > new Date().getHours());
+        return sp.length ? ` · ฉีดยาได้ ${sprayTxt(sp)}` : ' · วันนี้ลม/ฝนไม่เหมาะฉีดยา';
+      } catch (e) { return ''; }
+    }
+
     function todayHtml(rows, logsBy) {
       const byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
       const ws = (gData.watches || []).filter(w => byId[w.plot_id]);
@@ -2003,10 +2120,16 @@
           `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','finish')">${ICON_CHECK}งานเสร็จ</button><button type="button" class="bigbtn bigbtn-out" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`);
       }).join('')}</div>` : none('ไม่มีงานค้าง');
 
+      const post = rows.map(r => ({ p: r.p, t: ratoonTodo(logsBy[r.p.plot_id]) })).filter(x => x.t && !byId[x.p.plot_id].st.isOngoing);
+      if (post.length) {
+        h += head('หลังตัดอ้อย · บำรุงตอ', post.length);
+        h += `<div class="srow-box">${post.map(({ p, t }) => row('c:' + p.plot_id, 'srow-bad', p, `ตัดแล้ว ${t.cd} วัน · ` + esc(t.todo.join(' · ')), '<span class="pill pill-urgent">บำรุงตอ</span>',
+          `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`)).join('')}</div>`;
+      }
       h += head('ถึงคิว', urg.length);
       h += urg.length ? `<div class="srow-box">${urg.map(({ p, st }) => {
         const wc = waterChip(p, st, calcDays(p.plant_date), calcDays(p.last_water_date));
-        return row('u:' + p.plot_id, 'srow-bad', p, esc(wc && wc.c === 'red' ? wc.t : plain(st.next)), '<span class="pill pill-urgent">ถึงคิว</span>',
+        return row('u:' + p.plot_id, 'srow-bad', p, esc(wc && wc.c === 'red' ? wc.t : plain(st.next)) + wxHint(p, st), '<span class="pill pill-urgent">ถึงคิว</span>',
           `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`);
       }).join('')}</div>` : none('ไม่มีแปลงถึงคิว (พ.ย.–ธ.ค. ช่วงใกล้ตัด งดเตือนน้ำ)');
       const rk = (gData.rockPoints || []).filter(r => r.status !== 'ลงเสร็จ');
@@ -2319,6 +2442,7 @@
         <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="hideModal('dossierModal');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${fmtRai(num(p.map_rai) * 1600)}` : 'วาดขอบแปลงบนแผนที่'}</button>
         ${(() => { const pp = (gData.plotPhotos || []).filter(x => x.plot_id === p.plot_id); return pp.length ? `<div class="p-2 bg-light rounded border mb-3"><div class="fw-bold text-success mb-1">📷 รูปหน้างาน (${pp.length})</div>
           ${pp.slice(0, 8).map(x => `<button type="button" class="hrow" onclick="viewPhotos('${qa(p.plot_name)}','${qa(x.file_ids)}')"><span class="hrow-d">${esc(x.timestamp)}</span><span class="hrow-b">${esc(x.diagnosis || 'รูปสภาพแปลง')}<span class="hrow-s">${esc(x.note || '')}${x.note ? ' · ' : ''}แตะดูรูป</span></span></button>`).join('')}</div>` : ''; })()}
+        ${dossierYieldHtml(p)}
         <h6 class="fw-bold text-dark mb-2">📊 2. สรุปกิจกรรมสะสมตั้งแต่เริ่มฤดูกาล</h6>
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">

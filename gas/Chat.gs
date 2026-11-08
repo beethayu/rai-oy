@@ -90,12 +90,12 @@ function cleanChatPhotos_(maxAgeMin) {
 
 // ไฟล์รูปในโฟลเดอร์แชต → base64 (ข้ามไฟล์ที่ไม่ใช่ของโฟลเดอร์นี้) คืน {id: b64}
 function chatBlobs_(ids) {
-  const folderId = chatFolder_().getId(), out = {};
+  const okIds = [chatFolder_().getId(), billFolder_().getId()], out = {}; // รูปแชต + รูปบิล
   (ids || []).slice(0, 6).forEach(id => {
     try {
       const f = DriveApp.getFileById(String(id));
       const ps = f.getParents(); let ok = false;
-      while (ps.hasNext()) { if (ps.next().getId() === folderId) { ok = true; break; } }
+      while (ps.hasNext()) { if (okIds.indexOf(ps.next().getId()) >= 0) { ok = true; break; } }
       if (ok) out[id] = Utilities.base64Encode(f.getBlob().getBytes());
     } catch (e) {}
   });

@@ -389,7 +389,7 @@
 ## 🛰️ ดาวเทียมอัตโนมัติ (Copernicus Data Space) — เริ่ม 9 พ.ย. 69
 ไฟล์ `gas/Sat.gs` · Apps Script เรียก Sentinel Hub Statistical API (`sh.dataspace.copernicus.eu/statistics/v1`) เอง ไม่ต้องก๊อปสคริปต์วาง Earth Engine
 - ผู้ใช้สมัคร CDSE แล้ว (9 พ.ย. 69) · ต้องสร้าง OAuth client ที่ shapps.dataspace.copernicus.eu/dashboard → ใส่ใน Script Properties: `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET` (**ห้ามใส่ใน repo/แชต**)
-- ลำดับตั้งค่า: ใส่รหัส → รัน `testSatellite()` (ต่อ API ลองแปลงแรก 30 วัน ไม่เขียนชีต) → `logSatellite(400)` ลงย้อนหลัง → `installSatTrigger()` (ทุกจันทร์ ~04:00 ลงย้อนหลัง 12 วัน)
+- ลำดับตั้งค่า: ใส่รหัส → รัน `testSatellite()` (ต่อ API ลองแปลงแรก 30 วัน ไม่เขียนชีต) → `logSatellite(400)` ลงย้อนหลัง → `installSatTrigger()` (ทุกวัน ~05:10 ลงย้อนหลัง 8 วัน) · ปุ่มกดจากหน้าแก้โค้ด: `testSatellite`, `logSatelliteBackfill` (400 วัน รวมที่ดิน)
 - ผลลงชีต `SatLog`: date(ISO), kind(plot/land), id, name, ndvi, ndre, ndwi, water, clear(สัดส่วนที่ไม่มีเมฆ), logged_at · วัน+แปลงซ้ำ = ทับ · `logSatellite(days, true)` รวมที่ดินที่จะเช่า
 - มาสก์เมฆด้วยแถบ SCL (ไม่มี Cloud Score+ แบบ Earth Engine) · หดขอบ ~10 ม. แบบประมาณ (ย่อเข้าหาจุดกลาง ไม่ใช่ buffer จริง, หดไม่เกิน 40%) · ยังไม่มีค่าฝน CHIRPS (ใช้ RainLog/Open-Meteo แทนได้)
 - ⚠️ ยังไม่ได้ทดสอบกับ API จริง (Claude ไม่มีรหัส) — ทดสอบแล้วเฉพาะตรรกะในเครื่อง (ไวยากรณ์, หดขอบ, อ่านผลตอบกลับ, สูตรดัชนี) · ยังไม่ยืนยัน: โควตาฟรีของ CDSE พอสำหรับ 15 แปลง/สัปดาห์ไหม (ดู dashboard) · sampleCount รวมพิกเซลที่ถูกมาสก์ (ใช้คำนวณ clear) · หน่วย resx/resy เป็นองศา

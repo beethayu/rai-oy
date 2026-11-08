@@ -9,7 +9,7 @@
 //   Apps Script > ตั้งค่าโปรเจกต์ (รูปเฟือง) > คุณสมบัติของสคริปต์ > เพิ่ม
 //     CDSE_CLIENT_ID      และ  CDSE_CLIENT_SECRET
 //   (สร้างที่ https://shapps.dataspace.copernicus.eu/dashboard/#/ → User settings → OAuth clients)
-// จากนั้นรัน testSatellite() เพื่อลองต่อ แล้วรัน installSatTrigger() เพื่อตั้งให้รันทุกสัปดาห์
+// จากนั้นรัน testSatellite() เพื่อลองต่อ แล้วรัน installSatTrigger() เพื่อตั้งให้รันทุกวัน
 
 const SAT_TOKEN_URL_ = 'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token';
 const SAT_STATS_URL_ = 'https://sh.dataspace.copernicus.eu/statistics/v1';
@@ -45,7 +45,7 @@ function satCreds_() {
   const p = PropertiesService.getScriptProperties();
   const id = p.getProperty('CDSE_CLIENT_ID'), secret = p.getProperty('CDSE_CLIENT_SECRET');
   if (!id || !secret) throw new Error('ยังไม่ได้ตั้ง CDSE_CLIENT_ID / CDSE_CLIENT_SECRET ในคุณสมบัติของสคริปต์');
-  return { id: id, secret: secret };
+  return { id: String(id).trim(), secret: String(secret).trim() };   // ตัดช่องว่าง/ขึ้นบรรทัดใหม่ที่ติดมาตอนวาง
 }
 
 // ขอ token (เก็บแคชไว้ใช้ซ้ำจนใกล้หมดอายุ)
@@ -221,7 +221,7 @@ function satTest_() {
 }
 
 function logSatelliteTrigger() {
-  try { console.log(logSatellite(12)); } catch (e) { console.error(e); }
+  try { console.log(logSatellite(8)); } catch (e) { console.error(e); }
 }
 
 // กดรันจากหน้าแก้โค้ด (รายการเลือกฟังก์ชันใส่ตัวเลขไม่ได้): ลงย้อนหลัง ~13 เดือน รวมที่ดินที่จะเช่า
@@ -231,10 +231,11 @@ function logSatelliteBackfill() {
   return r;
 }
 
-// ตั้งให้รันทุกวันจันทร์ ~04:00 (ไม่ผูกกับ logDailyRainTrigger เพื่อให้พังแยกกัน)
+// ตั้งให้รันทุกวัน ~05:00 ลงย้อนหลัง 8 วัน (ดาวเทียมผ่านแปลงเดิมราว 5 วัน/ครั้ง ภาพใหม่จึงไม่ได้มาทุกวัน
+// แต่รันทุกวันจะได้ภาพใหม่ภายในวันที่ลงฐาน ไม่ต้องรอสัปดาห์) · ไม่ผูกกับ logDailyRainTrigger เพื่อให้พังแยกกัน
 function installSatTrigger() {
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'logSatelliteTrigger').forEach(t => ScriptApp.deleteTrigger(t));
-  ScriptApp.newTrigger('logSatelliteTrigger').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(4).inTimezone('Asia/Bangkok').create();
-  console.log('ตั้งเวลาแล้ว: ทุกวันจันทร์ ~04:00');
-  return 'ตั้งเวลาแล้ว: ทุกวันจันทร์ ~04:00';
+  ScriptApp.newTrigger('logSatelliteTrigger').timeBased().atHour(5).nearMinute(10).everyDays(1).inTimezone('Asia/Bangkok').create();
+  console.log('ตั้งเวลาแล้ว: ทุกวัน ~05:10');
+  return 'ตั้งเวลาแล้ว: ทุกวัน ~05:10';
 }

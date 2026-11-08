@@ -4267,45 +4267,60 @@
     // ฝังขอบแปลงจากแอปลงสคริปต์ คัดลอกไปวางใน code.earthengine.google.com แล้วกด Run
     function eeScript() {
       const ps = gData.plots.filter(p => pPath(p.boundary).length >= 3);
-      const feats = ps.map(p => `  ee.Feature(ee.Geometry.Polygon([${JSON.stringify(pPath(p.boundary).map(([la, ln]) => [ln, la]))}]), ${JSON.stringify({ id: p.plot_id, name: p.plot_id + ' ' + p.plot_name, type: p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'อ้อยตอ', rai: num(p.area_rai) })})`).join(',\n');
+      const feats = ps.map(p => `  ee.Feature(ee.Geometry.Polygon([${JSON.stringify(pPath(p.boundary).map(([la, ln]) => [ln, la]))}]), ${JSON.stringify({ id: p.plot_id, name: p.plot_name, type: p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'อ้อยตอ', rai: num(p.area_rai) })})`).join(',\n');
       const y = new Date().getFullYear();
-      return `// ไร่อ้อย: ดัชนีดาวเทียมรายแปลง (Sentinel-2) · สร้างจากแอป ${todayISO()} · ${ps.length} แปลง
+      return `// ไร่อ้อย: ดูอ้อยรายแปลงจากดาวเทียม (Sentinel-2) · สร้างจากแอป ${todayISO()} · ${ps.length} แปลง
 // วิธีใช้: วางทั้งหมดใน https://code.earthengine.google.com แล้วกด Run · กราฟอยู่แท็บ Console ทางขวา
-// NDVI = ความเขียว/มวลใบ · NDRE = คลอโรฟิลล์ (ไวกว่าตอนใบหนา) · NDWI = น้ำในใบ (NIR-SWIR) ค่าตก = เริ่มขาดน้ำ
+// ค่าที่ดู (ภาษาง่าย):
+//   ความเขียว (NDVI)      = มีใบมากแค่ไหน · 0.1 ดินโล่ง → 0.8 อ้อยเต็มแปลง
+//   ใบสมบูรณ์ (NDRE)      = ใบเขียวเข้มแข็งแรงไหม ใช้ตอนอ้อยคลุมแปลงแล้ว · ต่ำ = ใบซีด (ขาดปุ๋ย/น้ำ/รากแช่น้ำ)
+//   น้ำในใบ (NDWI)        = ใบอุ้มน้ำแค่ไหน · ตกลง = เริ่มขาดน้ำ
+//   น้ำขัง (WATER)        = ส่วนของแปลงที่เห็นน้ำบนผิวดิน 0–1 (เห็นได้ตอนอ้อยยังเล็ก ใบหนาแล้วมองไม่ทะลุ)
+//   ฝน 10 วัน (RAIN10)    = ฝนรวม 10 วันก่อนวันถ่ายภาพ มม. (ดาวเทียมวัดฝน CHIRPS ข้อมูลล่าช้าราว 1 เดือน)
 var START = '${y - 1}-10-01';            // ช่วงที่ดู (แก้ได้)
 var END = ee.Date(Date.now());
-var MIN_CLEAR = 0.6;                    // Cloud Score+ ≥ 0.6 = ใสพอ (เพิ่มเป็น 0.7 ถ้ายังมีเมฆปน)
+var MIN_CLEAR = 0.6;                    // ความใส (ไม่มีเมฆ) ขั้นต่ำต่อจุดภาพ
 
-var plots = ee.FeatureCollection([
+var raw = ee.FeatureCollection([
 ${feats}
 ]);
+// หดขอบเข้า 10 ม. กันต้นไม้/ถนน/แปลงข้าง ๆ ปน (ถ้าแปลงเล็กจนหดแล้วเหลือไม่ถึง 40% ใช้ขอบเดิม)
+var plots = raw.map(function (f) {
+  var g = f.geometry().buffer(-10, 1);
+  return ee.Feature(ee.Algorithms.If(g.area(1).gt(f.geometry().area(1).multiply(0.4)), f.setGeometry(g), f));
+});
 
 var s2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
   .filterBounds(plots).filterDate(START, END)
   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80));
 var cs = ee.ImageCollection('GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED');
+var chirps = ee.ImageCollection('UCSB-CHG/CHIRPS/DAILY');
 
 var union = plots.geometry();
 var idx = s2.linkCollection(cs, ['cs_cdf']).map(function (img) {
   var clear = img.select('cs_cdf').gte(MIN_CLEAR);
-  // สัดส่วนพื้นที่แปลงทั้งหมดที่ไม่มีเมฆในภาพนี้
   var frac = clear.reduceRegion({ reducer: ee.Reducer.mean(), geometry: union, scale: 20, maxPixels: 1e9 }).get('cs_cdf');
   var ndvi = img.normalizedDifference(['B8', 'B4']).rename('NDVI');
   var ndre = img.normalizedDifference(['B8', 'B5']).rename('NDRE');
   var ndwi = img.normalizedDifference(['B8', 'B11']).rename('NDWI');
-  return ndvi.addBands(ndre).addBands(ndwi).updateMask(clear)
+  var water = img.normalizedDifference(['B3', 'B11']).gt(0).rename('WATER');   // MNDWI > 0 = น้ำบนผิว
+  var d = img.date();
+  var rc = chirps.filterDate(d.advance(-10, 'day'), d);
+  var rain = ee.Image(ee.Algorithms.If(rc.size().gte(10), rc.sum(), ee.Image(0).updateMask(0))).rename('RAIN10').toFloat();
+  return ndvi.addBands(ndre).addBands(ndwi).addBands(water.toFloat()).updateMask(clear).addBands(rain)
     .set('clear', frac).set('system:time_start', img.get('system:time_start'));
 }).filter(ee.Filter.gte('clear', 0.8));   // เอาเฉพาะวันที่เห็นแปลงใส ≥ 80%
 print('ภาพที่ใช้ได้ (ใส ≥ 80%)', idx.size(), 'จากทั้งหมด', s2.size());
 
+var LABEL = { NDVI: 'ความเขียว (NDVI)', NDRE: 'ใบสมบูรณ์ (NDRE)', NDWI: 'น้ำในใบ (NDWI)', WATER: 'น้ำขังบนผิวดิน (สัดส่วนแปลง)' };
 function chart(type, band) {
   print(ui.Chart.image.seriesByRegion({
     imageCollection: idx, regions: plots.filter(ee.Filter.eq('type', type)),
     reducer: ee.Reducer.mean(), band: band, scale: 10,
     xProperty: 'system:time_start', seriesProperty: 'name'
-  }).setOptions({ title: band + ' · ' + type, pointSize: 3, lineWidth: 1, vAxis: { title: band } }));
+  }).setOptions({ title: LABEL[band] + ' · ' + type, pointSize: 3, lineWidth: 1, vAxis: { title: LABEL[band] } }));
 }
-['อ้อยใหม่', 'อ้อยตอ'].forEach(function (t) { chart(t, 'NDVI'); chart(t, 'NDRE'); chart(t, 'NDWI'); });
+['อ้อยใหม่', 'อ้อยตอ'].forEach(function (t) { chart(t, 'NDVI'); chart(t, 'NDWI'); chart(t, 'WATER'); chart(t, 'NDRE'); });
 
 // ตารางค่าเฉลี่ยรายแปลง-รายวัน สำหรับส่งออก
 var table = idx.map(function (img) {
@@ -4314,17 +4329,17 @@ var table = idx.map(function (img) {
     .map(function (f) { return f.set('date', date).set('clear', clr); });
 }).flatten();
 
-// แผนที่: NDRE ล่าสุด (ค่ากลาง 30 วันหลังสุด) ตัดเฉพาะในแปลง · แดง = ต่ำ เขียว = สูง
-var recent = idx.filterDate(END.advance(-30, 'day'), END).median().clipToCollection(plots);
-Map.centerObject(plots, 13);
-Map.addLayer(recent.select('NDVI'), { min: 0.2, max: 0.9, palette: ['d73027', 'fee08b', '1a9850'] }, 'NDVI 30 วันล่าสุด', false);
-Map.addLayer(recent.select('NDRE'), { min: 0.1, max: 0.6, palette: ['d73027', 'fee08b', '1a9850'] }, 'NDRE 30 วันล่าสุด');
-Map.addLayer(ee.Image().byte().paint(plots, 0, 2), { palette: ['ffffff'] }, 'ขอบแปลง');
+// แผนที่: ใบสมบูรณ์ล่าสุด (ค่ากลาง 30 วันหลังสุด) · แดง = ต่ำ เขียว = สูง
+var recent = idx.filterDate(END.advance(-30, 'day'), END).median().clipToCollection(raw);
+Map.centerObject(raw, 13);
+Map.addLayer(recent.select('NDVI'), { min: 0.2, max: 0.9, palette: ['d73027', 'fee08b', '1a9850'] }, 'ความเขียว 30 วันล่าสุด', false);
+Map.addLayer(recent.select('NDRE'), { min: 0.1, max: 0.6, palette: ['d73027', 'fee08b', '1a9850'] }, 'ใบสมบูรณ์ 30 วันล่าสุด');
+Map.addLayer(ee.Image().byte().paint(raw, 0, 2), { palette: ['ffffff'] }, 'ขอบแปลง');
 
-// ส่งตารางเข้า Google Drive (กดปุ่ม RUN ที่แท็บ Tasks) แล้วส่งไฟล์ CSV ให้ Claude อ่านต่อได้
+// ส่งตารางเข้า Google Drive (แท็บ Tasks → RUN) แล้วส่งไฟล์ CSV ให้ Claude อ่านต่อ
 Export.table.toDrive({
-  collection: table, selectors: ['id', 'name', 'type', 'rai', 'date', 'clear', 'NDVI', 'NDRE', 'NDWI'],
-  description: 'raioy_s2_index', fileFormat: 'CSV'
+  collection: table, selectors: ['id', 'name', 'type', 'rai', 'date', 'clear', 'NDVI', 'NDRE', 'NDWI', 'WATER', 'RAIN10'],
+  description: 'raioy_s2_v2', fileFormat: 'CSV'
 });
 `;
     }

@@ -14,7 +14,10 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
    remark: ใส่คำว่า "ค้างคืน" / "เลิกเที่ยง" / "ล็อก 1" / "ครึ่งแปลง" ตามที่เล่า (คั่นด้วยเว้นวรรค)
    ongoing=true เมื่อบอกว่ายังไม่เสร็จ/กำลังทำ/ทำต่อพรุ่งนี้
    date_to: ใส่เมื่อเล่าเป็นช่วงวัน (เช่น 15-17) ไม่งั้นว่าง
-2) {"type":"finish","plots":["P01"],"date":"YYYY-MM-DD"} = งานที่ "กำลังทำ" ของแปลงนั้นเสร็จแล้ว (ใช้ได้เฉพาะแปลงที่มี ongoing ใน ctx)
+2) {"type":"finish","plots":["P01"],"date":"YYYY-MM-DD"} = งานที่ "กำลังทำ" ของแปลงนั้นเสร็จแล้ว (ใช้ได้เฉพาะแปลงที่มี ongoing ใน ctx) — ทำจริงจนเสร็จเท่านั้น
+2.1) {"type":"cancel","plots":["P01"],"which":"ongoing"} = ยกเลิก/ลบรายการที่ลงไว้ (ลงผิด ทดลองบันทึก ไม่ได้ทำจริง) ระบบจะลบออกจากประวัติและคืนสต็อก
+   which: "ongoing" = ลบงานที่กำลังทำของแปลงนั้น (ctx.plots[].ongoing) · "last" = ลบงานล่าสุดที่บันทึกของแปลงนั้น (ctx.plots[].last เช่น เพิ่งลงผิด)
+   คำว่า "ยกเลิก" "ลบ" "ไม่ได้ทำ" "ลงผิด" "ทดลอง/ลองบันทึก" = cancel ห้ามใช้ finish · ไม่แน่ใจว่ารายการไหน ให้ถามใน ask
 3) {"type":"watch","plots":["P01"],"reason":R,"note":""} = ฝากดู/ฝากจำไว้ทำทีหลัง R: "ขึ้นน้ำ","หว่านปุ๋ย","ฉีดยา","น้ำขัง สูบออก","ไปดูอาการ"
 4) {"type":"rain_pick","date":"YYYY-MM-DD"} = ฝนตกแต่ผู้ใช้ไม่รู้/ไม่บอกว่าแปลงไหน (หน้าเว็บจะโชว์ฝนรายพื้นที่ให้ติ๊กเอง) ห้ามเดาแปลงเอง
 5) {"type":"add","category":C,"name":"ชื่อ"} = เพิ่มคนงาน/รถใหม่ C: "Worker","Tractor","Truck","Pump","Car"(รถอื่นที่ใช้ในไร่ เช่น หกล้อ กระบะ ใช้กับเรื่องทะเบียน)
@@ -209,7 +212,7 @@ function chatBillRead(ids) {
 
 const PLOT_PHOTO_H_ = ['photo_id', 'timestamp', 'plot_id', 'file_ids', 'diagnosis', 'note'];
 
-// ops จากหน้าเว็บ (ตรวจแล้ว): {fn:'act', p:<payload แบบ saveActivities>} · {fn:'finish', log_id, date(พ.ศ.)}
+// ops จากหน้าเว็บ (ตรวจแล้ว): {fn:'act', p:<payload แบบ saveActivities>} · {fn:'finish', log_id, date(พ.ศ.)} · {fn:'cancel', log_id} (ลบ+คืนสต็อก)
 // · {fn:'watch', plotIds, reason, note} · {fn:'opt', category, name}
 // · {fn:'asset', asset, event, detail, shop, place, date(พ.ศ.), plates:[{role,plate}], photo_ids}
 // · {fn:'plotphoto', plotIds, diagnosis, note, date(พ.ศ.), photo_ids}
@@ -245,6 +248,17 @@ function chatApply(ops, rid) {
           sh.getRange(i + 1, 9).setValue('[✅เสร็จสิ้น] ' + rm);
           touched.add(d[i][2]);
           try { closeWatchesFor_(ss, [d[i][2]], d[i][3], d[i][4], d[i][0]); } catch (e) {}
+          done++;
+          break;
+        }
+      } else if (op.fn === 'cancel') {
+        // ยกเลิก = ลบแถวงาน (ลงผิด/ทดลอง) + คืนสต็อกที่ตัดไป
+        const d = sh.getRange(1, 1, sh.getLastRow(), 3).getDisplayValues();
+        for (let i = d.length - 1; i >= 1; i--) {
+          if (d[i][0] !== String(op.log_id)) continue;
+          sh.deleteRow(i + 1);
+          try { reverseUsage_(ss, String(op.log_id)); } catch (e) {}
+          touched.add(d[i][2]);
           done++;
           break;
         }

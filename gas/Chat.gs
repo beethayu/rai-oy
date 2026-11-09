@@ -17,6 +17,7 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 2) {"type":"finish","plots":["P01"],"date":"YYYY-MM-DD"} = งานที่ "กำลังทำ" ของแปลงนั้นเสร็จแล้ว (ใช้ได้เฉพาะแปลงที่มี ongoing ใน ctx) — ทำจริงจนเสร็จเท่านั้น
 2.1) {"type":"cancel","plots":["P01"],"which":"ongoing"} = ยกเลิก/ลบรายการที่ลงไว้ (ลงผิด ทดลองบันทึก ไม่ได้ทำจริง) ระบบจะลบออกจากประวัติและคืนสต็อก
    which: "ongoing" = ลบงานที่กำลังทำของแปลงนั้น (ctx.plots[].ongoing) · "last" = ลบงานล่าสุดที่บันทึกของแปลงนั้น (ctx.plots[].last เช่น เพิ่งลงผิด)
+   · "watch" = ยกเลิกฝากดูของแปลงนั้น (ctx.plots[].watch) ใส่ "reason" ถ้าผู้ใช้บอกว่าอันไหน ไม่บอก = ทุกอันของแปลงนั้น · ถ้าบอกว่า "ดูแล้ว/ทำแล้ว" ไม่ใช่ยกเลิก ให้ลงงานตามปกติแทน
    คำว่า "ยกเลิก" "ลบ" "ไม่ได้ทำ" "ลงผิด" "ทดลอง/ลองบันทึก" = cancel ห้ามใช้ finish · ไม่แน่ใจว่ารายการไหน ให้ถามใน ask
 3) {"type":"watch","plots":["P01"],"reason":R,"note":""} = ฝากดู/ฝากจำไว้ทำทีหลัง R: "ขึ้นน้ำ","หว่านปุ๋ย","ฉีดยา","น้ำขัง สูบออก","ไปดูอาการ"
 4) {"type":"rain_pick","date":"YYYY-MM-DD"} = ฝนตกแต่ผู้ใช้ไม่รู้/ไม่บอกว่าแปลงไหน (หน้าเว็บจะโชว์ฝนรายพื้นที่ให้ติ๊กเอง) ห้ามเดาแปลงเอง
@@ -262,6 +263,8 @@ function chatApply(ops, rid) {
           done++;
           break;
         }
+      } else if (op.fn === 'unwatch') {
+        if (deleteWatch_(ss, op.watch_id)) done++;
       } else if (op.fn === 'watch') {
         const w = getOrCreate_(ss, 'Watch', WATCH_HEADERS_), ids = (op.plotIds || []).filter(Boolean);
         if (!ids.length) return;

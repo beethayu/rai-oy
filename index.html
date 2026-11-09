@@ -2031,6 +2031,10 @@
       if (!confirm('ดูแล้ว / ทำแล้ว เอาออกจากฝากดู?')) return;
       call('closeWatch', [id], d => init(d));
     }
+    function cancelWatchUi(id) {
+      if (!confirm('ยกเลิกฝากดูนี้? (ลงผิด/ไม่ต้องดูแล้ว · ลบทิ้ง ไม่เก็บเป็นประวัติ)')) return;
+      call('cancelWatch', [id], d => init(d));
+    }
     // บันทึกงานจากฝากดู: เปิดฟอร์มพร้อมเลือกหมวดให้
     function actFromWatch(pid, reason) {
       const p = gData.plots.find(x => x.plot_id === pid); if (!p) return;
@@ -2171,7 +2175,7 @@
           ? `<button type="button" class="bigbtn bigbtn-main" onclick="actFromWatch('${p.plot_id}','${qa(w.reason)}')">+ บันทึก${esc(w.reason === 'น้ำขัง สูบออก' ? 'สูบน้ำ' : w.reason)}</button>`
           : `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button>`;
         return row('w:' + w.watch_id, 'prow-watchrow', p, sub, `<span class="pill pill-watch">${esc(w.reason)}</span>`,
-          act + `<button type="button" class="bigbtn bigbtn-out" onclick="doneWatch('${qa(w.watch_id)}')">ดูแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`);
+          act + `<button type="button" class="bigbtn bigbtn-out" onclick="doneWatch('${qa(w.watch_id)}')">ดูแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button><button type="button" class="bigbtn bigbtn-out" style="color:#8A1C1C;border-color:#E9B8B8" onclick="cancelWatchUi('${qa(w.watch_id)}')">ยกเลิก</button>`);
       }).join('')}</div>` : none('ยังไม่มี · กด "+ ฝากดู" เมื่อเห็นแปลงที่ต้องกลับไปดู เช่น อ้อยไม่สวย น้ำท่วมขัง');
 
       h += head('กำลังทำ', doing.length);
@@ -3477,6 +3481,7 @@
     const chPlot = id => (gData.plots || []).find(p => p.plot_id === id);
     const chOg = pid => (gData.activities || []).find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
     // รายการที่ "ยกเลิก" จะลบ: ongoing = งานที่กำลังทำทั้งหมดของแปลง · last = งานล่าสุดของแปลง (ไม่นับฝนตก)
+    const chCancelWatch = (pid, reason) => (gData.watches || []).filter(w => w.plot_id === pid && (!reason || w.reason === reason));
     const chCancelLogs = (pid, which) => which === 'last'
       ? (gData.activities || []).filter(a => a.plot_id === pid && a.activity_group !== 'ฝนตก').slice(0, 1)
       : (gData.activities || []).filter(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
@@ -3485,7 +3490,7 @@
       const last = chat.msgs.slice().reverse().find(m => m.ai && m.state === 'draft');
       return {
         today: todayISO(),
-        plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '', last: (l => l ? l.activity_group + ' · ' + l.activity_detail + ' · ' + l.timestamp : '')(chCancelLogs(p.plot_id, 'last')[0]) }; }),
+        plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '', watch: (gData.watches || []).filter(w => w.plot_id === p.plot_id).map(w => w.reason + (w.note ? ' (' + w.note + ')' : '')).join(', '), last: (l => l ? l.activity_group + ' · ' + l.activity_detail + ' · ' + l.timestamp : '')(chCancelLogs(p.plot_id, 'last')[0]) }; }),
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
         chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
@@ -3684,7 +3689,7 @@
       }
       if (it.type === 'rain_pick') { it.date = it.date || todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
       if (it.type === 'add') return it.name && CH_CAT[it.category] ? it : null;
-      if (it.type === 'cancel') it.which = it.which === 'last' ? 'last' : 'ongoing';
+      if (it.type === 'cancel') it.which = ['last', 'watch'].includes(it.which) ? it.which : 'ongoing';
       if (!(it.plots || []).length) return null;
       return it;
     }
@@ -3736,7 +3741,8 @@
         } else if (a.type === 'finish') {
           a.plots.forEach(pid => { const og = chOg(pid); if (og) ops.push({ fn: 'finish', log_id: og.log_id, date: isoToBE(a.date || todayISO()) }); });
         } else if (a.type === 'cancel') {
-          a.plots.forEach(pid => chCancelLogs(pid, a.which).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));
+          if (a.which === 'watch') a.plots.forEach(pid => chCancelWatch(pid, a.reason).forEach(w => ops.push({ fn: 'unwatch', watch_id: w.watch_id })));
+          else a.plots.forEach(pid => chCancelLogs(pid, a.which).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));
         } else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
@@ -3779,7 +3785,9 @@
           return og ? row(esc(chPlot(pid).plot_name), `${og.activity_group} · ${og.activity_detail} (เริ่ม ${og.timestamp})`) : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีงานที่กำลังทำ</div>`; }).join('')
           + row('วันที่เสร็จ', dt(it.date));
       } else if (it.type === 'cancel') {
-        h = `<div class="ch-t">🗑️ ยกเลิก (ลบออกจากประวัติ)</div>` + it.plots.map(pid => { const ls = chCancelLogs(pid, it.which);
+        if (it.which === 'watch') h = `<div class="ch-t">🗑️ ยกเลิกฝากดู</div>` + it.plots.map(pid => { const ws = chCancelWatch(pid, it.reason);
+          return ws.length ? ws.map(w => row(esc(chPlot(pid).plot_name), esc(w.reason) + (w.note ? ' · ' + esc(w.note) : ''))).join('') : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีฝากดู${it.reason ? 'เรื่อง' + esc(it.reason) : ''}</div>`; }).join('');
+        else h = `<div class="ch-t">🗑️ ยกเลิก (ลบออกจากประวัติ)</div>` + it.plots.map(pid => { const ls = chCancelLogs(pid, it.which);
           return ls.length ? ls.map(l => row(esc(chPlot(pid).plot_name), `${esc(l.activity_group)} · ${esc(l.activity_detail)} (${esc(l.timestamp)})`)).join('')
             : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มี${it.which === 'last' ? 'รายการ' : 'งานที่กำลังทำ'}ให้ยกเลิก</div>`; }).join('')
           + `<div class="ch-warn" style="background:#FDECEC;color:#8A1C1C">ลบแล้วกู้คืนไม่ได้ · ยาที่ตัดสต็อกไปจะคืนให้</div>`;

@@ -1353,6 +1353,22 @@ function closeWatch(watchId, ref) {
   });
 }
 
+// ยกเลิกฝากดู (ลงผิด/ทดลอง/ไม่ต้องดูแล้ว) = ลบแถวทิ้ง ไม่เก็บเป็นประวัติ "ดูแล้ว"
+function cancelWatch(watchId) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    deleteWatch_(ss, watchId);
+    return readAll_(ss);
+  });
+}
+function deleteWatch_(ss, watchId) {
+  const sh = ss.getSheetByName('Watch');
+  if (!sh || sh.getLastRow() < 2) return false;
+  const d = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues();
+  for (let i = d.length - 1; i >= 1; i--) if (d[i][0] === String(watchId)) { sh.deleteRow(i + 1); return true; }
+  return false;
+}
+
 function closeWatchesFor_(ss, plotIds, group, detail, logId) {
   const sh = ss.getSheetByName('Watch');
   if (!sh) return;

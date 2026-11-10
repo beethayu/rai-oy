@@ -352,6 +352,7 @@
     .fm-rbar input[type=range] { width: 100%; accent-color: #2B6FD1; }
     .rk-fab.on { background: #2B6FD1; color: #fff; }
     #fmMap.fm-raining .leaflet-bottom { bottom: 175px; }
+    #fmMap.fm-saton .leaflet-bottom { bottom: 92px; }
     .fm-tag-land { background: rgba(243,234,255,.95); color: #4B2A7A; }
     #fmPanel { width: 100%; max-height: 52vh; overflow-y: auto; }
     .km-row { padding: 8px 0; }
@@ -4664,7 +4665,7 @@ Export.table.toDrive({
     let fmSatOn = false, fmSatMode = 'n', fmSatWant = false, fmSatLayer = null;
     function fmSatToggle(on) {
       fmSatOn = on === undefined ? !fmSatOn : !!on;
-      $('fmSatBtn').classList.toggle('on', fmSatOn); $('fmSatBar').style.display = fmSatOn ? '' : 'none';
+      $('fmSatBtn').classList.toggle('on', fmSatOn); $('fmSatBar').style.display = fmSatOn ? '' : 'none'; $('fmMap').classList.toggle('fm-saton', fmSatOn);
       if (fmSatOn && fmRain) fmRainToggle();
       if (!fmSatOn) { if (fmSatLayer) fmSatLayer.clearLayers(); fmRender(); return; }
       satEnsure(() => { fmSatBarHtml(); fmRender(); fmSatDraw(); });
@@ -4678,7 +4679,7 @@ Export.table.toDrive({
     }
     function fmSatDraw() {
       if (!fmMap || !fmSatOn || !satInfo) return;
-      if (!fmSatLayer) { fmMap.createPane('satPane').style.zIndex = 390; fmSatLayer = L.layerGroup().addTo(fmMap); }
+      if (!fmSatLayer) { fmMap.createPane('satPane', fmMap.getPane('rotatePane') || undefined).style.zIndex = 390; fmSatLayer = L.layerGroup().addTo(fmMap); }   // ต้องอยู่ใน rotatePane (leaflet-rotate) ไม่งั้นภาพเลื่อนหลุดจอ
       fmSatLayer.clearLayers();
       const W = fmSatMode === 'w';
       satInfo.items.forEach(x => {

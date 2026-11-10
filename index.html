@@ -141,6 +141,22 @@
     .ibtn { height: 44px; min-width: 44px; padding: 0 10px; border-radius: 12px; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .ibtn-rain { background: #fff; color: var(--doing); border: 0; }
     .ibtn-ghost { background: transparent; color: #fff; border: 1px solid #4E8466; }
+    .t-none { margin-top: 12px; background: rgba(255,255,255,.12); border-radius: 12px; padding: 8px 12px; font-size: 15px; font-weight: 600; color: #DDEDE2; }
+    .fbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    .fbtn { font-family: inherit; color: inherit; text-align: left; background: #fff; border: 1px solid #CFE0D5; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .fbtn b { font-size: 16px; color: #1F5E3B; } .fbtn span { font-size: 13px; color: #6B736E; line-height: 1.35; }
+    .fbtn em { font-style: normal; font-weight: 700; color: var(--urg-ink); }
+    .fbtn.bad { border-color: #F0C9A8; background: #FFF8F2; }
+    .gbox { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+    .ghd { font-family: inherit; color: inherit; width: 100%; text-align: left; background: #fff; border: 0; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+    .ghd.warn { border-left: 4px solid #E08A3C; }
+    .ghd .gl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .ghd .gl b { font-size: 17px; color: #1F5E3B; } .ghd .gl > span { font-size: 13.5px; color: #6B736E; }
+    .ghd .gps { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .gpill { font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 2px 8px; background: var(--urg-soft); color: var(--urg-ink); }
+    .ghd .pill { font-size: 12.5px; padding: 2px 8px; }
+    .ghd .gch { font-size: 20px; color: #8A8F8B; flex: none; }
+    .ghd.open { border-bottom: 1px solid #E1E6E2; background: #F7FAF8; }
     .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
     .tile { font-family: inherit; text-align: left; border: 0; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; }
     .tile .t-lbl { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
@@ -618,7 +634,8 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
       </div>
     </div>
-    <div class="tiles">
+    <div class="t-none" id="t-none" style="display:none">✓ ไม่มีแปลงถึงคิวหรือกำลังทำ</div>
+    <div class="tiles" id="tiles">
       <button type="button" class="tile tile-urg" onclick="switchTab('urgent')">
         <span class="t-lbl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>ถึงคิวต้องทำ</span>
         <span class="t-num"><span id="t-urg">–</span> <small>แปลง</small></span>
@@ -1226,6 +1243,11 @@
               <button class="btn btn-outline-success fw-bold" type="button" onclick="modOpt('Truck','add','new_truck')">+ เพิ่ม</button>
             </div>
             <div id="list_truck" class="d-flex flex-wrap gap-2"></div>
+          </div>
+          <div class="card-sec">
+            <h6>ดาวเทียม (เครื่องมือเก่า)</h6>
+            <div class="srow-s mb-2">ตอนนี้ข้อมูลดาวเทียมลงเองทุกเช้าแล้ว ปุ่มนี้ไว้ใช้กับ Earth Engine เท่านั้น</div>
+            <button type="button" class="btn btn-sm btn-outline-secondary w-100" style="border-radius:12px;" onclick="copyEeScript()">คัดลอกสคริปต์ดาวเทียม (Earth Engine)</button>
           </div>
         </div>
       </div>
@@ -2082,7 +2104,7 @@
       gData.plots.forEach(p => { const l = plotLoc(p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, ps: [] }); } groups[idx[l]].ps.push(p); });
       $('wt_plots').innerHTML = groups.map(g => `<div class="srow-h">${esc(g.l)}</div><div class="srow-box">${g.ps.map(p => `
         <label class="wp-row"><input type="checkbox" ${wtSel.has(p.plot_id) ? 'checked' : ''} onchange="this.checked?wtSel.add('${p.plot_id}'):wtSel.delete('${p.plot_id}')">
-          <span><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span></label>`).join('')}</div>`).join('');
+          <span>${esc(p.plot_name)}</span></label>`).join('')}</div>`).join('');
     }
     function submitWatch() {
       if (!wtSel.size) return alert('เลือกแปลงก่อนครับ');
@@ -2218,7 +2240,7 @@
         const open = todayOpen === key;
         return `<div class="srow ${cls} ${open ? 'open' : ''}">
           <button type="button" class="srow-main" onclick="tglToday('${qa(key)}')">
-            <span class="srow-l"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span><span class="srow-s">${sub}</span></span>${pill}
+            <span class="srow-l"><span class="srow-n">${esc(p.plot_name)}</span><span class="srow-s">${sub}</span></span>${pill}
           </button>
           ${open ? `<div class="srow-act"><div class="pq-btns">${btns}</div></div>` : ''}</div>`;
       };
@@ -2290,7 +2312,7 @@
       return `<div class="srow ${kd.k === 'doing' ? 'prow-doing' : kd.k === 'urgent' ? 'srow-bad' : ''} ${open ? 'open' : ''}">
         <button type="button" class="srow-main" onclick="tglPlot('${p.plot_id}')">
           <span class="srow-l">
-            <span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(sub)} ${sand}</span>
+            <span class="srow-n">${esc(sub)} ${sand}</span>
             <span class="srow-s">${esc(p.area_rai)} ไร่ · <span class="${isNew ? 'prow-new' : 'prow-rat'}">${isNew ? 'อ้อยใหม่' : 'ตอ'}${age ? ' ' + age : ''}</span>${wTxt ? ' · ' + wTxt : ''}</span>
           </span>${right}
         </button>
@@ -2317,11 +2339,25 @@
     function plotListHtml(list, logsBy) {
       const groups = [], idx = {};
       list.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
-      return groups.map(g => {
+      const all = curFil === 'ALL';
+      return (all ? '<div class="srow-h" style="margin-top:12px">แตะพื้นที่เพื่อดูแปลงข้างใน</div>' : '') + groups.map(g => {
         const rai = g.rows.reduce((t, r) => t + num(r.p.area_rai), 0);
-        return `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:baseline;padding-right:4px;"><span>${esc(g.l)}</span><span style="font-weight:500;color:#6B736E;font-size:14px;">${g.rows.length} แปลง · ${Math.round(rai * 10) / 10} ไร่</span></div>
-          <div class="srow-box">${g.rows.map(({ p, st }) => plotRow(p, st, logsBy[p.plot_id] || [])).join('')}</div>`;
+        const open = !all || grpOpen.includes(g.l) || g.rows.some(r => r.p.plot_id === plotOpen);
+        const nU = g.rows.filter(r => r.st.isUrg && !r.st.isOngoing).length, nD = g.rows.filter(r => r.st.isOngoing).length;
+        const nS = satInfo ? g.rows.filter(r => { const x = satInfo.items.find(i => i.key === 'plot|' + r.p.plot_id); return x && x.st === 'bad'; }).length : 0;
+        const ages = {}; g.rows.forEach(({ p }) => { const d = calcDays(p.plant_date), t = p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'ตอ'; if (d !== null) (ages[t] = ages[t] || []).push(Math.floor(d / 30)); });
+        const ageTxt = Object.keys(ages).map(t => { const a = ages[t], lo = Math.min(...a), hi = Math.max(...a); return `${t} ${lo === hi ? lo : lo + '–' + hi} ด.`; }).join(' · ');
+        const pills = (nU ? `<span class="pill pill-urgent">ถึงคิว ${nU}</span>` : '') + (nD ? `<span class="pill pill-doing">กำลังทำ ${nD}</span>` : '') + (nS ? `<span class="gpill">🛰️ ควรดู ${nS}</span>` : '');
+        const hd = `<button type="button" class="ghd${open ? ' open' : ''}${nU || nS ? ' warn' : ''}" onclick="tglGrp('${qa(g.l)}')"><span class="gl"><b>${esc(g.l)}</b><span>${g.rows.length} แปลง · ${Math.round(rai * 10) / 10} ไร่${ageTxt ? ' · ' + ageTxt : ''}</span>${pills ? `<span class="gps">${pills}</span>` : ''}</span><span class="gch">${open ? '⌃' : '⌄'}</span></button>`;
+        return `<div class="gbox${open ? ' open' : ''}">${hd}${open ? `<div class="gin">${g.rows.map(({ p, st }) => plotRow(p, st, logsBy[p.plot_id] || [])).join('')}</div>` : ''}</div>`;
       }).join('');
+    }
+    var grpOpen = (() => { try { return JSON.parse(localStorage.getItem('raioy_grpOpen') || '[]'); } catch (e) { return []; } })();
+    function tglGrp(l) {
+      grpOpen = grpOpen.includes(l) ? grpOpen.filter(x => x !== l) : grpOpen.concat(l);
+      if (!grpOpen.includes(l) && gData.plots.some(p => p.plot_id === plotOpen && plotLoc(p.plot_name) === l)) plotOpen = '';
+      try { localStorage.setItem('raioy_grpOpen', JSON.stringify(grpOpen)); } catch (e) {}
+      render();
     }
 
     function render() {
@@ -2356,6 +2392,7 @@
       const total = nUrg + nDoing + (gData.watches || []).length;
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
       $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
+      const none = !nUrg && !nDoing; $('tiles').style.display = none ? 'none' : ''; $('t-none').style.display = none ? '' : 'none';
       $('sub-info').innerText = `${totRai} ไร่`;
       const n = new Date();
       $('hd-date').innerText = `${gData.plots.length} แปลง · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
@@ -2456,7 +2493,7 @@
       const item = r => {
         const { p } = r, on = pkSel.has(p.plot_id);
         return `<label class="pk-row ${on ? 'on' : ''}" data-id="${p.plot_id}"><input type="checkbox" ${on ? 'checked' : ''} onchange="pkToggle('${p.plot_id}', this.checked)">
-          <span class="srow-l" style="flex:1"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span>
+          <span class="srow-l" style="flex:1"><span class="srow-n">${esc(p.plot_name)}</span>
           <span class="srow-s">${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</span></span>${why(r)}</label>`;
       };
       let h = '';
@@ -4738,7 +4775,19 @@ Export.table.toDrive({
 
     function farmBtnHtml() {
       const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;
-      return `<button type="button" class="btn btn-outline-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openFarmMap()">แผนที่ไร่ · วาดขอบแล้ว ${n}/${gData.plots.length} แปลง${nl ? ` · ที่ดินดูไว้ ${nl}` : ''}</button>` + (n ? `<button type="button" class="btn btn-success w-100 fw-bold mb-2" style="border-radius:12px;" onclick="openSat()">🛰️ ดาวเทียมรายแปลง</button><button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" style="border-radius:12px;" onclick="copyEeScript()">🛰️ คัดลอกสคริปต์ดาวเทียม (Earth Engine · ทดลอง)</button>` : '');
+      const left = gData.plots.length - n;
+      const map = `<button type="button" class="fbtn" onclick="openFarmMap()"><b>🗺️ แผนที่ไร่</b><span>${left ? `ยังไม่วาดขอบ ${left} แปลง` : `${gData.plots.length} แปลง`}${nl ? ` · ที่ดิน ${nl}` : ''}</span></button>`;
+      if (!n) return `<div class="fbtns" style="grid-template-columns:1fr">${map}</div>`;
+      satQuiet();
+      const it = satInfo ? satInfo.items.filter(x => !x.land) : null, bad = it ? it.filter(x => x.st === 'bad').length : 0, ok = it ? it.filter(x => x.st === 'ok').length : 0;
+      const sat = !it ? 'กำลังโหลด…' : bad ? `<em>⚠️ ${bad} ควรไปดู</em> · ✅ ${ok}` : `✅ ปกติ ${ok} แปลง`;
+      return `<div class="fbtns">${map}<button type="button" class="fbtn${bad ? ' bad' : ''}" onclick="openSat()"><b>🛰️ ดาวเทียม</b><span>${sat}</span></button></div>`;
+    }
+    // โหลดข้อมูลดาวเทียมเงียบ ๆ ครั้งเดียว (ไม่มีข้อความเด้ง) เพื่อโชว์สรุปบนปุ่ม
+    var satQuietGo = false;
+    function satQuiet() {
+      if (satInfo || satQuietGo) return; satQuietGo = true;
+      callApi('getSatData', []).then(d => { if (satInfo) return; satData = d || { sat: [], radar: [] }; satBuild(); if (curTab === 'all') render(); }).catch(() => { satQuietGo = false; });
     }
 
     function openFarmMap(pid, edit) {
@@ -5616,7 +5665,7 @@ Export.table.toDrive({
       return groups.map((g, gi) => `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(g.l)}</span>
           <button type="button" class="grp-all" onclick="rainGrp(${gi})">เลือกทั้งกลุ่ม</button></div>
         <div class="srow-box" data-rg="${gi}">${g.ps.map(p => `<label class="pk-row"><input type="checkbox" class="p-chk" value="${p.plot_id}" onchange="rainSync()">
-          <span class="srow-l" style="flex:1"><span class="srow-n"><span class="prow-id">${esc(p.plot_id)}</span> ${esc(p.plot_name)}</span>
+          <span class="srow-l" style="flex:1"><span class="srow-n">${esc(p.plot_name)}</span>
           <span class="srow-s">${esc(p.area_rai)} ไร่ · ${esc(p.cane_type)}</span></span></label>`).join('')}</div>`).join('');
     }
     function rainSync() {

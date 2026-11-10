@@ -516,6 +516,17 @@
     .sat-it .t { flex: 1; min-width: 0; } .sat-it .t b { display: block; font-size: 15px; } .sat-it .t span { font-size: 13px; color: var(--muted); line-height: 1.35; display: block; }
     .sat-it .st { font-size: 22px; flex: none; }
     .sat-bignum { font-size: 34px; font-weight: 700; line-height: 1; }
+    .fm-sheet { animation: fmUp .22s ease-out; }
+    @keyframes fmUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .fm-sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line2); margin: 0 auto 8px; }
+    .fm-sheet .shd { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .fm-sheet .shd small { color: var(--muted); font-size: 13px; }
+    .fm-sheet .big { text-align: right; flex: none; }
+    .fm-sheet .big .sat-bignum { font-size: 40px; }
+    .fm-sheet .big b { display: block; font-size: 13px; }
+    .fm-sheet .sat-dates { margin-top: 8px; position: relative; }
+    .fm-sheet .sat-dates button { padding: 8px 11px; font-size: 14px; }
+    .fm-sheet .old { font-size: 12.5px; color: var(--urg-ink); }
     .sat-seg { display: flex; background: #E7E5DC; border-radius: 12px; padding: 3px; margin: 10px 0 8px; }
     .sat-seg button { flex: 1; border: 0; background: transparent; padding: 7px; border-radius: 9px; font-weight: 600; font-size: 14.5px; color: var(--muted); }
     .sat-seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
@@ -4662,15 +4673,15 @@ Export.table.toDrive({
     }
 
     // ===== ชั้นดาวเทียมบนแผนที่ไร่: ภาพสีของแต่ละแปลงวางบนแผนที่จริง ซูม/แตะดูได้ =====
-    let fmSatOn = false, fmSatMode = 'n', fmSatWant = false, fmSatLayer = null;
+    let fmSatOn = false, fmSatMode = 'n', fmSatWant = false, fmSatLayer = null, fmSatDate = {}, fmSatOv = {};
     function fmSatToggle(on) {
       fmSatOn = on === undefined ? !fmSatOn : !!on;
       $('fmSatBtn').classList.toggle('on', fmSatOn); $('fmSatBar').style.display = fmSatOn ? '' : 'none'; $('fmMap').classList.toggle('fm-saton', fmSatOn);
       if (fmSatOn && fmRain) fmRainToggle();
-      if (!fmSatOn) { if (fmSatLayer) fmSatLayer.clearLayers(); fmRender(); return; }
+      if (!fmSatOn) { fmSatDate = {}; if (fmSatLayer) fmSatLayer.clearLayers(); fmSatOv = {}; fmRender(); return; }
       satEnsure(() => { fmSatBarHtml(); fmRender(); fmSatDraw(); });
     }
-    function fmSatSetMode(m) { fmSatMode = m; fmSatBarHtml(); fmSatDraw(); }
+    function fmSatSetMode(m) { fmSatMode = m; fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
     function fmSatBarHtml() {
       const W = fmSatMode === 'w', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
       $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${W ? '' : 'on'}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">หาจุดอ่อน</button></div><small>ภาพ ${latest ? satDs(latest) : '-'}</small></div>
@@ -4680,12 +4691,48 @@ Export.table.toDrive({
     function fmSatDraw() {
       if (!fmMap || !fmSatOn || !satInfo) return;
       if (!fmSatLayer) { fmMap.createPane('satPane', fmMap.getPane('rotatePane') || undefined).style.zIndex = 390; fmSatLayer = L.layerGroup().addTo(fmMap); }   // ต้องอยู่ใน rotatePane (leaflet-rotate) ไม่งั้นภาพเลื่อนหลุดจอ
-      fmSatLayer.clearLayers();
+      fmSatLayer.clearLayers(); fmSatOv = {};
       const W = fmSatMode === 'w';
       satInfo.items.forEach(x => {
         if (!x.last || x.pts.length < 3 || (x.land && !fmShowLands)) return;
-        satImg(x, x.last.d, W, img => { if (!img || !fmSatOn || fmSatMode !== (W ? 'w' : 'n')) return; L.imageOverlay(img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false, className: 'fm-sat-img' }).addTo(fmSatLayer); });
+        fmSatOne(x);
       });
+    }
+    // วางภาพของแปลงเดียว ตามวันที่ที่เลือกไว้ (ไม่เลือก = ภาพล่าสุด) · เปลี่ยนวันที่ = เปลี่ยนเฉพาะแปลงนั้นทันที
+    function fmSatOne(x) {
+      const W = fmSatMode === 'w', d = fmSatDate[x.key] || x.last.d;
+      satImg(x, d, W, img => {
+        if (!img || !fmSatOn || fmSatMode !== (W ? 'w' : 'n') || (fmSatDate[x.key] || x.last.d) !== d) return;
+        if (fmSatOv[x.key]) fmSatLayer.removeLayer(fmSatOv[x.key]);
+        fmSatOv[x.key] = L.imageOverlay(img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false, className: 'fm-sat-img' }).addTo(fmSatLayer);
+      });
+    }
+    const fmSatCur = x => x.good.find(q => q.d === fmSatDate[x.key]) || x.last;
+    function fmSatPick(key, d) {
+      const x = satInfo.items.find(i => i.key === key); if (!x) return;
+      if (d === x.last.d) delete fmSatDate[key]; else fmSatDate[key] = d;
+      fmSatOne(x); fmLabels(); fmPanel(true);
+    }
+    // แผ่นข้อมูลดาวเทียมของแปลงที่แตะ (ตอนเปิด 🛰️)
+    function fmSatSheet(x, btns, still) {
+      const W = fmSatMode === 'w', d = fmSatDate[x.key] || x.last.d, cur = x.good.find(q => q.d === d) || x.last;
+      const peers = satInfo.items.filter(o => !o.land && o.key !== x.key && o.type === x.type).map(o => (o.good.find(q => q.d === cur.d) || {}).ndvi).filter(v => v != null);
+      const pm = peers.length >= 3 ? satMed(peers) : null;
+      const cmp = pm === null || x.land ? '' : cur.ndvi >= pm + 0.08 ? `เขียวกว่า${x.type}แปลงอื่นวันเดียวกัน` : cur.ndvi <= pm - 0.08 ? `เขียวน้อยกว่า${x.type}แปลงอื่นวันเดียวกัน` : `ใกล้เคียง${x.type}แปลงอื่นวันเดียวกัน`;
+      const weak = W && cur.weak !== null ? (cur.ndvi < 0.5 ? 'ใบยังไม่คลุม ดูจุดอ่อนยังไม่แม่น' : satWeakBad(cur) ? `⚠️ ราว ${Math.round(cur.weak * 100)}% ของแปลงอ่อนกว่าส่วนอื่น (สีแดง/ส้ม)` : `✅ ทั้งแปลงใกล้เคียงกัน`) : '';
+      const dates = x.good.slice(-12);
+      const chips = dates.map(q => `<button type="button" class="${q.d === cur.d ? 'on' : ''}" onclick="fmSatPick('${qa(x.key)}','${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('');
+      const latest = cur.d === x.last.d;
+      return `<div class="fm-sheet${still ? '' : ' fm-sheet-in'}" style="${still ? 'animation:none' : ''}"><div class="grab"></div>
+        <div class="shd"><div><div class="fw-bold" style="font-size:17px">${esc(x.name)}</div><small>${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}</small>
+          <div style="font-size:13px;margin-top:2px">ภาพ <b>${satD(cur.d)}</b>${latest ? ' (ล่าสุด)' : ` <span class="old">· ภาพเก่า</span>`}</div></div>
+          <div class="big"><small class="text-muted" style="font-size:12px">ความเขียว</small><div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b style="color:${satColor(cur.ndvi)}">${satLevel(cur.ndvi)}</b></div></div>
+        ${cmp ? `<div style="font-size:13.5px;margin-top:4px">${cmp}${pm !== null ? ` <span class="text-muted">(แปลงอื่น ${pm.toFixed(2)})</span>` : ''}</div>` : ''}
+        ${weak ? `<div style="font-size:13.5px;margin-top:2px">${weak}</div>` : ''}
+        ${latest ? x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag">⚠️ ${esc(f)}</div>`).join('') : ''}
+        <div class="sat-dates" id="fmSatDates">${chips}</div>
+        <div class="d-flex justify-content-between" style="font-size:12px;color:var(--muted)"><span>แตะวันที่ = เปลี่ยนภาพบนแผนที่</span>${latest ? '' : `<a href="#" style="color:var(--green);font-weight:700" onclick="event.preventDefault();fmSatPick('${qa(x.key)}','${x.last.d}')">กลับภาพล่าสุด</a>`}</div>
+        <div class="d-flex gap-2 mt-2">${btns}</div></div>`;
     }
     const fmSatItem = (kind, id) => satInfo && satInfo.items.find(i => i.key === kind + '|' + id);
 
@@ -4800,7 +4847,8 @@ Export.table.toDrive({
       if (z >= 15) {
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3 || editing(p.plot_id)) return;
           const sx = fmSatOn && fmSatItem('plot', p.plot_id);
-          lbl(center(pts), sx && sx.last ? `${sx.st === 'bad' ? '⚠️ ' : ''}${esc(p.plot_name)} <span style="color:${satColor(sx.last.ndvi)}">${sx.last.ndvi.toFixed(2)}</span>` : esc(p.plot_name), 'fm-tag'); });
+          const sq = sx && sx.last && fmSatCur(sx), old = sq && sq.d !== sx.last.d;
+          lbl(center(pts), sq ? `${sx.st === 'bad' && !old ? '⚠️ ' : ''}${esc(p.plot_name)} <span style="color:${satColor(sq.ndvi)}">${sq.ndvi.toFixed(2)}</span>${old ? ` <span>· ${satDs(sq.d)}</span>` : ''}` : esc(p.plot_name), 'fm-tag'); });
         (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && !editing(l.land_id) && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
         return;
       }
@@ -4910,7 +4958,7 @@ Export.table.toDrive({
         </div>
         <button type="button" class="grp-all mt-2" onclick="$('kmlFile').value='';$('kmlFile').click()">นำเข้าขอบแปลงจาก Ling (.kml)</button>`;
     }
-    function fmPanel() {
+    function fmPanel(still) {
       const P = $('fmPanel'), H = $('fmHint');
       if (fmEdit) { fmEditPanel(); return; }
       if (kmItems) { kmPanel(); return; }
@@ -4920,6 +4968,13 @@ Export.table.toDrive({
         const p = gData.plots.find(x => x.plot_id === fmSel.id);
         const diff = num(p.area_rai) ? ` · ในระบบ ${num(p.area_rai)} ไร่` : '';
         const sx = fmSatOn && fmSatItem('plot', p.plot_id);
+        if (sx && sx.last) {
+          P.innerHTML = fmSatSheet(sx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)">กราฟ 12 เดือน</button>
+            ${nav(p.center_lat, p.center_lng)}
+            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still);
+          const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
+          return;
+        }
         const satLine = sx && sx.last ? `<button type="button" class="sat-it mb-2" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)" style="padding:8px 12px">
             <span class="t"><b>${sx.st === 'bad' ? '⚠️' : '✅'} เขียว <span style="color:${satColor(sx.last.ndvi)};display:inline;font-size:15px">${sx.last.ndvi.toFixed(2)}</span> · ${satLevel(sx.last.ndvi)}</b><span>${sx.flags.length ? esc(sx.flags.join(' · ')) : 'ภาพ ' + satDs(sx.last.d) + ' · ใกล้เคียงแปลงอื่น'}</span></span><span class="st" style="font-size:15px;color:var(--green);font-weight:700">ดูภาพ ›</span></button>` : '';
         P.innerHTML = `<div class="fw-bold">${esc(p.plot_name)}</div>
@@ -4933,6 +4988,12 @@ Export.table.toDrive({
       }
       if (fmSel && fmSel.kind === 'land') {
         const l = (gData.lands || []).find(x => x.land_id === fmSel.id);
+        const lx = fmSatOn && fmSatItem('land', l.land_id);
+        if (lx && lx.last) {
+          P.innerHTML = fmSatSheet(lx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('land|${l.land_id}'),300)">กราฟ + น้ำขังย้อนหลัง</button>${nav(l.center_lat, l.center_lng)}`, still);
+          const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
+          return;
+        }
         P.innerHTML = `<div class="fw-bold">${esc(l.name)} <span class="srow-s">· ${fmtRai(num(l.map_rai) * 1600)}</span></div>
           <div class="srow-s mb-2">${[l.owner ? 'เจ้าของ ' + esc(l.owner) : '', l.phone ? `<a href="tel:${esc(l.phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B">${esc(l.phone)}</a>` : '', esc(l.note)].filter(Boolean).join(' · ') || 'ที่ดินดูไว้'}</div>
           <div class="d-flex gap-2">

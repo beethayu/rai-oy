@@ -987,6 +987,7 @@ function readBill(images, mime, opts) {
   const assets = readSheet_(ss, SH.ASSET).filter(a => a.category !== 'Worker').map(a => `- ${a.name}`);
   const today = getTodayStr();
   const shops = readSheet_(ss, 'Expenses').map(e => e.shop).filter((x, i, a) => x && x !== '-' && a.indexOf(x) === i);
+  const aliases = billAliases_(ss);
 
   try { if (!(opts.photo_ids || []).length) cleanBillPhotos(24 * 60); } catch (e) {}
   const t0 = Date.now();
@@ -1005,7 +1006,7 @@ ${pages.length > 1 ? `- รูปทั้ง ${pages.length} รูปคือ
 - คอลัมน์: จำนวน | รายการ | หน่วยละ | จำนวนเงิน — amount เอาจากคอลัมน์จำนวนเงิน (ขวาสุด) ไม่ใช่หน่วยละ
 - ถ้ามีหน่วยละ ใช้ จำนวน × หน่วยละ เช็กว่าตรงกับจำนวนเงิน
 - ผลรวม amount ทุกบรรทัดควรเท่ากับยอดรวมในบิล ถ้าไม่เท่า ให้อ่านตัวเลขแต่ละบรรทัดใหม่อย่างระวัง (เลข 0/6/9, 1/7, 4/9 เขียนมือคล้ายกัน)
-- คำย่อ/สะกดผิดที่พบบ่อย: แท้ = อะไหล่แท้, คลัทช์/ครัช, ลูกปืน, ซีล, โอริง, กรองโซล่า, กรองดักน้ำ, กรองไฮดรอลิค, กรองอากาศ, กรองน้ำมันเครื่อง, ไฟวีล = ฟลายวีล, ดุมล้อ, น้ำมันเกียร์, น้ำมันเบรก, ค่าแรง
+- คำย่อ/สะกดผิดที่พบบ่อย: 2ที/2T/ทูที/ไฮสปีด 2ที = น้ำมันเครื่อง 2 จังหวะ (ออโต้ลูป), แท้ = อะไหล่แท้, คลัทช์/ครัช, ลูกปืน, ซีล, โอริง, กรองโซล่า, กรองดักน้ำ, กรองไฮดรอลิค, กรองอากาศ, กรองน้ำมันเครื่อง, ไฟวีล = ฟลายวีล, ดุมล้อ, น้ำมันเกียร์, น้ำมันเบรก, ค่าแรง
 - ชื่อสินค้าให้เขียนเป็นคำที่ถูกต้องอ่านง่าย (ไม่ต้องลอกตัวสะกดผิดในบิล) เลขรุ่นอะไหล่ (เช่น 29685 KOYO) ใส่ต่อท้ายชื่อ
 - ชื่อร้าน (shop): มาจากหัวบิล/ตราประทับร้าน ช่อง "นาม/CUSTOMER" และ "ที่อยู่/ADDRESS" คือผู้ซื้อ (เจ้าของไร่) ไม่ใช่ร้าน ห้ามเอามาใส่ shop
   ร้านที่เคยซื้อ: ${shops.join(', ') || '-'} ถ้าไม่มีชื่อร้านในบิลใส่ ""
@@ -1023,6 +1024,8 @@ ${pages.length > 1 ? `- รูปทั้ง ${pages.length} รูปคือ
 - อ่านไม่ออกใส่ amount 0 / ห้ามเดาจากอากาศ / ถ้าไม่ใช่บิลให้ items เป็น []
 รายการสต็อก:
 ${inv.join('\n')}
+${aliases.length ? `ชื่อในบิลที่ผู้ใช้เคยจับคู่กับสต็อกแล้ว (เจอชื่อเดียวกัน/คล้ายกันให้ใช้ตามนี้):
+${aliases.slice(-60).map(a => `- "${a.bill_item}" → ${a.stock_item} (1 หน่วยในบิล = ${a.per_qty} หน่วยย่อย)`).join('\n')}` : ''}
 รถ/เครื่อง:
 ${assets.join('\n')}`;
 
@@ -1040,7 +1043,14 @@ ${assets.join('\n')}`;
   const invNames = new Set(readSheet_(ss, SH.INV).map(i => i.name));
   const asNames = new Set(readSheet_(ss, SH.ASSET).map(a => a.name));
   const veh = asNames.has(data.vehicle) ? data.vehicle : '';
-  data.items = (data.items || []).map(it => ({
+  const amap = {};
+  aliases.forEach(a => { if (invNames.has(a.stock_item)) amap[a.key] = a; });
+  data.items = (data.items || []).map(it => {
+    // ชื่อในบิลที่เคยจับคู่ไว้ แต่ AI ไม่ได้ใส่สต็อก → ใส่ให้ตามที่จำไว้
+    const al = !invNames.has(it.stock_item) && amap[billKey_(it.item)];
+    if (al) { it.stock_item = al.stock_item; it.stock_qty = round_((Number(it.qty) || 1) * (Number(al.per_qty) || 0)); }
+    return it;
+  }).map(it => ({
     item: String(it.item || '').trim(),
     category: BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ',
     qty: Number(it.qty) || 0, unit: String(it.unit || ''), amount: Number(it.amount) || 0,
@@ -1149,7 +1159,29 @@ function writeBill_(ss, billId, b, now, assetLabel) {
   [6, 8, 11].forEach(c => sh.getRange(rg.getRow(), c + 1, rows.length, 1).setNumberFormat('#,##0.##'));
   rg.setValues(rows.map(r => r.map((v, c) => [6, 8, 11].indexOf(c) !== -1 ? (v === '' ? '' : Number(v)) : String(v === null || v === undefined ? '' : v))));
   if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
+  try { learnBillAlias_(ss, items); } catch (e) {}
   nameBillPhotos_(b.photo_id, date, shop);
+}
+
+// ===== จำชื่อในบิล → รายการสต็อก (ผู้ใช้เลือกรับเข้าสต็อกครั้งเดียว รอบหน้าอ่านบิลแล้วใส่ให้เอง) =====
+const ALIAS_H_ = ['key', 'bill_item', 'stock_item', 'per_qty', 'updated_at'];
+function billKey_(s) { return String(s || '').toLowerCase().replace(/[\s.()\[\]\-_\/,]/g, ''); }
+function billAliases_(ss) {
+  const sh = ss.getSheetByName('BillAlias');
+  return sh ? readSheet_(ss, 'BillAlias').filter(a => a.key && a.stock_item) : [];
+}
+function learnBillAlias_(ss, items) {
+  const learn = (items || []).filter(it => it && it.item && it.stock_item && (Number(it.stock_qty) || 0) > 0 && billKey_(it.item) !== billKey_(it.stock_item));
+  if (!learn.length) return;
+  const sh = getOrCreate_(ss, 'BillAlias', ALIAS_H_);
+  const d = sh.getDataRange().getDisplayValues(), at = {};
+  for (let i = 1; i < d.length; i++) at[d[i][0]] = i + 1;
+  learn.forEach(it => {
+    const key = billKey_(it.item), per = round_((Number(it.stock_qty) || 0) / ((Number(it.qty) || 0) > 0 ? Number(it.qty) : 1));
+    const row = [key, String(it.item).trim(), it.stock_item, String(per), getTodayStr()];
+    if (at[key]) sh.getRange(at[key], 1, 1, row.length).setNumberFormat('@').setValues([row]);
+    else { appendRows_(sh, [row]); at[key] = sh.getLastRow(); }
+  });
 }
 
 // ลบบิลทั้งใบ: ลบแถวค่าใช้จ่าย, คืนสต็อกที่รับเข้า, ลบประวัติรถ, ทิ้งรูป

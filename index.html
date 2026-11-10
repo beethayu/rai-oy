@@ -522,6 +522,9 @@
     .sat-key2 i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
     .sat-say { font-size: 15.5px; font-weight: 700; margin-top: 10px; } .sat-note { font-size: 13px; color: var(--muted); }
     .fm-sat-img { image-rendering: pixelated; }
+    .bl-new { display: block; width: 100%; margin-top: 6px; border: 1.5px dashed #1F5E3B; background: #F1F7F2; color: #1F5E3B; border-radius: 10px; padding: 7px; font-weight: 700; font-size: 14px; }
+    .bl-newbox { margin-top: 8px; border: 1.5px solid #1F5E3B; background: #F7FBF8; border-radius: 12px; padding: 10px; }
+    .bl-newbox label span { display: block; font-size: 12px; color: #5A625D; }
     .sat-key1 { display: flex; justify-content: space-between; font-size: 12.5px; } .sat-key1 i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
     .sat-top { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
     .sat-top b { display: block; font-size: 16px; } .sat-top small { color: var(--muted); }
@@ -1732,9 +1735,10 @@
         </div>
         ${STOCK_CAT[it.category] ? `
         <div class="bl-s"><span title="รับเข้าสต็อก">📥</span>
-          <select class="form-select form-select-sm" aria-label="รับเข้าสต็อก" onchange="billSet(${i},'stock_item',this.value,true)">${opt('', 'ไม่รับเข้าสต็อก', !it.stock_item)}${inv.map(x => opt(x.name, x.name, x.name === it.stock_item)).join('')}</select>
+          <select class="form-select form-select-sm" aria-label="รับเข้าสต็อก" onchange="this.value === '__new__' ? billNewOpen(${i}) : billSet(${i},'stock_item',this.value,true)">${opt('', 'ไม่รับเข้าสต็อก', !it.stock_item)}${inv.map(x => opt(x.name, x.name, x.name === it.stock_item)).join('')}${opt('__new__', '+ สร้างรายการใหม่…', false)}</select>
           <input type="number" inputmode="decimal" class="form-control form-control-sm" aria-label="จำนวนที่รับเข้าสต็อก" placeholder="จำนวน" value="${it.stock_qty || ''}" ${it.stock_item ? '' : 'disabled'} oninput="billSet(${i},'stock_qty',this.value)">
-          <small>${sIt ? esc(sIt.unit) : ''}</small></div>` : ''}
+          <small>${sIt ? esc(sIt.unit) : ''}</small></div>
+        ${it._new ? billNewHtml(it, i) : !it.stock_item ? `<button type="button" class="bl-new" onclick="billNewOpen(${i})">📥 + สร้างเป็นรายการสต็อกใหม่ แล้วรับเข้า</button>` : ''}` : ''}
         ${it.category === 'อะไหล่' ? `
         <div class="bl-s bl-a"><span title="ของรถ/เครื่อง">🚜</span><select class="form-select form-select-sm" aria-label="ของรถหรือเครื่องคันไหน" onchange="billSet(${i},'asset',this.value)">${opt('', 'ของรถ/เครื่องคันไหน (ไม่ระบุ)', !it.asset)}${assets.map(a => opt(a.name, a.name, a.name === it.asset)).join('')}</select></div>` : ''}
         <div class="bl-inf" id="bl_inf_${i}">${billInfoHtml(it)}</div></div>`;
@@ -1772,6 +1776,51 @@
     }
 
     function billKeep() { if (!billDraft || !$('bl_date')) return; billDraft.date = isoToBE($('bl_date').value); billDraft.shop = $('bl_shop').value; billDraft.note = $('bl_note').value; }
+    // ===== สร้างรายการสต็อกใหม่จากบรรทัดในบิล (เดาหน่วย/ขนาดจากชื่อ เช่น "(0.5ล.)" 1 ขวด → ml ขวดละ 500) =====
+    function billGuessNew(it) {
+      const name = String(it.item || '').replace(/\s*\((?:[^)]*\d[^)]*)\)\s*$/, '').trim() || 'รายการใหม่';
+      const bu = String(it.unit || '').trim(), m = String(it.item || '').match(/(\d+(?:\.\d+)?)\s*(ml|มล\.?|ซีซี|cc|ลิตร|ล\.|ล\b|l\b|kg|กก\.?|กิโล(?:กรัม)?|g\b|กรัม)/i);
+      let unit = bu || 'หน่วย', pack = 1, pn = bu || 'หน่วย';
+      if (m) {
+        const n = num(m[1]), u = m[2].toLowerCase();
+        const vol = /^(ลิตร|ล|l)/.test(u), ml = /^(ml|มล|ซีซี|cc)/.test(u), kg = /^(kg|กก|กิโล)/.test(u), g = /^(g|กรัม)$/.test(u);
+        if ((vol || ml) && !/ลิตร/.test(bu)) { unit = 'ml'; pack = vol ? n * 1000 : n; pn = bu || 'ขวด'; }
+        else if (vol) { unit = 'ลิตร'; pack = 1; pn = 'ลิตร'; }
+        else if ((kg || g) && !/กระสอบ/.test(bu)) { unit = 'g'; pack = kg ? n * 1000 : n; pn = bu || 'ถุง'; }
+      }
+      return { name, unit, pack: r3(pack), pn };
+    }
+    function billNewOpen(i) { billKeep(); billDraft.items[i]._new = billGuessNew(billDraft.items[i]); renderBill(); }
+    function billNewClose(i) { billKeep(); delete billDraft.items[i]._new; renderBill(); }
+    function billNewHtml(it, i) {
+      const g = it._new, q = num(it.qty) || 1;
+      return `<div class="bl-newbox">
+        <div class="fw-bold mb-1">สร้างรายการสต็อกใหม่</div>
+        <label class="d-block mb-1"><span>ชื่อ (ใช้ตอนบันทึกงาน)</span><input class="form-control form-control-sm" id="bn_name_${i}" value="${esc(g.name)}"></label>
+        <div class="d-flex gap-2">
+          <label class="flex-fill"><span>หน่วยย่อย</span><input class="form-control form-control-sm" id="bn_unit_${i}" value="${esc(g.unit)}" oninput="billNewHint(${i})"></label>
+          <label class="flex-fill"><span>ขนาดบรรจุ</span><input type="number" inputmode="decimal" class="form-control form-control-sm" id="bn_pack_${i}" value="${g.pack}" oninput="billNewHint(${i})"></label>
+          <label class="flex-fill"><span>เรียกว่า</span><input class="form-control form-control-sm" id="bn_pn_${i}" value="${esc(g.pn)}" oninput="billNewHint(${i})"></label>
+        </div>
+        <div class="small text-muted mt-1" id="bn_hint_${i}">${billNewHintTxt(g.unit, g.pack, g.pn, q)}</div>
+        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" id="bn_go_${i}" onclick="billNewSave(${i})">สร้าง + รับเข้าสต็อก</button><button type="button" class="btn btn-sm btn-outline-secondary" onclick="billNewClose(${i})">ยกเลิก</button></div>
+      </div>`;
+    }
+    const billNewHintTxt = (unit, pack, pn, q) => `รับเข้า ${fmtNum(q)} ${esc(pn || unit)} = <b>${fmtNum(r3(q * (num(pack) || 1)))} ${esc(unit)}</b>`;
+    const fmtNum = n => (Math.round(num(n) * 1000) / 1000).toLocaleString('th-TH');
+    function billNewHint(i) { const el = $('bn_hint_' + i); if (el) el.innerHTML = billNewHintTxt($('bn_unit_' + i).value.trim(), $('bn_pack_' + i).value, $('bn_pn_' + i).value.trim(), num(billDraft.items[i].qty) || 1); }
+    function billNewSave(i) {
+      const it = billDraft.items[i], name = $('bn_name_' + i).value.trim(), unit = $('bn_unit_' + i).value.trim();
+      const pack = num($('bn_pack_' + i).value) || 1, pn = $('bn_pn_' + i).value.trim() || unit;
+      if (!name || !unit) return alert('ใส่ชื่อและหน่วยย่อยก่อนครับ');
+      if (invItem(name)) { billKeep(); delete it._new; it.stock_item = name; it.stock_qty = r3((num(it.qty) || 1) * (num(invItem(name).pack_size) || 1)); return renderBill(); }
+      billKeep();
+      call('saveStockItem', [{ item_id: '', category: STOCK_CAT[it.category], name, note: 'สร้างจากบิล: ' + (it.item || ''), unit, pack_size: pack, pack_name: pn, per_tank: '', reorder_point: 0 }], d => {
+        gData.inventory = d.inventory || gData.inventory;   // อัปเดตแค่รายการสต็อก ไม่รีเฟรชทั้งแอป (บิลยังเปิดอยู่)
+        delete it._new; it.stock_item = name; it.stock_qty = r3((num(it.qty) || 1) * pack);
+        renderBill();
+      }, $('bn_go_' + i), '⏳ กำลังสร้างรายการ...');
+    }
     function billSet(i, k, v, rerender) {
       const it = billDraft.items[i]; it[k] = v;
       if (k === 'category') { it.stock_item = ''; it.stock_qty = 0; if (v !== 'อะไหล่') it.asset = ''; }

@@ -267,6 +267,9 @@
     .ch-row { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; line-height: 1.6; }
     .ch-row span { color: #5D6B62; flex-shrink: 0; }
     .ch-row b { font-weight: 600; text-align: right; }
+    .ch-erow { align-items: center; margin: 2px 0; }
+    .ch-erow input { -webkit-appearance: none; appearance: none; min-width: 0; width: 60%; max-width: 210px; font: inherit; font-size: 16px; font-weight: 600; text-align: right; border: 1px solid #D5DED8; border-radius: 10px; padding: 5px 10px; background: #fff; color: inherit; min-height: 38px; }
+    .ch-erow input.ch-guess { border-color: #E08A3C; background: #FFF6EC; color: #A4520E; }
     .ch-guess { color: #A04A00; border-bottom: 2px dotted #E07B00; }
     .ch-warn { font-size: 14px; color: #8A3F00; background: #FFF3E5; border-radius: 8px; padding: 4px 8px; margin-top: 4px; }
     .ch-x { position: absolute; top: 6px; right: 6px; width: 34px; height: 34px; border: 0; background: none; color: #6B736E; font-size: 16px; }
@@ -3815,6 +3818,7 @@
       chatSave(); chatRender();
     }
     function chatRainPlots(it) { return it.areas.filter(a => it.sel.includes(a.loc)).reduce((t, a) => t.concat(a.plots), []); }
+    function chatRegSet(mi, i, k, v) { const it = chat.msgs[mi].items[i]; it[k] = String(v || '').trim(); it.unsure = (it.unsure || []).filter(x => x !== k); chatSave(); chatRender(); }
     function chatRegCat(mi, i, c) { const it = chat.msgs[mi].items[i]; it.newCat = c; chatSave(); chatRender(); }
     function chatDrop(mi, i) { const m = chat.msgs[mi]; m.items.splice(i, 1); if (!m.items.length) m.state = 'cancel'; chatSave(); chatRender(); }
     function chatCancel(mi) { chat.msgs[mi].state = 'cancel'; chat.pics = null; chatSave(); chatRender(); }
@@ -3921,8 +3925,12 @@
           + row('ทำอะไร', it.detail) + row('ร้าน/ที่', it.shop) + row('วันที่', dt(it.date))
           + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — จะไม่ถูกบันทึก</div>` : '');
       } else if (it.type === 'asset_reg') {
-        h = `<div class="ch-t">🪪 ต่อทะเบียน/ภาษี · ${esc(it.asset)}</div>` + row('ทะเบียน', it.plate, 'plate') + row('ครบกำหนด', it.expire ? thDate(it.expire) : '', 'expire')
-          + row('ทะเบียนพ่วง', it.trailer_plate, 'trailer_plate') + row('พ่วงครบกำหนด', it.trailer_expire ? thDate(it.trailer_expire) : '', 'trailer_expire')
+        const ra = chAsset(it.asset), tr = it.trailer_plate || it.trailer_expire || (ra && ['Truck', 'Car'].includes(ra.category));
+        const er = (l, k, date) => !live ? row(l, date ? (it[k] ? thDate(it[k]) : '') : it[k], k)
+          : `<label class="ch-row ch-erow"><span>${l}</span><input class="${un(k) ? 'ch-guess' : ''}" ${date ? 'type="date"' : 'type="text" placeholder="แตะใส่"'} value="${esc(it[k] || '')}" onchange="chatRegSet(${mi},${i},'${k}',this.value)"></label>`;
+        h = `<div class="ch-t">🪪 ต่อทะเบียน/ภาษี · ${esc(it.asset)}</div>` + er('ทะเบียน', 'plate') + er('ครบกำหนด', 'expire', 1)
+          + (tr ? er('ทะเบียนพ่วง', 'trailer_plate') + er('พ่วงครบกำหนด', 'trailer_expire', 1) : '')
+          + (live ? '<div class="ch-note" style="font-size:12.5px;color:#6B736E">แตะช่องเพื่อแก้ได้เลย</div>' : '')
           + (!it.known && it.newCat ? `<div class="ch-warn" style="background:#F2F7F3;color:inherit">รถใหม่ "${esc(it.asset)}" · เพิ่มเป็น<div class="ch-chips mt-1">${['Home', 'Car'].map(c => `<button type="button" class="ch-chip${it.newCat === c ? ' on' : ''}" ${live ? '' : 'disabled'} onclick="chatRegCat(${mi},${i},'${c}')">${c === 'Home' ? '🚗 รถส่วนตัว' : '🚙 รถใช้ในไร่'}</button>`).join('')}</div></div>`
             : !it.known ? `<div class="ch-warn">"${esc(it.asset)}" ไม่ใช่รถ — เลือกชื่อรถใหม่</div>` : '');
       } else if (it.type === 'new_chem') {

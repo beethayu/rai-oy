@@ -154,3 +154,45 @@ function rainHistory(lat, lng, years) {
   });
   return Object.values(m).map(o => ({ ym: o.ym, mm: Math.round(o.mm), heavy: o.heavy, max: Math.round(o.max), days: o.days.join(' ') }));
 }
+
+// ฝนประจำพื้นที่ (ทุกพื้นที่ในไร่) ย้อน 6 ปี จาก Open-Meteo archive: ฝน/การระเหยเฉลี่ยรายเดือน, วันฝนหนัก, วันฝนแรกแต่ละปี
+// เก็บใน Script Properties ใช้ซ้ำ 30 วัน (ข้อมูลย้อนหลังเปลี่ยนช้า) · refresh = คำนวณใหม่
+function rainClimate(refresh) {
+  const P = PropertiesService.getScriptProperties();
+  if (!refresh) {
+    try { const c = JSON.parse(P.getProperty('RAIN_CLIM') || 'null'); if (c && Date.now() - c.t < 30 * 864e5) return c; } catch (e) {}
+  }
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pts = wxPoints_(ss).filter(p => p.plots && p.plots.length);
+  if (!pts.length) throw new Error('ยังไม่มีพิกัดแปลง');
+  const end = new Date(Date.now() - 5 * 864e5), y0 = end.getFullYear() - 6;
+  const f = d => Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy-MM-dd');
+  const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + pts.map(p => p.lat).join(',') + '&longitude=' + pts.map(p => p.lng).join(',') +
+    '&start_date=' + y0 + '-01-01&end_date=' + f(end) + '&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=Asia%2FBangkok';
+  let j = JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText());
+  if (j && j.error) throw new Error('Open-Meteo archive: ' + j.reason);
+  if (!Array.isArray(j)) j = [j];
+  const areas = pts.map((p, i) => {
+    const d = j[i].daily, mon = {}, yr = {}, first = {};
+    d.time.forEach((t, k) => {
+      const y = t.slice(0, 4), m = +t.slice(5, 7), r = Number(d.precipitation_sum[k]) || 0, e = Number(d.et0_fao_evapotranspiration[k]) || 0;
+      const key = y + '-' + m;
+      const o = yr[key] || (yr[key] = { y, m, mm: 0, et: 0, heavy: 0, n: 0 });
+      o.mm += r; o.et += e; o.n++; if (r >= 40) o.heavy++;
+      // ฝนแรก: ตั้งแต่ 1 เม.ย. วันแรกที่ฝนรวม 10 วัน (นับถึงวันนั้น) ≥ 50 มม.
+      if (m >= 4 && m <= 7 && !first[y]) {
+        let s = 0; for (let q = Math.max(0, k - 9); q <= k; q++) s += Number(d.precipitation_sum[q]) || 0;
+        if (s >= 50 && t.slice(5) >= '04-01') first[y] = t.slice(5);
+      }
+    });
+    for (let m = 1; m <= 12; m++) {
+      const a = Object.values(yr).filter(o => o.m === m && o.n >= 25);
+      mon[m] = a.length ? { mm: Math.round(a.reduce((s, o) => s + o.mm, 0) / a.length), et: +(a.reduce((s, o) => s + o.et / o.n, 0) / a.length).toFixed(2),
+        heavy: +(a.reduce((s, o) => s + o.heavy, 0) / a.length).toFixed(1), years: a.map(o => [o.y, Math.round(o.mm)]) } : null;
+    }
+    return { loc: p.loc, plots: p.plots, months: mon, firstRain: first };
+  });
+  const out = { t: Date.now(), from: y0, to: f(end), areas };
+  try { P.setProperty('RAIN_CLIM', JSON.stringify(out)); } catch (e) { console.warn('RAIN_CLIM ใหญ่เกิน ' + e); }
+  return out;
+}

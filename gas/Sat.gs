@@ -459,6 +459,7 @@ function evaluatePixel(ss, scenes) {
     if (p && q && o[j].t - p.t < D && q.t - o[j].t < D && p.v - o[j].v >= 0.2 && q.v - o[j].v >= 0.2) continue;
     w++;
   }
+  if (!o.length) return [0, 0, 0, 0];                 // นอกขอบแปลง
   if (n < 3) return [0.55, 0.55, 0.55, 0.45];
   if (w === 0) return [0, 0, 0, 0];
   if (w >= 5) return [0.05, 0.22, 0.62, 0.92];

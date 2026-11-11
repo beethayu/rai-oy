@@ -196,3 +196,22 @@ function rainClimate(refresh) {
   try { P.setProperty('RAIN_CLIM', JSON.stringify(out)); } catch (e) { console.warn('RAIN_CLIM ใหญ่เกิน ' + e); }
   return out;
 }
+
+// ฝน + การระเหย รายวันย้อนหลัง ~6 ปี ของพื้นที่เดียว (ใช้จำลองน้ำในดินทีละปี ในการ์ด "ต้องขึ้นน้ำกี่ครั้ง")
+// คืน { loc, start, r: 'มม.×10 คั่น ,', e: 'มม.×10 คั่น ,' } · แคช 6 ชม. (หน้าเว็บเก็บต่อ 30 วัน)
+function rainDaily(loc) {
+  const cache = CacheService.getScriptCache(), key = 'raind_' + Utilities.base64EncodeWebSafe(String(loc || ''));
+  const hit = cache.get(key); if (hit) return JSON.parse(hit);
+  const p = wxPoints_(SpreadsheetApp.getActiveSpreadsheet()).find(x => x.loc === loc);
+  if (!p) throw new Error('ไม่พบพื้นที่ ' + loc);
+  const end = new Date(Date.now() - 5 * 864e5), y0 = end.getFullYear() - 6;
+  const f = d => Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy-MM-dd');
+  const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + p.lat + '&longitude=' + p.lng +
+    '&start_date=' + y0 + '-01-01&end_date=' + f(end) + '&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=Asia%2FBangkok';
+  const j = JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText());
+  if (!j || j.error || !j.daily) throw new Error('Open-Meteo archive: ' + ((j && j.reason) || 'ไม่มีข้อมูล'));
+  const t10 = a => a.map(v => Math.round((Number(v) || 0) * 10)).join(',');
+  const out = { loc: loc, start: j.daily.time[0], r: t10(j.daily.precipitation_sum), e: t10(j.daily.et0_fao_evapotranspiration) };
+  try { cache.put(key, JSON.stringify(out), 21600); } catch (e) {}
+  return out;
+}

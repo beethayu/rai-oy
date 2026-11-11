@@ -5139,12 +5139,26 @@ Export.table.toDrive({
     }
     function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
     const flBase = () => flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด';
+    // ช่วงวันแบบอ่านง่าย (12 พ.ย. 69 ผู้ใช้: "60–30 วันก่อนปลูก" อ่านยาก) → ก่อนปลูก 1–2 เดือน / อายุ 1.5–2.5 เดือน
+    function flDur(d) {
+      if (d >= 30 && d % 15 === 0) { const m = d / 30; return `${m % 1 ? m.toFixed(1) : m} เดือน`; }
+      if (d >= 7 && d % 7 === 0) return `${d / 7} สัปดาห์`;
+      return `${d} วัน`;
+    }
+    function flRng(a, b) { // a ≤ b (วัน) → "1–2 เดือน" ถ้าหน่วยเดียวกัน
+      const A = flDur(a), B = flDur(b), ua = A.split(' ')[1], ub = B.split(' ')[1];
+      return a === b ? A : ua === ub ? `${A.split(' ')[0]}–${B}` : `${A} – ${B}`;
+    }
+    const flMon = d => { const m = Math.round(d / 15) / 2; return m % 1 ? m.toFixed(1) : String(m); }; // ปัดครึ่งเดือน
     function flWin(s) {
       if (s.k === 'note') return '';
-      const b = flBase();
-      if (s.f === s.t) return s.f === 0 ? 'วัน' + b : s.f < 0 ? `${-s.f} วันก่อน${b}` : `วันที่ ${s.f} หลัง${b}`;
-      if (s.t <= 0) return `${-s.t}–${-s.f} วันก่อน${b}`;
-      return `วันที่ ${s.f}–${s.t} หลัง${b}`;
+      const b = flBase(), base = 'หลัง' + b;
+      if (s.f === 0 && s.t === 0) return 'วัน' + b;
+      if (s.t <= 0) return `ก่อน${b} ${flRng(-s.t || 1, -s.f)}`;
+      if (s.f <= 0) return `ภายใน ${flDur(s.t)} ${base}`;
+      if (s.t < 30) return `${base} ${flRng(s.f, s.t)}`;
+      const lo = s.f < 25 ? `${s.f} วัน – ` : flMon(s.f) === flMon(s.t) ? '' : flMon(s.f) + '–';
+      return `${base} ${lo}${flMon(s.t)} เดือน <small>(วันที่ ${s.f}–${s.t})</small>`;
     }
     const flKTag = s => s.k === 'once' || s.k === 'note' ? '' : `<span class="fl-tag fl-tag-${s.k}">${FL_K.find(k => k[0] === s.k)[1]}</span>`;
     // ผังแบบย่อ (12 พ.ย. 69 ผู้ใช้: ผังยาวดูยาก หน้าแก้งง): ขั้นละบรรทัดเดียว แตะแล้วกาง · ระยะที่ไม่มีแปลงและไม่มีงานพับไว้ · หน้าแก้มีแค่ที่จำเป็น ที่เหลือใน "ตั้งค่าเพิ่ม"

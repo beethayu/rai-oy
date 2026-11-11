@@ -275,6 +275,7 @@
     .ch-ask { padding: 10px 12px; border-bottom: 1px solid #EEF1EF; }
     .ch-ask b { display: block; margin-bottom: 6px; }
     .ch-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ch-chip.on { background: var(--green, #1F5E3B); border-color: transparent; color: #fff; font-weight: 600; }
     .ch-chip { border: 1px solid #CFD8D1; background: #fff; color: inherit; border-radius: 999px; min-height: 38px; padding: 4px 14px; font-size: 15px; }
     .ch-area { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 15px; }
     .ch-area input { width: 22px; height: 22px; accent-color: var(--green); flex-shrink: 0; }
@@ -1753,7 +1754,7 @@
     function billRowHtml(it, i) {
       if (isDisc(it)) return discRowHtml(it, i);
       const inv = (gData.inventory || []).filter(x => x.category === STOCK_CAT[it.category]);
-      const assets = (gData.assets || []).filter(a => a.category !== 'Worker');
+      const assets = (gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home');
       const sIt = invItem(it.stock_item);
       const opt = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
       return `<div class="bill-row bl-c">
@@ -1950,7 +1951,7 @@
         </div>` : ''}
         <div class="border-top mt-3 pt-3">
           <div class="bill-lbl">บิลซ่อมรถ: ทุกรายการเป็นของรถ/เครื่องคันนี้ (ไม่เข้าสต็อก)</div>
-          <div class="d-flex gap-2"><select class="form-select form-select-sm" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker').map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('')}</select>
+          <div class="d-flex gap-2"><select class="form-select form-select-sm" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home').map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('')}</select>
           <button type="button" class="btn btn-sm btn-outline-success text-nowrap" id="btnBillAsset" onclick="billAsset('${qa(b.id)}')">ใช้ทั้งบิล</button></div>
         </div>
         ${billsGrouped().length > 1 ? `<div class="border-top mt-3 pt-3">
@@ -2392,7 +2393,8 @@
       const total = nUrg + nDoing + (gData.watches || []).length;
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
       $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
-      const none = !nUrg && !nDoing; $('tiles').style.display = none ? 'none' : ''; $('t-none').style.display = none ? '' : 'none';
+      const none = !nUrg && !nDoing, hideT = curTab === 'urgent' || curTab === 'log'; $('tiles').dataset.none = none ? '1' : '';
+      $('tiles').style.display = hideT || none ? 'none' : ''; $('t-none').style.display = !hideT && none ? '' : 'none';
       $('sub-info').innerText = `${totRai} ไร่`;
       const n = new Date();
       $('hd-date').innerText = `${gData.plots.length} แปลง · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
@@ -2421,7 +2423,8 @@
       $('filter-sec').style.setProperty('display', t === 'all' ? 'flex' : 'none', 'important');
       $('fleet-view').style.display = t === 'fleet' ? 'block' : 'none';
       $('log-view').style.display = t === 'log' ? 'block' : 'none';
-      document.querySelector('.hd .tiles').style.display = (t === 'urgent' || t === 'log') ? 'none' : '';
+      { const hide = t === 'urgent' || t === 'log', none = $('tiles').dataset.none === '1';
+        $('tiles').style.display = hide || none ? 'none' : ''; $('t-none').style.display = !hide && none ? '' : 'none'; }
       if (t === 'log') { logModeApply(); if (!pkTask) pickStage('task'); else renderPick(); }
       $('stock-view').style.display = t === 'stock' ? 'block' : 'none';
       $('table-view').style.display = t === 'table' ? 'block' : 'none';
@@ -2786,7 +2789,7 @@
     }
     function regItems() {
       const out = [];
-      (gData.assets || []).filter(a => ['Truck', 'Tractor', 'Car'].includes(a.category)).forEach(a => {
+      (gData.assets || []).filter(a => REG_CATS.includes(a.category)).forEach(a => {
         out.push({ a, label: a.name, plate: a.plate, exp: a.reg_expire });
         if (a.trailer_plate || a.trailer_reg_expire) out.push({ a, label: a.name + ' (พ่วง)', plate: a.trailer_plate, exp: a.trailer_reg_expire, tr: true });
       });
@@ -2794,26 +2797,30 @@
     }
     function regDue() { return regItems().filter(i => { const r = regInfo(i.exp); return r && r.d <= 30; }); }
     function regPaneHtml() {
-      const its = regItems();
-      const lst = its.length ? `<div class="srow-box">${its.map(i => {
-        const r = regInfo(i.exp), car = i.a.category === 'Car';
-        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${car ? '🚙' : i.a.category === 'Tractor' ? '🚜' : '🚛'} ${esc(i.label)}</span>
+      const all = regItems(), farm = all.filter(i => i.a.category !== 'Home'), home = all.filter(i => i.a.category === 'Home');
+      const box = its => `<div class="srow-box">${its.map(i => {
+        const r = regInfo(i.exp), c = i.a.category;
+        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${c === 'Home' ? '🚗' : c === 'Car' ? '🚙' : c === 'Tractor' ? '🚜' : '🚛'} ${esc(i.label)}</span>
           <span class="srow-s">${esc(i.plate || 'ยังไม่ระบุทะเบียน')}${r ? ' · หมด ' + esc(i.exp) : ''}</span></span>
           ${r ? `<span class="pill ${r.cls}">${r.txt}</span>` : '<span class="pill" style="background:#eee;color:#666">แตะเพิ่ม</span>'}</button>`;
-      }).join('')}</div>` : '<div class="srow-s p-2">ยังไม่มีรถ</div>';
-      return `<div class="srow-h">🪪 ต่อทะเบียน / ภาษี</div>${lst}
-        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('')">+ เพิ่มรถอื่นที่ใช้ในไร่ (หกล้อ ฯลฯ)</button>
-        <div class="srow-s mt-2">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ · รถที่ไม่เกี่ยวกับไร่ไม่ต้องใส่</div>`;
+      }).join('')}</div>`;
+      return `<div class="srow-h">🪪 รถในไร่ · ต่อทะเบียน / ภาษี</div>${farm.length ? box(farm) : '<div class="srow-s p-2">ยังไม่มีรถ</div>'}
+        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Car')">+ เพิ่มรถอื่นที่ใช้ในไร่ (หกล้อ ฯลฯ)</button>
+        <div class="srow-h" style="margin-top:18px">🚗 รถส่วนตัว / รถบ้าน</div>${home.length ? box(home) : '<div class="srow-s p-2">ยังไม่มี · ไม่ปนกับงานไร่</div>'}
+        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Home')">+ เพิ่มรถส่วนตัว</button>
+        <div class="srow-s mt-2">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ (รถที่ยังไม่มีในรายการ เลือกได้ว่าเป็นรถไร่หรือรถส่วนตัว)</div>`;
     }
-    function openReg(name) {
+    let regNewCat = 'Car';
+    function openReg(name, cat) {
       const a = name ? (gData.assets || []).find(x => x.name === name) : null;
       if (name && !a) return;
-      $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + a.name : '🪪 เพิ่มรถที่ใช้ในไร่';
+      regNewCat = cat === 'Home' ? 'Home' : 'Car';
+      $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + a.name : regNewCat === 'Home' ? '🚗 เพิ่มรถส่วนตัว' : '🪪 เพิ่มรถที่ใช้ในไร่';
       $('rg_name').value = a ? a.name : ''; $('rg_newbox').style.display = a ? 'none' : 'block'; $('rg_newname').value = '';
       $('rg_plate').value = a ? a.plate || '' : ''; $('rg_exp').value = a ? beToISO(a.reg_expire) || '' : '';
       $('rg_tplate').value = a ? a.trailer_plate || '' : ''; $('rg_texp').value = a ? beToISO(a.trailer_reg_expire) || '' : '';
-      $('rg_tr_box').style.display = !a || a.category === 'Truck' || a.category === 'Car' ? 'block' : 'none';
-      $('rg_del').style.display = a && a.category === 'Car' ? 'block' : 'none';
+      $('rg_tr_box').style.display = (!a && regNewCat === 'Car') || (a && (a.category === 'Truck' || a.category === 'Car')) ? 'block' : 'none';
+      $('rg_del').style.display = a && (a.category === 'Car' || a.category === 'Home') ? 'block' : 'none';
       bootstrap.Modal.getOrCreateInstance($('regModal')).show();
     }
     function submitReg() {
@@ -2822,12 +2829,13 @@
       let nm = $('rg_name').value;
       const save = () => call('setAssetReg', [nm, p], d => { hideModal('regModal'); init(d); }, $('btnRg'), 'บันทึกแล้ว');
       if (nm) return save();
-      nm = $('rg_newname').value.trim(); if (!nm) return alert('ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
-      call('updateMasterOption', ['Car', 'add', nm], d => { init(d); save(); }, $('btnRg'));
+      nm = $('rg_newname').value.trim(); if (!nm) return alert(regNewCat === 'Home' ? 'ใส่ชื่อรถก่อนครับ เช่น Jazz' : 'ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
+      call('updateMasterOption', [regNewCat, 'add', nm], d => { init(d); save(); }, $('btnRg'));
     }
     function delReg() {
       const nm = $('rg_name').value; if (!nm || !confirm('ลบ "' + nm + '" ออกจากรายการรถ?')) return;
-      call('updateMasterOption', ['Car', 'remove', nm], d => { hideModal('regModal'); init(d); });
+      const da = (gData.assets || []).find(x => x.name === nm);
+      call('updateMasterOption', [da && da.category === 'Home' ? 'Home' : 'Car', 'remove', nm], d => { hideModal('regModal'); init(d); });
     }
     function setFleetPane(p) { fleetPane = p; fleetOpen = ''; renderFleet(); uiSave(); }
     function tglFleet(n) { fleetOpen = fleetOpen === n ? '' : n; renderFleet(); }
@@ -3561,7 +3569,8 @@
     let logMode = lsGet('raioy_logmode') || 'chat', chatBusy = false;
     let chat = (() => { try { const c = JSON.parse(lsGet(CHAT_STORE) || 'null'); return c && Array.isArray(c.msgs) ? c : { msgs: [] }; } catch (e) { return { msgs: [] }; } })();
     const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
-    const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค' };
+    const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว' };
+    const REG_CATS = ['Truck', 'Tractor', 'Car', 'Home'];
     function chatSave() {
       chat.msgs = chat.msgs.slice(-30);
       let keep = 4; // รูปย่อเก็บเฉพาะ 4 ข้อความล่าสุด (กัน localStorage เต็ม)
@@ -3763,7 +3772,8 @@
       it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
       if (it.type === 'asset_status') { it.known = !!chAsset(it.asset); it.date = it.date || todayISO(); return it.asset && ['at_shop', 'done'].includes(it.state) ? it : null; }
       if (it.type === 'asset_reg') {
-        const ra = chAsset(it.asset); it.known = !!ra && ['Truck', 'Tractor', 'Car'].includes(ra.category);
+        const ra = chAsset(it.asset); it.known = !!ra && REG_CATS.includes(ra.category);
+        if (!it.known && !ra) it.newCat = it.newCat || (it.new_cat === 'Car' ? 'Car' : 'Home');
         return it.asset && (it.plate || it.trailer_plate || it.expire || it.trailer_expire) ? it : null;
       }
       if (it.type === 'new_chem' || it.type === 'bill') {
@@ -3805,6 +3815,7 @@
       chatSave(); chatRender();
     }
     function chatRainPlots(it) { return it.areas.filter(a => it.sel.includes(a.loc)).reduce((t, a) => t.concat(a.plots), []); }
+    function chatRegCat(mi, i, c) { const it = chat.msgs[mi].items[i]; it.newCat = c; chatSave(); chatRender(); }
     function chatDrop(mi, i) { const m = chat.msgs[mi]; m.items.splice(i, 1); if (!m.items.length) m.state = 'cancel'; chatSave(); chatRender(); }
     function chatCancel(mi) { chat.msgs[mi].state = 'cancel'; chat.pics = null; chatSave(); chatRender(); }
     function chatClear() { if (!confirm('ล้างข้อความในแชต? (งานที่บันทึกแล้วไม่หาย)')) return; chat = { msgs: [] }; chatSave(); chatRender(); }
@@ -3846,7 +3857,7 @@
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
           date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [], state: a.state || '' }); }
         else if (a.type === 'asset_status') { if (a.known) ops.push({ fn: 'astatus', asset: a.asset.trim(), state: a.state, detail: a.detail || '', shop: a.shop || '', date: isoToBE(a.date || todayISO()) }); }
-        else if (a.type === 'asset_reg') { if (a.known) ops.push({ fn: 'reg', asset: a.asset.trim(), plate: a.plate || undefined, trailer_plate: a.trailer_plate || undefined,
+        else if (a.type === 'asset_reg') { const nw = !a.known && a.newCat; if (nw) ops.push({ fn: 'opt', category: a.newCat, name: a.asset.trim() }); if (a.known || nw) ops.push({ fn: 'reg', asset: a.asset.trim(), plate: a.plate || undefined, trailer_plate: a.trailer_plate || undefined,
           expire: a.expire ? isoToBE(a.expire) : undefined, trailer_expire: a.trailer_expire ? isoToBE(a.trailer_expire) : undefined }); }
         else if (a.type === 'new_chem') ops.push({ fn: 'chem', name: a.name, unit: a.unit, pack_size: a.pack_size, pack_name: a.pack_name || (a.unit === 'ml' ? 'ขวด' : 'ถุง'), per_tank: a.per_tank || 0,
           note: [a.use, a.active && 'สารออกฤทธิ์ ' + a.active, a.label_dose && 'ฉลาก: ' + a.label_dose].filter(Boolean).join(' · '),
@@ -3912,7 +3923,8 @@
       } else if (it.type === 'asset_reg') {
         h = `<div class="ch-t">🪪 ต่อทะเบียน/ภาษี · ${esc(it.asset)}</div>` + row('ทะเบียน', it.plate, 'plate') + row('ครบกำหนด', it.expire ? thDate(it.expire) : '', 'expire')
           + row('ทะเบียนพ่วง', it.trailer_plate, 'trailer_plate') + row('พ่วงครบกำหนด', it.trailer_expire ? thDate(it.trailer_expire) : '', 'trailer_expire')
-          + (!it.known ? `<div class="ch-warn">"${esc(it.asset)}" ไม่อยู่ในรายการรถ — เพิ่มรถก่อนที่แท็บ รถ → ทะเบียน</div>` : '');
+          + (!it.known && it.newCat ? `<div class="ch-warn" style="background:#F2F7F3;color:inherit">รถใหม่ "${esc(it.asset)}" · เพิ่มเป็น<div class="ch-chips mt-1">${['Home', 'Car'].map(c => `<button type="button" class="ch-chip${it.newCat === c ? ' on' : ''}" ${live ? '' : 'disabled'} onclick="chatRegCat(${mi},${i},'${c}')">${c === 'Home' ? '🚗 รถส่วนตัว' : '🚙 รถใช้ในไร่'}</button>`).join('')}</div></div>`
+            : !it.known ? `<div class="ch-warn">"${esc(it.asset)}" ไม่ใช่รถ — เลือกชื่อรถใหม่</div>` : '');
       } else if (it.type === 'new_chem') {
         const m = chat.msgs[mi] || {}, th = m.th || [], shown = (it.photos || []).map(k => th[k]).filter(Boolean), hasBill = (m.items || []).some(x => x.type === 'bill');
         const f = n => (Math.round(n * 10) / 10).toLocaleString('th-TH');

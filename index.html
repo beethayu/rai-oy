@@ -5296,10 +5296,13 @@ Export.table.toDrive({
 
     // ป้ายชื่อ: ซูมใกล้ (≥ 15) = ชื่อแปลงทีละแปลง · ซูมออก = ป้ายเดียวต่อพื้นที่ "หนองบวบหอม · 4 แปลง" แตะแล้วซูมเข้า
     let fmLblLayer = null;
+    let fmShowLbl = lsGet('raioy_fmlbl') !== '0';   // ป้ายชื่อแปลง (ปิดได้ในแผ่นเลเยอร์ ให้แผนที่โล่ง)
+    function fmToggleLbl() { fmShowLbl = !fmShowLbl; lsSet('raioy_fmlbl', fmShowLbl ? '1' : '0'); fmLabels(); }
     function fmLabels() {
       if (!fmMap) return;
       if (!fmLblLayer) { fmLblLayer = L.layerGroup().addTo(fmMap); fmMap.on('zoomend', fmLabels); }
       fmLblLayer.clearLayers();
+      if (!fmShowLbl) return;
       const z = fmMap.getZoom(), lbl = (ll, html, cls, onTap) => {
         const m = L.marker(ll, { interactive: !!onTap, keyboard: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<div class="${cls}">${html}</div>` }) }).addTo(fmLblLayer);
         if (onTap) m.on('click', e => { L.DomEvent.stopPropagation(e); onTap(); });
@@ -5728,7 +5731,7 @@ Export.table.toDrive({
       if (m === 'fm') {
         base = [{ on: fmUseSat, l: 'ดาวเทียม', th: LY_TH.sat, a: 'if(!fmUseSat)fmToggleLayer()' }, { on: !fmUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'if(fmUseSat)fmToggleLayer()' }];
         const nl = (gData.lands || []).length;
-        items = [{ on: poiOn, l: 'ชื่อสถานที่', ic: '📍', a: 'poiToggle()' }].concat(nl ? [{ on: fmShowLands, l: 'ที่ดินดูไว้', s: nl + ' แปลง', ic: '<span style="width:30px;height:24px;border:3px dashed #B48CE8;border-radius:4px"></span>', a: 'fmToggleLands()' }] : [],
+        items = [{ on: fmShowLbl, l: 'ชื่อแปลง', ic: '<span style="background:#fff;border-radius:5px;padding:0 4px;font:700 11px sans-serif;color:#1F2A24;box-shadow:0 1px 3px rgba(0,0,0,.3)">ไร่ 3</span>', a: 'fmToggleLbl()' }, { on: poiOn, l: 'ชื่อสถานที่', ic: '📍', a: 'poiToggle()' }].concat(nl ? [{ on: fmShowLands, l: 'ที่ดินดูไว้', s: nl + ' แปลง', ic: '<span style="width:30px;height:24px;border:3px dashed #B48CE8;border-radius:4px"></span>', a: 'fmToggleLands()' }] : [],
           [{ on: fmRain, l: 'ฝน', s: 'พยากรณ์', ic: '🌧️', a: 'fmRainToggle();if(fmRain)lyToggle(\'fm\')' }, { on: fmSatOn, l: 'ภาพดาวเทียม', s: 'ความเขียว/น้ำขัง', ic: '🛰️', a: 'fmSatToggle();if(fmSatOn)lyToggle(\'fm\')' }]);
       } else {
         if (!wp) return;
@@ -5736,7 +5739,8 @@ Export.table.toDrive({
         base = [{ on: wpUseSat, l: 'ดาวเทียม', th: LY_TH.sat, a: 'wpBaseT(true)' }, { on: !wpUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'wpBaseT(false)' }];
         items = [{ on: wp.lay.spot, l: 'น้ำขัง 2 ปี', s: st(wp.lay.spot, wp.spotSt), th: LY_TH.spot, a: "wpLayT('spot')" },
           { on: wp.lay.dem, l: 'ความสูงพื้น', s: st(wp.lay.dem, wp.demSt), th: LY_TH.dem, a: "wpLayT('dem')" },
-          { on: wp.lay.osm, l: 'ทางน้ำในแผนที่', s: st(wp.lay.osm, wp.osmSt, wp.osm ? wp.osm.length + ' เส้น' : ''), ic: '<svg width="34" height="20"><path d="M2 14c6-10 10 4 16-4s10 2 14-4" fill="none" stroke="#3BA7E0" stroke-width="3" stroke-dasharray="2 4" stroke-linecap="round"/></svg>', a: "wpLayT('osm')" }];
+          { on: wp.lay.osm, l: 'ทางน้ำในแผนที่', s: st(wp.lay.osm, wp.osmSt, wp.osm ? wp.osm.length + ' เส้น' : ''), ic: '<svg width="34" height="20"><path d="M2 14c6-10 10 4 16-4s10 2 14-4" fill="none" stroke="#3BA7E0" stroke-width="3" stroke-dasharray="2 4" stroke-linecap="round"/></svg>', a: "wpLayT('osm')" },
+          { on: wp.lay.lbl, l: 'ป้ายข้อความ', s: 'หมายเหตุ/ต่ำสุด', ic: '<span style="background:#fff;border-radius:5px;padding:0 4px;font:700 11px sans-serif;color:#1F2A24;box-shadow:0 1px 3px rgba(0,0,0,.3)">ลึก 50</span>', a: "wpLayT('lbl')" }];
       }
       const it = x => `<button type="button" class="ly-it${x.on ? ' on' : ''}" onclick="${x.a};lyRender('${m}')"><span class="ly-th" style="${x.th || ''}">${x.ic || ''}</span><span class="ly-l">${x.l}</span>${x.s ? `<small>${x.s}</small>` : ''}</button>`;
       E.innerHTML = `<div class="ly-hd"><b>เลเยอร์</b><button type="button" onclick="lyToggle('${m}')" aria-label="ปิด">✕</button></div>
@@ -5813,7 +5817,7 @@ Export.table.toDrive({
       if (pts.length < 3) return alert('ยังไม่ได้วาดขอบ — วาดขอบในแผนที่ไร่ก่อน');
       const pl = wpPlan(id);
       wp = { kind, id, name: kind === 'plot' ? o.plot_name : o.name, rai: num(o.map_rai) || num(o.area_rai), pts, feats: pl.feats, updated: pl.updated,
-        dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: true, osm: true }, wpLayPref()),
+        dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: true, osm: true, lbl: true }, wpLayPref()),
         dem: null, demSt: '', spotSt: '', spotA: null, osm: null, osmSt: '', back, exp: null };
       $('wpTitle').innerText = 'แผนน้ำ · ' + wp.name; if (lyOpen) lyToggle(lyOpen);
       $('wpHint').style.display = 'none';
@@ -5862,7 +5866,7 @@ Export.table.toDrive({
     function wpLayBar() { if (lyOpen === 'wp') lyRender('wp'); }
     function wpLayT(k) {
       wp.lay[k] = !wp.lay[k]; lsSet('raioy_wplay', JSON.stringify(wp.lay));
-      if (k === 'spot') wpSpotLoad(); if (k === 'dem') { wpDemLoad(); wpDraw(); } if (k === 'osm') wpOsmLoad();
+      if (k === 'spot') wpSpotLoad(); if (k === 'dem') { wpDemLoad(); wpDraw(); } if (k === 'osm') wpOsmLoad(); if (k === 'lbl') wpDraw();
       wpLayBar(); wpPanel();
     }
     function wpBaseT(v) {
@@ -6000,22 +6004,22 @@ Export.table.toDrive({
         const [a, b] = wp.dem.arrow;
         L.polyline([a, b], { color: '#7C3AED', weight: 4, dashArray: '6 6', opacity: .9, interactive: false }).addTo(wpG);
         L.polygon(wpHead(G, a, b, 14), { color: '#7C3AED', weight: 1, fillColor: '#7C3AED', fillOpacity: .9, interactive: false }).addTo(wpG);
-        L.marker(wpMid([a, b]), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#5B21B6">ข้อมูลความสูง</div>' }) }).addTo(wpG);
+        if (wp.lay.lbl) L.marker(wpMid([a, b]), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#5B21B6">ข้อมูลความสูง</div>' }) }).addTo(wpG);
       }
-      if (wp.lay.dem && wp.dem && wp.dem.ok && wp.dem.low) L.marker(wp.dem.low, { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#1D4ED8">ต่ำสุด</div>' }) }).addTo(wpG);
+      if (wp.lay.dem && wp.dem && wp.dem.ok && wp.dem.low && wp.lay.lbl) L.marker(wp.dem.low, { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#1D4ED8">ต่ำสุด</div>' }) }).addTo(wpG);
       const hit = (l, i) => l.on('click', e => { L.DomEvent.stopPropagation(e); if (wp.tool) return wpTap(e.latlng); wpSel(i); });
       wp.feats.forEach((f, i) => {
         const T = WP_T[f.t], on = i === wp.sel;
         if (T.k === 'pt') {
           hit(L.marker(f.p[0], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15],
-            html: `<div class="wp-pt${on ? ' sel' : ''}" style="background:${T.c}">${T.g}</div>${f.n ? `<div class="wp-note">${esc(f.n)}</div>` : ''}` }) }).addTo(wpG), i);
+            html: `<div class="wp-pt${on ? ' sel' : ''}" style="background:${T.c}">${T.g}</div>${f.n && wp.lay.lbl ? `<div class="wp-note">${esc(f.n)}</div>` : ''}` }) }).addTo(wpG), i);
           return;
         }
         if (on) L.polyline(f.p, { color: '#FFD23F', weight: T.w + 8, opacity: .9, interactive: false }).addTo(wpG);
         L.polyline(f.p, { color: T.c, weight: T.w, dashArray: T.d || null, opacity: 1, interactive: false, lineCap: 'round' }).addTo(wpG);
         if (T.k === 'ar' && f.p.length > 1) L.polygon(wpHead(G, f.p[f.p.length - 2], f.p[f.p.length - 1], 16), { color: T.c, weight: 1, fillColor: T.c, fillOpacity: 1, interactive: false }).addTo(wpG);
         hit(L.polyline(f.p, { color: '#000', opacity: 0, weight: 22 }).addTo(wpG), i);
-        if (f.n) L.marker(f.p.length === 2 ? wpMid(f.p) : f.p[Math.floor(f.p.length / 2)], { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<div class="wp-lbl">${esc(f.n)}</div>` }) }).addTo(wpG);
+        if (f.n && wp.lay.lbl) L.marker(f.p.length === 2 ? wpMid(f.p) : f.p[Math.floor(f.p.length / 2)], { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<div class="wp-lbl">${esc(f.n)}</div>` }) }).addTo(wpG);
       });
       if (wp.cur.length) {
         const T = WP_T[wp.tool] || {};

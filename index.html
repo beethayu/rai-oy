@@ -4818,29 +4818,37 @@ Export.table.toDrive({
       callApi('rainDaily', [loc]).then(d => { d.t = Date.now(); climDaily[loc] = d; lsSet('raioy_climd', JSON.stringify(climDaily)); })
         .catch(() => { climDErr[loc] = 'ดึงฝนรายวันไม่ได้'; }).then(() => { climDBusy[loc] = false; climRender(); });
     }
-    const CLIM_TRIG = 0.5, CLIM_RATOON_WAIT = 14;   // ขึ้นน้ำเมื่อดินเหลือน้ำต่ำกว่าครึ่ง (เกณฑ์เดียวกับหน้าน้ำในดิน) · อ้อยตอรอตองอก ~2 สัปดาห์ก่อนขึ้นน้ำ
+    const CLIM_ROUND = 14, CLIM_RATOON_WAIT = 14;   // วิธีของไร่: ช่วงฝนน้อยขึ้นน้ำวนแปลง ทุก ~14 วัน (ฝนตกจนดินเกือบเต็ม = เริ่มนับใหม่) · อ้อยตอรอตองอก ~2 สัปดาห์ก่อนขึ้นน้ำ
     function climIrr(p, D) {
       const r = D.r.split(',').map(v => v / 10), e = D.e.split(',').map(v => v / 10), t0 = new Date(D.start + 'T00:00:00');
       const pl = new Date(beToISO(p.plant_date) + 'T00:00:00'), sand = plotTags(p).includes(TAG_SAND), cap = sand ? SOIL_CAP.sand : SOIL_CAP.norm;
       const wait = p.cane_type === 'อ้อยตอ' ? CLIM_RATOON_WAIT : 0, seasons = [];
       for (let y = t0.getFullYear(); y <= t0.getFullYear() + 8; y++) {
         const i0 = Math.round((new Date(y, pl.getMonth(), pl.getDate()) - t0) / 864e5); if (i0 < 0) continue;
-        let S = cap * 0.5, n = 0, mm = 0, over = 0, full = false; const mon = {}, ord = [];
+        const nw = p.cane_type !== 'อ้อยตอ';
+        let S = nw ? cap : cap * 0.5, n = 0, mm = 0, over = 0, dry = 0, full = false, last = nw ? 0 : wait - CLIM_ROUND; const mon = {}, ord = [];
         for (let k = 0; k < 345; k++) {
           const i = i0 + k; if (i >= r.length) break;
           const m = new Date(y, pl.getMonth(), pl.getDate() + k).getMonth() + 1;
           if ((m === 11 || m === 12) && k > 20 && !(p.cane_type === 'อ้อยใหม่' && k < YOUNG_NEW_DAYS)) { full = true; break; }   // งดน้ำก่อนตัด = จบฤดู
-          if (!mon[m]) { mon[m] = { irr: 0, rain: 0, over: 0, age: k }; ord.push(m); }
+          if (!mon[m]) { mon[m] = { irr: 0, rain: 0, over: 0, dry: 0, age: k }; ord.push(m); }
           const o = mon[m]; o.rain += r[i];
           S += r[i]; const ov = Math.max(0, S - cap); S = Math.min(S, cap); over += ov; o.over += ov;
+          if (r[i] >= 5 && S >= cap * 0.8) last = k;   // ฝนเติมดินเกือบเต็ม = ยังไม่ต้องขึ้น นับรอบใหม่
           const use = e[i] * caneStage(k, p.cane_type).k * (S / cap < 0.5 ? Math.max(0.15, S / cap / 0.5) : 1);
           S = Math.max(0, S - use);
-          if (S < cap * CLIM_TRIG && k >= wait) { mm += cap - S; S = cap; n++; o.irr++; }
+          if (k >= wait && k - last >= CLIM_ROUND) { mm += cap - S; S = cap; n++; o.irr++; last = k; }
+          else if (k >= wait && S < cap * 0.5) { dry++; o.dry++; }   // ระหว่างรอบ ดินแห้งเกินครึ่ง = อ้อยเริ่มขาดน้ำ
           if (k === 344) full = true;
         }
-        if (full) seasons.push({ y, n, mm, over, mon, ord });
+        if (full || y === pl.getFullYear()) seasons.push({ y, n, mm, over, dry, mon, ord, full, i0 });
       }
-      return { cap, sand, seasons };
+      // บันทึกขึ้นน้ำจริงในแอป ฤดูปัจจุบัน (นับครั้ง: วันติดกัน/ห่างไม่เกิน 3 วัน = ครั้งเดียว ขึ้นหลายวันต่อแปลง)
+      const st = beToISO(p.plant_date), days = [...new Set((gData.activities || []).filter(a => a.plot_id === p.plot_id && a.activity_group === 'ขึ้นน้ำ' && !/สูบน้ำขัง/.test(a.activity_detail || ''))
+        .map(a => beToISO(String(a.timestamp || '').split(' ')[0])).filter(d => d && d >= st))].sort();
+      const real = { n: 0, mon: {} }; let prev = null;
+      days.forEach(d => { if (!prev || (new Date(d) - new Date(prev)) / 864e5 > 3) { real.n++; const m = +d.slice(5, 7); real.mon[m] = (real.mon[m] || 0) + 1; } prev = d; });
+      return { cap, sand, seasons: seasons.filter(x => x.full), cur: seasons.find(x => x.y === pl.getFullYear()) || null, real };
     }
     function climIrrHtml(p, R) {
       const N = R.seasons.length; if (!N) return '<div class="srow-s">ข้อมูลฝนรายวันยังไม่ครบฤดู</div>';
@@ -4852,19 +4860,22 @@ Export.table.toDrive({
         const xs = R.seasons.map(x => x.mon[m]).filter(Boolean), yrs = xs.filter(o => o.irr > 0).length, avg = xs.reduce((s, o) => s + o.irr, 0) / N;
         const rain = Math.round(xs.reduce((s, o) => s + o.rain, 0) / N), ov = xs.reduce((s, o) => s + o.over, 0) / N, age = xs[0] ? xs[0].age : 0;
         const col = yrs >= N * 0.6 ? '#B4630B' : yrs ? '#8A6D1F' : '#1F7A45';
+        const rn = R.real.n ? (R.real.mon[m] || 0) : null;
         return { m, yrs, avg, html: `<tr><td>${TH_MON_S[m - 1]}<div class="srow-s">${Math.round(age / 30)} ด. ${caneStage(age + 15, p.cane_type).n}</div></td><td>${rain}</td>
-          <td style="color:${col};font-weight:${yrs ? 700 : 400}">${!yrs ? 'ไม่ต้อง' : avg >= 0.5 ? '~' + Math.max(1, Math.round(avg)) + ' ครั้ง' : 'บางปี'}${yrs && yrs < N ? `<div class="srow-s" style="color:${col}">${yrs} ใน ${N} ปี</div>` : ''}${ov > 60 ? `<div class="srow-s" style="color:#1F6FB2">ฝนเกิน ~${Math.round(ov)} มม.${wet ? ' เสี่ยงขัง' : ''}</div>` : ''}</td></tr>` };
+          <td style="color:${col};font-weight:${yrs ? 700 : 400}">${!yrs ? 'ไม่ต้อง' : avg >= 0.5 ? '~' + Math.max(1, Math.round(avg)) + ' ครั้ง' : 'บางปี'}${yrs && yrs < N ? `<div class="srow-s" style="color:${col}">${yrs} ใน ${N} ปี</div>` : ''}${ov > 60 ? `<div class="srow-s" style="color:#1F6FB2">ฝนเกิน ~${Math.round(ov)} มม.${wet ? ' เสี่ยงขัง' : ''}</div>` : ''}${rn !== null ? `<div class="srow-s" style="color:#1F2A24">ปีนี้บันทึกจริง ${rn} ครั้ง</div>` : ''}</td></tr>` };
       });
       const always = rows.filter(x => x.yrs >= N * 0.8).map(x => TH_MON_S[x.m - 1]), some = rows.filter(x => x.yrs > 0 && x.yrs < N * 0.8).map(x => TH_MON_S[x.m - 1]);
       return `<div style="font-size:17px;font-weight:700;color:${med.n ? '#B4630B' : '#1F7A45'}">${med.n ? `ปกติต้องขึ้นน้ำ ~${med.n} ครั้ง/ฤดู` : 'ปกติฝนพอ ไม่ต้องขึ้นน้ำ'}</div>
         <div style="font-size:14.5px;line-height:1.5">
           ${med.n ? `<div>รวมราว <b>${Math.round(avgMm)} มม.</b> ≈ <b>${Math.round(avgMm * 1.6)} ลบ.ม./ไร่</b> ที่ต้องเข้าถึงราก (น้ำที่ปล่อยจริงมากกว่านี้ เพราะไหลทิ้ง/ซึมลึกตามร่อง)</div>` : ''}
           <div>ปีน้อยสุด ${lo.n} ครั้ง (ปี ${by(lo)}) · มากสุด <b>${hi.n} ครั้ง</b> (ปี ${by(hi)})</div>
+          ${R.cur ? `<div style="margin-top:4px">ปี ${by(R.cur)} (ฤดูนี้) จำลองได้ <b>${R.cur.n} ครั้ง</b>${R.cur.full ? '' : ' ถึงวันนี้'} · บันทึกในแอป <b>${R.real.n} ครั้ง</b>${R.real.n ? '' : ' (ยังไม่มีบันทึก ขึ้นน้ำ ในแอป)'}</div>` : ''}
+          ${med.dry >= 10 ? `<div style="color:#B4630B">ระหว่างรอบ 14 วัน ดินแห้งเกินครึ่งราว <b>${med.dry} วัน/ฤดู</b> (อ้อยเริ่มขาดน้ำ)${R.sand ? ' — ดินทรายแห้งเร็ว ถ้าวนรอบสั้นลงได้จะดี' : ''}</div>` : ''}
           ${always.length ? `<div>ต้องขึ้นแทบทุกปี: <b>${always.join(', ')}</b></div>` : ''}
           ${some.length ? `<div>บางปีฝนทิ้งช่วง ต้องขึ้นด้วย: <b>${some.join(', ')}</b></div>` : ''}</div>
         <div class="d-flex flex-wrap gap-2 my-2" style="font-size:13px">${R.seasons.map(x => `<span class="sw-yr">${by(x)}: ${x.n} ครั้ง</span>`).join('')}</div>
         <table class="sw-tb"><tr><th>เดือน</th><th>ฝนเฉลี่ย</th><th>ขึ้นน้ำ (เฉลี่ย)</th></tr>${rows.map(x => x.html).join('')}</table>
-        <div class="srow-s mt-1">จำลองทีละวันจากฝน+แดดจริงแต่ละปี: ดิน${R.sand ? 'ทราย เก็บน้ำได้ ~' : 'ทั่วไป เก็บน้ำได้ ~'}${R.cap} มม. · ขึ้นน้ำเมื่อดินเหลือน้ำต่ำกว่าครึ่ง (เกณฑ์เดียวกับหน้า "น้ำในดิน") ขึ้นแต่ละครั้งเติมจนเต็ม · ${p.cane_type === 'อ้อยตอ' ? `อ้อยตอเริ่มขึ้นน้ำหลังตัด ${CLIM_RATOON_WAIT} วัน (รอตองอก) · ` : ''}ฝนที่เกินดินรับได้ไหลทิ้ง ไม่นับว่าใช้ได้ · พ.ย.–ธ.ค. งดน้ำก่อนตัด · ฝนเป็นแบบจำลอง Open-Meteo อาจต่างจากที่ไร่จริง · 1 มม. = 1.6 ลบ.ม./ไร่</div>`;
+        <div class="srow-s mt-1">จำลองทีละวันจากฝน+แดดจริงแต่ละปี: ดิน${R.sand ? 'ทราย เก็บน้ำได้ ~' : 'ทั่วไป เก็บน้ำได้ ~'}${R.cap} มม. · ขึ้นน้ำวนรอบทุก ${CLIM_ROUND} วันแบบที่ไร่ทำ (ฝนตกจนดินเกือบเต็ม = เลื่อนรอบ) ขึ้นแต่ละครั้งเติมจนเต็ม · ${p.cane_type === 'อ้อยตอ' ? `อ้อยตอเริ่มขึ้นน้ำหลังตัด ${CLIM_RATOON_WAIT} วัน (รอตองอก) · ` : ''}ฝนที่เกินดินรับได้ไหลทิ้ง ไม่นับว่าใช้ได้ · พ.ย.–ธ.ค. งดน้ำก่อนตัด · ฝนเป็นแบบจำลอง Open-Meteo อาจต่างจากที่ไร่จริง · 1 มม. = 1.6 ลบ.ม./ไร่</div>`;
     }
     // ===== 💧 น้ำในดิน (ประมาณ) =====
     // ถังน้ำต่อแปลง: + ฝน (Open-Meteo) + ขึ้นน้ำ (เต็มถัง) − น้ำที่อ้อยใช้/ระเหย (ET0 × ค่าตามอายุอ้อย) · เกินถัง = ไหลออก/ซึมลึก/ขังในแอ่ง
@@ -5785,6 +5796,7 @@ Export.table.toDrive({
         items = [{ on: wp.lay.spot, l: 'น้ำขัง 2 ปี', s: st(wp.lay.spot, wp.spotSt), th: LY_TH.spot, a: "wpLayT('spot')" },
           { on: wp.lay.dem, l: 'ความสูงพื้น', s: st(wp.lay.dem, wp.demSt), th: LY_TH.dem, a: "wpLayT('dem')" },
           { on: wp.lay.osm, l: 'ทางน้ำในแผนที่', s: st(wp.lay.osm, wp.osmSt, wp.osm ? wp.osm.length + ' เส้น' : ''), ic: '<svg width="34" height="20"><path d="M2 14c6-10 10 4 16-4s10 2 14-4" fill="none" stroke="#3BA7E0" stroke-width="3" stroke-dasharray="2 4" stroke-linecap="round"/></svg>', a: "wpLayT('osm')" },
+          { on: wp.lay.weak, l: 'จุดอ่อนอ้อย', s: st(wp.lay.weak, wp.weakSt, wp.weakD ? 'ภาพ ' + satDs(wp.weakD) : ''), th: 'background:linear-gradient(135deg,#F3E9C6 0 45%,#F08A2C 45% 62%,#D93A2B 62% 72%,#2F8F3A 72%)', a: "wpLayT('weak')" },
           { on: wp.lay.lbl, l: 'ป้ายข้อความ', s: 'หมายเหตุ/ต่ำสุด', ic: '<span style="background:#fff;border-radius:5px;padding:0 4px;font:700 11px sans-serif;color:#1F2A24;box-shadow:0 1px 3px rgba(0,0,0,.3)">ลึก 50</span>', a: "wpLayT('lbl')" }];
       }
       const it = x => `<button type="button" class="ly-it${x.on ? ' on' : ''}" onclick="${x.a};lyRender('${m}')"><span class="ly-th" style="${x.th || ''}">${x.ic || ''}</span><span class="ly-l">${x.l}</span>${x.s ? `<small>${x.s}</small>` : ''}</button>`;
@@ -5811,7 +5823,7 @@ Export.table.toDrive({
     const wpDir = b => WP_DIR[Math.round((((b % 360) + 360) % 360) / 45) % 8];
     const wpAxis = b => { const d = ((b % 180) + 180) % 180; return d < 22.5 || d >= 157.5 ? 'เหนือ–ใต้' : d < 67.5 ? 'ตะวันออกเฉียงเหนือ–ตะวันตกเฉียงใต้' : d < 112.5 ? 'ตะวันออก–ตะวันตก' : 'ตะวันตกเฉียงเหนือ–ตะวันออกเฉียงใต้'; };
     const wpAng = (a, b) => { const d = Math.abs((((a - b) % 360) + 540) % 360 - 180); return d; };   // ต่างกันกี่องศา (0–180)
-    let wpMap = null, wpSat = null, wpStreet = null, wpUseSat = true, wpG = null, wpDemG = null, wpSpotG = null, wpOsmG = null, wp = null;
+    let wpWeakG = null, wpMap = null, wpSat = null, wpStreet = null, wpUseSat = true, wpG = null, wpDemG = null, wpSpotG = null, wpOsmG = null, wp = null;
     const wpDemCache = {}, wpOsmCache = {};
     function wpGeo() {
       const c = [wp.pts.reduce((s, p) => s + p[0], 0) / wp.pts.length, wp.pts.reduce((s, p) => s + p[1], 0) / wp.pts.length];
@@ -5862,7 +5874,7 @@ Export.table.toDrive({
       if (pts.length < 3) return alert('ยังไม่ได้วาดขอบ — วาดขอบในแผนที่ไร่ก่อน');
       const pl = wpPlan(id);
       wp = { kind, id, name: kind === 'plot' ? o.plot_name : o.name, rai: num(o.map_rai) || num(o.area_rai), pts, feats: pl.feats, updated: pl.updated,
-        dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: true, osm: true, lbl: true }, wpLayPref()),
+        dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: true, osm: true, lbl: true, weak: false }, wpLayPref()),
         dem: null, demSt: '', spotSt: '', spotA: null, osm: null, osmSt: '', back, exp: null };
       $('wpTitle').innerText = 'แผนน้ำ · ' + wp.name; if (lyOpen) lyToggle(lyOpen);
       $('wpHint').style.display = 'none';
@@ -5874,16 +5886,16 @@ Export.table.toDrive({
           wpStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19, attribution: '© OpenStreetMap' });
           const root = wpMap.getPane('rotatePane') || undefined;   // leaflet-rotate: ภาพซ้อนต้องอยู่ใน rotatePane
           wpMap.createPane('wpDem', root).style.zIndex = 385; wpMap.createPane('wpSpot', root).style.zIndex = 390;
-          wpDemG = L.layerGroup().addTo(wpMap); wpSpotG = L.layerGroup().addTo(wpMap); wpOsmG = L.layerGroup().addTo(wpMap); wpG = L.layerGroup().addTo(wpMap);
+          wpDemG = L.layerGroup().addTo(wpMap); wpWeakG = L.layerGroup().addTo(wpMap); wpSpotG = L.layerGroup().addTo(wpMap); wpOsmG = L.layerGroup().addTo(wpMap); wpG = L.layerGroup().addTo(wpMap);
           wpMap.on('click', e => { if (lyOpen === 'wp') return lyToggle('wp'); wpTap(e.latlng); });
           $('wpModal').addEventListener('shown.bs.modal', () => { wpMap.invalidateSize(); if (wp && !wp.moved) wpFit(); });
           wpMap.on('dragstart zoomstart', () => { if (wp && wp.fitted) wp.moved = true; });
         }
-        [wpDemG, wpSpotG, wpOsmG, wpG].forEach(g => g.clearLayers());
+        [wpDemG, wpWeakG, wpSpotG, wpOsmG, wpG].forEach(g => g.clearLayers());
         setTimeout(() => {
           if (!wp) return;
           wpFit();
-          wpDraw(); wpSpotLoad(); wpDemLoad(); wpOsmLoad(); wpLayBar();
+          if (wp.lay.weak && wp.lay.dem) wp.lay.dem = false; wpDraw(); wpSpotLoad(); wpDemLoad(); wpWeakLoad(); wpOsmLoad(); wpLayBar();
         }, 350);
       }).catch(e => { hideModal('wpModal'); alert(e.message); });
     }
@@ -5910,7 +5922,12 @@ Export.table.toDrive({
     // ---------- ชั้นซ้อน ----------
     function wpLayBar() { if (lyOpen === 'wp') lyRender('wp'); }
     function wpLayT(k) {
-      wp.lay[k] = !wp.lay[k]; lsSet('raioy_wplay', JSON.stringify(wp.lay));
+      wp.lay[k] = !wp.lay[k];
+      // จุดอ่อน กับ สีความสูง ทาทับทั้งแปลงทั้งคู่ → เปิดได้ทีละอย่าง
+      if (k === 'weak' && wp.lay.weak && wp.lay.dem) { wp.lay.dem = false; wpDemLoad(); wpDraw(); }
+      if (k === 'dem' && wp.lay.dem && wp.lay.weak) { wp.lay.weak = false; wpWeakLoad(); }
+      lsSet('raioy_wplay', JSON.stringify(wp.lay));
+      if (k === 'weak') wpWeakLoad();
       if (k === 'spot') wpSpotLoad(); if (k === 'dem') { wpDemLoad(); wpDraw(); } if (k === 'osm') wpOsmLoad(); if (k === 'lbl') wpDraw();
       wpLayBar(); wpPanel();
     }
@@ -5954,6 +5971,26 @@ Export.table.toDrive({
     }
 
     // ความสูงพื้น: ถอดค่าจาก PNG → ระนาบเอียงที่ใกล้ที่สุด (ทิศลาด + ต่างกันกี่ ม.) + สีต่ำ/สูงในแปลง
+    // จุดอ่อนจากดาวเทียม (ภาพล่าสุด โหมดหาจุดอ่อน เหมือนแผนที่ไร่) — ช่วยดูว่าส่วนที่อ้อยโทรม ตรงกับด้านต่ำ/ด้านที่น้ำไปไม่ถึงไหม
+    function wpWeakLoad() {
+      wpWeakG.clearLayers();
+      if (!wp || !wp.lay.weak) return;
+      const id = wp.id, key = wp.kind + '|' + id;
+      if (wp.weakImg) { L.imageOverlay(wp.weakImg, L.latLngBounds(wp.weakB), { pane: 'wpSpot', opacity: .85, interactive: false }).addTo(wpWeakG); return; }
+      wp.weakSt = 'load'; wpLayBar();
+      satEnsure(() => {
+        if (!wp || wp.id !== id) return;
+        const x = satInfo && satInfo.items.find(i => i.key === key);
+        if (!x || !x.last) { wp.weakSt = 'err'; wpLayBar(); return; }
+        satImg(x, x.last.d, true, img => {
+          if (!wp || wp.id !== id) return;
+          if (!img) { wp.weakSt = 'err'; wpLayBar(); return; }
+          Object.assign(wp, { weakSt: 'ok', weakImg: img, weakB: x.pts, weakD: x.last.d, weakLow: x.last.ndvi < 0.5 });
+          if (wp.lay.weak) L.imageOverlay(img, L.latLngBounds(x.pts), { pane: 'wpSpot', opacity: .85, interactive: false }).addTo(wpWeakG);
+          wpLayBar(); wpPanel();
+        });
+      });
+    }
     function wpDemLoad() {
       wpDemG.clearLayers();
       if (!wp || !wp.lay.dem) return;
@@ -6044,8 +6081,9 @@ Export.table.toDrive({
       const q = `[out:json][timeout:20];(way["waterway"](${bb});way["natural"="water"](${bb}););out geom;`;
       const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25000);
       wp.osmSt = 'load'; wpLayBar();
-      fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal })
-        .then(r => r.json()).then(j => {
+      const ask = u => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter']
+        .reduce((pr, u) => pr.catch(() => ask(u)), Promise.reject()).then(j => {
           const ways = (j.elements || []).filter(e => e.geometry && e.geometry.length > 1).map(e => ({ p: e.geometry.map(g => [g.lat, g.lon]), name: (e.tags || {}).name || '', area: (e.tags || {}).natural === 'water' }));
           wpOsmCache[id] = ways;
           if (!wp || wp.id !== id) return;
@@ -6239,6 +6277,7 @@ Export.table.toDrive({
         ${!more ? `${S.cmp ? `<div class="l fw-bold">${esc(S.cmp)}</div>` : ''}</div>` : `
         ${S.lines.map(x => `<div class="l">${esc(x)}</div>`).join('')}
         ${S.spot ? `<div class="l">${esc(S.spot)}</div>` : ''}
+        ${wp.lay.weak && wp.weakSt === 'ok' ? `<div class="l">จุดอ่อนอ้อย (ภาพ ${satDs(wp.weakD)}): ${wp.weakLow ? 'ใบยังไม่คลุม ดูจุดอ่อนยังไม่แม่น' : 'สีแดง/ส้ม = อ้อยโทรมกว่าส่วนอื่น ดูว่าตรงกับด้านต่ำ (น้ำขัง) หรือด้านที่น้ำไปไม่ถึงไหม — อาจเป็นหญ้า/โรค/ดินก็ได้ ต้องไปดูหน้างาน'}</div>` : ''}
         ${S.demLine ? `<div class="l">${esc(S.demLine)}</div>` : ''}${demErr}
         ${S.cmp ? `<div class="l fw-bold">${esc(S.cmp)}</div>` : ''}
         ${S.D && S.D.conf !== 'ราบ' && !wp.feats.some(x => x.t === 'slope') ? `<button type="button" class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="wpUseDem()">ใช้ทางลาดจากข้อมูลความสูง (แก้ทีหลังได้)</button>` : ''}
@@ -6278,7 +6317,7 @@ Export.table.toDrive({
         // ส่วนคำอธิบายด้านล่าง: วัดความสูงก่อน
         const tmp = document.createElement('canvas').getContext('2d'); tmp.font = font(500, 30);
         const used = WP_ORDER.filter(t => wp.feats.some(f => f.t === t));
-        const keys = used.map(t => ({ t, n: WP_T[t].n })).concat(wp.lay.spot && wp.spotImg ? [{ t: '_spot', n: 'จุดที่ดาวเทียมเคยเห็นน้ำขัง (2 ปี)' }] : [], S.D && S.D.conf !== 'ราบ' ? [{ t: '_dem', n: 'ทางลาดจากข้อมูลความสูง' }] : [], wp.lay.osm && wp.osm && wp.osm.length ? [{ t: '_osm', n: 'ทางน้ำในแผนที่ OpenStreetMap' }] : []);
+        const keys = used.map(t => ({ t, n: WP_T[t].n })).concat(wp.lay.spot && wp.spotImg ? [{ t: '_spot', n: 'จุดที่ดาวเทียมเคยเห็นน้ำขัง (2 ปี)' }] : [], wp.lay.weak && wp.weakImg ? [{ t: '_weak', n: 'อ้อยโทรมกว่าส่วนอื่น (ดาวเทียม ' + satDs(wp.weakD) + ')' }] : [], S.D && S.D.conf !== 'ราบ' ? [{ t: '_dem', n: 'ทางลาดจากข้อมูลความสูง' }] : [], wp.lay.osm && wp.osm && wp.osm.length ? [{ t: '_osm', n: 'ทางน้ำในแผนที่ OpenStreetMap' }] : []);
         const textLines = [].concat(S.warn, S.lines, S.spot ? [S.spot] : [], S.demLine ? [S.demLine] : [], S.cmp ? [S.cmp] : []);
         const notes = wp.feats.filter(f => f.n).map(f => `${WP_T[f.t].n}: ${f.n}`);
         const wrapped = textLines.flatMap(t => wpWrap(tmp, '• ' + t, MW - 64)), wrappedN = notes.flatMap(t => wpWrap(tmp, '– ' + t, MW - 64));
@@ -6307,6 +6346,7 @@ Export.table.toDrive({
         x.save(); x.beginPath(); x.rect(0, HEAD, MW, MH); x.clip();
         x.imageSmoothingEnabled = true;
         if (S.D) await drawImgAt(S.D.img, S.D.bounds[0], S.D.bounds[1], 1);
+        if (wp.lay.weak && wp.weakImg) { const b = L.latLngBounds(wp.weakB); await drawImgAt(wp.weakImg, [b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()], .85); }
         if (wp.lay.spot && wp.spotImg) { const b = L.latLngBounds(wp.pts); await drawImgAt(wp.spotImg, [b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()], 1); }
         if (wp.lay.osm && wp.osm) wp.osm.forEach(o => { path(o.p, o.area); x.setLineDash([3, 9]); x.lineWidth = 4; x.strokeStyle = '#9BE1FF'; x.stroke(); x.setLineDash([]); });
         path(wp.pts, true); x.lineWidth = 8; x.strokeStyle = 'rgba(0,0,0,.45)'; x.stroke(); x.lineWidth = 4; x.strokeStyle = '#fff'; x.stroke();
@@ -6360,6 +6400,7 @@ Export.table.toDrive({
             if (T.k === 'pt') { x.beginPath(); x.arc(cx + 16, cy, 15, 0, Math.PI * 2); x.fillStyle = T.c; x.fill(); x.fillStyle = '#fff'; x.font = font(700, T.g.length > 1 ? 11 : 14); x.textAlign = 'center'; x.fillText(T.g, cx + 16, cy + 1); x.textAlign = 'left'; }
             else { x.setLineDash(T.d ? T.d.split(' ').map(Number) : []); x.lineWidth = Math.max(4, T.w); x.strokeStyle = T.c; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + 34, cy); x.stroke(); x.setLineDash([]); if (T.k === 'ar') { x.fillStyle = T.c; x.beginPath(); x.moveTo(cx + 40, cy); x.lineTo(cx + 28, cy - 8); x.lineTo(cx + 28, cy + 8); x.fill(); } }
           } else if (k.t === '_spot') { const g = x.createLinearGradient(cx, 0, cx + 34, 0); g.addColorStop(0, '#9ECBFF'); g.addColorStop(1, '#0D3A9E'); x.fillStyle = g; x.fillRect(cx, cy - 10, 34, 20); }
+          else if (k.t === '_weak') { x.fillStyle = '#F08A2C'; x.fillRect(cx, cy - 10, 17, 20); x.fillStyle = '#D93A2B'; x.fillRect(cx + 17, cy - 10, 17, 20); }
           else if (k.t === '_dem') { x.setLineDash([8, 6]); x.lineWidth = 5; x.strokeStyle = '#7C3AED'; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + 34, cy); x.stroke(); x.setLineDash([]); }
           else { x.setLineDash([3, 7]); x.lineWidth = 4; x.strokeStyle = '#5BC0EB'; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + 34, cy); x.stroke(); x.setLineDash([]); }
           x.fillStyle = '#1F2A24'; x.font = font(500, 26); x.fillText(k.n, cx + 50, cy + 1);

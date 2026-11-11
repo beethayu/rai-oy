@@ -284,6 +284,7 @@ function readAll_(ss) {
     lands: readSheet_(ss, 'Lands'),
     waterPlans: readSheet_(ss, 'WaterPlans'),
     flows: readSheet_(ss, 'Flow'),
+    flowDef: FLOW_DEF_,
     plotPhotos: sortDesc_(readSheet_(ss, 'PlotPhotos')),
     yields: readSheet_(ss, 'Yields'),
     rainLog: readRain_(ss),
@@ -850,7 +851,10 @@ function buildBrief_(ss, s) {
   const wNew = +s.WATER_DAYS_NEW || 12, wRat = +s.WATER_DAYS_RATOON || 15;
   const sMin = +s.SPRAY_DAY_MIN || 3, sMax = +s.SPRAY_DAY_MAX || 5;
 
-  const water = [], spray = [], soon = [], ongoing = [], busy = new Set();
+  const water = [], spray = [], soon = [], ongoing = [], flow = [], busy = new Set();
+  // ขั้นตอนจาก 📋 (ชีต Flow): งานถึงคิวรายแปลง · ฉีดยาคุมเตือนเฉพาะเมื่อถึงช่วงฉีดตามขั้นตอน (เดิมเตือนทุกรอบน้ำ)
+  const steps = flowSteps_(ss), logsBy = {}, today = flowDay_(Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy'));
+  acts.forEach(a => { (logsBy[a.plot_id] = logsBy[a.plot_id] || []).push(a); });
   plots.forEach(p => {
     const note = p.status_note || '';
     const name = `${p.plot_id} ${p.plot_name}`;
@@ -860,12 +864,17 @@ function buildBrief_(ss, s) {
       if (l) (l.equipment || '').split(',').forEach(e => { e = e.trim(); if (e && e !== '-') busy.add(e); });
       return;
     }
+    let due = [];
+    try { due = flowDue_(p, logsBy[p.plot_id] || [], steps, today); } catch (e) {}
+    const sprayDue = due.some(x => x.g.includes('ฉีดยา'));
+    const w = daysSince_(p.last_water_date), damp = w !== null && w >= sMin && w <= sMax;
+    const fl = due.filter(x => !(damp && x.g.includes('ฉีดยา')));
+    if (fl.length) flow.push(`• ${name}: ${fl.map(x => x.n).join(', ')}`);
     if (note.includes('✅ ตัดอ้อย')) return;
-    const w = daysSince_(p.last_water_date);
     if (w === null) return;
     const lim = p.cane_type === 'อ้อยใหม่' ? wNew : wRat;
     if (w >= lim) water.push(`• ${name} (${p.area_rai} ไร่) ขาดน้ำ ${w} วัน`);
-    else if (w >= sMin && w <= sMax) spray.push(`• ${name} หลังน้ำ ${w} วัน`);
+    else if (damp && sprayDue) spray.push(`• ${name} หลังน้ำ ${w} วัน`);
     else if (lim - w <= 2) soon.push(`• ${name} อีก ${lim - w} วัน`);
   });
 
@@ -898,6 +907,7 @@ function buildBrief_(ss, s) {
   const sec = (title, arr) => arr.length ? `\n${title} (${arr.length})\n${arr.join('\n')}\n` : '';
   let msg = `🌾 สรุปไร่อ้อย ${thaiDate_(new Date())}\n`;
   msg += sec('💧 ถึงคิวขึ้นน้ำ', water);
+  msg += sec('📋 ถึงคิวตามขั้นตอน', flow);
   msg += sec('🔫 ดินหมาด ฉีดยาคุมได้', spray);
   msg += sec('📅 ใกล้ถึงรอบน้ำ', soon);
   msg += sec('⏳ งานค้าง', ongoing);
@@ -908,7 +918,7 @@ function buildBrief_(ss, s) {
   try { msg += sec('🪪 ต่อภาษี/ทะเบียน (ต่อล่วงหน้าได้ 90 วัน)', regBrief_(assets)); } catch (e) {}
   try { msg += wxBrief_(ss); } catch (e) {}
   try { msg += sugarBrief_(); } catch (e) {}
-  if (!water.length && !spray.length && !ongoing.length && !broken.length) msg += '\n✅ วันนี้ไม่มีคิวด่วน\n';
+  if (!water.length && !spray.length && !flow.length && !ongoing.length && !broken.length) msg += '\n✅ วันนี้ไม่มีคิวด่วน\n';
   if (avail) msg += `\nพร้อมใช้: ${avail}`;
   return msg.trim();
 }

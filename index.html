@@ -1773,7 +1773,7 @@
       } else if (wDays >= limit) {
         badges.push(`<span class="badge-smart bg-danger text-white">🚨 ขาดน้ำ ${wDays} วัน (ครบ ${limit}ว.)</span>`);
         isUrg = true; cls = 'urgent-water'; next = '🔥 ถึงคิวราดร่อง / ขึ้นน้ำรอบต่อไปทันที!'; nextCls = 'urgent';
-      } else if (wDays >= sMin && wDays <= sMax) {
+      } else if (wDays >= sMin && wDays <= sMax && flSprayDue(p)) {
         badges.push(`<span class="badge-smart" style="background:#fd7e14;color:white;">⚠️ หลังน้ำ ${wDays} วัน (ดินหมาด)</span>`);
         isUrg = true; cls = 'urgent-spray'; next = '🔫 ดินกำลังหมาด! ถึงคิวฉีดยาคุมหญ้า'; nextCls = 'urgent';
       } else if (wDays < sMin) {
@@ -1783,7 +1783,16 @@
         badges.push(`<span class="badge-smart bg-success text-white">💧 ให้น้ำแล้ว ${wDays} วัน</span>`);
         next = `รอขึ้นน้ำรอบถัดไปในอีก ${limit - wDays} วัน`;
       }
-      return { badges: badges.join(''), isUrg, cls, next, nextCls, isOngoing, isHarvested };
+      // 📋 ขั้นตอนอ้อยใหม่/อ้อยตอ: ขั้นที่ถึงคิว (ฉีดยาที่ขึ้นแบบดินหมาดแล้วไม่ซ้ำ)
+      let flow = [];
+      if (!isOngoing) { try { flow = flDue(p).filter(s => !(cls === 'urgent-spray' && s.g.includes('ฉีดยา'))); } catch (e) {} }
+      if (flow.length) {
+        const t = '📋 ถึงคิว: ' + flow.map(s => s.n).join(', ');
+        badges.push(`<span class="badge-smart" style="background:#B4630B;color:white;">${esc(t)}</span>`);
+        if (nextCls === 'urgent') next += ' · ' + t; else { next = t; nextCls = 'urgent'; }
+        isUrg = true;
+      }
+      return { badges: badges.join(''), isUrg, cls, next, nextCls, isOngoing, isHarvested, flow };
     }
 
     // ================= V8: หน้าแรก / การ์ดแปลง =================
@@ -1811,7 +1820,7 @@
       const limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
       const sMin = num(S('SPRAY_DAY_MIN')) || 3, sMax = num(S('SPRAY_DAY_MAX')) || 5;
       if (wDays >= limit) return { c: 'red', t: `ขาดน้ำ ${wDays} วัน (ครบ ${limit} ว.)` };
-      if (wDays >= sMin && wDays <= sMax) return { c: 'urg', t: `หลังน้ำ ${wDays} วัน · ดินหมาด ฉีดยาได้` };
+      if (wDays >= sMin && wDays <= sMax && flSprayDue(p)) return { c: 'urg', t: `หลังน้ำ ${wDays} วัน · ดินหมาด ฉีดยาได้` };
       if (wDays < sMin) return { c: 'blue', t: `เพิ่งให้น้ำ ${wDays} วัน` };
       return { c: 'ok', t: `ให้น้ำ ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
     }
@@ -2327,24 +2336,6 @@
         ${(gData.yields || []).length ? `<div class="fw-bold text-secondary small mt-2 mb-1">เทียบทั้งไร่ (ทุกแปลงที่บันทึก)</div>${yieldCompareHtml()}` : ''}</div>`;
     }
 
-    // ===== งานหลังตัดอ้อย (อ้อยตอ): แนะนำตามเล่ม กรมส่งเสริมฯ 2564 / ภาคกลาง 2558 =====
-    // นับจากวันที่บันทึก "ตัดอ้อย" ล่าสุด ไม่ต้องรอป้ายสถานะ (ป้ายหายเมื่อลงงานอื่น)
-    function ratoonTodo(logs) {
-      const cuts = (logs || []).filter(a => a.activity_group === 'ตัดอ้อย' && !(a.remark || '').includes('กำลังทำ') && beToISO(a.timestamp));
-      if (!cuts.length) return null;
-      const cut = cuts.reduce((m, a) => beToISO(a.timestamp) > beToISO(m.timestamp) ? a : m);
-      const ciso = beToISO(cut.timestamp), cd = calcDays(cut.timestamp);
-      if (cd === null || cd > 45 || ciso > todayISO()) return null;
-      const after = (logs || []).filter(a => beToISO(a.timestamp) >= ciso && a !== cut);
-      const did = (g, det) => after.some(a => a.activity_group === g && (!det || String(a.activity_detail || '').includes(det)));
-      const todo = [];
-      if (cd <= 14 && !did('รถไถเตรียมดิน/บำรุง')) todo.push(`สับ/พรวนใบอ้อย (ควรภายใน 1–7 วันหลังตัด${cd > 7 ? ' · เลยแล้ว' : ''})`); // งานรถไถใดก็ได้หลังตัด (ไถพรวน/สับหญ้า/ริปเปอร์) ฟอร์มไม่มีชื่อ "สับใบ"
-      if (cd <= 21 && !did('ขึ้นน้ำ') && !did('ฝนตก')) todo.push('ให้น้ำทันทีหลังแต่งตอ');
-      if (cd <= 45 && !did('ใส่ปุ๋ย')) todo.push('ใส่ปุ๋ยครั้งที่ 1 (ทันทีหลังแต่งตอ)');
-      if (cd <= 30 && !did('ใส่ปุ๋ย', 'ซ่อมอ้อย')) todo.push('ซ่อมอ้อยให้เสร็จภายใน 1 เดือน');
-      return todo.length ? { cd, todo } : null;
-    }
-
     // ช่วงฉีดยาที่ยังทันวันนี้ ถ้าหมดแล้ว (เช่น เปิดแอปตอนค่ำ) ดูพรุ่งนี้แทน — เดิมขึ้น "ไม่เหมาะ" ทั้งที่แค่เลยเวลา
     function sprayWhen(r) {
       const now = new Date().getHours(), t0 = todayISO(), d1 = new Date(); d1.setDate(d1.getDate() + 1);
@@ -2413,16 +2404,11 @@
           `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','finish')">${ICON_CHECK}งานเสร็จ</button><button type="button" class="bigbtn bigbtn-out" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`);
       }).join('')}</div>` : none('ไม่มีงานค้าง');
 
-      const post = rows.map(r => ({ p: r.p, t: ratoonTodo(logsBy[r.p.plot_id]) })).filter(x => x.t && !byId[x.p.plot_id].st.isOngoing);
-      if (post.length) {
-        h += head('หลังตัดอ้อย · บำรุงตอ', post.length);
-        h += `<div class="srow-box">${post.map(({ p, t }) => row('c:' + p.plot_id, 'srow-bad', p, `ตัดแล้ว ${t.cd} วัน · ` + esc(t.todo.join(' · ')), '<span class="pill pill-urgent">บำรุงตอ</span>',
-          `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`)).join('')}</div>`;
-      }
       h += head('ถึงคิว', urg.length);
       h += urg.length ? `<div class="srow-box">${urg.map(({ p, st }) => {
         const wc = waterChip(p, st, calcDays(p.plant_date), calcDays(p.last_water_date));
-        return row('u:' + p.plot_id, 'srow-bad', p, esc(wc && wc.c === 'red' ? wc.t : plain(st.next)) + wxHint(p, st), '<span class="pill pill-urgent">ถึงคิว</span>',
+        const fl = (st.flow || []).length ? ' · 📋 ' + st.flow.map(s => s.n).join(', ') : '';
+        return row('u:' + p.plot_id, 'srow-bad', p, esc(wc && wc.c === 'red' ? wc.t + fl : plain(st.next)) + wxHint(p, st), '<span class="pill pill-urgent">ถึงคิว</span>',
           `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button>`);
       }).join('')}</div>` : none('ไม่มีแปลงถึงคิว (พ.ย.–ธ.ค. ช่วงใกล้ตัด งดเตือนน้ำ)');
       const rk = (gData.rockPoints || []).filter(r => r.status !== 'ลงเสร็จ');
@@ -3767,6 +3753,20 @@
     const chCancelLogs = (pid, which) => which === 'last'
       ? (gData.activities || []).filter(a => a.plot_id === pid && a.activity_group !== 'ฝนตก').slice(0, 1)
       : (gData.activities || []).filter(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
+    // ขั้นตอน 📋 แบบย่อให้แชต: ชื่อ + ช่วงวัน และงานถึงคิว/ทำแล้วรายแปลง (คำนวณในเครื่อง ไม่อ่านชีตใหม่)
+    function chatFlow() {
+      try {
+        const win = (s, b) => s.k === 'note' ? 'ข้อควรจำ' : s.k === 'repeat' ? 'ตลอดฤดู' : s.f === s.t ? `วันที่ ${s.f}` : `วันที่ ${s.f} ถึง ${s.t}`;
+        const steps = {}; ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => { steps[k] = flGet(k).map(s => `${s.n} (${win(s)}${s.tool ? ' · ' + s.tool : ''}${s.note ? ' · ' + s.note : ''})`); });
+        const plots = {};
+        gData.plots.forEach(p => {
+          const i = flInfo(p); if (!i) return;
+          const A = flActs(p), R = flGet(i.type).filter(s => s.k === 'once').map(s => ({ s, r: flStat(s, p, A) }));
+          plots[p.plot_id] = { type: i.type, from: i.start, due: R.filter(x => x.r.st === 'due' && !flCutOnly(x.s)).map(x => x.s.n), done: R.filter(x => x.r.st === 'done').map(x => x.s.n + ' ' + x.r.txt.replace('✓ ', '')), next: R.filter(x => x.r.st === 'wait').slice(0, 2).map(x => x.s.n + ' ' + x.r.txt) };
+        });
+        return { note: 'วันที่นับจากวันปลูก (อ้อยใหม่) หรือวันตัด (อ้อยตอ) ติดลบ = ก่อนปลูก', steps, plots };
+      } catch (e) { return null; }
+    }
     function chatCtx() {
       const O = gData.options || {};
       const last = chat.msgs.slice().reverse().find(m => m.ai && m.state === 'draft');
@@ -3776,6 +3776,7 @@
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
         chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
+        flow: chatFlow(),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
       };
@@ -4870,52 +4871,37 @@ Export.table.toDrive({
     const FL_RT = 'รถไถเตรียมดิน/บำรุง';
     const FL_G = [[FL_RT, 'รถไถ'], ['ขึ้นน้ำ', 'ขึ้นน้ำ'], ['ฉีดยา', 'ฉีดยา'], ['ใส่ปุ๋ย', 'ปุ๋ย / งานคน'], ['ตัดอ้อย', 'ตัดอ้อย']];
     const FL_WATER_NOTE = 'ช่วงฝนน้อยขึ้นทุก ~14 วัน วนแปลงนี้เสร็จไปแปลงถัดไป';
-    const FL_DEF = {
-      'อ้อยใหม่': [
-        { n: 'ริปเปอร์', f: -30, t: -7, g: [FL_RT], m: 'ริปเปอร์', tool: 'ริปเปอร์', note: 'ถ้าดินแข็งแน่น · ดินไม่แข็งข้ามได้' },
-        { n: 'ผาน 3 (ไถดะ)', f: -25, t: -5, g: [FL_RT], m: 'ผาน 3', tool: 'ผาน 3' },
-        { n: 'ผาน 7 (ไถแปร)', f: -14, t: -1, g: [FL_RT], m: 'ผาน 7', tool: 'ผาน 7' },
-        { n: 'ชักร่อง / ปลูก + ปุ๋ยรองพื้น', f: 0, t: 0, g: [FL_RT, 'ใส่ปุ๋ย'], m: 'ชักร่อง,ปลูก,รองพื้น' },
-        { n: 'ขึ้นน้ำครั้งแรก', f: 0, t: 3, g: ['ขึ้นน้ำ'], m: '' },
-        { n: 'ฉีดยาคุมหญ้า', f: 5, t: 15, g: ['ฉีดยา'], m: '' },
-        { n: 'ซ่อมอ้อย', f: 30, t: 50, g: ['ใส่ปุ๋ย'], m: 'ซ่อม' },
-        { n: 'อุ้มร่อง', f: 40, t: 60, g: [FL_RT], m: 'อุ้มร่อง' },
-        { n: 'ถากหญ้า (คนงาน)', f: 45, t: 75, g: ['ใส่ปุ๋ย'], m: 'ถากหญ้า' },
-        { n: 'ฝังปุ๋ย / ปุ๋ยแต่งหน้า', f: 60, t: 90, g: [FL_RT, 'ใส่ปุ๋ย'], m: 'ฝังปุ๋ย,แต่งหน้า' },
-        { n: 'ฉีดยาคุมหญ้า รอบ 2', f: 75, t: 100, g: ['ฉีดยา'], m: '' },
-        { n: 'ขึ้นน้ำวนรอบ', k: 'repeat', f: 0, t: 300, g: ['ขึ้นน้ำ'], m: '', note: FL_WATER_NOTE },
-        { n: 'งดน้ำ 2 เดือนก่อนตัด', k: 'note', note: 'พ.ย.–ธ.ค. ให้อ้อยสะสมความหวาน เหลือดูแค่น้ำขัง' },
-        { n: 'ตัดอ้อย', f: 300, t: 420, g: ['ตัดอ้อย'], m: '' }],
-      'อ้อยตอ': [
-        { n: 'สับใบ / เผาใบ', f: 0, t: 7, g: [FL_RT], m: 'สับ,เผา', note: 'ภายใน 1–7 วันหลังตัด' },
-        { n: 'ครูดร่อง (ระหว่างแถว)', f: 3, t: 20, g: [FL_RT], m: 'ครูดร่อง', tool: 'ริปเปอร์ 2 ขา', note: 'ให้เป็นแนวน้ำไหล' },
-        { n: 'ขึ้นน้ำครั้งแรก', f: 10, t: 30, g: ['ขึ้นน้ำ'], m: '', note: 'รอให้อ้อยตองอกสักระยะก่อน' },
-        { n: 'ฉีดยาคุมหญ้า', f: 20, t: 45, g: ['ฉีดยา'], m: '' },
-        { n: 'ซ่อมตอ', f: 30, t: 50, g: ['ใส่ปุ๋ย'], m: 'ซ่อม' },
-        { n: 'ถากหญ้า (คนงาน)', f: 30, t: 75, g: ['ใส่ปุ๋ย'], m: 'ถากหญ้า' },
-        { n: 'ฝังปุ๋ย / ใส่ปุ๋ยอ้อยตอ', f: 30, t: 75, g: [FL_RT, 'ใส่ปุ๋ย'], m: 'ฝังปุ๋ย,ปุ๋ยอ้อยตอ', note: 'ไม่ใส่ปุ๋ยทันทีหลังตัด' },
-        { n: 'อุ้มร่อง', f: 60, t: 100, g: [FL_RT], m: 'อุ้มร่อง' },
-        { n: 'ขึ้นน้ำวนรอบ', k: 'repeat', f: 0, t: 300, g: ['ขึ้นน้ำ'], m: '', note: FL_WATER_NOTE },
-        { n: 'งดน้ำ 2 เดือนก่อนตัด', k: 'note', note: 'พ.ย.–ธ.ค. ให้อ้อยสะสมความหวาน เหลือดูแค่น้ำขัง' },
-        { n: 'ตัดอ้อย', f: 330, t: 420, g: ['ตัดอ้อย'], m: '' }]
-    };
+    const flDef = k => JSON.parse(JSON.stringify(((gData && gData.flowDef) || {})[k] || [])); // ร่างเริ่มต้นอยู่ที่ gas/Flow.gs FLOW_DEF_ ที่เดียว
     let flKey = 'อ้อยใหม่', flOpen = -1, flEdit = -1, flDraft = null; const flSteps = {};
     function flGet(key) {
       if (flSteps[key]) return flSteps[key];
       const r = (gData.flows || []).find(x => x.key === key); let a = null;
       try { a = JSON.parse((r && r.data) || 'null'); } catch (e) {}
-      if (!Array.isArray(a) || !a.length) a = JSON.parse(JSON.stringify(FL_DEF[key]));
+      if (!Array.isArray(a) || !a.length) a = flDef(key);
       a.forEach(s => { s.k = s.k || 'once'; s.g = Array.isArray(s.g) ? s.g : []; s.m = s.m || ''; s.f = num(s.f); s.t = num(s.t); });
-      return (flSteps[key] = a);
+      return a.length ? (flSteps[key] = a) : a; // ข้อมูลเก่าในเครื่องยังไม่มี flowDef → ไม่จำค่าว่าง
     }
-    const flPlots = key => gData.plots.filter(p => p.cane_type === key && beToISO(p.plant_date));
+    // ชนิด + วันเริ่มนับของแปลง: ตัดอ้อยเสร็จหลังวันปลูก = เริ่มรอบอ้อยตอจากวันตัด (ไม่ต้องรอแก้วันปลูก)
+    // กติกาเดียวกับ gas/Flow.gs (flowInfo_/flowDue_ ที่ใช้ใน LINE เช้า) แก้ต้องแก้คู่กัน
+    let flInfoC = { a: null, m: {} };
+    function flInfo(p) {
+      if (flInfoC.a !== gData.activities) flInfoC = { a: gData.activities, m: {} };
+      if (p.plot_id in flInfoC.m) return flInfoC.m[p.plot_id];
+      const t0 = todayISO(), pl = beToISO(p.plant_date);
+      const cut = (gData.activities || []).filter(a => a.plot_id === p.plot_id && a.activity_group === 'ตัดอ้อย' && !String(a.remark || '').includes('กำลังทำ'))
+        .map(a => beToISO(String(a.timestamp || '').split(' ')[0])).filter(t => t && t <= t0).sort().pop();
+      const r = cut && (!pl || cut > pl) ? { type: 'อ้อยตอ', start: cut } : pl ? { type: p.cane_type, start: pl } : null;
+      return (flInfoC.m[p.plot_id] = r);
+    }
+    const flPlots = key => gData.plots.filter(p => { const i = flInfo(p); return i && i.type === key; });
     function flActs(p) {
-      return (gData.activities || []).filter(a => a.plot_id === p.plot_id).map(a => ({ g: a.activity_group, d: (a.activity_detail || '') + ' ' + (a.activity_group === FL_RT ? tracKind(a.activity_detail, p.cane_type) : ''), t: beToISO(String(a.timestamp || '').split(' ')[0]) })).filter(x => x.t);
+      const ty = (flInfo(p) || {}).type || p.cane_type;
+      return (gData.activities || []).filter(a => a.plot_id === p.plot_id).map(a => ({ g: a.activity_group, d: (a.activity_detail || '') + ' ' + (a.activity_group === FL_RT ? tracKind(a.activity_detail, ty) : ''), t: beToISO(String(a.timestamp || '').split(' ')[0]) })).filter(x => x.t);
     }
     function flStat(s, p, acts) {
-      const st = beToISO(p.plant_date), dd = t => Math.round((Date.parse(t) - Date.parse(st)) / 864e5), age = dd(todayISO());
-      const kw = String(s.m || '').split(',').map(x => x.trim()).filter(Boolean);
-      const hit = acts.filter(a => s.g.includes(a.g) && (!kw.length || kw.some(w => a.d.includes(w)))).map(a => Object.assign({ age: dd(a.t) }, a));
+      const st = (flInfo(p) || {}).start, dd = t => Math.round((Date.parse(t) - Date.parse(st)) / 864e5), age = dd(todayISO());
+      const kw = String(s.m || '').split(',').map(x => x.trim()).filter(Boolean), gs = s.g.includes('ขึ้นน้ำ') ? s.g.concat('ฝนตก') : s.g;
+      const hit = acts.filter(a => gs.includes(a.g) && (!kw.length || kw.some(w => a.d.includes(w)))).map(a => Object.assign({ age: dd(a.t) }, a));
       if (s.k === 'repeat') { const n = new Set(hit.filter(a => a.age >= s.f).map(a => a.t)).size; return { st: 'rep', n, txt: n ? n + ' วัน' : 'ยังไม่มีบันทึก' }; }
       const inW = hit.filter(a => a.age >= s.f - 20 && a.age <= s.t + 45).sort((a, b) => a.t < b.t ? 1 : -1);
       if (inW.length) return { st: 'done', txt: '✓ ' + thDate(inW[0].t) };
@@ -4923,10 +4909,18 @@ Export.table.toDrive({
       if (age <= s.t) return { st: 'due', txt: 'ถึงคิว' };
       return { st: 'none', txt: 'ไม่มีบันทึก' };
     }
+    // ขั้นที่ถึงคิวของแปลงหนึ่ง (การ์ดหน้าแรก / ป้ายแปลง / แชต) · ไม่เตือนขั้นตัดอ้อย (แล้วแต่คิวโรงงาน)
+    const flCutOnly = s => s.g.length === 1 && s.g[0] === 'ตัดอ้อย';
+    function flDue(p) {
+      const i = flInfo(p); if (!i) return [];
+      const A = flActs(p);
+      return flGet(i.type).filter(s => s.k === 'once' && !flCutOnly(s) && flStat(s, p, A).st === 'due');
+    }
+    const flSprayDue = p => { try { return flDue(p).some(s => s.g.includes('ฉีดยา')); } catch (e) { return false; } };
     // ถึงคิวทั้งหมด (โชว์บนปุ่มในแท็บแปลง)
     function flDueCount() {
       let n = 0;
-      ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => { const st = flGet(k).filter(s => s.k === 'once'); flPlots(k).forEach(p => { const A = flActs(p); st.forEach(s => { if (flStat(s, p, A).st === 'due') n++; }); }); });
+      ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => { const st = flGet(k).filter(s => s.k === 'once'); flPlots(k).forEach(p => { const A = flActs(p); st.forEach(s => { if (!flCutOnly(s) && flStat(s, p, A).st === 'due') n++; }); }); });
       return n;
     }
     function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
@@ -5004,7 +4998,7 @@ Export.table.toDrive({
     }
     function flMove(i, dir) { const a = flGet(flKey), j = i + dir; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; flOpen = j; flPersist(); }
     function flDel(i) { const a = flGet(flKey); if (!confirm(`ลบขั้น "${a[i].n}"?`)) return; a.splice(i, 1); flOpen = -1; flPersist(); }
-    function flReset() { if (!confirm(`ใช้ร่างเริ่มต้นของ${flKey}แทนที่แก้ไว้?`)) return; flSteps[flKey] = null; flSteps[flKey] = JSON.parse(JSON.stringify(FL_DEF[flKey])); flGet(flKey); flOpen = -1; flPersist(); }
+    function flReset() { if (!confirm(`ใช้ร่างเริ่มต้นของ${flKey}แทนที่แก้ไว้?`)) return; flSteps[flKey] = null; flSteps[flKey] = flDef(flKey); flGet(flKey); flOpen = -1; flPersist(); }
     function flPersist() {
       flRender();
       const key = flKey;

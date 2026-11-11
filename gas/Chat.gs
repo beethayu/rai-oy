@@ -67,6 +67,7 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 - มี draft เดิม (ctx.draft) และผู้ใช้พิมพ์แก้ → คืน items ชุดเต็มที่แก้แล้ว (ไม่ใช่เฉพาะส่วนที่แก้) · ผู้ใช้ตอบคำถามจาก ask → รวมเข้า items
 - ข้อความที่เป็นคำถาม/ขอคำแนะนำ (ไม่ใช่การจดงาน) → items ว่าง แล้วตอบใน reply ให้ครบและเป็นประโยชน์ เหมือนผู้เชี่ยวชาญไร่อ้อยในไทย (อีสาน) คุยกับเจ้าของไร่
   ใช้ข้อมูลจริงใน ctx.plots (ชนิดอ้อย ไร่ วันปลูก/วันตัดตอ วันให้น้ำล่าสุด งานกำลังทำ) เมื่อเกี่ยวข้อง คำนวณอายุจาก ctx.today ได้ · ไม่รู้ให้บอกตรง ๆ ห้ามแต่งตัวเลข
+  ถามว่าแปลงไหนต้องทำอะไร/งานต่อไป/ถึงคิวอะไร → ใช้ ctx.flow (ขั้นตอน 📋 ที่ผู้ใช้ตั้งเองในแอป): flow.plots[plot_id].due = ถึงคิวตอนนี้, next = ขั้นถัดไปอีกกี่วัน, done = ทำแล้ว · flow.steps = ขั้นตอนทั้งหมดของอ้อยใหม่/อ้อยตอ ตอบตามขั้นตอนนี้ก่อนความรู้ทั่วไป
   reply ยาวได้ ขึ้นบรรทัดใหม่ด้วย \n ใช้ข้อ ๆ ได้ (ขึ้นต้น "• ") ไม่ใช้ markdown ตัวหนา/หัวข้อ
 - reply ตอนจดงาน ภาษาไทย สั้น เช่น "เข้าใจว่ามี 3 งาน ตรวจก่อนนะครับ"`;
 
@@ -141,7 +142,7 @@ function chatParse(text, ctx, images, reuse) {
   const hist = (ctx.history || []).slice(-8).map(h => (h.me ? 'ผู้ใช้: ' : 'ผู้ช่วย: ') + h.t).join('\n');
   const prompt = CHAT_RULES_ +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
-      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], stats: ctx.stats || undefined, draft: ctx.draft || null }) +
+      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], flow: ctx.flow || undefined, stats: ctx.stats || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);

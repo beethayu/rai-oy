@@ -4969,7 +4969,7 @@ Export.table.toDrive({
     // คำตอบของขั้นถาม: ผู้ใช้ตอบในฤดูนี้ก่อน · ไม่มี = เดาจากบันทึก (คำของแต่ละตัวเลือก)
     function flowAns_(s, ctx) {
       const a = ctx.ans[s.id];
-      if (a && a.v && (s.keep || a.age >= s.f - 60)) return { v: a.v, by: 'user', age: a.age }; // keep = วิธีประจำของแปลง ใช้ทุกฤดู
+      if (a && a.v && a.age >= s.f - 60) return { v: a.v, by: 'user', age: a.age }; // คำตอบใช้เฉพาะฤดูนี้ (แต่ละปีอาจทำไม่เหมือนกัน)
       for (const o of s.o || []) { const h = o.m ? flowHit_(ctx.acts, [], o.m, s.f - 20, s.t + 45) : []; if (h.length) return { v: o.v, by: 'log', age: h[0].age }; }
       return null;
     }
@@ -5123,14 +5123,19 @@ Export.table.toDrive({
       saveCache(gData); flRender(); render();
       call('saveFlowAns', [pid, id, v, d], d => { gData.flows = d.flows; saveCache(gData); });
     }
-    // วิธีจัดการใบอ้อยตอรายแปลงที่ผู้ใช้บอก (12 พ.ย. 69) — ตอบให้ครั้งเดียว เฉพาะแปลงที่ยังไม่มีคำตอบ แก้ได้ในผังขั้น "จัดการใบอ้อย"
+    // วิธีจัดการใบอ้อยตอรายแปลงที่ผู้ใช้บอก (12 พ.ย. 69) = ของฤดูนี้ (แต่ละปีไม่เหมือนกัน) → ตอบลงวันเริ่มรอบตอของแปลง ฤดูหน้าแอปถามใหม่
+    // seed2 แก้ seed1 ที่ลงวันที่วันนี้ (ซึ่งจะไปค้างเป็นคำตอบฤดูหน้า)
     const FL_LEAF_SEED = [[/สำนักแจง/, 'rake'], [/หนองเฝ้า/, 'burn'], [/ข้างสระ/, 'burn'], [/ยายเวียน/, 'burn'], [/หนองกระทู้/, 'burn']];
     function flSeedLeaf() {
-      if (lsGet('raioy_leafseed1') || !(gData.plots || []).length || !gData.flows) return;
-      lsSet('raioy_leafseed1', '1');
+      if (lsGet('raioy_leafseed2') || !(gData.plots || []).length || !gData.flows) return;
+      lsSet('raioy_leafseed2', '1');
       const todo = [];
-      gData.plots.forEach(p => { const r = FL_LEAF_SEED.find(x => x[0].test(p.plot_name)); if (r && !flAnsRaw(p.plot_id).d1) todo.push([p.plot_id, r[1]]); });
-      todo.forEach((t, k) => setTimeout(() => flAnswer(t[0], 'd1', t[1]), k * 700));
+      gData.plots.forEach(p => {
+        const r = FL_LEAF_SEED.find(x => x[0].test(p.plot_name)), i = flInfo(p), a = flAnsRaw(p.plot_id).d1;
+        if (!r || !i || i.type !== 'อ้อยตอ' || !i.start) return;
+        if (!a || (a.v === r[1] && a.d >= '2026-11-12')) todo.push([p.plot_id, r[1], i.start]);
+      });
+      todo.forEach((t, k) => setTimeout(() => flAnswer(t[0], 'd1', t[1], t[2]), k * 700));
     }
     function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
     const flBase = () => flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด';
@@ -5333,13 +5338,15 @@ Export.table.toDrive({
       call('saveFlow', [key, js], d => { gData.flows = d.flows; flSteps[key] = null; saveCache(gData); if (curTab === 'all') render(); });
     }
     // การ์ดหน้าแรก: คำถามรายแปลงที่รอตอบ (การ์ดเดียว จัดกลุ่มตามคำถาม)
+    // คำตอบฤดูก่อน (หมดอายุแล้ว) ไว้ให้ดูตอนถามใหม่
+    function flPrevAns(p, s) { const a = flAnsRaw(p.plot_id)[s.id], o = a && (s.o || []).find(x => x.v === a.v); return o ? `<br><small style="color:#6B736E">ครั้งก่อน: ${esc(o.l)}</small>` : ''; }
     function flAskHtml() {
       const G = {};
       gData.plots.forEach(p => { let q = []; try { q = flAsks(p); } catch (e) {} q.forEach(x => { const k = flCtx(p).i.type + '|' + x.s.id; (G[k] = G[k] || { s: x.s, type: flCtx(p).i.type, ps: [] }).ps.push(p); }); });
       const L = Object.values(G); if (!L.length) return '';
       return `<div class="fl-ask-card"><div class="srow-s" style="color:#6B2E86;font-weight:700">❓ ถามรายแปลง · ใช้เลือกขั้นตอนต่อไป</div>${L.map(g => `
         <div class="fl-ask-q">${esc(g.s.q || g.s.n)} <span>${esc(g.s.n)} · ${esc(g.type)}</span></div>
-        ${g.ps.map(p => `<div class="fl-ask-r"><span>${esc(p.plot_name)}</span><span class="fl-abs">${g.s.o.map(o => `<button type="button" class="fl-ab" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</span></div>`).join('')}`).join('')}
+        ${g.ps.map(p => `<div class="fl-ask-r"><span>${esc(p.plot_name)}${flPrevAns(p, g.s)}</span><span class="fl-abs">${g.s.o.map(o => `<button type="button" class="fl-ab" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</span></div>`).join('')}`).join('')}
         <div class="srow-s mt-1">ตอบแล้วแก้ได้ในเมนูแปลง › 📋 ขั้นตอน</div></div>`;
     }
     // ===== ฝนรายวันย้อนหลัง + จำลองการขึ้นน้ำทีละปี =====

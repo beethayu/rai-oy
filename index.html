@@ -1747,6 +1747,7 @@
       gData = d; if (!gData.lands) gData.lands = []; if (!gData.rainLog) gData.rainLog = []; if (!gData.watches) gData.watches = []; if (!gData.yields) gData.yields = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
       if (!uiRestored) { uiRestored = true; uiRestore(); }
       if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
+      if (!fromCache) setTimeout(() => { try { flSeedLeaf(); } catch (e) {} }, 1500);
     }
 
     function calcDays(dStr) {
@@ -4968,7 +4969,7 @@ Export.table.toDrive({
     // คำตอบของขั้นถาม: ผู้ใช้ตอบในฤดูนี้ก่อน · ไม่มี = เดาจากบันทึก (คำของแต่ละตัวเลือก)
     function flowAns_(s, ctx) {
       const a = ctx.ans[s.id];
-      if (a && a.v && a.age >= s.f - 60) return { v: a.v, by: 'user', age: a.age };
+      if (a && a.v && (s.keep || a.age >= s.f - 60)) return { v: a.v, by: 'user', age: a.age }; // keep = วิธีประจำของแปลง ใช้ทุกฤดู
       for (const o of s.o || []) { const h = o.m ? flowHit_(ctx.acts, [], o.m, s.f - 20, s.t + 45) : []; if (h.length) return { v: o.v, by: 'log', age: h[0].age }; }
       return null;
     }
@@ -4983,6 +4984,25 @@ Export.table.toDrive({
     }
     // สถานะขั้นของแปลง: done ทำแล้ว (at) · due ถึงคิว · wait ยังไม่ถึง (d วัน) · none เลยช่วงไม่มีบันทึก · skip ไม่ต้องทำ
     //   hold รอคำตอบขั้นถามก่อนหน้า · ask รอตอบคำถาม · ans ตอบแล้ว (ไม่มีงานในขั้นนี้) · note (n = วันที่บันทึกฤดูนี้)
+    // บันทึกหนึ่งนับให้ขั้นเดียว: ถ้าตรงหลายขั้น (เช่น ฝังปุ๋ย ตรงทั้งปุ๋ยครั้งที่ 1 และ 2) ให้ขั้นที่ช่วงวันใกล้บันทึกที่สุด เสมอกัน = ขั้นที่มาก่อน
+    // ผู้ใช้ย้ายบันทึกได้: ans['h:'+id] not = บันทึกถึงวันนั้นไม่ใช่ขั้นนี้ · done = นับว่าทำขั้นนี้วันนั้น
+    function flowHits_(steps, ctx) {
+      if (ctx._h) return ctx._h;
+      const H = ctx._h = {}, best = new Map();
+      steps.forEach(s => {
+        H[s.id] = [];
+        if (s.k === 'note') return;
+        if (s.w && s.w.a) { const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null; if (a && !String(s.w.v).split(',').includes(a.v)) return; }
+        let h = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45, s.x);
+        const ov = ctx.ans['h:' + s.id];
+        if (ov && ov.v === 'not') h = h.filter(a => a.age > ov.age);
+        h.forEach(a => { const d = a.age < s.f ? s.f - a.age : a.age > s.t ? a.age - s.t : 0, b = best.get(a); if (!b || d < b.d) best.set(a, { d, id: s.id }); });
+        if (ov && ov.v === 'done') H[s.id].push({ age: ov.age, d: '' });
+      });
+      best.forEach((b, a) => H[b.id].push(a));
+      Object.keys(H).forEach(k => H[k].sort((x, y) => x.age - y.age));
+      return H;
+    }
     function flowStat_(s, ctx, steps) {
       const age = ctx.age, k = s.k;
       if (s.w && s.w.a) {
@@ -4991,10 +5011,7 @@ Export.table.toDrive({
         if (!String(s.w.v).split(',').includes(a.v)) return { st: 'skip' };
       }
       if (k === 'note') { const h = s.g.length ? flowHit_(ctx.acts, s.g, s.m, 0, age) : []; return { st: 'note', n: new Set(h.map(x => x.age)).size }; }
-      let hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45, s.x);
-      const ov = ctx.ans['h:' + s.id]; // ผู้ใช้ย้ายบันทึก: not = บันทึกถึงวันนั้นไม่ใช่งานขั้นนี้ · done = นับว่าทำขั้นนี้วันนั้น
-      if (ov && ov.v === 'not') hits = hits.filter(h => h.age > ov.age);
-      if (ov && ov.v === 'done') hits = hits.concat({ age: ov.age, d: '' }).sort((a, b) => a.age - b.age);
+      const hits = flowHits_(steps, ctx)[s.id] || [];
       const base = () => age < s.f ? { st: 'wait', d: s.f - age } : age <= s.t ? { st: 'due' } : { st: 'none' };
       if (k === 'ask') {
         const a = flowAns_(s, ctx), o = a && s.o.find(x => x.v === a.v);
@@ -5106,6 +5123,15 @@ Export.table.toDrive({
       saveCache(gData); flRender(); render();
       call('saveFlowAns', [pid, id, v, d], d => { gData.flows = d.flows; saveCache(gData); });
     }
+    // วิธีจัดการใบอ้อยตอรายแปลงที่ผู้ใช้บอก (12 พ.ย. 69) — ตอบให้ครั้งเดียว เฉพาะแปลงที่ยังไม่มีคำตอบ แก้ได้ในผังขั้น "จัดการใบอ้อย"
+    const FL_LEAF_SEED = [[/สำนักแจง/, 'rake'], [/หนองเฝ้า/, 'burn'], [/ข้างสระ/, 'burn'], [/ยายเวียน/, 'burn'], [/หนองกระทู้/, 'burn']];
+    function flSeedLeaf() {
+      if (lsGet('raioy_leafseed1') || !(gData.plots || []).length || !gData.flows) return;
+      lsSet('raioy_leafseed1', '1');
+      const todo = [];
+      gData.plots.forEach(p => { const r = FL_LEAF_SEED.find(x => x[0].test(p.plot_name)); if (r && !flAnsRaw(p.plot_id).d1) todo.push([p.plot_id, r[1]]); });
+      todo.forEach((t, k) => setTimeout(() => flAnswer(t[0], 'd1', t[1]), k * 700));
+    }
     function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
     const flBase = () => flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด';
     function flWin(s) {
@@ -5140,8 +5166,8 @@ Export.table.toDrive({
       let h = `<div class="sat-seg mt-0">${['อ้อยใหม่', 'อ้อยตอ'].map(k => `<button type="button" class="${k === flKey ? 'on' : ''}" onclick="flKey='${k}';flOpen=-1;flEdit=-1;flRender()">${k === 'อ้อยใหม่' ? '🌱 อ้อยใหม่' : '🌿 อ้อยตอ'}</button>`).join('')}</div>
         <div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด'} · แตะขั้น = ดูรายแปลง / ตอบ / แก้ · แตะแถบระยะ = พับ/กาง</div>`;
       let skip = []; try { skip = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {}
-      const miss = flRow(flKey) ? flDef(flKey).filter(d => !steps.some(s => s.id === d.id) && !skip.includes(flKey + d.id)) : [];
-      if (miss.length) h += `<div class="fl-old"><b>${steps.some(s => /^d\d+$/.test(s.id)) ? 'ร่างมีขั้นใหม่ที่ผังของคุณยังไม่มี' : 'ผังนี้เป็นแบบเดิมที่แก้ไว้'}</b><div class="srow-s">${miss.slice(0, 4).map(d => esc(d.n)).join(', ')}${miss.length > 4 ? ` และอีก ${miss.length - 4} ขั้น` : ''} · ผังเดิมยังใช้ได้ตามปกติ</div>
+      const miss = flRow(flKey) ? flDef(flKey).filter(d => { const s = steps.find(x => x.id === d.id); return (!s || (d.rev || 0) > (s.rev || 0)) && !skip.includes(flKey + d.id + (d.rev || '')); }) : [];
+      if (miss.length) h += `<div class="fl-old"><b>${steps.some(s => /^d\d+$/.test(s.id)) ? 'ร่างมีขั้นใหม่/แก้แล้ว ที่ผังของคุณยังไม่มี' : 'ผังนี้เป็นแบบเดิมที่แก้ไว้'}</b><div class="srow-s">${miss.slice(0, 4).map(d => esc(d.n)).join(', ')}${miss.length > 4 ? ` และอีก ${miss.length - 4} ขั้น` : ''} · ผังเดิมยังใช้ได้ตามปกติ</div>
         <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold" onclick="flReset()">ใช้ผังใหม่ตามร่าง</button><button type="button" class="btn btn-sm btn-outline-secondary" onclick="flSkipNew()">ไม่เอา</button></div></div>`;
       // แบ่งเป็นช่วงตามระยะ: ขั้นข้อควรจำที่ไม่มีวันอยู่ระยะเดิม · ขั้นที่ขึ้นกับคำตอบเดียวกันติดกัน = ทางแยก
       const segs = []; let ph = -1;
@@ -5173,7 +5199,7 @@ Export.table.toDrive({
         <div class="srow-s mt-3">ร่างจากวิธีที่คุณเล่า + เล่มทางการ (สอน., กรมส่งเสริมฯ) แก้ได้ทุกขั้น · ระยะอ้อย: ทรูปลูกปัญญา, กรมส่งเสริมการเกษตร 2564, KBS · <a href="#" onclick="event.preventDefault();flReset()">กลับไปใช้ร่างเริ่มต้น</a></div>`;
       B.innerHTML = h;
     }
-    function flSkipNew() { let s = []; try { s = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {} flDef(flKey).forEach(d => { if (!s.includes(flKey + d.id)) s.push(flKey + d.id); }); lsSet('raioy_flskip', JSON.stringify(s)); flRender(); }
+    function flSkipNew() { let s = []; try { s = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {} flDef(flKey).forEach(d => { const k = flKey + d.id + (d.rev || ''); if (!s.includes(k)) s.push(k); }); lsSet('raioy_flskip', JSON.stringify(s)); flRender(); }
     function flLanesHtml(steps, i, j, plots) {
       const q = steps.find(x => x.id === steps[i].w.a), opts = q ? q.o : [], run = [];
       for (let k = i; k < j; k++) run.push(k);

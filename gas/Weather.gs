@@ -136,3 +136,21 @@ function wxBrief_(ss) {
   });
   return `\n🌦️ อากาศ (ค่าประมาณ Open-Meteo)\n${lines.join('\n')}\n`;
 }
+
+// ฝนย้อนหลังรายเดือน (Open-Meteo archive) ณ พิกัดแปลง → ใช้วางแผนเดือนปลูก · คืน [{ym, mm, heavy(วันฝน ≥ 40 มม.), max}]
+function rainHistory(lat, lng, years) {
+  years = Math.min(Math.max(Number(years) || 5, 1), 10);
+  const end = new Date(Date.now() - 3 * 864e5), start = new Date(end.getFullYear() - years, end.getMonth(), 1);
+  const f = d => Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy-MM-dd');
+  const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + Number(lat) + '&longitude=' + Number(lng) +
+    '&start_date=' + f(start) + '&end_date=' + f(end) + '&daily=precipitation_sum&timezone=Asia%2FBangkok';
+  const j = JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText());
+  if (!j.daily) throw new Error('Open-Meteo archive: ' + (j.reason || 'ไม่มีข้อมูล'));
+  const m = {};
+  j.daily.time.forEach((t, i) => {
+    const ym = t.slice(0, 7), v = Number(j.daily.precipitation_sum[i]) || 0;
+    const o = m[ym] || (m[ym] = { ym, mm: 0, heavy: 0, max: 0, days: [] });
+    o.mm += v; if (v >= 40) { o.heavy++; o.days.push(t.slice(8) + ':' + Math.round(v)); } o.max = Math.max(o.max, v);
+  });
+  return Object.values(m).map(o => ({ ym: o.ym, mm: Math.round(o.mm), heavy: o.heavy, max: Math.round(o.max), days: o.days.join(' ') }));
+}

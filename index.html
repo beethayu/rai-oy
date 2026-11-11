@@ -831,12 +831,20 @@
           <div id="sub_trac" style="display:none;" class="mb-2 p-2 bg-light rounded border">
             <small class="fw-bold">เลือกงานรถไถ & เครื่องจักร:</small>
             <select class="form-select form-select-sm mb-1 mt-1" id="trac_task" onchange="placeFert()">
-              <option value="ริปเปอร์ / ครูดร่อง">ริปเปอร์ / ครูดร่อง</option>
-              <option value="ไถพรวน">ไถพรวน</option>
-              <option value="ชักร่อง / ปลูกอ้อย">ชักร่อง / ปลูกอ้อย</option>
+              <optgroup label="อ้อยใหม่ (เตรียมดินตามลำดับ)">
+                <option value="ริปเปอร์">ริปเปอร์</option>
+                <option value="ผาน 3">ผาน 3 (ไถดะ)</option>
+                <option value="ผาน 7">ผาน 7 (ไถแปร)</option>
+                <option value="ชักร่อง / ปลูกอ้อย">ชักร่อง / ปลูกอ้อย</option>
+              </optgroup>
+              <optgroup label="อ้อยตอ">
+                <option value="ครูดร่อง">ครูดร่อง (ระหว่างแถว)</option>
+              </optgroup>
+              <optgroup label="ทั่วไป">
               <option value="อุ้มร่อง">อุ้มร่อง</option>
               <option value="ฝังปุ๋ย">ฝังปุ๋ย</option>
               <option value="สับหญ้า / ถากหญ้า">สับหญ้า / ถากหญ้า</option>
+              </optgroup>
             </select>
             <select class="form-select form-select-sm" id="act_eq"></select>
             <div id="fert_slot_trac"></div>
@@ -2652,23 +2660,38 @@
     }
 
     // ================= แฟ้มข้อมูลแปลง =================
+    // งานรถไถ: อ้อยใหม่ ริปเปอร์ → ผาน 3 → ผาน 7 → ชักร่อง · อ้อยตอ ลงเหล็กระหว่างแถว = ครูดร่อง (ของเก่าลงไว้ว่า "ริปเปอร์ / ครูดร่อง" แยกตามชนิดอ้อย)
+    const TRAC_LBL = { 'ริปเปอร์': 'ริปเปอร์', 'ผาน 3': 'ผาน 3 (ไถดะ)', 'ผาน 7': 'ผาน 7 (ไถแปร)', 'ไถ': 'ไถ (ไม่ระบุผาน)', 'ชักร่อง': 'ชักร่อง/ปลูก', 'ครูดร่อง': 'ครูดร่อง (ระหว่างแถว)', 'อุ้มร่อง': 'อุ้มร่อง' };
+    function tracKind(d, type) {
+      d = String(d || '');
+      if (/ริปเปอร์/.test(d) && /ครูด/.test(d)) return type === 'อ้อยตอ' ? 'ครูดร่อง' : 'ริปเปอร์';
+      if (/ครูด/.test(d) || (/ริปเปอร์/.test(d) && type === 'อ้อยตอ')) return 'ครูดร่อง';
+      if (/ริปเปอร์/.test(d)) return 'ริปเปอร์';
+      if (/ผาน\s*(3|สาม)|ไถดะ/.test(d)) return 'ผาน 3';
+      if (/ผาน\s*(7|เจ็ด)|ไถแปร/.test(d)) return 'ผาน 7';
+      if (/ชักร่อง|ปลูก/.test(d)) return 'ชักร่อง';
+      if (/อุ้มร่อง/.test(d)) return 'อุ้มร่อง';
+      if (/ฝังปุ๋ย/.test(d)) return 'ฝังปุ๋ย';
+      if (/ไถ|ผาน/.test(d)) return 'ไถ';
+      return '';
+    }
     function openDossier(pid) {
       let p = gData.plots.find(x => x.plot_id === pid);
       if (!p) return;
       let logs = gData.activities.filter(a => a.plot_id === pid);
       let chLogs = [...logs].reverse();
-      let ripper = [], plow = [], plant = [], hillUp = [], subFert = [], weed = [];
+      let trac = {}, plant = [], subFert = [], weed = [];
+      const tAdd = (k, v) => (trac[k] = trac[k] || []).push(v);
       let waterDates = [], sprayList = [], fertList = [], harvList = [];
       let totalFertBags = 0, totalSprayTanks = 0, totalTrips = 0, totalTons = 0;
 
       chLogs.forEach(l => {
         let g = l.activity_group || '', d = l.activity_detail || '', q = l.quantity || '', dt = l.timestamp;
         if (g === 'รถไถเตรียมดิน/บำรุง') {
-          if (d.includes('ริปเปอร์')) ripper.push(`${dt} (${l.equipment})`);
-          else if (d.includes('ไถพรวน')) plow.push(`${dt} (${l.equipment})`);
-          else if (d.includes('ชักร่อง') || d.includes('ปลูก')) plant.push(`${dt} (${l.equipment})`);
-          else if (d.includes('อุ้มร่อง')) hillUp.push(`${dt} (${l.equipment})`);
-          else if (d.includes('ฝังปุ๋ย')) { subFert.push(`${dt} (${q !== '-' ? q : l.equipment})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
+          const k = tracKind(d, p.cane_type), v = `${dt}${l.equipment && l.equipment !== '-' ? ` (${l.equipment})` : ''}`;
+          if (k === 'ชักร่อง') plant.push(v);
+          else if (k && k !== 'ฝังปุ๋ย') tAdd(k, v);
+          else if (k === 'ฝังปุ๋ย') { subFert.push(`${dt} (${q !== '-' ? q : l.equipment})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
           else weed.push(`${dt}: ${d}`);
         } else if (g === 'ขึ้นน้ำ' || g === 'ฝนตก') {
           waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment !== '-' ? l.equipment : 'ขึ้นน้ำ')})`);
@@ -2729,10 +2752,8 @@
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-secondary mb-1">🚜 งานเตรียมดิน / รถไถ / อุ้มร่อง</div>
-            <div>• <b>ลงริปเปอร์/ครูดร่อง:</b> ${ripper.length ? ripper.join(', ') : none}</div>
-            <div>• <b>ไถพรวน:</b> ${plow.length ? plow.join(', ') : none}</div>
-            <div>• <b>ชักร่อง/ปลูก:</b> ${plant.length ? plant.join(', ') : (p.plant_date || none)}</div>
-            <div>• <b>อุ้มร่อง:</b> ${hillUp.length ? hillUp.join(', ') : none}</div>
+            ${(p.cane_type === 'อ้อยตอ' ? ['ครูดร่อง', 'อุ้มร่อง'] : ['ริปเปอร์', 'ผาน 3', 'ผาน 7', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 3', 'ผาน 7'].includes(k)))
+              .map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []); return `<div>• <b>${TRAC_LBL[k] || k}:</b> ${a.length ? a.join(', ') : k === 'ชักร่อง' && p.plant_date ? p.plant_date : none}</div>`; }).join('')}
             <div>• <b>ฝังปุ๋ย/สับหญ้า:</b> ${[...subFert, ...weed].length ? [...subFert, ...weed].join(', ') : none}</div>
           </div></div>
           <div class="col-12 col-md-6"><div class="dossier-stat">
@@ -5794,7 +5815,7 @@ Export.table.toDrive({
         const st = (on, s, ok) => !on ? '' : s === 'load' ? 'กำลังโหลด…' : s === 'err' ? 'โหลดไม่ได้' : ok || '';
         base = [{ on: wpUseSat, l: 'ดาวเทียม', th: LY_TH.sat, a: 'wpBaseT(true)' }, { on: !wpUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'wpBaseT(false)' }];
         items = [{ on: wp.lay.spot, l: 'น้ำขัง 2 ปี', s: st(wp.lay.spot, wp.spotSt), th: LY_TH.spot, a: "wpLayT('spot')" },
-          { on: wp.lay.dem, l: 'ความสูงพื้น', s: st(wp.lay.dem, wp.demSt), th: LY_TH.dem, a: "wpLayT('dem')" },
+          { on: wp.lay.dem, l: 'ที่ลุ่ม–ที่ดอน', s: st(wp.lay.dem, wp.demSt, 'รอบแปลง 1 กม.'), th: LY_TH.dem, a: "wpLayT('dem')" },
           { on: wp.lay.osm, l: 'ทางน้ำในแผนที่', s: st(wp.lay.osm, wp.osmSt, wp.osm ? wp.osm.length + ' เส้น' : ''), ic: '<svg width="34" height="20"><path d="M2 14c6-10 10 4 16-4s10 2 14-4" fill="none" stroke="#3BA7E0" stroke-width="3" stroke-dasharray="2 4" stroke-linecap="round"/></svg>', a: "wpLayT('osm')" },
           { on: wp.lay.weak, l: 'จุดอ่อนอ้อย', s: st(wp.lay.weak, wp.weakSt, wp.weakD ? 'ภาพ ' + satDs(wp.weakD) : ''), th: 'background:linear-gradient(135deg,#F3E9C6 0 45%,#F08A2C 45% 62%,#D93A2B 62% 72%,#2F8F3A 72%)', a: "wpLayT('weak')" },
           { on: wp.lay.lbl, l: 'ป้ายข้อความ', s: 'หมายเหตุ/ต่ำสุด', ic: '<span style="background:#fff;border-radius:5px;padding:0 4px;font:700 11px sans-serif;color:#1F2A24;box-shadow:0 1px 3px rgba(0,0,0,.3)">ลึก 50</span>', a: "wpLayT('lbl')" }];
@@ -5865,7 +5886,7 @@ Export.table.toDrive({
       return `<button type="button" class="btn btn-outline-primary w-100 mb-2 fw-bold" onclick="wpFromFm('${kind}','${qa(id)}')">💧 แผนน้ำ${kind === 'land' ? 'ที่ดินนี้' : 'แปลงนี้'}${n ? ` <span class="fw-normal">· วาดแล้ว ${n} รายการ</span>` : ' <span class="fw-normal">· หัว/ท้ายแปลง คลอง ทางลาด</span>'}</button>`;
     }
     function wpFromFm(kind, id) { fmEdit = null; hideModal('farmMapModal'); setTimeout(() => wpOpen(kind, id, 'fm'), 300); }
-    function wpLayPref() { try { return JSON.parse(lsGet('raioy_wplay') || '{}') || {}; } catch (e) { return {}; } }
+    function wpLayPref() { try { return JSON.parse(lsGet('raioy_wplay2') || '{}') || {}; } catch (e) { return {}; } }
 
     function wpOpen(kind, id, back) {
       const o = kind === 'plot' ? gData.plots.find(x => x.plot_id === id) : (gData.lands || []).find(x => x.land_id === id);
@@ -5874,7 +5895,7 @@ Export.table.toDrive({
       if (pts.length < 3) return alert('ยังไม่ได้วาดขอบ — วาดขอบในแผนที่ไร่ก่อน');
       const pl = wpPlan(id);
       wp = { kind, id, name: kind === 'plot' ? o.plot_name : o.name, rai: num(o.map_rai) || num(o.area_rai), pts, feats: pl.feats, updated: pl.updated,
-        dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: true, osm: true, lbl: true, weak: false }, wpLayPref()),
+        dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: false, osm: true, lbl: true, weak: true }, wpLayPref()),
         dem: null, demSt: '', spotSt: '', spotA: null, osm: null, osmSt: '', back, exp: null };
       $('wpTitle').innerText = 'แผนน้ำ · ' + wp.name; if (lyOpen) lyToggle(lyOpen);
       $('wpHint').style.display = 'none';
@@ -5895,7 +5916,7 @@ Export.table.toDrive({
         setTimeout(() => {
           if (!wp) return;
           wpFit();
-          if (wp.lay.weak && wp.lay.dem) wp.lay.dem = false; wpDraw(); wpSpotLoad(); wpDemLoad(); wpWeakLoad(); wpOsmLoad(); wpLayBar();
+          if (wp.lay.weak && wp.lay.dem) wp.lay.weak = false; wpDraw(); wpSpotLoad(); wpDemLoad(); wpWeakLoad(); wpOsmLoad(); wpLayBar();
         }, 350);
       }).catch(e => { hideModal('wpModal'); alert(e.message); });
     }
@@ -5926,7 +5947,8 @@ Export.table.toDrive({
       // จุดอ่อน กับ สีความสูง ทาทับทั้งแปลงทั้งคู่ → เปิดได้ทีละอย่าง
       if (k === 'weak' && wp.lay.weak && wp.lay.dem) { wp.lay.dem = false; wpDemLoad(); wpDraw(); }
       if (k === 'dem' && wp.lay.dem && wp.lay.weak) { wp.lay.weak = false; wpWeakLoad(); }
-      lsSet('raioy_wplay', JSON.stringify(wp.lay));
+      if (k === 'dem') { wp.demFit = wp.lay.dem; if (!wp.lay.dem) wpFit(); else if (wp.dem && wp.dem.ok) wpMap.fitBounds(wp.dem.bounds, { padding: [10, 10] }); }
+      lsSet('raioy_wplay2', JSON.stringify(wp.lay));
       if (k === 'weak') wpWeakLoad();
       if (k === 'spot') wpSpotLoad(); if (k === 'dem') { wpDemLoad(); wpDraw(); } if (k === 'osm') wpOsmLoad(); if (k === 'lbl') wpDraw();
       wpLayBar(); wpPanel();
@@ -6000,17 +6022,20 @@ Export.table.toDrive({
       if (wp.demSt === 'load') return;
       wp.demSt = 'load'; wpLayBar();
       const pts = wp.pts;
-      callApi('getPlotDem', [id]).then(r => wpLoadImg(r.img).then(im => { const d = wpPix(im); return wpDemAnalyze(r, (i, j) => { const k = (j * r.w + i) * 4; return d[k + 2] === 255 ? (d[k] * 256 + d[k + 1]) / 20 - 100 : null; }, pts, 'cop'); }))
-        .catch(e => { console.warn('DEM CDSE', e.message); return wpDemSrtm(pts); })
-        .then(a => { wpDemCache[key] = a; if (!wp || wp.id !== id) return; wp.dem = a; wp.demSt = a.ok ? 'ok' : 'err'; wpDemDraw(); wpDraw(); wpLayBar(); wpPanel(); })
+      callApi('getPlotDem', [id, WP_DEM_PAD]).then(r => wpLoadImg(r.img).then(im => { const d = wpPix(im); return wpDemAnalyze(r, (i, j) => { const k = (j * r.w + i) * 4; return d[k + 2] === 255 ? (d[k] * 256 + d[k + 1]) / 20 - 100 : null; }, pts, 'cop'); }))
+        .catch(e => { console.warn('DEM CDSE', e.message); return wpDemSrtm(pts, WP_DEM_PAD); })
+        .then(a => { wpDemCache[key] = a; if (!wp || wp.id !== id) return; wp.dem = a; wp.demSt = a.ok ? 'ok' : 'err'; wpDemDraw(); wpDraw(); wpLayBar(); wpPanel(); if (a.ok && wp.demFit) wpMap.fitBounds(a.bounds, { padding: [10, 10] }); })
         .catch(e => { if (!wp || wp.id !== id) return; wp.demSt = 'err'; wp.demErr = e.message; wpLayBar(); wpPanel(); });
     }
     // สำรอง: ความสูงจาก AWS Terrain Tiles (SRTM 30 ม. ปี 2543 · PNG แบบ terrarium) ดึงจากหน้าเว็บตรง ไม่ต้องผ่านหลังบ้าน
-    async function wpDemSrtm(pts) {
+    // ข้อมูลความสูง 30 ม. หยาบเกินจะเห็นการปรับที่ในแปลง (ลาด 0.1–0.3% = 20–60 ซม.) → ใช้ดูภาพกว้างรอบแปลง ~1 กม. ว่าแปลงอยู่ที่ลุ่มหรือที่ดอน น้ำจากรอบ ๆ ไหลไปทางไหน
+    const WP_DEM_PAD = 1000;
+    async function wpDemSrtm(pts, pad) {
       const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]), lat0 = (Math.min(...lats) + Math.max(...lats)) / 2;
       const kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
-      const s = Math.min(...lats) - 60 / ky, n = Math.max(...lats) + 60 / ky, w = Math.min(...lngs) - 60 / kx, e = Math.max(...lngs) + 60 / kx;
-      const z = 15, proj = (la, ln) => { const k = 256 * 2 ** z, sl = Math.sin(la * Math.PI / 180); return [(ln + 180) / 360 * k, (0.5 - Math.log((1 + sl) / (1 - sl)) / (4 * Math.PI)) * k]; };
+      pad = pad || 60;
+      const s = Math.min(...lats) - pad / ky, n = Math.max(...lats) + pad / ky, w = Math.min(...lngs) - pad / kx, e = Math.max(...lngs) + pad / kx;
+      const z = pad > 300 ? 13 : 15, proj = (la, ln) => { const k = 256 * 2 ** z, sl = Math.sin(la * Math.PI / 180); return [(ln + 180) / 360 * k, (0.5 - Math.log((1 + sl) / (1 - sl)) / (4 * Math.PI)) * k]; };
       const A = proj(n, w), B = proj(s, e), tx0 = Math.floor(A[0] / 256), ty0 = Math.floor(A[1] / 256), tx1 = Math.floor(B[0] / 256), ty1 = Math.floor(B[1] / 256);
       const cw = (tx1 - tx0 + 1) * 256, ch = (ty1 - ty0 + 1) * 256, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
       const cx = cv.getContext('2d'), jobs = [];
@@ -6032,12 +6057,11 @@ Export.table.toDrive({
       const [s, w, n, e] = r.bbox, W = r.w, H = r.h, G = wpGeo(), cells = [];
       for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
         const lat = n - (j + .5) * (n - s) / H, lng = w + (i + .5) * (e - w) / W;
-        if (!wpPip(lat, lng, pts)) continue;
         const z = zget(i, j); if (z === null || !isFinite(z)) continue;
         const q = G.m([lat, lng]);
-        cells.push({ i, j, x: q.x, y: q.y, z, lat, lng });
+        cells.push({ i, j, x: q.x, y: q.y, z, lat, lng, ins: wpPip(lat, lng, pts) });
       }
-      if (cells.length < 6) return { ok: false, err: 'แปลงเล็กเกินกว่าข้อมูลความสูงจะบอกได้' };
+      if (cells.length < 30) return { ok: false, err: 'ข้อมูลความสูงรอบแปลงไม่พอ' };
       // ระนาบ z = a + bx + cy (กำลังสองน้อยสุด)
       let N = cells.length, Sx = 0, Sy = 0, Sz = 0, Sxx = 0, Syy = 0, Sxy = 0, Sxz = 0, Syz = 0;
       cells.forEach(c => { Sx += c.x; Sy += c.y; Sz += c.z; Sxx += c.x * c.x; Syy += c.y * c.y; Sxy += c.x * c.y; Sxz += c.x * c.z; Syz += c.y * c.z; });
@@ -6050,17 +6074,20 @@ Export.table.toDrive({
       const zs = cells.map(c => c.z).sort((a, b) => a - b), pc = q => zs[Math.min(N - 1, Math.floor(q * N))];
       const lo = pc(0.05), hi = pc(0.95), span = Math.max(0.3, hi - lo);
       const lows = cells.filter(c => c.z <= pc(0.15)), low = lows.length ? [lows.reduce((t, c) => t + c.lat, 0) / lows.length, lows.reduce((t, c) => t + c.lng, 0) / lows.length] : null;
-      const conf = drop >= 1 && drop >= 1.5 * rmse ? 'ชัด' : drop >= 0.5 ? 'พอเห็น' : 'ราบ';
-      // ภาพสี: ต่ำ = น้ำเงิน → สูง = ส้ม (เทียบกันในแปลงนี้)
+      const conf = drop >= 2 && drop >= 1.5 * rmse ? 'ชัด' : drop >= 1 ? 'พอเห็น' : 'ราบ';
+      // แปลงอยู่ระดับไหนของละแวก: ความสูงเฉลี่ยในแปลง เทียบทุกจุดรอบ ๆ (เปอร์เซ็นไทล์)
+      const inZ = cells.filter(c => c.ins).map(c => c.z), pz = inZ.length ? inZ.reduce((a, b) => a + b, 0) / inZ.length : null;
+      const rank = pz === null ? null : zs.filter(z => z < pz).length / N;
+      // ภาพสี: ต่ำ = น้ำเงิน → สูง = ส้ม (เทียบกันในพื้นที่รอบแปลง)
       const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
       const cx = cv.getContext('2d'), im = cx.createImageData(W, H), RAMP = [[29, 78, 216], [147, 197, 253], [254, 240, 138], [217, 119, 6]];
       cells.forEach(c => {
         const t = Math.max(0, Math.min(1, (c.z - lo) / span)) * 3, a = Math.min(2, Math.floor(t)), f = t - a, A = RAMP[a], B = RAMP[a + 1], k = (c.j * W + c.i) * 4;
-        im.data[k] = A[0] + (B[0] - A[0]) * f; im.data[k + 1] = A[1] + (B[1] - A[1]) * f; im.data[k + 2] = A[2] + (B[2] - A[2]) * f; im.data[k + 3] = 150;
+        im.data[k] = A[0] + (B[0] - A[0]) * f; im.data[k + 1] = A[1] + (B[1] - A[1]) * f; im.data[k + 2] = A[2] + (B[2] - A[2]) * f; im.data[k + 3] = 135;
       });
       cx.putImageData(im, 0, 0);
-      const half = range * 0.38, c0 = [mx, my];
-      return { ok: true, src, bearing: (Math.atan2(ux, uy) * 180 / Math.PI + 360) % 360, drop, rmse, conf, span: hi - lo, low, n: N,
+      const half = Math.min(range * 0.3, 450), c0 = [0, 0];   // ลูกศรผ่านกลางแปลง
+      return { ok: true, src, bearing: (Math.atan2(ux, uy) * 180 / Math.PI + 360) % 360, drop, rmse, conf, span: hi - lo, low: null, n: N, rank, km: (range / 1000),
         img: cv.toDataURL('image/png'), bounds: [[s, w], [n, e]],
         arrow: [G.ll(c0[0] - ux * half, c0[1] - uy * half), G.ll(c0[0] + ux * half, c0[1] + uy * half)] };
     }
@@ -6123,7 +6150,7 @@ Export.table.toDrive({
         const [a, b] = wp.dem.arrow;
         L.polyline([a, b], { color: '#7C3AED', weight: 4, dashArray: '6 6', opacity: .9, interactive: false }).addTo(wpG);
         L.polygon(wpHead(G, a, b, 14), { color: '#7C3AED', weight: 1, fillColor: '#7C3AED', fillOpacity: .9, interactive: false }).addTo(wpG);
-        if (LB) L.marker(wpMid([a, b]), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#5B21B6;border:2px solid #7C3AED">ทางลาดจากข้อมูลความสูง</div>' }) }).addTo(wpG);
+        if (LB) L.marker(wpMid([a, b]), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#5B21B6;border:2px solid #7C3AED">ทางลาดของละแวก</div>' }) }).addTo(wpG);
       }
       if (LB && wp.lay.dem && wp.dem && wp.dem.ok && wp.dem.low) L.marker(wp.dem.low, { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#1D4ED8">ต่ำสุด</div>' }) }).addTo(wpG);
       const hit = (l, i) => l.on('click', e => { L.DomEvent.stopPropagation(e); if (wp.tool) return wpTap(e.latlng); wpSel(i); });
@@ -6211,14 +6238,10 @@ Export.table.toDrive({
       const D = wp.lay.dem && wp.dem && wp.dem.ok ? wp.dem : null;
       let demLine = '', cmp = '';
       if (D) {
-        demLine = D.conf === 'ราบ' ? `ข้อมูลความสูง: แทบราบ (สูงต่ำต่างกันไม่ถึงครึ่งเมตร) บอกทางลาดไม่ได้`
-          : `ข้อมูลความสูง: ลาดลงไปทาง${wpDir(D.bearing)} ต่างกันราว ${D.drop.toFixed(1)} ม. ทั้งแปลง (${D.conf === 'ชัด' ? 'เห็นชัด' : 'พอเห็น'})`;
-        if (userB !== null && D.conf !== 'ราบ') {
-          const a = wpAng(userB, D.bearing);
-          cmp = a <= 45 ? `✅ ตรงกับทางลาดที่วาด (ต่างกัน ~${Math.round(a)}°)` : a <= 90 ? `〰️ ใกล้เคียงทางลาดที่วาด (ต่างกัน ~${Math.round(a)}°)` : `❌ ไม่ตรงกับทางลาดที่วาด — เชื่อที่เห็นหน้างานก่อน`;
-        }
+        const pos = D.rank === null ? '' : D.rank < 0.3 ? 'แปลงนี้อยู่<b>ที่ลุ่ม</b>ของละแวก — น้ำฝนจากรอบ ๆ ไหลมาหาได้ ต้องมีทางระบายออก' : D.rank > 0.7 ? 'แปลงนี้อยู่<b>ที่ดอน</b>ของละแวก — น้ำจากที่อื่นไม่ค่อยไหลเข้า แต่แห้งเร็ว' : 'แปลงนี้อยู่<b>ระดับกลาง</b>ของละแวก';
+        demLine = (D.conf === 'ราบ' ? `ภาพกว้างรอบแปลง ~${D.km.toFixed(1)} กม.: แทบราบทั้งละแวก` : `ภาพกว้างรอบแปลง ~${D.km.toFixed(1)} กม.: พื้นที่ลาดลงไปทาง${wpDir(D.bearing)} ต่างกันราว ${D.drop.toFixed(1)} ม.`) + (pos ? ' · ' + pos : '');
       }
-      const slopeB = userB !== null ? userB : D && D.conf !== 'ราบ' ? D.bearing : null;
+      const slopeB = userB;   // ทางลาดในแปลง ใช้ที่ผู้ใช้วาดเท่านั้น (ข้อมูลความสูงหยาบเกินจะเห็นการปรับที่)
       if (slopeB !== null && ins.length && outs.length) {
         const a = G.m(wpMid(ins.map(f => f.p[0]))), b = G.m(wpMid(outs.map(f => f.p[0]))), l = Math.hypot(b.x - a.x, b.y - a.y) || 1;
         const dot = ((b.x - a.x) / l) * Math.sin(slopeB * Math.PI / 180) + ((b.y - a.y) / l) * Math.cos(slopeB * Math.PI / 180);
@@ -6278,10 +6301,10 @@ Export.table.toDrive({
         ${S.lines.map(x => `<div class="l">${esc(x)}</div>`).join('')}
         ${S.spot ? `<div class="l">${esc(S.spot)}</div>` : ''}
         ${wp.lay.weak && wp.weakSt === 'ok' ? `<div class="l">จุดอ่อนอ้อย (ภาพ ${satDs(wp.weakD)}): ${wp.weakLow ? 'ใบยังไม่คลุม ดูจุดอ่อนยังไม่แม่น' : 'สีแดง/ส้ม = อ้อยโทรมกว่าส่วนอื่น ดูว่าตรงกับด้านต่ำ (น้ำขัง) หรือด้านที่น้ำไปไม่ถึงไหม — อาจเป็นหญ้า/โรค/ดินก็ได้ ต้องไปดูหน้างาน'}</div>` : ''}
-        ${S.demLine ? `<div class="l">${esc(S.demLine)}</div>` : ''}${demErr}
+        ${S.demLine ? `<div class="l">${S.demLine}</div>` : ''}${demErr}
         ${S.cmp ? `<div class="l fw-bold">${esc(S.cmp)}</div>` : ''}
-        ${S.D && S.D.conf !== 'ราบ' && !wp.feats.some(x => x.t === 'slope') ? `<button type="button" class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="wpUseDem()">ใช้ทางลาดจากข้อมูลความสูง (แก้ทีหลังได้)</button>` : ''}
-        ${S.D ? `<div class="wp-dleg"><span>ต่ำ</span><i></i><span>สูง</span><small>สีบนแปลง = สูงต่ำเทียบกันในแปลงนี้ (${S.D.span.toFixed(1)} ม.)</small></div>` : ''}
+
+        ${S.D ? `<div class="wp-dleg"><span>ต่ำ</span><i></i><span>สูง</span><small>สี = สูงต่ำของพื้นที่รอบแปลง (ต่างกัน ${S.D.span.toFixed(1)} ม.) · ละเอียดไม่พอดูทางลาดในแปลง (ปรับที่ลาดแค่ 20–60 ซม.) ใช้ดูว่าแปลงอยู่ที่ลุ่มหรือที่ดอน</small></div>` : ''}
         <div class="nt">${S.spot ? 'น้ำขัง: ภาพ Sentinel-2 ย้อน 2 ปี เห็นได้เฉพาะตอนอ้อยเล็ก/หลังตัด · ' : ''}${S.D || wp.lay.dem ? `ความสูง: ${S.D && S.D.src === 'srtm' ? 'SRTM 30 ม. (NASA ปี 2543 ผ่าน AWS Terrain Tiles)' : 'Copernicus DEM 30 ม. (ESA, เรดาร์ปี 2554–2558)'} เป็นความสูงผิวบนรวมต้นไม้ คลาดเคลื่อนได้ 1–2 ม. ดูได้แค่แนวโน้มทั้งแปลง แอ่งเล็กในแปลงมองไม่เห็น · ` : ''}ทางน้ำในแผนที่จาก OpenStreetMap มักไม่มีคลองดินเล็ก</div></div>`}`;
       const tools = WP_ORDER.map(t => `<button type="button" onclick="wpTool('${t}')">${wpSw(t)}<span>${WP_T[t].n}</span></button>`).join('');
       const list = wp.feats.map((x, i) => { const T = WP_T[x.t]; return `<button type="button" class="wp-row" onclick="wpSel(${i})">${wpSw(x.t)}<span class="flex-fill">${T.n}${x.n ? ` · <span class="text-muted">${esc(x.n)}</span>` : ''}</span><small class="text-muted">${T.k === 'pt' ? wpSide(G, x.p[0]) : '~' + Math.round(wpLen(G, x.p)) + ' ม.'}</small></button>`; }).join('');
@@ -6317,8 +6340,8 @@ Export.table.toDrive({
         // ส่วนคำอธิบายด้านล่าง: วัดความสูงก่อน
         const tmp = document.createElement('canvas').getContext('2d'); tmp.font = font(500, 30);
         const used = WP_ORDER.filter(t => wp.feats.some(f => f.t === t));
-        const keys = used.map(t => ({ t, n: WP_T[t].n })).concat(wp.lay.spot && wp.spotImg ? [{ t: '_spot', n: 'จุดที่ดาวเทียมเคยเห็นน้ำขัง (2 ปี)' }] : [], wp.lay.weak && wp.weakImg ? [{ t: '_weak', n: 'อ้อยโทรมกว่าส่วนอื่น (ดาวเทียม ' + satDs(wp.weakD) + ')' }] : [], S.D && S.D.conf !== 'ราบ' ? [{ t: '_dem', n: 'ทางลาดจากข้อมูลความสูง' }] : [], wp.lay.osm && wp.osm && wp.osm.length ? [{ t: '_osm', n: 'ทางน้ำในแผนที่ OpenStreetMap' }] : []);
-        const textLines = [].concat(S.warn, S.lines, S.spot ? [S.spot] : [], S.demLine ? [S.demLine] : [], S.cmp ? [S.cmp] : []);
+        const keys = used.map(t => ({ t, n: WP_T[t].n })).concat(wp.lay.spot && wp.spotImg ? [{ t: '_spot', n: 'จุดที่ดาวเทียมเคยเห็นน้ำขัง (2 ปี)' }] : [], wp.lay.weak && wp.weakImg ? [{ t: '_weak', n: 'อ้อยโทรมกว่าส่วนอื่น (ดาวเทียม ' + satDs(wp.weakD) + ')' }] : [], S.D && S.D.conf !== 'ราบ' ? [{ t: '_dem', n: 'ทางลาดของละแวก (ข้อมูลความสูง)' }] : [], wp.lay.osm && wp.osm && wp.osm.length ? [{ t: '_osm', n: 'ทางน้ำในแผนที่ OpenStreetMap' }] : []);
+        const textLines = [].concat(S.warn, S.lines, S.spot ? [S.spot] : [], S.demLine ? [S.demLine.replace(/<[^>]+>/g, '')] : []);
         const notes = wp.feats.filter(f => f.n).map(f => `${WP_T[f.t].n}: ${f.n}`);
         const wrapped = textLines.flatMap(t => wpWrap(tmp, '• ' + t, MW - 64)), wrappedN = notes.flatMap(t => wpWrap(tmp, '– ' + t, MW - 64));
         const LH = 44, legH = 40 + Math.ceil(keys.length / 2) * 50 + 24 + (wrapped.length ? 46 + wrapped.length * LH : 0) + (wrappedN.length ? 46 + wrappedN.length * LH : 0) + 70;

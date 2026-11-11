@@ -36,11 +36,12 @@ function evaluatePixel(s) {
 }`;
 const DEM_PAD_M_ = 60;
 
-function demBody_(pts) {
+function demBody_(pts, pad) {
+  pad = Math.max(30, Math.min(1500, Number(pad) || DEM_PAD_M_));
   const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
   const lat0 = (Math.min(...lats) + Math.max(...lats)) / 2, kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
-  const s = Math.min(...lats) - DEM_PAD_M_ / ky, n = Math.max(...lats) + DEM_PAD_M_ / ky;
-  const w = Math.min(...lngs) - DEM_PAD_M_ / kx, e = Math.max(...lngs) + DEM_PAD_M_ / kx;
+  const s = Math.min(...lats) - pad / ky, n = Math.max(...lats) + pad / ky;
+  const w = Math.min(...lngs) - pad / kx, e = Math.max(...lngs) + pad / kx;
   const wm = (e - w) * kx, hm = (n - s) * ky, k = Math.min(1 / 5, 160 / Math.max(wm, hm));   // ~5 ม./จุด (ขยายนุ่มจาก 30 ม.) ด้านยาวไม่เกิน 160
   const W = Math.max(16, Math.round(wm * k)), H = Math.max(16, Math.round(hm * k));
   const f6 = v => Number(v.toFixed(6));
@@ -58,7 +59,8 @@ function demBody_(pts) {
 }
 
 // id = รหัสแปลง/ที่ดิน → { img: 'data:image/png;base64,…', bbox: [ใต้, ตะวันตก, เหนือ, ตะวันออก], w, h } · แคช 6 ชม. (ขอบเปลี่ยน = คีย์เปลี่ยน)
-function getPlotDem(id) {
+// pad = ขยายรอบแปลงกี่เมตร (ค่าเริ่ม 60 · ภาพกว้างรอบละแวกใช้ ~1000)
+function getPlotDem(id, pad) {
   id = String(id || '');
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let b = '';
@@ -66,7 +68,7 @@ function getPlotDem(id) {
   if (!b) readSheet_(ss, 'Lands').forEach(l => { if (l.land_id === id) b = l.boundary; });
   const pts = parsePath_(b);
   if (pts.length < 3) throw new Error('ยังไม่ได้วาดขอบแปลงนี้');
-  const q = demBody_(pts), cache = CacheService.getScriptCache();
+  const q = demBody_(pts, pad), cache = CacheService.getScriptCache();
   const key = 'dem1_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(q.bbox)));
   const hit = cache.get(key);
   if (hit) return JSON.parse(hit);

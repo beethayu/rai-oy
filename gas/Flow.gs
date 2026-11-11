@@ -26,7 +26,7 @@ const FLOW_DEF_ = {
       note: 'ครั้งที่ 1 ภายใน 3–4 สัปดาห์ · ครั้งที่ 2 ไม่เกินวันที่ 50' },
     { id: 'd10', n: 'อุ้มร่อง', f: 40, t: 60, g: [FLOW_RT_], m: 'อุ้มร่อง', note: 'พรวนดินข้างกอ (ยังไม่ล้มหลังร่อง)' },
     { id: 'd11', n: 'ถากหญ้า (คนงาน)', k: 'repeat', f: 45, t: 75, g: ['ใส่ปุ๋ย'], m: 'ถากหญ้า', max: 3, cond: 'หญ้าขึ้นอีก', gap: 30 },
-    { id: 'd12', n: 'ฝังปุ๋ย ครั้งที่ 1', f: 45, t: 60, g: [FLOW_RT_, 'ใส่ปุ๋ย'], m: 'ฝังปุ๋ย,แต่งหน้า,ครั้งที่ 1' },
+    { id: 'd12', n: 'ฝังปุ๋ย ครั้งที่ 1', f: 45, t: 60, g: [FLOW_RT_, 'ใส่ปุ๋ย'], m: 'ฝังปุ๋ย,แต่งหน้า,ครั้งที่ 1', x: 'ล้มหลังร่อง,ล้มร่อง,พูนโคน' },
     { id: 'd13', n: 'ฉีดยาคุมหญ้า รอบ 2', f: 75, t: 100, g: ['ฉีดยา'], m: '' },
     { id: 'd17', n: 'ล้มหลังร่อง + พูนโคน + ปุ๋ยครั้งที่ 2', f: 90, t: 135, g: [FLOW_RT_, 'ใส่ปุ๋ย'], m: 'ล้มหลังร่อง,ล้มร่อง,พูนโคน,ครั้งที่ 2,ฝังปุ๋ย', note: 'งานเดียวกัน: ล้มดินหลังร่องเข้าโคน + ปุ๋ยข้างแถว · อายุ 3–4 เดือน ก่อนรถเข้าแปลงยาก · หลังจากนี้ขึ้นน้ำผ่านร่องกลางแถวใหม่' },
     { id: 'd15', n: 'ขึ้นน้ำวนรอบ', k: 'note', f: 121, t: 240, g: ['ขึ้นน้ำ'], m: '', note: FLOW_WATER_NOTE_ },
@@ -106,10 +106,11 @@ function flowNorm_(a) {
   });
   return a;
 }
-function flowHit_(acts, g, m, from, to) {
+function flowHit_(acts, g, m, from, to, x) {
   const kw = String(m || '').split(',').map(x => x.trim()).filter(Boolean), gs = (g || []).includes('ขึ้นน้ำ') ? g.concat('ฝนตก') : (g || []);
   if (!gs.length && !kw.length) return [];
-  return acts.filter(a => (!gs.length || gs.includes(a.g)) && (!kw.length || kw.some(w => a.d.includes(w))) && a.age >= from && a.age <= to).sort((a, b) => a.age - b.age);
+  const xw = String(x || '').split(',').map(w => w.trim()).filter(Boolean); // x = คำที่ถ้ามีในบันทึก ไม่นับเป็นขั้นนี้
+  return acts.filter(a => (!gs.length || gs.includes(a.g)) && (!kw.length || kw.some(w => a.d.includes(w))) && !xw.some(w => a.d.includes(w)) && a.age >= from && a.age <= to).sort((a, b) => a.age - b.age);
 }
 // คำตอบของขั้นถาม: ผู้ใช้ตอบในฤดูนี้ก่อน · ไม่มี = เดาจากบันทึก (คำของแต่ละตัวเลือก)
 function flowAns_(s, ctx) {
@@ -137,7 +138,10 @@ function flowStat_(s, ctx, steps) {
     if (!String(s.w.v).split(',').includes(a.v)) return { st: 'skip' };
   }
   if (k === 'note') { const h = s.g.length ? flowHit_(ctx.acts, s.g, s.m, 0, age) : []; return { st: 'note', n: new Set(h.map(x => x.age)).size }; }
-  const hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45);
+  let hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45, s.x);
+  const ov = ctx.ans['h:' + s.id]; // ผู้ใช้ย้ายบันทึก: not = บันทึกถึงวันนั้นไม่ใช่งานขั้นนี้ · done = นับว่าทำขั้นนี้วันนั้น
+  if (ov && ov.v === 'not') hits = hits.filter(h => h.age > ov.age);
+  if (ov && ov.v === 'done') hits = hits.concat({ age: ov.age, d: '' }).sort((a, b) => a.age - b.age);
   const base = () => age < s.f ? { st: 'wait', d: s.f - age } : age <= s.t ? { st: 'due' } : { st: 'none' };
   if (k === 'ask') {
     const a = flowAns_(s, ctx), o = a && s.o.find(x => x.v === a.v);

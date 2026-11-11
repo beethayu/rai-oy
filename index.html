@@ -178,6 +178,7 @@
     .fl-old { background: #FFF8EE; border: 1px solid #E9A23B; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
     .fl-abs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; padding-bottom: 6px; }
     .fl-ab { min-height: 36px; border: 1.5px solid #B79BC6; border-radius: 999px; background: #fff; color: #6B2E86; font: inherit; font-size: 14px; font-weight: 700; padding: 2px 14px; }
+    .fl-ab-q { border-color: #C9D3CC; color: #6B736E; font-weight: 600; }
     .fl-ab.on { background: #6B2E86; border-color: #6B2E86; color: #fff; }
     .fl-kseg { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; background: #E7E5DC; border-radius: 12px; padding: 3px; margin-bottom: 4px; }
     .fl-kseg button { min-height: 42px; border: 0; border-radius: 9px; background: transparent; color: #4A524D; font: inherit; font-size: 13px; font-weight: 600; padding: 0 2px; }
@@ -200,7 +201,9 @@
     .fl-pill { flex: none; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 2px 9px; background: #EEF1EF; color: #4A524D; white-space: nowrap; }
     .fl-pill.o { background: #FDEBD3; color: #8A4A06; } .fl-pill.p { background: #EFE4F4; color: #6B2E86; } .fl-pill.g { background: #E3EFE7; color: #1F5E3B; }
     .fl-ph.shut { background: #F2F1EA; border: 1px dashed #C9D3CC; } .fl-ph em i { font-style: normal; color: #B4630B; }
-    .fl-ph-p { font-size: 13px; color: #1F2A24; margin-top: 3px; line-height: 1.5; }
+    .fl-ph-p { margin-top: 6px; }
+    .fl-ph-r { display: flex; justify-content: space-between; gap: 8px; font-size: 14.5px; color: #1F2A24; padding: 5px 0; border-top: 1px solid #CFE0D5; }
+    .fl-ph-r b { color: #15432A; } .fl-ph-r small { color: #6B736E; font-size: 12.5px; }
     .fl-sum { background: #F2F7F3; border-radius: 10px; padding: 8px 10px; font-size: 14px; margin-bottom: 8px; color: #15432A; }
     .fl-sec { font-size: 13.5px; font-weight: 700; color: #4A524D; margin: 10px 2px 4px; }
     .fl-rng { display: flex; align-items: center; gap: 6px; } .fl-rng input { width: 64px; text-align: center; border: 1px solid #E1E6E2; border-radius: 8px; font: inherit; font-size: 16px; padding: 4px; }
@@ -4956,10 +4959,11 @@ Export.table.toDrive({
       });
       return a;
     }
-    function flowHit_(acts, g, m, from, to) {
+    function flowHit_(acts, g, m, from, to, x) {
       const kw = String(m || '').split(',').map(x => x.trim()).filter(Boolean), gs = (g || []).includes('ขึ้นน้ำ') ? g.concat('ฝนตก') : (g || []);
       if (!gs.length && !kw.length) return [];
-      return acts.filter(a => (!gs.length || gs.includes(a.g)) && (!kw.length || kw.some(w => a.d.includes(w))) && a.age >= from && a.age <= to).sort((a, b) => a.age - b.age);
+      const xw = String(x || '').split(',').map(w => w.trim()).filter(Boolean); // x = คำที่ถ้ามีในบันทึก ไม่นับเป็นขั้นนี้
+      return acts.filter(a => (!gs.length || gs.includes(a.g)) && (!kw.length || kw.some(w => a.d.includes(w))) && !xw.some(w => a.d.includes(w)) && a.age >= from && a.age <= to).sort((a, b) => a.age - b.age);
     }
     // คำตอบของขั้นถาม: ผู้ใช้ตอบในฤดูนี้ก่อน · ไม่มี = เดาจากบันทึก (คำของแต่ละตัวเลือก)
     function flowAns_(s, ctx) {
@@ -4987,7 +4991,10 @@ Export.table.toDrive({
         if (!String(s.w.v).split(',').includes(a.v)) return { st: 'skip' };
       }
       if (k === 'note') { const h = s.g.length ? flowHit_(ctx.acts, s.g, s.m, 0, age) : []; return { st: 'note', n: new Set(h.map(x => x.age)).size }; }
-      const hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45);
+      let hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45, s.x);
+      const ov = ctx.ans['h:' + s.id]; // ผู้ใช้ย้ายบันทึก: not = บันทึกถึงวันนั้นไม่ใช่งานขั้นนี้ · done = นับว่าทำขั้นนี้วันนั้น
+      if (ov && ov.v === 'not') hits = hits.filter(h => h.age > ov.age);
+      if (ov && ov.v === 'done') hits = hits.concat({ age: ov.age, d: '' }).sort((a, b) => a.age - b.age);
       const base = () => age < s.f ? { st: 'wait', d: s.f - age } : age <= s.t ? { st: 'due' } : { st: 'none' };
       if (k === 'ask') {
         const a = flowAns_(s, ctx), o = a && s.o.find(x => x.v === a.v);
@@ -5092,12 +5099,12 @@ Export.table.toDrive({
       return { t: `${FL_PH[flPhase(age)][1]} · อายุ ${age} วัน`, age };
     }
     // ตอบคำถาม / กดต้องทำซ้ำ / เข้าเงื่อนไขกิ่ง — จำในเครื่องทันที แล้วส่งเข้าชีต
-    function flAnswer(pid, id, v) {
-      const key = 'ans:' + pid, m = flAnsRaw(pid);
-      if (v) m[id] = { v, d: todayISO() }; else delete m[id];
+    function flAnswer(pid, id, v, d) {
+      const key = 'ans:' + pid, m = flAnsRaw(pid); d = d || todayISO();
+      if (v) m[id] = { v, d }; else delete m[id];
       const rows = (gData.flows || []).filter(x => x.key !== key); rows.push({ key, data: JSON.stringify(m) }); gData.flows = rows;
       saveCache(gData); flRender(); render();
-      call('saveFlowAns', [pid, id, v, todayISO()], d => { gData.flows = d.flows; saveCache(gData); });
+      call('saveFlowAns', [pid, id, v, d], d => { gData.flows = d.flows; saveCache(gData); });
     }
     function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
     const flBase = () => flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด';
@@ -5110,7 +5117,8 @@ Export.table.toDrive({
     }
     const flKTag = s => s.k === 'once' || s.k === 'note' ? '' : `<span class="fl-tag fl-tag-${s.k}">${FL_K.find(k => k[0] === s.k)[1]}</span>`;
     // ผังแบบย่อ (12 พ.ย. 69 ผู้ใช้: ผังยาวดูยาก หน้าแก้งง): ขั้นละบรรทัดเดียว แตะแล้วกาง · ระยะที่ไม่มีแปลงและไม่มีงานพับไว้ · หน้าแก้มีแค่ที่จำเป็น ที่เหลือใน "ตั้งค่าเพิ่ม"
-    const flPhTog = {}; let flAdv = false;
+    const flPhTog = {}; let flAdv = false, flMv = '';
+    function flMoveHit(pid, from, to, d) { flMv = ''; flAnswer(pid, 'h:' + from, 'not', d); setTimeout(() => flAnswer(pid, 'h:' + to, 'done', d), 400); }
     const flWv = s => s.w && s.w.a ? String(s.w.v || '').split(',').filter(Boolean) : [];
     function flSum(s, plots) { // สรุปสถานะรวมของขั้น → ป้ายขวา
       const R = plots.map(p => ({ p, r: flStat(s, p) }));
@@ -5152,7 +5160,7 @@ Export.table.toDrive({
         const S = idx.map(k => flSum(steps[k], plots)), hot = S.some(x => x.due || x.ask);
         const key = flKey + sg.ph, open = key in flPhTog ? flPhTog[key] : (inPh.length > 0 || hot || idx.includes(flEdit) || idx.includes(flOpen));
         h += `<div class="fl-ph${open ? '' : ' shut'}" onclick="flPhTog['${qa(key)}']=${!open};flRender()"><div><b>${P[1]}</b> <span>${P[2]}</span><em>${inPh.length ? `ตอนนี้ ${inPh.length} แปลง` : ''}${hot ? `${inPh.length ? ' · ' : ''}<i>มีงาน</i>` : ''} ${open ? '▴' : '▾'}</em></div>
-          ${open ? `<div class="fl-ph-d">${P[3]}</div>${inPh.length ? `<div class="fl-ph-p">${inPh.map(p => { const a = flCtx(p).ctx.age; return `${esc(p.plot_name)} <b>${a < 0 ? `อีก ${-a} วันปลูก` : a + ' วัน'}</b>`; }).join(' · ')}</div>` : ''}` : `<div class="fl-ph-d">${idx.length} ขั้น · แตะดู</div>`}</div>`;
+          ${open ? `<div class="fl-ph-d">${P[3]}</div>${inPh.length ? `<div class="fl-ph-p">${inPh.map(p => { const a = flCtx(p).ctx.age; return `<div class="fl-ph-r"><span>${esc(p.plot_name)}</span><span>${a < 0 ? `<b>อีก ${-a} วันปลูก</b>` : a < 30 ? `<b>${a} วัน</b>` : `<b>${Math.floor(a / 30)} เดือน ${a % 30} วัน</b> <small>(${a} วัน)</small>`}</span></div>`; }).join('')}</div>` : ''}` : `<div class="fl-ph-d">${idx.length} ขั้น · แตะดู</div>`}</div>`;
         sg.items.forEach(it => {
           if (it.length === 2) { if (open) h += flLanesHtml(steps, it[0], it[1], plots); return; }
           const i = it[0], s = steps[i]; if (s.k !== 'note') no++;
@@ -5201,9 +5209,18 @@ Export.table.toDrive({
         if (s.k === 'branch' && s.b && r.st !== 'skip' && r.st !== 'hold' && r.st !== 'wait') return raw && raw.v === 'yes' ? btn(pid, '', 'ยกเลิก: ' + s.b.c, true) : r.br ? '' : btn(pid, 'yes', s.b.c);
         return '';
       };
+      // บันทึกที่แอปจับผิดขั้น → ย้ายไปนับเป็นขั้นอื่น (เช่น "ฝังปุ๋ย" 25 เม.ย. ที่จริงคือ ล้มหลังร่อง)
+      const mv = x => {
+        const r = x.r, pid = x.p.plot_id, ov = flAnsRaw(pid)['h:' + s.id], c = flCtx(x.p);
+        if (ov && ov.v === 'not') return `<button type="button" class="fl-ab" onclick="flAnswer('${qa(pid)}','h:${qa(s.id)}','')">นับบันทึกเดิมกลับเป็นขั้นนี้</button>`;
+        if (r.st !== 'done' || r.at == null || !c) return '';
+        const d = flAt(c.i.start, r.at);
+        if (flMv !== pid + '|' + s.id) return `<button type="button" class="fl-ab fl-ab-q" onclick="flMv='${qa(pid + '|' + s.id)}';flRender()">ไม่ใช่งานนี้?</button>`;
+        return `<div class="srow-s w-100 text-end">บันทึก ${thDate(d)} คืองานขั้นไหน</div>${flGet(flKey).filter(t => t.k !== 'note' && t.id !== s.id).map(t => `<button type="button" class="fl-ab" onclick="flMoveHit('${qa(pid)}','${qa(s.id)}','${qa(t.id)}','${d}')">${esc(t.n)}</button>`).join('')}<button type="button" class="fl-ab fl-ab-q" onclick="flMv='';flRender()">ยกเลิก</button>`;
+      };
       return `<div class="${cls}"><div class="fl-hd" onclick="flOpen=-1;flRender()">${head}</div>
         <div class="fl-body">${extra}${s.note ? `<div class="fl-note">${esc(s.note)}</div>` : ''}
-        ${R.map(x => { const a = acts(x); return `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' || x.r.st === 'ask' || x.r.now ? 700 : 500};text-align:right">${esc(x.r.txt)}</span></div>${a ? `<div class="fl-abs">${a}</div>` : ''}`; }).join('')}
+        ${R.map(x => { const a = acts(x) + mv(x); return `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' || x.r.st === 'ask' || x.r.now ? 700 : 500};text-align:right">${esc(x.r.txt)}</span></div>${a ? `<div class="fl-abs">${a}</div>` : ''}`; }).join('')}
         <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" onclick="flStartEdit(${i})">แก้ขั้นนี้</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i ? '' : 'disabled'} onclick="flMove(${i},-1)">↑</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i < flGet(flKey).length - 1 ? '' : 'disabled'} onclick="flMove(${i},1)">↓</button>

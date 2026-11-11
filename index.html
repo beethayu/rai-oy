@@ -159,6 +159,39 @@
     .fl-prog { font-size: 13.5px; margin-top: 5px; }
     .fl-arrow { width: 3px; height: 18px; background: #9BB5A6; margin: 0 0 6px 26px; position: relative; }
     .fl-arrow::after { content: ''; position: absolute; left: -5px; bottom: -6px; border-left: 6.5px solid transparent; border-right: 6.5px solid transparent; border-top: 8px solid #9BB5A6; }
+    .fl-step.ask { border-color: #B79BC6; }
+    .fl-step.ask .fl-num { background: #6B2E86; }
+    .fl-tag { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; white-space: nowrap; }
+    .fl-tag-repeat { background: #E3EFE7; color: #1F5E3B; } .fl-tag-branch { background: #FDEBD3; color: #8A4A06; } .fl-tag-ask { background: #EFE4F4; color: #6B2E86; }
+    .fl-q { font-size: 15px; font-weight: 700; color: #6B2E86; margin-top: 3px; }
+    .fl-br { margin-top: 6px; background: #FFF8EE; border: 1.5px dashed #B4630B; border-radius: 10px; padding: 6px 10px; font-size: 13.5px; }
+    .fl-ph { margin: 14px 0 8px; padding: 8px 12px; border-radius: 12px; background: #E3EFE7; color: #1F2A24; }
+    .fl-ph b { font-size: 15.5px; color: #15432A; } .fl-ph span { font-size: 13px; color: #4A524D; } .fl-ph em { float: right; font-style: normal; font-size: 13px; font-weight: 700; color: #1F5E3B; }
+    .fl-ph-d { font-size: 13px; color: #4A524D; margin-top: 1px; }
+    .fl-lanes { display: flex; gap: 8px; margin: 2px 0 4px; }
+    .fl-lane { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .fl-lp { text-align: center; font-size: 13px; font-weight: 700; color: #8A4A06; background: #FDEBD3; border-radius: 999px; padding: 3px 6px; }
+    .fl-mini { background: #fff; border: 1px solid #E1E6E2; border-radius: 12px; padding: 8px 10px; cursor: pointer; }
+    .fl-mini.due { border-color: #E9A23B; box-shadow: inset 3px 0 0 #E9A23B; } .fl-mini.on { border-color: #1F5E3B; }
+    .fl-mn { font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+    .fl-merge { text-align: center; font-size: 13px; font-weight: 600; color: #6B736E; margin: 2px 0 6px; }
+    .fl-old { background: #FFF8EE; border: 1px solid #E9A23B; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+    .fl-abs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; padding-bottom: 6px; }
+    .fl-ab { min-height: 36px; border: 1.5px solid #B79BC6; border-radius: 999px; background: #fff; color: #6B2E86; font: inherit; font-size: 14px; font-weight: 700; padding: 2px 14px; }
+    .fl-ab.on { background: #6B2E86; border-color: #6B2E86; color: #fff; }
+    .fl-kseg { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; background: #E7E5DC; border-radius: 12px; padding: 3px; margin-bottom: 4px; }
+    .fl-kseg button { min-height: 42px; border: 0; border-radius: 9px; background: transparent; color: #4A524D; font: inherit; font-size: 13px; font-weight: 600; padding: 0 2px; }
+    .fl-kseg button.on { background: #fff; color: #1F2A24; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .fl-rows { background: #fff; border: 1px solid #E1E6E2; border-radius: 12px; overflow: hidden; }
+    .fl-rows-br { background: #FFF8EE; border: 1.5px dashed #B4630B; } .fl-rows-ask { border: 1.5px solid #B79BC6; }
+    .fl-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px; margin: 0; border-top: 1px solid #ECEAE2; font-size: 14.5px; }
+    .fl-row:first-child { border-top: 0; } .fl-row span { color: #4A524D; flex: none; max-width: 48%; line-height: 1.25; }
+    .fl-row input { flex: 1; min-width: 0; text-align: right; border: 0; background: transparent; font: inherit; font-size: 16px; color: #1F2A24; outline: none; }
+    .fl-ask-card { background: #fff; border: 1.5px solid #B79BC6; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; }
+    .fl-ask-q { font-size: 16.5px; font-weight: 700; margin-top: 6px; } .fl-ask-q span { font-size: 13px; font-weight: 500; color: #6B736E; }
+    .fl-ask-r { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid #EEF1EF; padding-top: 6px; margin-top: 6px; font-size: 15px; }
+    .fl-ask-r .fl-abs { padding: 0; }
+    .chip-ph { background: #EEF1EF; color: #1F2A24; }
     .fl-pl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 6px 0; border-top: 1px solid #EEF1EF; }
     .sw-card { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; font-size: 14.5px; line-height: 1.55; }
     .sw-intro { background: #F4F8FB; border-color: #D7E5EF; }
@@ -2189,7 +2222,8 @@
       const wc = waterChip(p, st, pDays, wDays);
       const isNew = p.cane_type === 'อ้อยใหม่';
       const ageTxt = pDays === null ? (isNew ? 'ยังไม่ปลูก' : 'ไม่รู้อายุ') : `${Math.floor(pDays / 30)} ด. ${pDays % 30} ว.`;
-      const chips = `<span class="chip ${isNew ? 'chip-new' : 'chip-rat'}">${isNew ? 'อ้อยใหม่' : 'อ้อยตอ'} · ${ageTxt}</span>` + (wc ? `<span class="chip chip-${wc.c}">${wc.t}</span>` : '') + tagChips(p);
+      let ph = null; try { ph = flPhaseOf(p); } catch (e) {}
+      const chips = `<span class="chip ${isNew ? 'chip-new' : 'chip-rat'}">${isNew ? 'อ้อยใหม่' : 'อ้อยตอ'} · ${ageTxt}</span>` + (ph ? `<span class="chip chip-ph">ตอนนี้${ph.t}</span>` : '') + (wc ? `<span class="chip chip-${wc.c}">${wc.t}</span>` : '') + tagChips(p);
       const edge = st.isOngoing ? 'edge-doing' : (wc && wc.c === 'red') ? 'edge-red' : (wc && wc.c === 'urg') ? 'edge-urg' : '';
 
       let note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')) : '';
@@ -2381,6 +2415,7 @@
       const none = t => `<div class="srow-s" style="padding:2px 4px 4px;">${t}</div>`;
 
       let h = wxStripHtml() + sugarStripHtml() + wxRainAskHtml();
+      try { h += flAskHtml(); } catch (e) {}
       const rd = regDue();
       if (rd.length) h += `<button type="button" class="srow-main" style="background:#FFF4E0;border-radius:12px;margin-bottom:8px;width:100%" onclick="fleetPane='reg';switchTab('fleet');renderFleet();uiSave()"><span class="srow-l"><span class="srow-n">🪪 ใกล้หมดทะเบียน ${rd.length} คัน</span><span class="srow-s">${rd.slice(0, 3).map(i => esc(i.label) + ' ' + regInfo(i.exp).txt).join(' · ')}</span></span></button>`;
       h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
@@ -3756,15 +3791,26 @@
     // ขั้นตอน 📋 แบบย่อให้แชต: ชื่อ + ช่วงวัน และงานถึงคิว/ทำแล้วรายแปลง (คำนวณในเครื่อง ไม่อ่านชีตใหม่)
     function chatFlow() {
       try {
-        const win = (s, b) => s.k === 'note' ? 'ข้อควรจำ' : s.k === 'repeat' ? 'ตลอดฤดู' : s.f === s.t ? `วันที่ ${s.f}` : `วันที่ ${s.f} ถึง ${s.t}`;
-        const steps = {}; ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => { steps[k] = flGet(k).map(s => `${s.n} (${win(s)}${s.tool ? ' · ' + s.tool : ''}${s.note ? ' · ' + s.note : ''})`); });
+        const win = s => s.k === 'note' ? 'ข้อควรจำ' : s.f === s.t ? `วันที่ ${s.f}` : `วันที่ ${s.f} ถึง ${s.t}`;
+        const kd = s => s.k === 'repeat' ? ` · ทำซ้ำได้ ${s.max} ครั้ง ซ้ำเมื่อ${s.cond || 'จำเป็น'}` : s.k === 'branch' && s.b ? ` · กิ่ง: ถ้า${s.b.c} → ${s.b.n} ภายใน ${s.b.w} วัน`
+          : s.k === 'ask' ? ` · ถามรายแปลง: ${s.q} (${s.o.map(o => o.l + ' → ' + (FL_GO[o.go] || o.go)).join(', ')})` : '';
+        const steps = {}; ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => {
+          const all = flGet(k);
+          steps[k] = all.map(s => { const q = s.w && all.find(x => x.id === s.w.a), o = q && q.o.find(x => x.v === s.w.v);
+            return `${s.n} (${win(s)}${kd(s)}${o ? ` · เฉพาะแปลงที่ตอบ "${o.l}"` : ''}${s.tool ? ' · ' + s.tool : ''}${s.note ? ' · ' + s.note : ''})`; });
+        });
         const plots = {};
         gData.plots.forEach(p => {
           const i = flInfo(p); if (!i) return;
-          const A = flActs(p), R = flGet(i.type).filter(s => s.k === 'once').map(s => ({ s, r: flStat(s, p, A) }));
-          plots[p.plot_id] = { type: i.type, from: i.start, due: R.filter(x => x.r.st === 'due' && !flCutOnly(x.s)).map(x => x.s.n), done: R.filter(x => x.r.st === 'done').map(x => x.s.n + ' ' + x.r.txt.replace('✓ ', '')), next: R.filter(x => x.r.st === 'wait').slice(0, 2).map(x => x.s.n + ' ' + x.r.txt) };
+          if (i.replant) { plots[p.plot_id] = { type: 'รื้อตอ รอปลูกใหม่' }; return; }
+          const c = flCtx(p); if (!c) return;
+          const R = c.steps.filter(s => s.k !== 'note').map(s => ({ s, r: flStat(s, p) })), ph = flPhaseOf(p);
+          plots[p.plot_id] = { type: i.type, from: i.start, phase: ph && ph.t, due: flDue(p).map(x => x.n), ask: flAsks(p).map(x => x.n),
+            done: R.filter(x => x.r.st === 'done').map(x => x.s.n + ' ' + x.r.txt.replace('✓ ', '')), skip: R.filter(x => x.r.st === 'skip').map(x => x.s.n),
+            ans: R.filter(x => x.s.k === 'ask' && x.r.a).map(x => `${x.s.q}: ${(x.s.o.find(o => o.v === x.r.a.v) || {}).l || x.r.a.v}`),
+            next: R.filter(x => x.r.st === 'wait').slice(0, 2).map(x => x.s.n + ' ' + x.r.txt) };
         });
-        return { note: 'วันที่นับจากวันปลูก (อ้อยใหม่) หรือวันตัด (อ้อยตอ) ติดลบ = ก่อนปลูก', steps, plots };
+        return { note: 'วันที่นับจากวันปลูก (อ้อยใหม่) หรือวันตัด (อ้อยตอ) ติดลบ = ก่อนปลูก · ask = คำถามรายแปลงที่รอผู้ใช้ตอบในหน้าแรก', steps, plots };
       } catch (e) { return null; }
     }
     function chatCtx() {
@@ -4865,144 +4911,337 @@ Export.table.toDrive({
       }
       B.innerHTML = chips + c2 + c3 + c1 + c4 + `<div class="srow-s">ข้อมูลฝนย้อนหลัง: Open-Meteo (แบบจำลอง ช่องละ ~10–25 กม. พื้นที่ใกล้กันจึงได้ค่าใกล้เคียงกัน) · ช่วงระยะอ้อย: กรมวิชาการเกษตร (ศูนย์วิจัยพืชไร่นครสวรรค์)</div>`;
     }
-    // ===== 📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ (flowchart แก้ได้ · สถานะแต่ละแปลงดูจากบันทึกจริง) =====
-    // ขั้นตอน: { n ชื่อ, k 'once'|'repeat'|'note', f–t วันนับจากวันปลูก/วันตัด (ติดลบ = ก่อนปลูก), g กลุ่มบันทึกที่นับ, m คำในบันทึก คั่น , , tool, note }
-    // ทำแล้ว = มีบันทึกกลุ่ม/คำตรง ในช่วง f−20 ถึง t+45 วัน · ถึงคิว = อายุอยู่ในช่วงและยังไม่มีบันทึก · เลยช่วงไม่มีบันทึก = เทา (แอปเพิ่งเริ่มจด ไม่เตือนแดง)
+    // ===== 📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ (flowchart แก้ได้ · มีทางแยก · สถานะแต่ละแปลงดูจากบันทึกจริง + คำตอบรายแปลง) =====
+    // ทำแล้ว = มีบันทึกกลุ่ม/คำตรง ในช่วง f−20 ถึง t+45 วัน · ถึงคิว = อายุอยู่ในช่วงและยังไม่มีบันทึก · เลยช่วงไม่มีบันทึก = เทา (ไม่เตือนแดง)
+    // คำตอบรายแปลงอยู่ในชีต Flow แถว key 'ans:<plot_id>' (saveFlowAns) · แกนคิดเหมือน gas/Flow.gs ทุกตัวอักษร
     const FL_RT = 'รถไถเตรียมดิน/บำรุง';
     const FL_G = [[FL_RT, 'รถไถ'], ['ขึ้นน้ำ', 'ขึ้นน้ำ'], ['ฉีดยา', 'ฉีดยา'], ['ใส่ปุ๋ย', 'ปุ๋ย / งานคน'], ['ตัดอ้อย', 'ตัดอ้อย']];
-    const FL_WATER_NOTE = 'ช่วงฝนน้อยขึ้นทุก ~14 วัน วนแปลงนี้เสร็จไปแปลงถัดไป';
+    const FL_K = [['once', 'ปกติ', 'ทำครั้งเดียวในช่วงวัน ทำแล้วติ๊กผ่าน'], ['repeat', 'ทำซ้ำได้', 'ครั้งที่ 2 ขึ้น "ถึงคิว" เมื่อกด "ต้องทำซ้ำ" ที่แปลงนั้นเท่านั้น'],
+      ['branch', 'มีกิ่ง', 'งานแทรกเฉพาะแปลงที่เข้าเงื่อนไข แล้วกลับเส้นหลัก'], ['ask', 'มีคำถาม', 'แอปถามรายแปลงในหน้าแรก คำตอบเลือกทางเดิน'], ['note', 'ข้อควรจำ', 'ไม่มีงาน ไม่เตือน']];
+    const FL_GO = { do: 'ทำขั้นนี้', skip: 'ข้ามขั้นนี้', next: 'ไปต่อ (แยกทาง)', ratoon: 'ไปผังอ้อยตอ', replant: 'รื้อ → อ้อยใหม่' };
+    // ระยะการเจริญเติบโต (วันนับจากวันปลูก/วันตัด) — ทรูปลูกปัญญา, กรมส่งเสริมการเกษตร 2564, KBS
+    const FL_PH = [[-9999, 'เตรียมดิน', 'ก่อนปลูก', 'รื้อตอ ไถ ตัดพันธุ์'], [0, 'ระยะงอก', '0–1 เดือน', 'หน่อโผล่พ้นดินใน 2–3 สัปดาห์ · ช่วงนี้ดูความงอกแล้วซ่อม'],
+      [45, 'ระยะแตกกอ', '1.5–4 เดือน', 'แตกกอมากสุด 2.5–4 เดือน · ปุ๋ย พรวน คุมหญ้าช่วงนี้ได้ผลสุด'], [121, 'ระยะย่างปล้อง', '4–8 เดือน', 'ลำยืดเร็ว ต้องการน้ำมาก · รถเข้าแปลงยากแล้ว'],
+      [241, 'ระยะสุกแก่', '8 เดือน – ตัด', 'สะสมน้ำตาลจากโคนไปปลาย · ตัดอายุ 10–14 เดือน']];
+    const flPhase = age => { let i = 0; FL_PH.forEach((p, j) => { if (age >= p[0]) i = j; }); return i; };
+    // ===== แกนคิดสถานะขั้นตอน 📋 — โค้ดชุดเดียวกันทั้ง gas/Flow.gs และ index.html (แก้ต้องก๊อปไปทั้งสองที่) =====
+    // ขั้น { id, n ชื่อ, k ชนิด, f–t วันนับจากวันปลูก/วันตัด (ติดลบ = ก่อนปลูก), g กลุ่มบันทึกที่นับ, m คำในบันทึก คั่น , , tool, note,
+    //   w {a: id ขั้นถาม, v: คำตอบ} = ทำเฉพาะแปลงที่ตอบแบบนี้ }
+    // k: once ทำครั้งเดียว · repeat ทำซ้ำได้ {max, cond, gap} ครั้งที่ 2+ ขึ้นคิวเมื่อผู้ใช้กด "ต้องทำซ้ำ" เท่านั้น
+    //    branch มีกิ่ง {b: {c ถ้า, n งาน, w ภายในกี่วัน, g, m, cm คำในบันทึกที่แปลว่าเข้าเงื่อนไข}} เตือนเมื่อตอบ/บันทึกว่าเข้าเงื่อนไข
+    //    ask มีคำถาม {q, o: [{v, l, go: do|skip|next|ratoon|replant, m คำในบันทึกที่เดาคำตอบได้}]} · note ข้อควรจำ
+    // ctx { acts: [{g, d, age}], age: อายุวันนี้, ans: {id: {v, age}} } (age = วันนับจากวันเริ่มรอบ)
+    function flowNorm_(a) {
+      a.forEach(s => {
+        s.k = s.k || 'once';
+        if (s.k === 'repeat' && !s.max) s.k = 'note'; // ขั้นเดิม "ขึ้นน้ำวนรอบ" (ทำซ้ำทั้งฤดู) = ข้อควรจำ
+        s.id = s.id || 'x:' + s.n;
+        s.g = Array.isArray(s.g) ? s.g : []; s.m = s.m || ''; s.f = +s.f || 0; s.t = +s.t || 0;
+        if (!Array.isArray(s.o)) s.o = [];
+      });
+      return a;
+    }
+    function flowHit_(acts, g, m, from, to) {
+      const kw = String(m || '').split(',').map(x => x.trim()).filter(Boolean), gs = (g || []).includes('ขึ้นน้ำ') ? g.concat('ฝนตก') : (g || []);
+      if (!gs.length && !kw.length) return [];
+      return acts.filter(a => (!gs.length || gs.includes(a.g)) && (!kw.length || kw.some(w => a.d.includes(w))) && a.age >= from && a.age <= to).sort((a, b) => a.age - b.age);
+    }
+    // คำตอบของขั้นถาม: ผู้ใช้ตอบในฤดูนี้ก่อน · ไม่มี = เดาจากบันทึก (คำของแต่ละตัวเลือก)
+    function flowAns_(s, ctx) {
+      const a = ctx.ans[s.id];
+      if (a && a.v && a.age >= s.f - 60) return { v: a.v, by: 'user', age: a.age };
+      for (const o of s.o || []) { const h = o.m ? flowHit_(ctx.acts, [], o.m, s.f - 20, s.t + 45) : []; if (h.length) return { v: o.v, by: 'log', age: h[0].age }; }
+      return null;
+    }
+    function flowBr_(s, ctx) {
+      const b = s.b || {}, a = ctx.ans[s.id];
+      let T = a && a.v === 'yes' && a.age >= s.f - 20 ? a.age : null;
+      if (T === null && b.cm) { const h = flowHit_(ctx.acts, [], b.cm, s.f - 5, s.t + 60); if (h.length) T = h[0].age; }
+      if (T === null) return null;
+      const h = flowHit_(ctx.acts, b.g, b.m, T, T + 120);
+      if (h.length) return { st: 'done', at: h[0].age, T };
+      return ctx.age <= T + (+b.w || 7) ? { st: 'due', T } : { st: 'none', T };
+    }
+    // สถานะขั้นของแปลง: done ทำแล้ว (at) · due ถึงคิว · wait ยังไม่ถึง (d วัน) · none เลยช่วงไม่มีบันทึก · skip ไม่ต้องทำ
+    //   hold รอคำตอบขั้นถามก่อนหน้า · ask รอตอบคำถาม · ans ตอบแล้ว (ไม่มีงานในขั้นนี้) · note (n = วันที่บันทึกฤดูนี้)
+    function flowStat_(s, ctx, steps) {
+      const age = ctx.age, k = s.k;
+      if (s.w && s.w.a) {
+        const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null;
+        if (!a) return { st: 'hold', q: q ? q.q || q.n : '' };
+        if (a.v !== s.w.v) return { st: 'skip' };
+      }
+      if (k === 'note') { const h = s.g.length ? flowHit_(ctx.acts, s.g, s.m, 0, age) : []; return { st: 'note', n: new Set(h.map(x => x.age)).size }; }
+      const hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45);
+      const base = () => age < s.f ? { st: 'wait', d: s.f - age } : age <= s.t ? { st: 'due' } : { st: 'none' };
+      if (k === 'ask') {
+        const a = flowAns_(s, ctx), o = a && s.o.find(x => x.v === a.v);
+        if (hits.length) return { st: 'done', at: hits[hits.length - 1].age, a, o };
+        if (o && o.go !== 'do') return { st: o.go === 'skip' ? 'skip' : 'ans', a, o };
+        if (!o) { const r = base(); return r.st === 'due' ? { st: 'ask' } : r; }
+        return Object.assign(base(), { a, o });
+      }
+      if (k === 'repeat' && hits.length) {
+        const T = [];
+        hits.forEach(h => { if (!T.length || h.age - T[T.length - 1].last > 7) T.push({ first: h.age, last: h.age }); else T[T.length - 1].last = h.age; });
+        const n = T.length, mx = +s.max || 2, last = T[n - 1].last, a = ctx.ans[s.id];
+        if (n < mx && a && a.v === 'again' && a.age >= last - 1) return { st: 'due', n, again: true, at: last };
+        return { st: 'done', at: last, n, more: n < mx && age <= last + (+s.gap || 14) ? last + (+s.gap || 14) : null };
+      }
+      const r = hits.length ? { st: 'done', at: hits[hits.length - 1].age, n: 1 } : base();
+      if (k === 'branch') r.br = flowBr_(s, ctx);
+      return r;
+    }
+    // งานถึงคิวของแปลง (ไม่เตือนงานตัดอ้อย แล้วแต่คิวโรงงาน) + คำถามที่รอตอบ
+    function flowDueList_(steps, ctx) {
+      const out = [];
+      steps.forEach(s => {
+        const r = flowStat_(s, ctx, steps), cut = s.g.length === 1 && s.g[0] === 'ตัดอ้อย';
+        if (r.st === 'due' && !cut) out.push({ s, n: r.again ? `${s.n} ครั้งที่ ${r.n + 1}` : s.n, g: s.g });
+        if (r.br && r.br.st === 'due') out.push({ s, n: (s.b && s.b.n) || s.n, g: (s.b && s.b.g) || [], br: true });
+        if (r.st === 'ask') out.push({ s, n: s.q || s.n, g: [], ask: true });
+      });
+      return out;
+    }
     const flDef = k => JSON.parse(JSON.stringify(((gData && gData.flowDef) || {})[k] || [])); // ร่างเริ่มต้นอยู่ที่ gas/Flow.gs FLOW_DEF_ ที่เดียว
     let flKey = 'อ้อยใหม่', flOpen = -1, flEdit = -1, flDraft = null; const flSteps = {};
+    const flRow = key => (gData.flows || []).find(x => x.key === key);
     function flGet(key) {
       if (flSteps[key]) return flSteps[key];
-      const r = (gData.flows || []).find(x => x.key === key); let a = null;
+      const r = flRow(key); let a = null;
       try { a = JSON.parse((r && r.data) || 'null'); } catch (e) {}
       if (!Array.isArray(a) || !a.length) a = flDef(key);
-      a.forEach(s => { s.k = s.k || 'once'; s.g = Array.isArray(s.g) ? s.g : []; s.m = s.m || ''; s.f = num(s.f); s.t = num(s.t); });
+      flowNorm_(a);
       return a.length ? (flSteps[key] = a) : a; // ข้อมูลเก่าในเครื่องยังไม่มี flowDef → ไม่จำค่าว่าง
     }
-    // ชนิด + วันเริ่มนับของแปลง: ตัดอ้อยเสร็จหลังวันปลูก = เริ่มรอบอ้อยตอจากวันตัด (ไม่ต้องรอแก้วันปลูก)
-    // กติกาเดียวกับ gas/Flow.gs (flowInfo_/flowDue_ ที่ใช้ใน LINE เช้า) แก้ต้องแก้คู่กัน
-    let flInfoC = { a: null, m: {} };
+    function flAnsRaw(pid) { const r = flRow('ans:' + pid); try { return JSON.parse((r && r.data) || '{}') || {}; } catch (e) { return {}; } }
+    // ชนิด + วันเริ่มนับของแปลง: ตัดอ้อยเสร็จหลังวันปลูก = เริ่มรอบอ้อยตอจากวันตัด · ตอบขั้นตัดว่า "รื้อตอ" = รอปลูกใหม่
+    // กติกาเดียวกับ gas/Flow.gs (flowInfo_/flowCtx_ ที่ใช้ใน LINE เช้า) แก้ต้องแก้คู่กัน
+    let flC = { a: null, f: null, m: {} };
+    function flCache() { if (flC.a !== gData.activities || flC.f !== gData.flows) flC = { a: gData.activities, f: gData.flows, m: {} }; return flC.m; }
+    const flDd = (st, t) => Math.round((Date.parse(t) - Date.parse(st)) / 864e5);
+    const flAt = (st, age) => new Date(Date.parse(st) + age * 864e5).toISOString().slice(0, 10);
     function flInfo(p) {
-      if (flInfoC.a !== gData.activities) flInfoC = { a: gData.activities, m: {} };
-      if (p.plot_id in flInfoC.m) return flInfoC.m[p.plot_id];
+      const m = flCache(), k = 'i' + p.plot_id;
+      if (k in m) return m[k];
       const t0 = todayISO(), pl = beToISO(p.plant_date);
       const cut = (gData.activities || []).filter(a => a.plot_id === p.plot_id && a.activity_group === 'ตัดอ้อย' && !String(a.remark || '').includes('กำลังทำ'))
         .map(a => beToISO(String(a.timestamp || '').split(' ')[0])).filter(t => t && t <= t0).sort().pop();
-      const r = cut && (!pl || cut > pl) ? { type: 'อ้อยตอ', start: cut } : pl ? { type: p.cane_type, start: pl } : null;
-      return (flInfoC.m[p.plot_id] = r);
+      let r = null;
+      if (cut && (!pl || cut > pl)) {
+        const a = flAnsRaw(p.plot_id).cut;
+        r = a && a.v === 'new' && a.d && flDd(cut, a.d) >= -200 ? { type: 'อ้อยใหม่', start: null, replant: true } : { type: 'อ้อยตอ', start: cut };
+      } else if (pl) r = { type: p.cane_type, start: pl };
+      return (m[k] = r);
     }
-    const flPlots = key => gData.plots.filter(p => { const i = flInfo(p); return i && i.type === key; });
-    function flActs(p) {
-      const ty = (flInfo(p) || {}).type || p.cane_type;
-      return (gData.activities || []).filter(a => a.plot_id === p.plot_id).map(a => ({ g: a.activity_group, d: (a.activity_detail || '') + ' ' + (a.activity_group === FL_RT ? tracKind(a.activity_detail, ty) : ''), t: beToISO(String(a.timestamp || '').split(' ')[0]) })).filter(x => x.t);
+    function flCtx(p) {
+      const m = flCache(), k = 'c' + p.plot_id;
+      if (k in m) return m[k];
+      const i = flInfo(p); if (!i || !i.start) return (m[k] = null);
+      const acts = (gData.activities || []).filter(a => a.plot_id === p.plot_id).map(a => ({ g: a.activity_group, d: (a.activity_detail || '') + ' ' + (a.activity_group === FL_RT ? tracKind(a.activity_detail, i.type) : ''), t: beToISO(String(a.timestamp || '').split(' ')[0]) }))
+        .filter(x => x.t).map(x => ({ g: x.g, d: x.d, age: flDd(i.start, x.t) }));
+      const raw = flAnsRaw(p.plot_id), ans = {};
+      Object.keys(raw).forEach(id => { if (raw[id] && raw[id].d) ans[id] = { v: raw[id].v, age: flDd(i.start, raw[id].d) }; });
+      return (m[k] = { i, steps: flGet(i.type), ctx: { acts, age: flDd(i.start, todayISO()), ans } });
     }
-    function flStat(s, p, acts) {
-      const st = (flInfo(p) || {}).start, dd = t => Math.round((Date.parse(t) - Date.parse(st)) / 864e5), age = dd(todayISO());
-      const kw = String(s.m || '').split(',').map(x => x.trim()).filter(Boolean), gs = s.g.includes('ขึ้นน้ำ') ? s.g.concat('ฝนตก') : s.g;
-      const hit = acts.filter(a => gs.includes(a.g) && (!kw.length || kw.some(w => a.d.includes(w)))).map(a => Object.assign({ age: dd(a.t) }, a));
-      if (s.k === 'repeat') { const n = new Set(hit.filter(a => a.age >= s.f).map(a => a.t)).size; return { st: 'rep', n, txt: n ? n + ' วัน' : 'ยังไม่มีบันทึก' }; }
-      const inW = hit.filter(a => a.age >= s.f - 20 && a.age <= s.t + 45).sort((a, b) => a.t < b.t ? 1 : -1);
-      if (inW.length) return { st: 'done', txt: '✓ ' + thDate(inW[0].t) };
-      if (age < s.f) return { st: 'wait', txt: `อีก ${s.f - age} วัน` };
-      if (age <= s.t) return { st: 'due', txt: 'ถึงคิว' };
-      return { st: 'none', txt: 'ไม่มีบันทึก' };
+    const flPlots = key => gData.plots.filter(p => { const c = flCtx(p); return c && c.i.type === key; });
+    function flStat(s, p) {
+      const c = flCtx(p); if (!c) return { st: 'none', txt: '' };
+      const r = flowStat_(s, c.ctx, c.steps), d = a => thDate(flAt(c.i.start, a));
+      const lbl = v => { const o = (s.o || []).find(x => x.v === v); return o ? o.l : v; };
+      let t = { done: '✓ ' + (r.at != null ? d(r.at) : ''), due: 'ถึงคิว', wait: `อีก ${r.d} วัน`, none: 'ไม่มีบันทึก', skip: 'ไม่ต้องทำ', hold: `รอตอบ "${r.q}"`, ask: '❓ รอตอบ', ans: '', note: r.n ? `บันทึก ${r.n} วัน` : '' }[r.st];
+      if (r.a && (r.st === 'ans' || r.st === 'done' || r.st === 'due' || r.st === 'wait')) t = `${lbl(r.a.v)}${r.a.by === 'log' ? ' (จากบันทึก)' : ''}${r.st === 'ans' ? '' : ' · ' + t}`;
+      if (r.st === 'skip' && r.o) t = `${r.o.l} · ไม่ต้องทำ`;
+      if (s.k === 'repeat' && r.n) t = r.again ? `ครั้งที่ ${r.n + 1} ถึงคิว` : `ครั้งที่ ${r.n} ✓ ${d(r.at)}${r.more != null ? ` · ครั้งที่ ${r.n + 1} ถ้าจำเป็น ภายใน ${d(r.more)}` : ''}`;
+      if (r.br) t += r.br.st === 'due' ? ` · ${s.b.n} ถึงคิว` : r.br.st === 'done' ? ` · ${s.b.n} ✓ ${d(r.br.at)}` : ` · ${s.b.c} (${d(r.br.T)})`;
+      r.txt = t; return r;
     }
-    // ขั้นที่ถึงคิวของแปลงหนึ่ง (การ์ดหน้าแรก / ป้ายแปลง / แชต) · ไม่เตือนขั้นตัดอ้อย (แล้วแต่คิวโรงงาน)
+    // งานถึงคิวของแปลง (การ์ดหน้าแรก / ป้ายแปลง / แชต) → [{n, g, s}] ไม่รวมคำถาม · คำถามรอตอบ = flAsks
+    function flDue(p) { const c = flCtx(p); return c ? flowDueList_(c.steps, c.ctx).filter(x => !x.ask) : []; }
+    function flAsks(p) { const c = flCtx(p); return c ? flowDueList_(c.steps, c.ctx).filter(x => x.ask) : []; }
     const flCutOnly = s => s.g.length === 1 && s.g[0] === 'ตัดอ้อย';
-    function flDue(p) {
-      const i = flInfo(p); if (!i) return [];
-      const A = flActs(p);
-      return flGet(i.type).filter(s => s.k === 'once' && !flCutOnly(s) && flStat(s, p, A).st === 'due');
-    }
     const flSprayDue = p => { try { return flDue(p).some(s => s.g.includes('ฉีดยา')); } catch (e) { return false; } };
-    // ถึงคิวทั้งหมด (โชว์บนปุ่มในแท็บแปลง)
-    function flDueCount() {
-      let n = 0;
-      ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => { const st = flGet(k).filter(s => s.k === 'once'); flPlots(k).forEach(p => { const A = flActs(p); st.forEach(s => { if (!flCutOnly(s) && flStat(s, p, A).st === 'due') n++; }); }); });
-      return n;
+    function flDueCount() { let n = 0, q = 0; gData.plots.forEach(p => { try { n += flDue(p).length; q += flAsks(p).length; } catch (e) {} }); return { n, q }; }
+    // ระยะของแปลงตอนนี้ (การ์ดแปลง)
+    function flPhaseOf(p) {
+      const i = flInfo(p); if (!i) return null;
+      if (i.replant) return { t: 'รื้อตอ รอปลูกใหม่' };
+      const age = flDd(i.start, todayISO()); if (age < 0) return { t: 'เตรียมดิน · อีก ' + -age + ' วันปลูก' };
+      return { t: `${FL_PH[flPhase(age)][1]} · อายุ ${age} วัน`, age };
+    }
+    // ตอบคำถาม / กดต้องทำซ้ำ / เข้าเงื่อนไขกิ่ง — จำในเครื่องทันที แล้วส่งเข้าชีต
+    function flAnswer(pid, id, v) {
+      const key = 'ans:' + pid, m = flAnsRaw(pid);
+      if (v) m[id] = { v, d: todayISO() }; else delete m[id];
+      const rows = (gData.flows || []).filter(x => x.key !== key); rows.push({ key, data: JSON.stringify(m) }); gData.flows = rows;
+      saveCache(gData); flRender(); render();
+      call('saveFlowAns', [pid, id, v, todayISO()], d => { gData.flows = d.flows; saveCache(gData); });
     }
     function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
     const flBase = () => flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด';
     function flWin(s) {
       if (s.k === 'note') return '';
-      if (s.k === 'repeat') return 'ตลอดฤดู';
       const b = flBase();
       if (s.f === s.t) return s.f === 0 ? 'วัน' + b : s.f < 0 ? `${-s.f} วันก่อน${b}` : `วันที่ ${s.f} หลัง${b}`;
       if (s.t <= 0) return `${-s.t}–${-s.f} วันก่อน${b}`;
       return `วันที่ ${s.f}–${s.t} หลัง${b}`;
     }
+    const flKTag = s => s.k === 'once' || s.k === 'note' ? '' : `<span class="fl-tag fl-tag-${s.k}">${FL_K.find(k => k[0] === s.k)[1]}</span>`;
     function flRender() {
       const B = $('flow-body'); if (!B) return;
-      const steps = flGet(flKey), plots = flPlots(flKey), A = {};
-      plots.forEach(p => { A[p.plot_id] = flActs(p); });
+      const steps = flGet(flKey), plots = flPlots(flKey);
       let h = `<div class="sat-seg mt-0">${['อ้อยใหม่', 'อ้อยตอ'].map(k => `<button type="button" class="${k === flKey ? 'on' : ''}" onclick="flKey='${k}';flOpen=-1;flEdit=-1;flRender()">${k === 'อ้อยใหม่' ? '🌱 อ้อยใหม่' : '🌿 อ้อยตอ'}</button>`).join('')}</div>
-        <div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด (วันเริ่มบำรุงตอ)'} · แตะกล่อง = ดูรายแปลง / แก้ · สถานะดูจากบันทึกในแอป</div>`;
-      let no = 0;
-      steps.forEach((s, i) => {
-        if (i) h += '<div class="fl-arrow"></div>';
-        if (s.k === 'once') no++;
-        h += flEdit === i ? flEditHtml() : flStepHtml(s, i, s.k === 'repeat' ? '↻' : s.k === 'note' ? '!' : no, plots, A);
-      });
+        <div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด (วันเริ่มบำรุงตอ)'} · แตะกล่อง = ดูรายแปลง / ตอบ / แก้</div>`;
+      if (flRow(flKey) && !steps.some(s => /^d\d+$/.test(s.id))) h += `<div class="fl-old"><b>ผังนี้เป็นแบบเดิมที่แก้ไว้</b><div class="srow-s">ร่างใหม่มีทางแยก (ถามรายแปลง / กิ่ง / ทำซ้ำ) ปุ๋ย 2 ครั้ง และแถบระยะการเจริญเติบโต · ผังเดิมยังใช้ได้ตามปกติ</div>
+        <button type="button" class="btn btn-sm btn-success fw-bold mt-2" onclick="flReset()">ใช้ผังใหม่ตามร่าง</button></div>`;
+      let no = 0, ph = -1, i = 0;
+      const nowPh = {}; plots.forEach(p => { const c = flCtx(p); nowPh[flPhase(c.ctx.age)] = (nowPh[flPhase(c.ctx.age)] || 0) + 1; });
+      while (i < steps.length) {
+        const s = steps[i];
+        if (flEdit === i && !(s.w && s.w.a)) { if (i) h += '<div class="fl-arrow"></div>'; h += flEditHtml(); i++; continue; }
+        if (!(s.k === 'note' && !s.f && !s.t)) {
+          const p2 = flPhase(s.f);
+          if (p2 > ph) { const P = FL_PH[p2]; h += `<div class="fl-ph"><div><b>${P[1]}</b> <span>${P[2]}</span>${nowPh[p2] ? `<em>ตอนนี้ ${nowPh[p2]} แปลง</em>` : ''}</div><div class="fl-ph-d">${P[3]}</div></div>`; ph = p2; }
+          else if (i) h += '<div class="fl-arrow"></div>';
+        } else if (i) h += '<div class="fl-arrow"></div>';
+        if (s.w && s.w.a) { // ทางแยกตามคำตอบ: ขั้นที่ติดกันและขึ้นกับคำถามเดียวกัน = แยกคอลัมน์ แล้วรวมกลับ
+          let j = i; while (j < steps.length && steps[j].w && steps[j].w.a === s.w.a) j++;
+          h += flLanesHtml(steps, i, j, plots); i = j; continue;
+        }
+        if (s.k !== 'note') no++;
+        h += flStepHtml(s, i, s.k === 'note' ? '!' : no, plots);
+        i++;
+      }
       if (flEdit === steps.length) h += '<div class="fl-arrow"></div>' + flEditHtml();
       h += `${flEdit < 0 ? `<button type="button" class="btn btn-outline-success w-100 mt-3 fw-bold" onclick="flStartEdit(${steps.length})">＋ เพิ่มขั้นตอน</button>` : ''}
-        <div class="srow-s mt-3">ร่างจากวิธีที่คุณเล่า + วันที่ในบันทึกจริง (เช่น หนองบวบหอม 3 แรก) แก้ได้ทุกกล่อง · <a href="#" onclick="event.preventDefault();flReset()">กลับไปใช้ร่างเริ่มต้น</a></div>`;
+        <div class="srow-s mt-3">ร่างจากวิธีที่คุณเล่า + เล่มทางการ (สอน., กรมส่งเสริมฯ) แก้ได้ทุกกล่อง · ระยะอ้อย: ทรูปลูกปัญญา, กรมส่งเสริมการเกษตร 2564, KBS · <a href="#" onclick="event.preventDefault();flReset()">กลับไปใช้ร่างเริ่มต้น</a></div>`;
       B.innerHTML = h;
     }
-    function flStepHtml(s, i, badge, plots, A) {
-      const R = s.k === 'note' ? [] : plots.map(p => ({ p, r: flStat(s, p, A[p.plot_id]) }));
-      const done = R.filter(x => x.r.st === 'done').length, due = R.filter(x => x.r.st === 'due');
+    function flLanesHtml(steps, i, j, plots) {
+      const q = steps.find(x => x.id === steps[i].w.a), opts = q ? q.o : [], run = [];
+      for (let k = i; k < j; k++) run.push(k);
+      const vs = opts.map(o => o.v).filter(v => run.some(k => steps[k].w.v === v));
+      run.forEach(k => { if (!vs.includes(steps[k].w.v)) vs.push(steps[k].w.v); });
+      const cols = vs.map(v => `<div class="fl-lane"><div class="fl-lp">${esc((opts.find(o => o.v === v) || {}).l || v)}</div>${run.filter(k => steps[k].w.v === v).map(k => {
+        const s = steps[k], R = plots.map(p => flStat(s, p)), due = R.filter(r => r.st === 'due' || (r.br && r.br.st === 'due')).length, done = R.filter(r => r.st === 'done').length, on = R.filter(r => r.st !== 'skip' && r.st !== 'hold').length;
+        return `<div class="fl-mini${due ? ' due' : ''}${flOpen === k || flEdit === k ? ' on' : ''}" onclick="flOpen=flOpen===${k}?-1:${k};flEdit=-1;flRender()"><div class="fl-mn">${esc(s.n)}</div><div class="fl-w">${flWin(s)}</div>
+          ${s.k === 'branch' && s.b ? `<div class="fl-w" style="color:#B4630B">กิ่ง: ${esc(s.b.c)} → ${esc(s.b.n)}</div>` : ''}<div class="fl-w" style="color:${due ? '#B4630B' : '#1F2A24'};font-weight:600">${due ? `ถึงคิว ${due}` : on ? `ทำแล้ว ${done}/${on}` : 'ยังไม่มีแปลง'}</div></div>`;
+      }).join('')}</div>`).join('');
+      let h = `<div class="fl-lanes">${cols}</div><div class="fl-merge">รวมกลับเส้นเดียว</div>`;
+      const k = run.includes(flEdit) ? flEdit : run.includes(flOpen) ? flOpen : -1;
+      if (k >= 0) h += flEdit === k ? flEditHtml() : flStepHtml(steps[k], k, '↳', plots);
+      return h;
+    }
+    function flStepHtml(s, i, badge, plots) {
+      const R = s.k === 'note' && !s.g.length ? [] : plots.map(p => ({ p, r: flStat(s, p) }));
+      const live = R.filter(x => x.r.st !== 'skip' && x.r.st !== 'hold');
+      const done = R.filter(x => x.r.st === 'done').length, due = R.filter(x => x.r.st === 'due'), ask = R.filter(x => x.r.st === 'ask'), brDue = R.filter(x => x.r.br && x.r.br.st === 'due');
+      const skip = R.length - live.length;
       let prog = '';
-      if (s.k === 'repeat') { const tot = R.reduce((a, x) => a + x.r.n, 0); prog = `<div class="fl-prog">↻ ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; }
-      else if (s.k === 'once') prog = `<div class="fl-prog"><b style="color:${done ? '#1F7A45' : '#6B736E'}">${done ? '✓ ' : ''}ทำแล้ว ${done}/${plots.length} แปลง</b>${due.length ? ` · <b style="color:#B4630B">ถึงคิว ${due.length}: ${due.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
-      const col = { done: '#1F7A45', due: '#B4630B', wait: '#6B736E', none: '#9AA19C', rep: '#1F2A24' };
+      if (s.k === 'note') { if (R.length) { const tot = R.reduce((a, x) => a + x.r.n, 0); prog = `<div class="fl-prog">ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; } }
+      else {
+        const pure = s.k === 'ask' && !s.g.length && !s.m.trim(), na = R.filter(x => x.r.a).length; // คำถามล้วน ไม่มีงานในขั้น
+        const parts = [pure ? `<b style="color:${na ? '#1F7A45' : '#6B736E'}">ตอบแล้ว ${na}/${live.length} แปลง</b>` : `<b style="color:${done ? '#1F7A45' : '#6B736E'}">${done ? '✓ ' : ''}ทำแล้ว ${done}/${live.length} แปลง</b>`];
+        if (due.length) parts.push(`<b style="color:#B4630B">ถึงคิว ${due.length}: ${due.map(x => esc(x.p.plot_name)).join(', ')}</b>`);
+        if (ask.length) parts.push(`<b style="color:#6B2E86">❓ รอตอบ ${ask.length}</b>`);
+        if (s.k === 'ask') { const c = {}; R.forEach(x => { if (x.r.a) c[x.r.a.v] = (c[x.r.a.v] || 0) + 1; }); s.o.forEach(o => { if (c[o.v]) parts.push(`${esc(o.l)} ${c[o.v]}`); }); }
+        if (skip) parts.push(`ข้าม/รอ ${skip}`);
+        prog = `<div class="fl-prog">${parts.join(' · ')}</div>`;
+      }
+      let extra = '';
+      if (s.k === 'repeat') extra = `<div class="fl-w">ซ้ำได้ ${s.max || 2} ครั้ง${s.cond ? ' · ซ้ำเมื่อ' + esc(s.cond) : ''}${s.gap ? ` · ห่างไม่เกิน ${s.gap} วัน` : ''}</div>`;
+      if (s.k === 'ask') extra = `<div class="fl-q">❓ ${esc(s.q || s.n)}</div><div class="fl-w">${s.o.map(o => o.go === 'next' ? esc(o.l) : `${esc(o.l)} → ${FL_GO[o.go] || o.go}`).join(' · ')}</div>`;
+      if (s.k === 'branch' && s.b) extra = `<div class="fl-br">ถ้า <b>${esc(s.b.c)}</b> → ${esc(s.b.n)} ภายใน ${s.b.w || 7} วัน · แล้วกลับเส้นหลัก${brDue.length ? `<br><b style="color:#B4630B">ถึงคิว: ${brDue.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
+      const col = { done: '#1F7A45', due: '#B4630B', wait: '#6B736E', none: '#9AA19C', skip: '#9AA19C', hold: '#9AA19C', ask: '#6B2E86', ans: '#1F2A24', note: '#1F2A24' };
       const open = flOpen === i;
+      const btn = (pid, v, l, on) => `<button type="button" class="fl-ab${on ? ' on' : ''}" onclick="flAnswer('${qa(pid)}','${qa(s.id)}','${qa(v)}')">${esc(l)}</button>`;
+      const acts = x => {
+        const r = x.r, pid = x.p.plot_id, raw = flAnsRaw(pid)[s.id];
+        if (s.k === 'ask' && r.st !== 'hold' && r.st !== 'skip' || s.k === 'ask' && r.o) return s.o.map(o => btn(pid, r.a && r.a.v === o.v ? '' : o.v, o.l, r.a && r.a.v === o.v)).join('');
+        if (s.k === 'repeat' && r.n && r.n < (s.max || 2)) return r.again ? btn(pid, '', 'ไม่ต้องแล้ว') : btn(pid, 'again', `ต้องทำครั้งที่ ${r.n + 1}`);
+        if (s.k === 'branch' && s.b && r.st !== 'skip' && r.st !== 'hold' && r.st !== 'wait') return raw && raw.v === 'yes' ? btn(pid, '', 'ยกเลิก: ' + s.b.c, true) : r.br ? '' : btn(pid, 'yes', s.b.c);
+        return '';
+      };
       const det = !open ? '' : `<div class="mt-2" onclick="event.stopPropagation()">
-        ${R.map(x => `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' ? 700 : 500}">${x.r.txt}</span></div>`).join('')}
+        ${R.map(x => { const a = acts(x); return `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' || x.r.st === 'ask' ? 700 : 500};text-align:right">${esc(x.r.txt)}</span></div>${a ? `<div class="fl-abs">${a}</div>` : ''}`; }).join('')}
         <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" onclick="flStartEdit(${i})">แก้</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i ? '' : 'disabled'} onclick="flMove(${i},-1)">↑</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i < flGet(flKey).length - 1 ? '' : 'disabled'} onclick="flMove(${i},1)">↓</button>
           <button type="button" class="btn btn-sm btn-outline-danger" onclick="flDel(${i})">ลบ</button></div></div>`;
-      return `<div class="fl-step${s.k === 'note' ? ' note' : ''}${due.length ? ' due' : ''}" onclick="flOpen=flOpen===${i}?-1:${i};flEdit=-1;flRender()">
-        <div class="fl-num">${badge}</div><div class="fl-n">${esc(s.n)}</div>
-        ${flWin(s) || s.tool ? `<div class="fl-w">${flWin(s)}${s.tool ? `${flWin(s) ? ' · ' : ''}🔧 ${esc(s.tool)}` : ''}</div>` : ''}
+      return `<div class="fl-step${s.k === 'note' ? ' note' : ''}${s.k === 'ask' ? ' ask' : ''}${due.length || brDue.length ? ' due' : ''}" onclick="flOpen=flOpen===${i}?-1:${i};flEdit=-1;flRender()">
+        <div class="fl-num">${badge}</div><div class="fl-n">${esc(s.n)}${flKTag(s)}</div>
+        ${flWin(s) || s.tool ? `<div class="fl-w">${flWin(s)}${s.tool ? `${flWin(s) ? ' · ' : ''}🔧 ${esc(s.tool)}` : ''}</div>` : ''}${extra}
         ${s.note ? `<div class="fl-note">${esc(s.note)}</div>` : ''}${prog}${det}</div>`;
     }
     function flStartEdit(i) {
       const s = flGet(flKey)[i];
-      flDraft = s ? JSON.parse(JSON.stringify(s)) : { n: '', k: 'once', f: 0, t: 14, g: [], m: '', tool: '', note: '' };
+      flDraft = s ? JSON.parse(JSON.stringify(s)) : { n: '', k: 'once', f: 0, t: 14, g: [], m: '', tool: '', note: '', o: [] };
+      flDraft.b = flDraft.b || { c: '', n: '', w: 7, g: [], m: '', cm: '' };
+      if (!flDraft.o.length) flDraft.o = [{ v: 'yes', l: 'ใช่', go: 'do' }, { v: 'no', l: 'ไม่', go: 'skip' }];
       flEdit = i; flOpen = -1; flRender();
     }
     function flEditHtml() {
-      const d = flDraft, b = flBase(), inp = (k, ph, ty) => `<input class="form-control mb-2" style="font-size:16px" ${ty ? `type="${ty}" inputmode="numeric"` : ''} placeholder="${ph}" value="${esc(d[k] == null ? '' : d[k])}" oninput="flDraft.${k}=this.value">`;
-      const kinds = [['once', 'ทำครั้งเดียว'], ['repeat', 'ทำซ้ำทั้งฤดู'], ['note', 'ข้อควรจำ']];
-      return `<div class="fl-step edit" onclick="event.stopPropagation()">
-        <div class="fw-bold mb-2">${flGet(flKey)[flEdit] ? 'แก้ขั้นตอน' : 'ขั้นตอนใหม่'}</div>
-        ${inp('n', 'ชื่อขั้นตอน เช่น ถากหญ้า')}
-        <div class="sat-seg mt-0">${kinds.map(k => `<button type="button" class="${d.k === k[0] ? 'on' : ''}" onclick="flDraft.k='${k[0]}';flRender()">${k[1]}</button>`).join('')}</div>
-        ${d.k === 'once' ? `<div class="d-flex align-items-center gap-2 mb-1"><span style="flex:none">วันที่</span><input class="form-control" style="font-size:16px" type="number" inputmode="numeric" value="${d.f}" oninput="flDraft.f=this.value"><span style="flex:none">ถึง</span><input class="form-control" style="font-size:16px" type="number" inputmode="numeric" value="${d.t}" oninput="flDraft.t=this.value"><span style="flex:none">หลัง${b}</span></div>
-          <div class="srow-s mb-2">ติดลบ = ก่อน${b} เช่น -14 ถึง -1</div>` : ''}
-        ${d.k !== 'note' ? `<div class="srow-s mb-1">นับว่าทำแล้วจากบันทึกกลุ่ม:</div>
-          <div class="ch-chips mb-2">${FL_G.map(g => `<button type="button" class="ch-chip${d.g.includes(g[0]) ? ' on' : ''}" onclick="flDraft.g=flDraft.g.includes('${g[0]}')?flDraft.g.filter(x=>x!=='${g[0]}'):flDraft.g.concat('${g[0]}');flRender()">${g[1]}</button>`).join('')}</div>
-          ${inp('m', 'คำในบันทึก คั่นด้วย , เช่น ถากหญ้า (ว่าง = ทุกงานในกลุ่ม)')}` : ''}
-        ${inp('tool', 'เครื่องมือ (ถ้ามี)')}${inp('note', 'หมายเหตุ เช่น ถ้าดินแข็งแน่น')}
+      const d = flDraft, b = flBase(), steps = flGet(flKey);
+      const row = (lb, path, ph, ty) => `<label class="fl-row"><span>${lb}</span><input ${ty ? `type="${ty}" inputmode="numeric"` : ''} placeholder="${esc(ph || '')}" value="${esc(path.split('.').reduce((o, k) => o == null ? '' : o[k], d) ?? '')}" oninput="flSet('${path}',this.value)"></label>`;
+      const chips = (path, sel) => `<div class="ch-chips mb-2">${FL_G.map(g => `<button type="button" class="ch-chip${sel.includes(g[0]) ? ' on' : ''}" onclick="flTogG('${path}','${g[0]}')">${g[1]}</button>`).join('')}</div>`;
+      const asks = steps.filter((s, k) => s.k === 'ask' && k !== flEdit && s.o.length);
+      let h = `<div class="fl-step edit" onclick="event.stopPropagation()">
+        <div class="fw-bold mb-2">${steps[flEdit] ? 'แก้ขั้นตอน' : 'ขั้นตอนใหม่'}</div>
+        <div class="fl-rows">${row('ชื่อขั้น', 'n', 'เช่น ถากหญ้า')}</div>
+        <div class="srow-s mt-2 mb-1 fw-bold">ชนิดขั้น</div>
+        <div class="fl-kseg">${FL_K.map(k => `<button type="button" class="${d.k === k[0] ? 'on' : ''}" onclick="flDraft.k='${k[0]}';flRender()">${k[1]}</button>`).join('')}</div>
+        <div class="srow-s mb-2">${FL_K.find(k => k[0] === d.k)[2]}</div>`;
+      if (d.k !== 'note') h += `<div class="fl-rows">${row(`วันที่เริ่ม (หลัง${b})`, 'f', '', 'number')}${row(`วันที่สุดท้าย (หลัง${b})`, 't', '', 'number')}</div><div class="srow-s mb-2">ติดลบ = ก่อน${b} เช่น -14 ถึง -1</div>
+          <div class="srow-s mb-1">นับว่าทำแล้วจากบันทึกกลุ่ม:</div>${chips('g', d.g)}<div class="fl-rows mb-2">${row('คำในบันทึก', 'm', 'คั่นด้วย , (ว่าง = ทุกงานในกลุ่ม)')}</div>`;
+      if (d.k === 'repeat') h += `<div class="fl-rows mb-2">${row('ทำได้สูงสุด (ครั้ง)', 'max', '2', 'number')}${row('ทำซ้ำเมื่อ', 'cond', 'เช่น ช่องว่างเกิน 75 ซม.')}${row('ห่างจากครั้งก่อนไม่เกิน (วัน)', 'gap', '14', 'number')}</div>`;
+      if (d.k === 'branch') h += `<div class="fl-rows fl-rows-br mb-2">${row('ถ้า', 'b.c', 'เช่น ฝนหนัก น้ำขัง')}${row('ทำงาน', 'b.n', 'เช่น ขุดร่องระบายน้ำ')}${row('ภายใน (วัน)', 'b.w', '7', 'number')}${row('คำในบันทึกของงานกิ่ง', 'b.m', 'เช่น ระบาย,ขุดร่อง')}${row('คำในบันทึกที่แปลว่าเข้าเงื่อนไข', 'b.cm', 'เช่น น้ำขัง (ว่าง = กดเองรายแปลง)')}</div>
+          <div class="srow-s mb-1">งานกิ่งนับจากบันทึกกลุ่ม (ว่าง = ทุกกลุ่ม):</div>${chips('b.g', d.b.g || [])}`;
+      if (d.k === 'ask') {
+        const gos = flCutOnly(d) ? ['ratoon', 'replant'] : ['do', 'skip', 'next'];
+        h += `<div class="fl-rows fl-rows-ask mb-2">${row('คำถาม', 'q', 'เช่น ดินแข็งแน่นไหม?')}</div>
+          ${d.o.map((o, k) => `<div class="fl-rows fl-rows-ask mb-1">${row(`คำตอบที่ ${k + 1}`, `o.${k}.l`, 'เช่น แข็ง')}${row('คำในบันทึกที่เดาคำตอบนี้ได้', `o.${k}.m`, 'ไม่ใส่ก็ได้')}</div>
+          <div class="ch-chips mb-2">${gos.map(g => `<button type="button" class="ch-chip${o.go === g ? ' on' : ''}" onclick="flDraft.o[${k}].go='${g}';flRender()">${FL_GO[g]}</button>`).join('')}</div>`).join('')}
+          <div class="srow-s mb-2">คำถามขึ้นในหน้าแรกเมื่อถึงช่วงวันของขั้นนี้ แตะตอบรายแปลงได้เลย</div>`;
+      }
+      if (asks.length && d.k !== 'ask') {
+        const cur = d.w && d.w.a ? d.w.a + '|' + d.w.v : '';
+        h += `<div class="srow-s mb-1">ทำเฉพาะแปลงที่ตอบ:</div><div class="ch-chips mb-2"><button type="button" class="ch-chip${cur ? '' : ' on'}" onclick="flDraft.w=null;flRender()">ทุกแปลง</button>${asks.map(s => s.o.map(o => `<button type="button" class="ch-chip${cur === s.id + '|' + o.v ? ' on' : ''}" onclick="flDraft.w={a:'${qa(s.id)}',v:'${qa(o.v)}'};flRender()">${esc((s.q || s.n).replace(/[?？]$/, ''))}: ${esc(o.l)}</button>`).join('')).join('')}</div>`;
+      }
+      h += `<div class="fl-rows mb-2">${row('เครื่องมือ', 'tool', 'ถ้ามี')}${row('หมายเหตุ', 'note', 'เช่น ถ้าดินแข็งแน่น')}</div>
         <div class="d-flex gap-2"><button type="button" class="btn btn-outline-secondary flex-fill" onclick="flEdit=-1;flRender()">ยกเลิก</button><button type="button" class="btn btn-success fw-bold flex-fill" onclick="flSaveEdit()">บันทึก</button></div></div>`;
+      return h;
     }
+    function flSet(path, v) { const ks = path.split('.'); let o = flDraft; ks.slice(0, -1).forEach(k => { o = o[k]; }); o[ks[ks.length - 1]] = v; }
+    function flTogG(path, g) { const ks = path.split('.'); let o = flDraft; ks.slice(0, -1).forEach(k => { o = o[k]; }); const k = ks[ks.length - 1], a = o[k] || []; o[k] = a.includes(g) ? a.filter(x => x !== g) : a.concat(g); flRender(); }
     function flSaveEdit() {
       const d = flDraft; d.n = String(d.n || '').trim(); if (!d.n) return alert('ใส่ชื่อขั้นตอน');
-      d.f = Math.round(num(d.f)); d.t = Math.round(num(d.t)); if (d.k === 'once' && d.t < d.f) [d.f, d.t] = [d.t, d.f];
-      if (d.k === 'repeat') { d.f = 0; d.t = 400; }
-      ['m', 'tool', 'note'].forEach(k => { d[k] = String(d[k] || '').trim(); });
+      d.f = Math.round(num(d.f)); d.t = Math.round(num(d.t)); if (d.k !== 'note' && d.t < d.f) [d.f, d.t] = [d.t, d.f];
+      ['m', 'tool', 'note', 'q', 'cond'].forEach(k => { d[k] = String(d[k] || '').trim(); });
+      if (d.k === 'repeat') { d.max = Math.max(2, Math.round(num(d.max)) || 2); d.gap = Math.round(num(d.gap)) || 14; } else { delete d.max; delete d.gap; delete d.cond; }
+      if (d.k === 'branch') { ['c', 'n', 'm', 'cm'].forEach(k => { d.b[k] = String(d.b[k] || '').trim(); }); d.b.w = Math.round(num(d.b.w)) || 7; if (!d.b.c || !d.b.n) return alert('ใส่เงื่อนไข "ถ้า" และงานของกิ่ง'); } else delete d.b;
+      if (d.k === 'ask') { if (!d.q) return alert('ใส่คำถาม'); d.o.forEach((o, k) => { o.l = String(o.l || '').trim() || 'ตัวเลือก ' + (k + 1); o.m = String(o.m || '').trim(); o.v = o.v || 'o' + k; }); } else d.o = [];
+      if (d.k === 'ask' || (d.w && !d.w.a)) delete d.w;
+      if (!d.id) d.id = 'u' + Date.now().toString(36);
       const a = flGet(flKey); a[flEdit] = d; flOpen = flEdit; flEdit = -1; flPersist();
     }
     function flMove(i, dir) { const a = flGet(flKey), j = i + dir; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; flOpen = j; flPersist(); }
     function flDel(i) { const a = flGet(flKey); if (!confirm(`ลบขั้น "${a[i].n}"?`)) return; a.splice(i, 1); flOpen = -1; flPersist(); }
-    function flReset() { if (!confirm(`ใช้ร่างเริ่มต้นของ${flKey}แทนที่แก้ไว้?`)) return; flSteps[flKey] = null; flSteps[flKey] = flDef(flKey); flGet(flKey); flOpen = -1; flPersist(); }
+    function flReset() { if (!confirm(`ใช้ร่างเริ่มต้นของ${flKey}แทนที่แก้ไว้?`)) return; flSteps[flKey] = null; flSteps[flKey] = flowNorm_(flDef(flKey)); flOpen = -1; flPersist(); }
     function flPersist() {
+      const key = flKey, js = JSON.stringify(flGet(key));
+      gData.flows = (gData.flows || []).filter(x => x.key !== key).concat({ key, data: js }); flSteps[key] = null; flGet(key);
       flRender();
-      const key = flKey;
-      call('saveFlow', [key, JSON.stringify(flGet(key))], d => { gData.flows = d.flows; saveCache(gData); if (curTab === 'all') render(); });
+      call('saveFlow', [key, js], d => { gData.flows = d.flows; flSteps[key] = null; saveCache(gData); if (curTab === 'all') render(); });
+    }
+    // การ์ดหน้าแรก: คำถามรายแปลงที่รอตอบ (การ์ดเดียว จัดกลุ่มตามคำถาม)
+    function flAskHtml() {
+      const G = {};
+      gData.plots.forEach(p => { let q = []; try { q = flAsks(p); } catch (e) {} q.forEach(x => { const k = flCtx(p).i.type + '|' + x.s.id; (G[k] = G[k] || { s: x.s, type: flCtx(p).i.type, ps: [] }).ps.push(p); }); });
+      const L = Object.values(G); if (!L.length) return '';
+      return `<div class="fl-ask-card"><div class="srow-s" style="color:#6B2E86;font-weight:700">❓ ถามรายแปลง · ใช้เลือกขั้นตอนต่อไป</div>${L.map(g => `
+        <div class="fl-ask-q">${esc(g.s.q || g.s.n)} <span>${esc(g.s.n)} · ${esc(g.type)}</span></div>
+        ${g.ps.map(p => `<div class="fl-ask-r"><span>${esc(p.plot_name)}</span><span class="fl-abs">${g.s.o.map(o => `<button type="button" class="fl-ab" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</span></div>`).join('')}`).join('')}
+        <div class="srow-s mt-1">ตอบแล้วแก้ได้ในเมนูแปลง › 📋 ขั้นตอน</div></div>`;
     }
     // ===== ฝนรายวันย้อนหลัง + จำลองการขึ้นน้ำทีละปี =====
     const climDaily = {}, climDErr = {}, climDBusy = {};
@@ -5439,8 +5678,8 @@ Export.table.toDrive({
     const fmSatItem = (kind, id) => satInfo && satInfo.items.find(i => i.key === kind + '|' + id);
 
     function flowBtn() {
-      let due = 0; try { due = flDueCount(); } catch (e) {}
-      return `<button type="button" class="fbtn${due ? ' bad' : ''}" style="grid-column:1/-1" onclick="openFlow()"><b>📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ</b><span>${due ? `<em>ถึงคิว ${due} งาน</em>` : 'ไม่มีงานถึงคิว'} · แก้ขั้นตอนเองได้</span></button>`;
+      let c = { n: 0, q: 0 }; try { c = flDueCount(); } catch (e) {}
+      return `<button type="button" class="fbtn${c.n ? ' bad' : ''}" style="grid-column:1/-1" onclick="openFlow()"><b>📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ</b><span>${c.n ? `<em>ถึงคิว ${c.n} งาน</em>` : 'ไม่มีงานถึงคิว'}${c.q ? ` · ❓ รอตอบ ${c.q}` : ''} · แก้ขั้นตอนเองได้</span></button>`;
     }
     function farmBtnHtml() {
       const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;

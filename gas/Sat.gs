@@ -438,16 +438,26 @@ const SPOT_EVAL_ = `//VERSION=3
 function setup() {
   return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
 }
-function evaluatePixel(ss) {
-  var w = 0, n = 0;
+function evaluatePixel(ss, scenes) {
+  var o = [];
   for (var i = 0; i < ss.length; i++) {
     var s = ss[i];
     if (s.dataMask !== 1 || [0, 1, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
     var mn = (s.B03 - s.B11) / (s.B03 + s.B11 || 1), v = (s.B08 - s.B04) / (s.B08 + s.B04 || 1);
     if (s.SCL === 3 && !(mn > 0)) continue;
-    if (v >= 0.5) continue;
+    var t = scenes && scenes.orbits && scenes.orbits[i] ? Date.parse(scenes.orbits[i].dateFrom) : i;
+    o.push({ t: t, v: v, w: mn > 0 && s.B08 < 0.15 && s.B03 > s.B08 });
+  }
+  o.sort(function (a, b) { return a.t - b.t; });
+  var w = 0, n = 0, D = 8 * 86400000;
+  for (var j = 0; j < o.length; j++) {
+    if (o[j].v >= 0.5) continue;
     n++;
-    if (mn > 0 && s.B08 < 0.15 && s.B03 > s.B08) w++;   // น้ำจริง: เขียว > อินฟราเรด (เงาเมฆบนดิน/ใบ อินฟราเรดยังสูงกว่า)
+    if (!o[j].w) continue;
+    // ความเขียวตกแล้วเด้งกลับภายใน ~1 สัปดาห์ทั้งก่อนและหลัง = เมฆ/เงาเมฆ ไม่ใช่น้ำขัง
+    var p = o[j - 1], q = o[j + 1];
+    if (p && q && o[j].t - p.t < D && q.t - o[j].t < D && p.v - o[j].v >= 0.2 && q.v - o[j].v >= 0.2) continue;
+    w++;
   }
   if (n < 3) return [0.55, 0.55, 0.55, 0.45];
   if (w === 0) return [0, 0, 0, 0];

@@ -191,6 +191,21 @@
     .fl-ask-q { font-size: 16.5px; font-weight: 700; margin-top: 6px; } .fl-ask-q span { font-size: 13px; font-weight: 500; color: #6B736E; }
     .fl-ask-r { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid #EEF1EF; padding-top: 6px; margin-top: 6px; font-size: 15px; }
     .fl-ask-r .fl-abs { padding: 0; }
+    .fl-step { display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 6px; }
+    .fl-step .fl-num { position: static; flex: none; width: 28px; height: 28px; font-size: 13.5px; }
+    .fl-step.open, .fl-step.edit { display: block; }
+    .fl-hd { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .fl-rh { flex: 1; min-width: 0; } .fl-step .fl-n { font-size: 15.5px; }
+    .fl-body { margin-top: 6px; padding-left: 38px; cursor: default; }
+    .fl-pill { flex: none; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 2px 9px; background: #EEF1EF; color: #4A524D; white-space: nowrap; }
+    .fl-pill.o { background: #FDEBD3; color: #8A4A06; } .fl-pill.p { background: #EFE4F4; color: #6B2E86; } .fl-pill.g { background: #E3EFE7; color: #1F5E3B; }
+    .fl-ph.shut { background: #F2F1EA; border: 1px dashed #C9D3CC; } .fl-ph em i { font-style: normal; color: #B4630B; }
+    .fl-ph-p { font-size: 13px; color: #1F2A24; margin-top: 3px; line-height: 1.5; }
+    .fl-sum { background: #F2F7F3; border-radius: 10px; padding: 8px 10px; font-size: 14px; margin-bottom: 8px; color: #15432A; }
+    .fl-sec { font-size: 13.5px; font-weight: 700; color: #4A524D; margin: 10px 2px 4px; }
+    .fl-rng { display: flex; align-items: center; gap: 6px; } .fl-rng input { width: 64px; text-align: center; border: 1px solid #E1E6E2; border-radius: 8px; font: inherit; font-size: 16px; padding: 4px; }
+    .fl-advb { width: 100%; min-height: 44px; border: 1px dashed #9BB5A6; border-radius: 12px; background: transparent; color: #1F5E3B; font: inherit; font-size: 14.5px; font-weight: 700; }
+    .fl-lanes .fl-lp { font-size: 12.5px; }
     .chip-ph { background: #EEF1EF; color: #1F2A24; }
     .fl-pl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 6px 0; border-top: 1px solid #EEF1EF; }
     .sw-card { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; font-size: 14.5px; line-height: 1.55; }
@@ -4969,7 +4984,7 @@ Export.table.toDrive({
       if (s.w && s.w.a) {
         const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null;
         if (!a) return { st: 'hold', q: q ? q.q || q.n : '' };
-        if (a.v !== s.w.v) return { st: 'skip' };
+        if (!String(s.w.v).split(',').includes(a.v)) return { st: 'skip' };
       }
       if (k === 'note') { const h = s.g.length ? flowHit_(ctx.acts, s.g, s.m, 0, age) : []; return { st: 'note', n: new Set(h.map(x => x.age)).size }; }
       const hits = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45);
@@ -5094,75 +5109,90 @@ Export.table.toDrive({
       return `วันที่ ${s.f}–${s.t} หลัง${b}`;
     }
     const flKTag = s => s.k === 'once' || s.k === 'note' ? '' : `<span class="fl-tag fl-tag-${s.k}">${FL_K.find(k => k[0] === s.k)[1]}</span>`;
+    // ผังแบบย่อ (12 พ.ย. 69 ผู้ใช้: ผังยาวดูยาก หน้าแก้งง): ขั้นละบรรทัดเดียว แตะแล้วกาง · ระยะที่ไม่มีแปลงและไม่มีงานพับไว้ · หน้าแก้มีแค่ที่จำเป็น ที่เหลือใน "ตั้งค่าเพิ่ม"
+    const flPhTog = {}; let flAdv = false;
+    const flWv = s => s.w && s.w.a ? String(s.w.v || '').split(',').filter(Boolean) : [];
+    function flSum(s, plots) { // สรุปสถานะรวมของขั้น → ป้ายขวา
+      const R = plots.map(p => ({ p, r: flStat(s, p) }));
+      const live = R.filter(x => x.r.st !== 'skip' && x.r.st !== 'hold'), done = R.filter(x => x.r.st === 'done').length;
+      const due = R.filter(x => x.r.st === 'due' || (x.r.br && x.r.br.st === 'due')).length, ask = R.filter(x => x.r.st === 'ask').length;
+      const wait = R.filter(x => x.r.st === 'wait').map(x => x.r.d);
+      let pill = '';
+      if (s.k === 'note') pill = '';
+      else if (due) pill = `<span class="fl-pill o">ถึงคิว ${due}</span>`;
+      else if (ask) pill = `<span class="fl-pill p">❓ ${ask}</span>`;
+      else if (live.length && done === live.length) pill = `<span class="fl-pill g">✓ ครบ</span>`;
+      else if (done) pill = `<span class="fl-pill g">✓ ${done}/${live.length}</span>`;
+      else if (wait.length) pill = `<span class="fl-pill">อีก ${Math.min(...wait)} วัน</span>`;
+      return { R, live, done, due, ask, pill };
+    }
     function flRender() {
       const B = $('flow-body'); if (!B) return;
       const steps = flGet(flKey), plots = flPlots(flKey);
       let h = `<div class="sat-seg mt-0">${['อ้อยใหม่', 'อ้อยตอ'].map(k => `<button type="button" class="${k === flKey ? 'on' : ''}" onclick="flKey='${k}';flOpen=-1;flEdit=-1;flRender()">${k === 'อ้อยใหม่' ? '🌱 อ้อยใหม่' : '🌿 อ้อยตอ'}</button>`).join('')}</div>
-        <div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด (วันเริ่มบำรุงตอ)'} · แตะกล่อง = ดูรายแปลง / ตอบ / แก้</div>`;
-      if (flRow(flKey) && !steps.some(s => /^d\d+$/.test(s.id))) h += `<div class="fl-old"><b>ผังนี้เป็นแบบเดิมที่แก้ไว้</b><div class="srow-s">ร่างใหม่มีทางแยก (ถามรายแปลง / กิ่ง / ทำซ้ำ) ปุ๋ย 2 ครั้ง และแถบระยะการเจริญเติบโต · ผังเดิมยังใช้ได้ตามปกติ</div>
-        <button type="button" class="btn btn-sm btn-success fw-bold mt-2" onclick="flReset()">ใช้ผังใหม่ตามร่าง</button></div>`;
-      let no = 0, ph = -1, i = 0;
-      const nowPh = {}; plots.forEach(p => { const c = flCtx(p); nowPh[flPhase(c.ctx.age)] = (nowPh[flPhase(c.ctx.age)] || 0) + 1; });
-      while (i < steps.length) {
+        <div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด'} · แตะขั้น = ดูรายแปลง / ตอบ / แก้ · แตะแถบระยะ = พับ/กาง</div>`;
+      let skip = []; try { skip = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {}
+      const miss = flRow(flKey) ? flDef(flKey).filter(d => !steps.some(s => s.id === d.id) && !skip.includes(flKey + d.id)) : [];
+      if (miss.length) h += `<div class="fl-old"><b>${steps.some(s => /^d\d+$/.test(s.id)) ? 'ร่างมีขั้นใหม่ที่ผังของคุณยังไม่มี' : 'ผังนี้เป็นแบบเดิมที่แก้ไว้'}</b><div class="srow-s">${miss.slice(0, 4).map(d => esc(d.n)).join(', ')}${miss.length > 4 ? ` และอีก ${miss.length - 4} ขั้น` : ''} · ผังเดิมยังใช้ได้ตามปกติ</div>
+        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold" onclick="flReset()">ใช้ผังใหม่ตามร่าง</button><button type="button" class="btn btn-sm btn-outline-secondary" onclick="flSkipNew()">ไม่เอา</button></div></div>`;
+      // แบ่งเป็นช่วงตามระยะ: ขั้นข้อควรจำที่ไม่มีวันอยู่ระยะเดิม · ขั้นที่ขึ้นกับคำตอบเดียวกันติดกัน = ทางแยก
+      const segs = []; let ph = -1;
+      for (let i = 0; i < steps.length;) {
         const s = steps[i];
-        if (flEdit === i && !(s.w && s.w.a)) { if (i) h += '<div class="fl-arrow"></div>'; h += flEditHtml(); i++; continue; }
-        if (!(s.k === 'note' && !s.f && !s.t)) {
-          const p2 = flPhase(s.f);
-          if (p2 > ph) { const P = FL_PH[p2]; const inPh = plots.filter(p => flPhase(flCtx(p).ctx.age) === p2).sort((a, b) => flCtx(b).ctx.age - flCtx(a).ctx.age);
-            h += `<div class="fl-ph" onclick="flPhOpen=flPhOpen===${p2}?-1:${p2};flRender()"><div><b>${P[1]}</b> <span>${P[2]}</span>${nowPh[p2] ? `<em>ตอนนี้ ${nowPh[p2]} แปลง ${flPhOpen === p2 ? '▴' : '▾'}</em>` : ''}</div><div class="fl-ph-d">${P[3]}</div>
-              ${flPhOpen === p2 ? inPh.map(p => { const a = flCtx(p).ctx.age; return `<div class="fl-pl"><span>${esc(p.plot_name)}</span><span>${a < 0 ? `อีก ${-a} วันปลูก` : `อายุ ${a} วัน (${Math.floor(a / 30)} ด. ${a % 30} ว.)`}</span></div>`; }).join('') || '<div class="fl-ph-d">ไม่มีแปลงในระยะนี้</div>' : ''}</div>`; ph = p2; }
-          else if (i) h += '<div class="fl-arrow"></div>';
-        } else if (i) h += '<div class="fl-arrow"></div>';
-        if (s.w && s.w.a) { // ทางแยกตามคำตอบ: ขั้นที่ติดกันและขึ้นกับคำถามเดียวกัน = แยกคอลัมน์ แล้วรวมกลับ
-          let j = i; while (j < steps.length && steps[j].w && steps[j].w.a === s.w.a) j++;
-          h += flLanesHtml(steps, i, j, plots); i = j; continue;
-        }
-        if (s.k !== 'note') no++;
-        h += flStepHtml(s, i, s.k === 'note' ? '!' : no, plots);
-        i++;
+        if (!(s.k === 'note' && !s.f && !s.t)) { const p2 = flPhase(s.f); if (p2 > ph || !segs.length) { ph = Math.max(ph, p2); segs.push({ ph, items: [] }); } }
+        if (!segs.length) segs.push({ ph: 0, items: [] });
+        if (s.w && s.w.a) { let j = i; while (j < steps.length && steps[j].w && steps[j].w.a === s.w.a) j++; segs[segs.length - 1].items.push([i, j]); i = j; }
+        else { segs[segs.length - 1].items.push([i]); i++; }
       }
-      if (flEdit === steps.length) h += '<div class="fl-arrow"></div>' + flEditHtml();
+      const agePh = p => flPhase(flCtx(p).ctx.age);
+      let no = 0;
+      segs.forEach(sg => {
+        const P = FL_PH[sg.ph], inPh = plots.filter(p => agePh(p) === sg.ph).sort((a, b) => flCtx(b).ctx.age - flCtx(a).ctx.age);
+        const idx = []; sg.items.forEach(it => { for (let k = it[0]; k < (it[1] || it[0] + 1); k++) idx.push(k); });
+        const S = idx.map(k => flSum(steps[k], plots)), hot = S.some(x => x.due || x.ask);
+        const key = flKey + sg.ph, open = key in flPhTog ? flPhTog[key] : (inPh.length > 0 || hot || idx.includes(flEdit) || idx.includes(flOpen));
+        h += `<div class="fl-ph${open ? '' : ' shut'}" onclick="flPhTog['${qa(key)}']=${!open};flRender()"><div><b>${P[1]}</b> <span>${P[2]}</span><em>${inPh.length ? `ตอนนี้ ${inPh.length} แปลง` : ''}${hot ? `${inPh.length ? ' · ' : ''}<i>มีงาน</i>` : ''} ${open ? '▴' : '▾'}</em></div>
+          ${open ? `<div class="fl-ph-d">${P[3]}</div>${inPh.length ? `<div class="fl-ph-p">${inPh.map(p => { const a = flCtx(p).ctx.age; return `${esc(p.plot_name)} <b>${a < 0 ? `อีก ${-a} วันปลูก` : a + ' วัน'}</b>`; }).join(' · ')}</div>` : ''}` : `<div class="fl-ph-d">${idx.length} ขั้น · แตะดู</div>`}</div>`;
+        sg.items.forEach(it => {
+          if (it.length === 2) { if (open) h += flLanesHtml(steps, it[0], it[1], plots); return; }
+          const i = it[0], s = steps[i]; if (s.k !== 'note') no++;
+          if (!open) return;
+          h += flEdit === i ? flEditHtml() : flStepHtml(s, i, s.k === 'note' ? '!' : no, plots);
+        });
+      });
+      if (flEdit === steps.length) h += flEditHtml();
       h += `${flEdit < 0 ? `<button type="button" class="btn btn-outline-success w-100 mt-3 fw-bold" onclick="flStartEdit(${steps.length})">＋ เพิ่มขั้นตอน</button>` : ''}
-        <div class="srow-s mt-3">ร่างจากวิธีที่คุณเล่า + เล่มทางการ (สอน., กรมส่งเสริมฯ) แก้ได้ทุกกล่อง · ระยะอ้อย: ทรูปลูกปัญญา, กรมส่งเสริมการเกษตร 2564, KBS · <a href="#" onclick="event.preventDefault();flReset()">กลับไปใช้ร่างเริ่มต้น</a></div>`;
+        <div class="srow-s mt-3">ร่างจากวิธีที่คุณเล่า + เล่มทางการ (สอน., กรมส่งเสริมฯ) แก้ได้ทุกขั้น · ระยะอ้อย: ทรูปลูกปัญญา, กรมส่งเสริมการเกษตร 2564, KBS · <a href="#" onclick="event.preventDefault();flReset()">กลับไปใช้ร่างเริ่มต้น</a></div>`;
       B.innerHTML = h;
     }
+    function flSkipNew() { let s = []; try { s = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {} flDef(flKey).forEach(d => { if (!s.includes(flKey + d.id)) s.push(flKey + d.id); }); lsSet('raioy_flskip', JSON.stringify(s)); flRender(); }
     function flLanesHtml(steps, i, j, plots) {
       const q = steps.find(x => x.id === steps[i].w.a), opts = q ? q.o : [], run = [];
       for (let k = i; k < j; k++) run.push(k);
-      const vs = opts.map(o => o.v).filter(v => run.some(k => steps[k].w.v === v));
-      run.forEach(k => { if (!vs.includes(steps[k].w.v)) vs.push(steps[k].w.v); });
-      const cols = vs.map(v => `<div class="fl-lane"><div class="fl-lp">${esc((opts.find(o => o.v === v) || {}).l || v)}</div>${run.filter(k => steps[k].w.v === v).map(k => {
-        const s = steps[k], R = plots.map(p => flStat(s, p)), due = R.filter(r => r.st === 'due' || (r.br && r.br.st === 'due')).length, done = R.filter(r => r.st === 'done').length, on = R.filter(r => r.st !== 'skip' && r.st !== 'hold').length;
-        return `<div class="fl-mini${due ? ' due' : ''}${flOpen === k || flEdit === k ? ' on' : ''}" onclick="flOpen=flOpen===${k}?-1:${k};flEdit=-1;flRender()"><div class="fl-mn">${esc(s.n)}</div><div class="fl-w">${flWin(s)}</div>
-          ${s.k === 'branch' && s.b ? `<div class="fl-w" style="color:#B4630B">กิ่ง: ${esc(s.b.c)} → ${esc(s.b.n)}</div>` : ''}<div class="fl-w" style="color:${due ? '#B4630B' : '#1F2A24'};font-weight:600">${due ? `ถึงคิว ${due}` : on ? `ทำแล้ว ${done}/${on}` : 'ยังไม่มีแปลง'}</div></div>`;
+      const vs = opts.map(o => o.v).filter(v => run.some(k => flWv(steps[k]).includes(v)));
+      run.forEach(k => flWv(steps[k]).forEach(v => { if (!vs.includes(v)) vs.push(v); }));
+      const cols = vs.map(v => `<div class="fl-lane"><div class="fl-lp">${esc((opts.find(o => o.v === v) || {}).l || v)}</div>${run.filter(k => flWv(steps[k]).includes(v)).map(k => {
+        const s = steps[k], X = flSum(s, plots.filter(p => { const a = q && flowAns_(q, flCtx(p).ctx); return a && a.v === v; })); // นับเฉพาะแปลงที่ตอบทางนี้
+        return `<div class="fl-mini${X.due ? ' due' : ''}${flOpen === k || flEdit === k ? ' on' : ''}" onclick="flOpen=flOpen===${k}?-1:${k};flEdit=-1;flRender()"><div class="fl-mn">${esc(s.n)}</div><div class="fl-w">${flWin(s)}</div>${X.pill ? `<div class="mt-1">${X.pill}</div>` : ''}</div>`;
       }).join('')}</div>`).join('');
-      let h = `<div class="fl-lanes">${cols}</div><div class="fl-merge">รวมกลับเส้นเดียว</div>`;
+      let h = `<div class="fl-lanes">${cols}</div><div class="fl-merge">รวมกลับเส้นเดียว ↓</div>`;
       const k = run.includes(flEdit) ? flEdit : run.includes(flOpen) ? flOpen : -1;
       if (k >= 0) h += flEdit === k ? flEditHtml() : flStepHtml(steps[k], k, '↳', plots);
       return h;
     }
     function flStepHtml(s, i, badge, plots) {
-      const R = plots.map(p => ({ p, r: flStat(s, p) }));
-      const live = R.filter(x => x.r.st !== 'skip' && x.r.st !== 'hold');
-      const done = R.filter(x => x.r.st === 'done').length, due = R.filter(x => x.r.st === 'due'), ask = R.filter(x => x.r.st === 'ask'), brDue = R.filter(x => x.r.br && x.r.br.st === 'due');
-      const skip = R.length - live.length;
-      let prog = '';
-      if (s.k === 'note') { if (s.g.length) { const tot = R.reduce((a, x) => a + x.r.n, 0); prog = `<div class="fl-prog">ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; } }
-      else {
-        const pure = s.k === 'ask' && !s.g.length && !s.m.trim(), na = R.filter(x => x.r.a).length; // คำถามล้วน ไม่มีงานในขั้น
-        const parts = [pure ? `<b style="color:${na ? '#1F7A45' : '#6B736E'}">ตอบแล้ว ${na}/${live.length} แปลง</b>` : `<b style="color:${done ? '#1F7A45' : '#6B736E'}">${done ? '✓ ' : ''}ทำแล้ว ${done}/${live.length} แปลง</b>`];
-        if (due.length) parts.push(`<b style="color:#B4630B">ถึงคิว ${due.length}: ${due.map(x => esc(x.p.plot_name)).join(', ')}</b>`);
-        if (ask.length) parts.push(`<b style="color:#6B2E86">❓ รอตอบ ${ask.length}</b>`);
-        if (s.k === 'ask') { const c = {}; R.forEach(x => { if (x.r.a) c[x.r.a.v] = (c[x.r.a.v] || 0) + 1; }); s.o.forEach(o => { if (c[o.v]) parts.push(`${esc(o.l)} ${c[o.v]}`); }); }
-        if (skip) parts.push(`ข้าม/รอ ${skip}`);
-        prog = `<div class="fl-prog">${parts.join(' · ')}</div>`;
-      }
+      const X = flSum(s, plots), R = X.R, open = flOpen === i;
+      const cls = `fl-step${s.k === 'note' ? ' note' : ''}${s.k === 'ask' ? ' ask' : ''}${X.due ? ' due' : ''}${open ? ' open' : ''}`;
+      const head = `<div class="fl-num">${badge}</div><div class="fl-rh"><div class="fl-n">${esc(s.n)}${flKTag(s)}</div>${flWin(s) ? `<div class="fl-w">${flWin(s)}</div>` : ''}</div>${X.pill}`;
+      if (!open) return `<div class="${cls}" onclick="flOpen=${i};flEdit=-1;flRender()">${head}</div>`;
+      const brDue = R.filter(x => x.r.br && x.r.br.st === 'due');
       let extra = '';
-      if (s.k === 'repeat') extra = `<div class="fl-w">ซ้ำได้ ${s.max || 2} ครั้ง${s.cond ? ' · ซ้ำเมื่อ' + esc(s.cond) : ''}${s.gap ? ` · ห่างไม่เกิน ${s.gap} วัน` : ''}</div>`;
-      if (s.k === 'ask') extra = `<div class="fl-q">❓ ${esc(s.q || s.n)}</div><div class="fl-w">${s.o.map(o => o.go === 'next' ? esc(o.l) : `${esc(o.l)} → ${FL_GO[o.go] || o.go}`).join(' · ')}</div>`;
-      if (s.k === 'branch' && s.b) extra = `<div class="fl-br">ถ้า <b>${esc(s.b.c)}</b> → ${esc(s.b.n)} ภายใน ${s.b.w || 7} วัน · แล้วกลับเส้นหลัก${brDue.length ? `<br><b style="color:#B4630B">ถึงคิว: ${brDue.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
+      if (s.tool) extra += `<div class="fl-w">🔧 ${esc(s.tool)}</div>`;
+      if (s.k === 'repeat') extra += `<div class="fl-w">ซ้ำได้ ${s.max || 2} ครั้ง${s.cond ? ' · ซ้ำเมื่อ' + esc(s.cond) : ''}</div>`;
+      if (s.k === 'ask') extra += `<div class="fl-q">❓ ${esc(s.q || s.n)}</div><div class="fl-w">${s.o.map(o => o.go === 'next' ? esc(o.l) : `${esc(o.l)} → ${FL_GO[o.go] || o.go}`).join(' · ')}</div>`;
+      if (s.k === 'branch' && s.b) extra += `<div class="fl-br">ถ้า <b>${esc(s.b.c)}</b> → ${esc(s.b.n)} ภายใน ${s.b.w || 7} วัน แล้วกลับเส้นหลัก${brDue.length ? `<br><b style="color:#B4630B">ถึงคิว: ${brDue.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
+      if (s.k === 'note' && s.g.length) { const tot = R.reduce((a, x) => a + x.r.n, 0); extra += `<div class="fl-prog">ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; }
       const col = { done: '#1F7A45', due: '#B4630B', wait: '#6B736E', none: '#9AA19C', skip: '#9AA19C', hold: '#9AA19C', ask: '#6B2E86', ans: '#1F2A24', note: '#1F2A24' };
-      const open = flOpen === i;
       const btn = (pid, v, l, on) => `<button type="button" class="fl-ab${on ? ' on' : ''}" onclick="flAnswer('${qa(pid)}','${qa(s.id)}','${qa(v)}')">${esc(l)}</button>`;
       const acts = x => {
         const r = x.r, pid = x.p.plot_id, raw = flAnsRaw(pid)[s.id];
@@ -5171,56 +5201,73 @@ Export.table.toDrive({
         if (s.k === 'branch' && s.b && r.st !== 'skip' && r.st !== 'hold' && r.st !== 'wait') return raw && raw.v === 'yes' ? btn(pid, '', 'ยกเลิก: ' + s.b.c, true) : r.br ? '' : btn(pid, 'yes', s.b.c);
         return '';
       };
-      const det = !open ? '' : `<div class="mt-2" onclick="event.stopPropagation()">
+      return `<div class="${cls}"><div class="fl-hd" onclick="flOpen=-1;flRender()">${head}</div>
+        <div class="fl-body">${extra}${s.note ? `<div class="fl-note">${esc(s.note)}</div>` : ''}
         ${R.map(x => { const a = acts(x); return `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' || x.r.st === 'ask' || x.r.now ? 700 : 500};text-align:right">${esc(x.r.txt)}</span></div>${a ? `<div class="fl-abs">${a}</div>` : ''}`; }).join('')}
-        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" onclick="flStartEdit(${i})">แก้</button>
+        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" onclick="flStartEdit(${i})">แก้ขั้นนี้</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i ? '' : 'disabled'} onclick="flMove(${i},-1)">↑</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i < flGet(flKey).length - 1 ? '' : 'disabled'} onclick="flMove(${i},1)">↓</button>
-          <button type="button" class="btn btn-sm btn-outline-danger" onclick="flDel(${i})">ลบ</button></div></div>`;
-      return `<div class="fl-step${s.k === 'note' ? ' note' : ''}${s.k === 'ask' ? ' ask' : ''}${due.length || brDue.length ? ' due' : ''}" onclick="flOpen=flOpen===${i}?-1:${i};flEdit=-1;flRender()">
-        <div class="fl-num">${badge}</div><div class="fl-n">${esc(s.n)}${flKTag(s)}</div>
-        ${flWin(s) || s.tool ? `<div class="fl-w">${flWin(s)}${s.tool ? `${flWin(s) ? ' · ' : ''}🔧 ${esc(s.tool)}` : ''}</div>` : ''}${extra}
-        ${s.note ? `<div class="fl-note">${esc(s.note)}</div>` : ''}${prog}${det}</div>`;
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="flDel(${i})">ลบ</button></div></div></div>`;
     }
     function flStartEdit(i) {
       const s = flGet(flKey)[i];
       flDraft = s ? JSON.parse(JSON.stringify(s)) : { n: '', k: 'once', f: 0, t: 14, g: [], m: '', tool: '', note: '', o: [] };
       flDraft.b = flDraft.b || { c: '', n: '', w: 7, g: [], m: '', cm: '' };
       if (!flDraft.o.length) flDraft.o = [{ v: 'yes', l: 'ใช่', go: 'do' }, { v: 'no', l: 'ไม่', go: 'skip' }];
-      flEdit = i; flOpen = -1; flRender();
+      flEdit = i; flOpen = -1; flAdv = false; flRender();
+    }
+    // ประโยคสรุปขั้นที่กำลังแก้ ให้อ่านแล้วเข้าใจว่าแอปจะทำอะไร
+    function flSentence(d) {
+      const b = flBase(), w = n => num(n) < 0 ? `${-num(n)} วันก่อน${b}` : `วันที่ ${num(n)} หลัง${b}`;
+      const when = num(d.f) === num(d.t) ? w(d.f) : `${w(d.f)} ถึง ${w(d.t)}`;
+      if (d.k === 'note') return 'ข้อความเตือนความจำในผัง ไม่ขึ้นถึงคิว';
+      let t = `ขึ้น "ถึงคิว" ${when} ถ้ายังไม่มีบันทึกงานนี้`;
+      if (d.k === 'repeat') t += ` · ทำแล้วถ้า${d.cond || 'จำเป็น'} กด "ต้องทำซ้ำ" ที่แปลงนั้น (ได้ถึง ${d.max || 2} ครั้ง)`;
+      if (d.k === 'branch') t += ` · ถ้า${d.b.c || '…'} ขึ้นงาน "${d.b.n || '…'}" ภายใน ${d.b.w || 7} วัน`;
+      if (d.k === 'ask') t = `${when} แอปถาม "${d.q || '…'}" ในหน้าแรก · ${d.o.map(o => `ตอบ ${o.l || '…'} = ${FL_GO[o.go] || o.go}`).join(' · ')}`;
+      return t;
     }
     function flEditHtml() {
       const d = flDraft, b = flBase(), steps = flGet(flKey);
       const row = (lb, path, ph, ty) => `<label class="fl-row"><span>${lb}</span><input ${ty ? `type="${ty}" inputmode="numeric"` : ''} placeholder="${esc(ph || '')}" value="${esc(path.split('.').reduce((o, k) => o == null ? '' : o[k], d) ?? '')}" oninput="flSet('${path}',this.value)"></label>`;
       const chips = (path, sel) => `<div class="ch-chips mb-2">${FL_G.map(g => `<button type="button" class="ch-chip${sel.includes(g[0]) ? ' on' : ''}" onclick="flTogG('${path}','${g[0]}')">${g[1]}</button>`).join('')}</div>`;
       const asks = steps.filter((s, k) => s.k === 'ask' && k !== flEdit && s.o.length);
+      const sec = t => `<div class="fl-sec">${t}</div>`;
       let h = `<div class="fl-step edit" onclick="event.stopPropagation()">
-        <div class="fw-bold mb-2">${steps[flEdit] ? 'แก้ขั้นตอน' : 'ขั้นตอนใหม่'}</div>
-        <div class="fl-rows">${row('ชื่อขั้น', 'n', 'เช่น ถากหญ้า')}</div>
-        <div class="srow-s mt-2 mb-1 fw-bold">ชนิดขั้น</div>
-        <div class="fl-kseg">${FL_K.map(k => `<button type="button" class="${d.k === k[0] ? 'on' : ''}" onclick="flDraft.k='${k[0]}';flRender()">${k[1]}</button>`).join('')}</div>
+        <div class="fw-bold mb-2" style="font-size:17px">${steps[flEdit] ? 'แก้ขั้น: ' + esc(steps[flEdit].n) : 'ขั้นตอนใหม่'}</div>
+        <div class="fl-sum" id="fl-sum">${esc(flSentence(d))}</div>
+        <div class="fl-rows">${row('ชื่อขั้น', 'n', 'เช่น ถากหญ้า')}${d.k !== 'note' ? `<div class="fl-row"><span>ช่วงวัน (หลัง${b})</span><span class="fl-rng"><input type="number" inputmode="numeric" value="${esc(d.f)}" oninput="flSet('f',this.value)">ถึง<input type="number" inputmode="numeric" value="${esc(d.t)}" oninput="flSet('t',this.value)"></span></div>` : ''}</div>
+        ${d.k !== 'note' ? `<div class="srow-s mt-1">ติดลบ = ก่อน${b} เช่น -14 ถึง -1</div>` : ''}
+        ${sec('ชนิดขั้น')}<div class="fl-kseg">${FL_K.map(k => `<button type="button" class="${d.k === k[0] ? 'on' : ''}" onclick="flDraft.k='${k[0]}';flRender()">${k[1]}</button>`).join('')}</div>
         <div class="srow-s mb-2">${FL_K.find(k => k[0] === d.k)[2]}</div>`;
-      if (d.k !== 'note') h += `<div class="fl-rows">${row(`วันที่เริ่ม (หลัง${b})`, 'f', '', 'number')}${row(`วันที่สุดท้าย (หลัง${b})`, 't', '', 'number')}</div><div class="srow-s mb-2">ติดลบ = ก่อน${b} เช่น -14 ถึง -1</div>
-          <div class="srow-s mb-1">นับว่าทำแล้วจากบันทึกกลุ่ม:</div>${chips('g', d.g)}<div class="fl-rows mb-2">${row('คำในบันทึก', 'm', 'คั่นด้วย , (ว่าง = ทุกงานในกลุ่ม)')}</div>`;
-      if (d.k === 'repeat') h += `<div class="fl-rows mb-2">${row('ทำได้สูงสุด (ครั้ง)', 'max', '2', 'number')}${row('ทำซ้ำเมื่อ', 'cond', 'เช่น ช่องว่างเกิน 75 ซม.')}${row('ห่างจากครั้งก่อนไม่เกิน (วัน)', 'gap', '14', 'number')}</div>`;
-      if (d.k === 'branch') h += `<div class="fl-rows fl-rows-br mb-2">${row('ถ้า', 'b.c', 'เช่น ฝนหนัก น้ำขัง')}${row('ทำงาน', 'b.n', 'เช่น ขุดร่องระบายน้ำ')}${row('ภายใน (วัน)', 'b.w', '7', 'number')}${row('คำในบันทึกของงานกิ่ง', 'b.m', 'เช่น ระบาย,ขุดร่อง')}${row('คำในบันทึกที่แปลว่าเข้าเงื่อนไข', 'b.cm', 'เช่น น้ำขัง (ว่าง = กดเองรายแปลง)')}</div>
-          <div class="srow-s mb-1">งานกิ่งนับจากบันทึกกลุ่ม (ว่าง = ทุกกลุ่ม):</div>${chips('b.g', d.b.g || [])}`;
+      if (d.k === 'repeat') h += `<div class="fl-rows mb-2">${row('ทำได้สูงสุด (ครั้ง)', 'max', '2', 'number')}${row('ทำซ้ำเมื่อ', 'cond', 'เช่น ช่องว่างเกิน 75 ซม.')}</div>`;
+      if (d.k === 'branch') h += `<div class="fl-rows fl-rows-br mb-2">${row('ถ้า', 'b.c', 'เช่น ฝนหนัก น้ำขัง')}${row('ทำงาน', 'b.n', 'เช่น ขุดร่องระบายน้ำ')}${row('ภายใน (วัน)', 'b.w', '7', 'number')}</div>`;
       if (d.k === 'ask') {
         const gos = flCutOnly(d) ? ['ratoon', 'replant'] : ['do', 'skip', 'next'];
         h += `<div class="fl-rows fl-rows-ask mb-2">${row('คำถาม', 'q', 'เช่น ดินแข็งแน่นไหม?')}</div>
-          ${d.o.map((o, k) => `<div class="fl-rows fl-rows-ask mb-1">${row(`คำตอบที่ ${k + 1}`, `o.${k}.l`, 'เช่น แข็ง')}${row('คำในบันทึกที่เดาคำตอบนี้ได้', `o.${k}.m`, 'ไม่ใส่ก็ได้')}</div>
-          <div class="ch-chips mb-2">${gos.map(g => `<button type="button" class="ch-chip${o.go === g ? ' on' : ''}" onclick="flDraft.o[${k}].go='${g}';flRender()">${FL_GO[g]}</button>`).join('')}</div>`).join('')}
-          <div class="srow-s mb-2">คำถามขึ้นในหน้าแรกเมื่อถึงช่วงวันของขั้นนี้ แตะตอบรายแปลงได้เลย</div>`;
+          ${d.o.map((o, k) => `<div class="fl-rows fl-rows-ask mb-1">${row(`ตอบได้ ${k + 1}`, `o.${k}.l`, 'เช่น แข็ง')}</div>
+          <div class="ch-chips mb-2"><span class="srow-s" style="align-self:center">แล้ว</span>${gos.map(g => `<button type="button" class="ch-chip${o.go === g ? ' on' : ''}" onclick="flDraft.o[${k}].go='${g}';flRender()">${FL_GO[g]}</button>`).join('')}</div>`).join('')}
+          ${!flCutOnly(d) ? `<button type="button" class="btn btn-sm btn-outline-secondary mb-2" onclick="flDraft.o.push({v:'o'+Date.now().toString(36),l:'',go:'next'});flRender()">+ คำตอบ</button>` : ''}`;
       }
-      if (asks.length && d.k !== 'ask') {
-        const cur = d.w && d.w.a ? d.w.a + '|' + d.w.v : '';
-        h += `<div class="srow-s mb-1">ทำเฉพาะแปลงที่ตอบ:</div><div class="ch-chips mb-2"><button type="button" class="ch-chip${cur ? '' : ' on'}" onclick="flDraft.w=null;flRender()">ทุกแปลง</button>${asks.map(s => s.o.map(o => `<button type="button" class="ch-chip${cur === s.id + '|' + o.v ? ' on' : ''}" onclick="flDraft.w={a:'${qa(s.id)}',v:'${qa(o.v)}'};flRender()">${esc((s.q || s.n).replace(/[?？]$/, ''))}: ${esc(o.l)}</button>`).join('')).join('')}</div>`;
+      h += `<div class="fl-rows mb-2">${row('หมายเหตุ', 'note', 'เช่น ถ้าดินแข็งแน่น')}</div>
+        <button type="button" class="fl-advb" onclick="flAdv=!flAdv;flRender()">ตั้งค่าเพิ่ม (แอปดูจากบันทึกยังไง) ${flAdv ? '▴' : '▾'}</button>`;
+      if (flAdv) {
+        if (d.k !== 'note') h += `${sec('นับว่าทำแล้ว เมื่อมีบันทึกกลุ่ม')}${chips('g', d.g)}<div class="fl-rows mb-1">${row('ที่มีคำว่า', 'm', 'คั่นด้วย , ว่าง = ทุกงานในกลุ่ม')}</div>
+          <div class="srow-s mb-2">ไม่เลือกกลุ่มแต่ใส่คำ = ดูทุกกลุ่ม (เช่น งานรถจ้าง)</div>`;
+        if (d.k === 'repeat') h += `<div class="fl-rows mb-2">${row('ห่างจากครั้งก่อนไม่เกิน (วัน)', 'gap', '14', 'number')}</div>`;
+        if (d.k === 'branch') h += `${sec('งานกิ่ง นับจากบันทึก')}${chips('b.g', d.b.g || [])}<div class="fl-rows mb-2">${row('ที่มีคำว่า', 'b.m', 'เช่น ระบาย,ขุดร่อง')}${row('บันทึกมีคำนี้ = เข้าเงื่อนไขเอง', 'b.cm', 'เช่น น้ำขัง')}</div>`;
+        if (d.k === 'ask') h += `${sec('เดาคำตอบจากบันทึก')}<div class="fl-rows mb-2">${d.o.map((o, k) => row(`"${esc(o.l || 'ตอบ ' + (k + 1))}" ถ้าบันทึกมีคำ`, `o.${k}.m`, 'ไม่ใส่ก็ได้')).join('')}</div>`;
+        if (asks.length && d.k !== 'ask') {
+          const cur = d.w && d.w.a ? d.w.a : '', cv = flWv(d);
+          h += `${sec('ทำเฉพาะแปลงที่ตอบ')}<div class="ch-chips mb-2"><button type="button" class="ch-chip${cur ? '' : ' on'}" onclick="flDraft.w=null;flRender()">ทุกแปลง</button>${asks.map(s => s.o.map(o => `<button type="button" class="ch-chip${cur === s.id && cv.includes(o.v) ? ' on' : ''}" onclick="flTogW('${qa(s.id)}','${qa(o.v)}')">${esc((s.q || s.n).replace(/[?？]$/, ''))}: ${esc(o.l)}</button>`).join('')).join('')}</div>`;
+        }
+        h += `<div class="fl-rows mb-2">${row('เครื่องมือ / รถ', 'tool', 'เช่น ริปเปอร์ 2 ขา, รถจ้าง')}</div>`;
       }
-      h += `<div class="fl-rows mb-2">${row('เครื่องมือ', 'tool', 'ถ้ามี')}${row('หมายเหตุ', 'note', 'เช่น ถ้าดินแข็งแน่น')}</div>
-        <div class="d-flex gap-2"><button type="button" class="btn btn-outline-secondary flex-fill" onclick="flEdit=-1;flRender()">ยกเลิก</button><button type="button" class="btn btn-success fw-bold flex-fill" onclick="flSaveEdit()">บันทึก</button></div></div>`;
+      h += `<div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-outline-secondary flex-fill" onclick="flEdit=-1;flRender()">ยกเลิก</button><button type="button" class="btn btn-success fw-bold flex-fill" onclick="flSaveEdit()">บันทึก</button></div></div>`;
       return h;
     }
-    function flSet(path, v) { const ks = path.split('.'); let o = flDraft; ks.slice(0, -1).forEach(k => { o = o[k]; }); o[ks[ks.length - 1]] = v; }
+    function flTogW(a, v) { const d = flDraft, cv = d.w && d.w.a === a ? flWv(d) : [], n = cv.includes(v) ? cv.filter(x => x !== v) : cv.concat(v); d.w = n.length ? { a, v: n.join(',') } : null; flRender(); }
+    function flSet(path, v) { const ks = path.split('.'); let o = flDraft; ks.slice(0, -1).forEach(k => { o = o[k]; }); o[ks[ks.length - 1]] = v; const e = $('fl-sum'); if (e) e.textContent = flSentence(flDraft); }
     function flTogG(path, g) { const ks = path.split('.'); let o = flDraft; ks.slice(0, -1).forEach(k => { o = o[k]; }); const k = ks[ks.length - 1], a = o[k] || []; o[k] = a.includes(g) ? a.filter(x => x !== g) : a.concat(g); flRender(); }
     function flSaveEdit() {
       const d = flDraft; d.n = String(d.n || '').trim(); if (!d.n) return alert('ใส่ชื่อขั้นตอน');

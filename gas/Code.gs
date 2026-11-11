@@ -68,6 +68,27 @@ function daysSince_(s) {
   return Math.max(0, Math.round((now - dt) / 86400000));
 }
 
+// วันที่เหลือถึงวันนั้น (ติดลบ = เลยมาแล้ว)
+function daysUntil_(s) {
+  const k = dateKey_(s);
+  if (!k) return null;
+  const dt = new Date(Math.floor(k / 10000), Math.floor(k / 100) % 100 - 1, k % 100);
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  return Math.round((dt - now) / 86400000);
+}
+// ทะเบียน/ภาษีที่เหลือ ≤ 30 วัน (รถไร่ + รถส่วนตัว) สำหรับสรุป LINE
+function regBrief_(assets) {
+  const ic = { Truck: '🚛', Tractor: '🚜', Car: '🚙', Home: '🚗' }, out = [];
+  assets.filter(a => ic[a.category]).forEach(a => {
+    [[a.name, a.plate, a.reg_expire], [a.name + ' (พ่วง)', a.trailer_plate, a.trailer_reg_expire]].forEach(([n, pl, ex]) => {
+      const d = daysUntil_(ex);
+      if (d === null || d > 30) return;
+      out.push({ d, t: `• ${ic[a.category]} ${n}${pl && pl !== '-' ? ' ' + pl : ''}: ${d < 0 ? `เลยมา ${-d} วัน (ห้ามขับ ต่อด่วน)` : d === 0 ? 'หมดวันนี้' : `หมด ${ex} อีก ${d} วัน`}` });
+    });
+  });
+  return out.sort((x, y) => x.d - y.d).map(x => x.t);
+}
+
 function round_(n) { return Math.round(n * 1000) / 1000; }
 
 function withLock_(fn) {
@@ -882,6 +903,7 @@ function buildBrief_(ss, s) {
   msg += sec('🤒 คนงานลา/ป่วย', sick);
   msg += sec('🔋 รถไม่มีแบต', noBat);
   msg += sec('📦 ของใกล้หมด', low);
+  try { msg += sec('🪪 ต่อภาษี/ทะเบียน (ต่อล่วงหน้าได้ 90 วัน)', regBrief_(assets)); } catch (e) {}
   try { msg += wxBrief_(ss); } catch (e) {}
   try { msg += sugarBrief_(); } catch (e) {}
   if (!water.length && !spray.length && !ongoing.length && !broken.length) msg += '\n✅ วันนี้ไม่มีคิวด่วน\n';

@@ -165,7 +165,7 @@
     .fl-tag-repeat { background: #E3EFE7; color: #1F5E3B; } .fl-tag-branch { background: #FDEBD3; color: #8A4A06; } .fl-tag-ask { background: #EFE4F4; color: #6B2E86; }
     .fl-q { font-size: 15px; font-weight: 700; color: #6B2E86; margin-top: 3px; }
     .fl-br { margin-top: 6px; background: #FFF8EE; border: 1.5px dashed #B4630B; border-radius: 10px; padding: 6px 10px; font-size: 13.5px; }
-    .fl-ph { margin: 14px 0 8px; padding: 8px 12px; border-radius: 12px; background: #E3EFE7; color: #1F2A24; }
+    .fl-ph { cursor: pointer; margin: 14px 0 8px; padding: 8px 12px; border-radius: 12px; background: #E3EFE7; color: #1F2A24; }
     .fl-ph b { font-size: 15.5px; color: #15432A; } .fl-ph span { font-size: 13px; color: #4A524D; } .fl-ph em { float: right; font-style: normal; font-size: 13px; font-weight: 700; color: #1F5E3B; }
     .fl-ph-d { font-size: 13px; color: #4A524D; margin-top: 1px; }
     .fl-lanes { display: flex; gap: 8px; margin: 2px 0 4px; }
@@ -5004,7 +5004,7 @@ Export.table.toDrive({
       return out;
     }
     const flDef = k => JSON.parse(JSON.stringify(((gData && gData.flowDef) || {})[k] || [])); // ร่างเริ่มต้นอยู่ที่ gas/Flow.gs FLOW_DEF_ ที่เดียว
-    let flKey = 'อ้อยใหม่', flOpen = -1, flEdit = -1, flDraft = null; const flSteps = {};
+    let flPhOpen = -1, flKey = 'อ้อยใหม่', flOpen = -1, flEdit = -1, flDraft = null; const flSteps = {};
     const flRow = key => (gData.flows || []).find(x => x.key === key);
     function flGet(key) {
       if (flSteps[key]) return flSteps[key];
@@ -5054,6 +5054,13 @@ Export.table.toDrive({
       if (r.st === 'skip' && r.o) t = `${r.o.l} · ไม่ต้องทำ`;
       if (s.k === 'repeat' && r.n) t = r.again ? `ครั้งที่ ${r.n + 1} ถึงคิว` : `ครั้งที่ ${r.n} ✓ ${d(r.at)}${r.more != null ? ` · ครั้งที่ ${r.n + 1} ถ้าจำเป็น ภายใน ${d(r.more)}` : ''}`;
       if (r.br) t += r.br.st === 'due' ? ` · ${s.b.n} ถึงคิว` : r.br.st === 'done' ? ` · ${s.b.n} ✓ ${d(r.br.at)}` : ` · ${s.b.c} (${d(r.br.T)})`;
+      if (r.st === 'note') { // ข้อควรจำ: บอกว่าแปลงนี้อยู่ช่วงนั้นหรือยัง + ขึ้นน้ำล่าสุด
+        const age = c.ctx.age, w = calcDays(p.last_water_date), x = [];
+        if ((s.f || s.t) && !s.g.length) { x.push(age < s.f ? `อีก ${s.f - age} วันถึงช่วงนี้` : age <= s.t ? 'ตอนนี้อยู่ช่วงนี้' : 'เลยช่วงนี้แล้ว'); r.now = age >= s.f && age <= s.t; }
+        if (s.g.length) x.push(`ฤดูนี้ ${r.n} วัน`);
+        if (s.g.includes('ขึ้นน้ำ') && w !== null) x.push(`ล่าสุด ${w} วันก่อน`);
+        t = x.join(' · ');
+      }
       r.txt = t; return r;
     }
     // งานถึงคิวของแปลง (การ์ดหน้าแรก / ป้ายแปลง / แชต) → [{n, g, s}] ไม่รวมคำถาม · คำถามรอตอบ = flAsks
@@ -5101,7 +5108,9 @@ Export.table.toDrive({
         if (flEdit === i && !(s.w && s.w.a)) { if (i) h += '<div class="fl-arrow"></div>'; h += flEditHtml(); i++; continue; }
         if (!(s.k === 'note' && !s.f && !s.t)) {
           const p2 = flPhase(s.f);
-          if (p2 > ph) { const P = FL_PH[p2]; h += `<div class="fl-ph"><div><b>${P[1]}</b> <span>${P[2]}</span>${nowPh[p2] ? `<em>ตอนนี้ ${nowPh[p2]} แปลง</em>` : ''}</div><div class="fl-ph-d">${P[3]}</div></div>`; ph = p2; }
+          if (p2 > ph) { const P = FL_PH[p2]; const inPh = plots.filter(p => flPhase(flCtx(p).ctx.age) === p2).sort((a, b) => flCtx(b).ctx.age - flCtx(a).ctx.age);
+            h += `<div class="fl-ph" onclick="flPhOpen=flPhOpen===${p2}?-1:${p2};flRender()"><div><b>${P[1]}</b> <span>${P[2]}</span>${nowPh[p2] ? `<em>ตอนนี้ ${nowPh[p2]} แปลง ${flPhOpen === p2 ? '▴' : '▾'}</em>` : ''}</div><div class="fl-ph-d">${P[3]}</div>
+              ${flPhOpen === p2 ? inPh.map(p => { const a = flCtx(p).ctx.age; return `<div class="fl-pl"><span>${esc(p.plot_name)}</span><span>${a < 0 ? `อีก ${-a} วันปลูก` : `อายุ ${a} วัน (${Math.floor(a / 30)} ด. ${a % 30} ว.)`}</span></div>`; }).join('') || '<div class="fl-ph-d">ไม่มีแปลงในระยะนี้</div>' : ''}</div>`; ph = p2; }
           else if (i) h += '<div class="fl-arrow"></div>';
         } else if (i) h += '<div class="fl-arrow"></div>';
         if (s.w && s.w.a) { // ทางแยกตามคำตอบ: ขั้นที่ติดกันและขึ้นกับคำถามเดียวกัน = แยกคอลัมน์ แล้วรวมกลับ
@@ -5133,12 +5142,12 @@ Export.table.toDrive({
       return h;
     }
     function flStepHtml(s, i, badge, plots) {
-      const R = s.k === 'note' && !s.g.length ? [] : plots.map(p => ({ p, r: flStat(s, p) }));
+      const R = plots.map(p => ({ p, r: flStat(s, p) }));
       const live = R.filter(x => x.r.st !== 'skip' && x.r.st !== 'hold');
       const done = R.filter(x => x.r.st === 'done').length, due = R.filter(x => x.r.st === 'due'), ask = R.filter(x => x.r.st === 'ask'), brDue = R.filter(x => x.r.br && x.r.br.st === 'due');
       const skip = R.length - live.length;
       let prog = '';
-      if (s.k === 'note') { if (R.length) { const tot = R.reduce((a, x) => a + x.r.n, 0); prog = `<div class="fl-prog">ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; } }
+      if (s.k === 'note') { if (s.g.length) { const tot = R.reduce((a, x) => a + x.r.n, 0); prog = `<div class="fl-prog">ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; } }
       else {
         const pure = s.k === 'ask' && !s.g.length && !s.m.trim(), na = R.filter(x => x.r.a).length; // คำถามล้วน ไม่มีงานในขั้น
         const parts = [pure ? `<b style="color:${na ? '#1F7A45' : '#6B736E'}">ตอบแล้ว ${na}/${live.length} แปลง</b>` : `<b style="color:${done ? '#1F7A45' : '#6B736E'}">${done ? '✓ ' : ''}ทำแล้ว ${done}/${live.length} แปลง</b>`];
@@ -5163,7 +5172,7 @@ Export.table.toDrive({
         return '';
       };
       const det = !open ? '' : `<div class="mt-2" onclick="event.stopPropagation()">
-        ${R.map(x => { const a = acts(x); return `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' || x.r.st === 'ask' ? 700 : 500};text-align:right">${esc(x.r.txt)}</span></div>${a ? `<div class="fl-abs">${a}</div>` : ''}`; }).join('')}
+        ${R.map(x => { const a = acts(x); return `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' || x.r.st === 'ask' || x.r.now ? 700 : 500};text-align:right">${esc(x.r.txt)}</span></div>${a ? `<div class="fl-abs">${a}</div>` : ''}`; }).join('')}
         <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" onclick="flStartEdit(${i})">แก้</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i ? '' : 'disabled'} onclick="flMove(${i},-1)">↑</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i < flGet(flKey).length - 1 ? '' : 'disabled'} onclick="flMove(${i},1)">↓</button>

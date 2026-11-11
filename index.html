@@ -32,7 +32,7 @@
 
     function callApi(fn, args) {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' ? 120000 : 60000);
+      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' ? 120000 : fn === 'getWaterSpots' ? 300000 : 60000);
       return fetch(API_URL, {
         method: 'POST', redirect: 'follow', signal: ctrl.signal,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -4692,16 +4692,19 @@ Export.table.toDrive({
       let s = now.S, left = 0; const etAvg = fut.length ? fut.reduce((a, r) => a + r.et, 0) / fut.length : now.et;
       if (s / cap >= 0.5) { while (left < 30 && s / cap >= 0.5) { s -= (fut[left] ? fut[left].et : etAvg); left++; } left--; }
       const overF = fut.slice(0, 3).reduce((a, r) => a + r.over, 0);
-      const st = over3 >= 10 ? 'wet' : pct >= 0.5 ? 'ok' : pct >= 0.25 ? 'dry1' : 'dry';
+      // ใช้กติกาเดียวกับแอป: ตัดแล้ว / ยังไม่ปลูก = ไม่ต้องดูน้ำ · พ.ย.–ธ.ค. งดน้ำ 2 เดือนก่อนตัด (ยกเว้นอ้อยใหม่ที่ยังเล็ก) = แห้งลงได้ เหลือดูแค่น้ำขัง
+      const pd = calcDays(p.plant_date), stt = analyze(p);
+      const mode = stt.isHarvested ? 'cut' : (p.cane_type === 'อ้อยใหม่' && pd === null) ? 'none' : isNearHarvest(p, pd) ? 'stop' : 'norm';
+      const st = over3 >= 10 && mode !== 'none' ? 'wet' : mode === 'cut' ? 'cut' : mode === 'none' ? 'none' : mode === 'stop' ? 'stop' : pct >= 0.5 ? 'ok' : pct >= 0.25 ? 'dry1' : 'dry';
       const lastIrr = [...past].reverse().find(r => r.ev === 'ขึ้นน้ำ');
-      return { p, cap, sand, rows, now, pct, st, over3, rain7, rainF, left, overF, etNow: now.use, ageNow: age(today), lastIrr, prone: soilProne(p) };
+      return { p, cap, sand, rows, now, pct, st, mode, over3, rain7, rainF, left, overF, etNow: now.use, ageNow: age(today), lastIrr, prone: soilProne(p) };
     }
-    const SOIL_ST = { wet: ['ดินอิ่มน้ำ', '#1F6FB2', '#E4F0FA'], ok: ['ชื้นดี', '#1F7A45', '#E3F2E8'], dry1: ['เริ่มแห้ง', '#B4630B', '#FCEFDD'], dry: ['แห้ง', '#B3261E', '#FBE3E1'] };
+    const SOIL_ST = { stop: ['งดน้ำก่อนตัด', '#6B736E', '#EEF0EF'], cut: ['ตัดแล้ว', '#6B736E', '#EEF0EF'], none: ['ยังไม่ปลูก', '#6B736E', '#EEF0EF'], wet: ['ดินอิ่มน้ำ', '#1F6FB2', '#E4F0FA'], ok: ['ชื้นดี', '#1F7A45', '#E3F2E8'], dry1: ['เริ่มแห้ง', '#B4630B', '#FCEFDD'], dry: ['แห้ง', '#B3261E', '#FBE3E1'] };
     function soilBtnSub() {
       if (!soilWx) { soilLoad(() => { if (curTab === 'all') render(); }); return soilErr ? 'แตะเพื่อลองใหม่' : 'กำลังคำนวณ…'; }
-      const c = { wet: 0, ok: 0, dry1: 0, dry: 0 };
+      const c = { wet: 0, ok: 0, dry1: 0, dry: 0, stop: 0, cut: 0, none: 0 };
       gData.plots.forEach(p => { const r = soilCalc(p); if (r) c[r.st]++; });
-      return ['wet', 'dry', 'dry1', 'ok'].filter(k => c[k]).map(k => k === 'ok' ? `${SOIL_ST[k][0]} ${c[k]}` : `<em style="color:${SOIL_ST[k][1]}">${SOIL_ST[k][0]} ${c[k]}</em>`).join(' · ');
+      return ['wet', 'dry', 'dry1', 'ok', 'stop', 'cut'].filter(k => c[k]).map(k => ['ok', 'stop', 'cut'].includes(k) ? `${SOIL_ST[k][0]} ${c[k]}` : `<em style="color:${SOIL_ST[k][1]}">${SOIL_ST[k][0]} ${c[k]}</em>`).join(' · ');
     }
     function openSoil(id) {
       if (id) soilOpen = id;
@@ -4729,13 +4732,19 @@ Export.table.toDrive({
       ln.push(`ตอนนี้ดินมีน้ำราว <b>${mm(r.now.S)} มม.</b> จากที่เก็บได้ ~${r.cap} มม. (${r.sand ? 'ดินทราย เก็บน้ำได้น้อย' : 'ดินทั่วไป'})`);
       ln.push(`อ้อย${r.ageNow !== null ? 'อายุ ' + Math.max(0, Math.floor(r.ageNow / 30)) + ' ด.' : ''} ใช้น้ำ + แดดระเหย ราว <b>${r.now.et.toFixed(1)} มม./วัน</b>`);
       if (r.st === 'wet') ln.push(`3 วันที่ผ่านมา ฝนเกินที่ดินรับได้ราว <b>${mm(r.over3)} มม.</b> ส่วนเกินไหลออกหรือซึมลึก ตรงไหนเป็นแอ่งจะขัง`);
-      if (r.pct >= 0.5) ln.push(`ถ้าฝนไม่ตก ดินยังชื้นพอ <b>อีก ~${r.left} วัน</b>${r.left >= 1 ? ` (ถึงราว ${f(new Date(Date.now() + r.left * 864e5).toISOString().slice(0, 10))})` : ''} แล้วเริ่มควรขึ้นน้ำ`);
+      if (r.mode === 'stop') ln.push(`<b>ช่วงงดน้ำ 2 เดือนก่อนตัด</b> (พ.ย.–ธ.ค.) ดินแห้งลงเป็นเรื่องปกติ ช่วยให้อ้อยสะสมความหวาน ไม่ต้องขึ้นน้ำ · ที่ต้องระวังคือฝนหนักจนน้ำขัง`);
+      else if (r.mode === 'cut') ln.push('ตัดแล้ว รออ้อยตองอกสักระยะก่อนค่อยขึ้นน้ำ (ตามวิธีของไร่)');
+      else if (r.pct >= 0.5) ln.push(`ถ้าฝนไม่ตก ดินยังชื้นพอ <b>อีก ~${r.left} วัน</b>${r.left >= 1 ? ` (ถึงราว ${f(new Date(Date.now() + r.left * 864e5).toISOString().slice(0, 10))})` : ''} แล้วเริ่มควรขึ้นน้ำ`);
       else ln.push(`น้ำในดินต่ำกว่าครึ่ง อ้อยเริ่มดึงน้ำได้ยาก${r.rainF >= 15 ? ' (พยากรณ์มีฝน รอดูก่อนได้)' : ' ถึงเวลาขึ้นน้ำ'}`);
       ln.push(`7 วันที่ผ่านมา ฝนราว ${mm(r.rain7)} มม. · พยากรณ์ 7 วันข้างหน้า ${mm(r.rainF)} มม.${r.lastIrr ? ' · ขึ้นน้ำล่าสุด ' + f(r.lastIrr.t) : ''}`);
       if (r.overF >= 10) ln.push(`⚠️ ถ้าฝนตกตามพยากรณ์ 3 วันนี้ น้ำจะเกินที่ดินรับได้ราว ${mm(r.overF)} มม.`);
       return `<div class="sw-det">${soilChart(r)}${ln.map(x => `<div>${x}</div>`).join('')}
         ${r.prone.length ? `<div class="sw-prone">💧 แปลงนี้มีจุดเสี่ยงน้ำขัง: ${r.prone.map(esc).join(' · ')}</div>` : ''}
-        <button type="button" class="btn btn-sm btn-outline-success mt-2 w-100" onclick="hideModal('soilModal');setTimeout(()=>openSat('plot|${r.p.plot_id}'),300)">🛰️ ดูภาพดาวเทียมแปลงนี้</button></div>`;
+        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="soilToSpots('${r.p.plot_id}')">🗺️ จุดน้ำขังบนแผนที่</button><button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="hideModal('soilModal');setTimeout(()=>openSat('plot|${r.p.plot_id}'),300)">🛰️ ภาพดาวเทียม</button></div></div>`;
+    }
+    function soilToSpots(id) {
+      hideModal('soilModal'); fmSatMode = 'f';
+      satEnsure(() => setTimeout(() => satToMap('plot|' + id), 50));
     }
     function soilSimRun() {
       const cap = SOIL_CAP[soilSim.soil], et = 4.5 * soilSim.kc, rains = String(soilSim.rain).split(/[,\s]+/).map(Number).filter(v => v >= 0 && !isNaN(v)).slice(0, 10);
@@ -4761,14 +4770,14 @@ Export.table.toDrive({
       if (!soilWx) { B.innerHTML = intro + `<div class="srow-s p-2">${soilErr ? esc(soilErr) + ` <a href="#" onclick="event.preventDefault();soilLoad(soilRender)">ลองใหม่</a>` : 'กำลังโหลดฝนย้อนหลัง 3 สัปดาห์…'}</div>` + sim; return; }
       const groups = {}, order = [];
       gData.plots.forEach(p => { const r = soilCalc(p); if (!r) return; const l = plotLoc(p.plot_name); if (!groups[l]) { groups[l] = []; order.push(l); } groups[l].push(r); });
-      const rank = { wet: 0, dry: 1, dry1: 2, ok: 3 };
+      const rank = { wet: 0, dry: 1, dry1: 2, ok: 3, stop: 4, cut: 5, none: 6 };
       let h = intro;
       order.forEach(l => {
         const rs = groups[l].sort((a, b) => rank[a.st] - rank[b.st] || a.pct - b.pct), r0 = rs[0];
         h += `<div class="srow-h d-flex justify-content-between"><span>${esc(l)}</span><span style="font-weight:500;color:#6B736E;font-size:13px">ฝน 7 วัน ${Math.round(r0.rain7)} มม. · พยากรณ์ ${Math.round(r0.rainF)} มม.</span></div><div class="srow-box">`;
         rs.forEach(r => {
           const [lb, c, bg] = SOIL_ST[r.st], open = soilOpen === r.p.plot_id;
-          const right = r.st === 'wet' ? `น้ำเกิน ${Math.round(r.over3)} มม.` : r.pct >= 0.5 ? `ชื้นอีก ~${r.left} วัน` : 'ควรขึ้นน้ำ';
+          const right = r.st === 'wet' ? `น้ำเกิน ${Math.round(r.over3)} มม.` : r.st === 'stop' ? 'ไม่ต้องขึ้นน้ำ' : r.st === 'cut' || r.st === 'none' ? '' : r.pct >= 0.5 ? `ชื้นอีก ~${r.left} วัน` : 'ควรขึ้นน้ำ';
           h += `<div class="sw-row${open ? ' open' : ''}"><button type="button" class="sw-main" onclick="soilOpen=soilOpen==='${r.p.plot_id}'?'':'${r.p.plot_id}';soilRender()">
             <span class="sw-l"><span class="sw-n">${esc(r.p.plot_name)}${r.sand ? ' <span class="prow-tag">ทราย</span>' : ''}${r.prone.length ? ' <span class="sw-pr">💧แอ่ง</span>' : ''}</span>
             <span class="sw-bar"><i style="width:${Math.round(Math.min(1, r.pct) * 100)}%;background:${c}"></i></span></span>
@@ -4908,11 +4917,12 @@ Export.table.toDrive({
       if (!fmSatOn) { fmSatDate = {}; if (fmSatLayer) fmSatLayer.clearLayers(); fmSatOv = {}; fmRender(); return; }
       satEnsure(() => { fmSatBarHtml(); fmRender(); fmSatDraw(); });
     }
-    function fmSatSetMode(m) { fmSatMode = m; fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
+    function fmSatSetMode(m) { fmSatMode = m; if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
     function fmSatBarHtml() {
-      const W = fmSatMode === 'w', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
-      $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${W ? '' : 'on'}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">หาจุดอ่อน</button></div><small>ภาพ ${latest ? satDs(latest) : '-'}</small></div>
-        ${W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
+      const W = fmSatMode === 'w', F = fmSatMode === 'f', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
+      $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
+        ${F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
+        : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
           : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div></div>`}`;
     }
     function fmSatDraw() {
@@ -4921,12 +4931,32 @@ Export.table.toDrive({
       fmSatLayer.clearLayers(); fmSatOv = {};
       const W = fmSatMode === 'w';
       satInfo.items.forEach(x => {
-        if (!x.last || x.pts.length < 3 || (x.land && !fmShowLands)) return;
+        if ((!x.last && fmSatMode !== 'f') || x.pts.length < 3 || (x.land && !fmShowLands)) return;
         fmSatOne(x);
       });
     }
     // วางภาพของแปลงเดียว ตามวันที่ที่เลือกไว้ (ไม่เลือก = ภาพล่าสุด) · เปลี่ยนวันที่ = เปลี่ยนเฉพาะแปลงนั้นทันที
+    const spotWait = {}, spotHave = {}; let spotQ = [], spotT = null, spotBusy = 0;
+    function spotImg(id, cb) {
+      if (spotHave[id] !== undefined) return cb(spotHave[id]);
+      (spotWait[id] = spotWait[id] || []).push(cb); if (spotWait[id].length > 1) return;
+      spotQ.push(id); clearTimeout(spotT); spotT = setTimeout(spotFlush, 60);
+    }
+    function spotFlush() {
+      const ids = spotQ.splice(0); if (!ids.length) return;
+      spotBusy++; if ($('fmSatBar') && fmSatMode === 'f') fmSatBarHtml();
+      const done = r => { spotBusy--; ids.forEach(id => { const v = (r && r[id]) || ''; if (v) spotHave[id] = v; const w = spotWait[id] || []; delete spotWait[id]; w.forEach(f => f(v)); }); if ($('fmSatBar') && fmSatMode === 'f') fmSatBarHtml(); };
+      callApi('getWaterSpots', [ids]).then(done).catch(() => done(null));
+    }
     function fmSatOne(x) {
+      if (fmSatMode === 'f') {
+        spotImg(x.id, img => {
+          if (!img || !fmSatOn || fmSatMode !== 'f') return;
+          if (fmSatOv[x.key]) fmSatLayer.removeLayer(fmSatOv[x.key]);
+          fmSatOv[x.key] = L.imageOverlay(img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false }).addTo(fmSatLayer);
+        });
+        return;
+      }
       const W = fmSatMode === 'w', d = fmSatDate[x.key] || x.last.d;
       satImg(x, d, W, img => {
         if (!img || !fmSatOn || fmSatMode !== (W ? 'w' : 'n') || (fmSatDate[x.key] || x.last.d) !== d) return;
@@ -4941,6 +4971,11 @@ Export.table.toDrive({
       fmSatOne(x); fmLabels(); fmPanel(true);
     }
     // แผ่นข้อมูลดาวเทียมของแปลงที่แตะ (ตอนเปิด 🛰️)
+    function spotSoilLine(x) {
+      if (x.land || !soilWx) return '';
+      const p = gData.plots.find(q => q.plot_id === x.id), r = p && soilCalc(p); if (!r) return '';
+      return `<br><b>น้ำในดินตอนนี้: ${SOIL_ST[r.st][0]}</b>${r.st === 'wet' ? ` (ฝนเกินที่ดินรับได้ ~${Math.round(r.over3)} มม. → จุดสีฟ้าเข้มมีโอกาสขัง)` : r.overF >= 10 ? ` · ถ้าฝนตกตามพยากรณ์ น้ำจะเกิน ~${Math.round(r.overF)} มม.` : ''}`;
+    }
     function fmSatSheet(x, btns, still) {
       const W = fmSatMode === 'w', d = fmSatDate[x.key] || x.last.d, cur = x.good.find(q => q.d === d) || x.last;
       const peers = satInfo.items.filter(o => !o.land && o.key !== x.key && o.type === x.type).map(o => (o.good.find(q => q.d === cur.d) || {}).ndvi).filter(v => v != null);
@@ -4957,8 +4992,9 @@ Export.table.toDrive({
         ${cmp ? `<div style="font-size:13.5px;margin-top:4px">${cmp}${pm !== null ? ` <span class="text-muted">(แปลงอื่น ${pm.toFixed(2)})</span>` : ''}</div>` : ''}
         ${weak ? `<div style="font-size:13.5px;margin-top:2px">${weak}</div>` : ''}
         ${latest ? x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag">⚠️ ${esc(f)}</div>`).join('') : ''}
-        <div class="sat-dates" id="fmSatDates">${chips}</div>
-        <div class="d-flex justify-content-between" style="font-size:12px;color:var(--muted)"><span>แตะวันที่ = เปลี่ยนภาพบนแผนที่</span>${latest ? '' : `<a href="#" style="color:var(--green);font-weight:700" onclick="event.preventDefault();fmSatPick('${qa(x.key)}','${x.last.d}')">กลับภาพล่าสุด</a>`}</div>
+        ${fmSatMode === 'f' ? `<div class="sw-prone mt-2" style="font-size:13.5px">สีฟ้าบนแปลง = จุดที่ดาวเทียมเคยเห็นน้ำบนผิวดินใน 2 ปี ยิ่งเข้มยิ่งขังบ่อย (= แอ่ง) · ไม่มีสี = ไม่เคยเห็นน้ำ หรือช่วงนั้นอ้อยสูงบังอยู่${spotSoilLine(x)}</div>`
+          : `<div class="sat-dates" id="fmSatDates">${chips}</div>
+        <div class="d-flex justify-content-between" style="font-size:12px;color:var(--muted)"><span>แตะวันที่ = เปลี่ยนภาพบนแผนที่</span>${latest ? '' : `<a href="#" style="color:var(--green);font-weight:700" onclick="event.preventDefault();fmSatPick('${qa(x.key)}','${x.last.d}')">กลับภาพล่าสุด</a>`}</div>`}
         <div class="d-flex gap-2 mt-2">${btns}</div></div>`;
     }
     const fmSatItem = (kind, id) => satInfo && satInfo.items.find(i => i.key === kind + '|' + id);

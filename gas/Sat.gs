@@ -429,3 +429,105 @@ function satImgBody_(pts, dateISO, ref) {
     evalscript: SAT_IMG_EVAL_.replace('//VERSION=3', '//VERSION=3\nvar REF = ' + ref + ';')
   };
 }
+
+
+// ===== จุดน้ำขังบ่อย (ภาพสะสมย้อนหลัง 2 ปี ต่อแปลง) =====
+// นับรายจุด (10 ม.) ว่ามีกี่ภาพที่เห็นน้ำบนผิวดิน · นับเฉพาะภาพที่ไม่มีเมฆและพื้นยังไม่เขียวคลุม (อ้อยเล็ก/หลังตัด) เพราะใต้ใบมองน้ำไม่เห็น
+// น้ำ = MNDWI > 0 และอินฟราเรดต่ำ (B08 < 0.15) กันหมอก/เมฆบางที่สว่างทุกช่องแสง
+const SPOT_EVAL_ = `//VERSION=3
+function setup() {
+  return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
+}
+function evaluatePixel(ss) {
+  var w = 0, n = 0;
+  for (var i = 0; i < ss.length; i++) {
+    var s = ss[i];
+    if (s.dataMask !== 1 || [0, 1, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
+    var mn = (s.B03 - s.B11) / (s.B03 + s.B11 || 1), v = (s.B08 - s.B04) / (s.B08 + s.B04 || 1);
+    if (s.SCL === 3 && !(mn > 0)) continue;
+    if (v >= 0.5) continue;
+    n++;
+    if (mn > 0 && s.B08 < 0.15) w++;
+  }
+  if (n < 3) return [0.55, 0.55, 0.55, 0.45];
+  if (w === 0) return [0, 0, 0, 0];
+  if (w >= 5) return [0.05, 0.22, 0.62, 0.92];
+  if (w >= 3) return [0.12, 0.42, 0.85, 0.85];
+  if (w >= 2) return [0.35, 0.62, 0.95, 0.75];
+  return [0.62, 0.80, 1.0, 0.6];
+}`;
+const SPOT_DIR_ = 'ไร่อ้อย จุดน้ำขัง', SPOT_YEARS_ = 2, SPOT_MAX_AGE_ = 30 * 864e5;
+
+function spotFolder_() {
+  const it = DriveApp.getFoldersByName(SPOT_DIR_);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(SPOT_DIR_);
+}
+
+// ids = รหัสแปลง/ที่ดิน → { id: 'data:image/png;base64,…' | '' } · เก็บไฟล์ใน Drive ใช้ซ้ำ 30 วัน · refresh = สร้างใหม่
+function getWaterSpots(ids, refresh) {
+  const t0 = Date.now(), cache = CacheService.getScriptCache(), out = {}, need = [];
+  let files = null, bmap = null;
+  const fmap = () => {
+    if (!files) { files = {}; const it = spotFolder_().getFiles(); while (it.hasNext()) { const f = it.next(); files[f.getName()] = f; } }
+    return files;
+  };
+  const bound = id => {
+    if (!bmap) {
+      bmap = {}; const ss = SpreadsheetApp.getActiveSpreadsheet();
+      readSheet_(ss, SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
+      readSheet_(ss, 'Lands').forEach(l => { bmap[l.land_id] = l.boundary; });
+    }
+    return bmap[id] || '';
+  };
+  const to = new Date(), from = new Date(to.getTime() - SPOT_YEARS_ * 365 * 864e5);
+  (ids || []).slice(0, 40).map(String).forEach(id => {
+    if (!refresh) {
+      const hit = cache.get('spot_' + id); if (hit) { out[id] = hit; return; }
+      const f = fmap()['spot_' + id + '.png'];
+      if (f && Date.now() - f.getLastUpdated().getTime() < SPOT_MAX_AGE_) {
+        const img = 'data:image/png;base64,' + Utilities.base64Encode(f.getBlob().getBytes());
+        out[id] = img; try { cache.put('spot_' + id, img, 21600); } catch (e) {}
+        return;
+      }
+    }
+    const pts = parsePath_(bound(id));
+    if (pts.length < 3) { out[id] = ''; return; }
+    const body = satImgBody_(pts, to.toISOString().slice(0, 10), 0);
+    body.input.data[0].dataFilter = { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: 90 };
+    delete body.input.data[0].processing;
+    body.evalscript = SPOT_EVAL_;
+    need.push({ id, body });
+  });
+  if (need.length) {
+    const token = satToken_(), folder = spotFolder_();
+    for (let i = 0; i < need.length; i += 6) {
+      const part = need.slice(i, i + 6);
+      if (Date.now() - t0 > 200000) { part.forEach(n => { out[n.id] = ''; }); continue; }   // เวลาใกล้หมด ให้หน้าเว็บขอใหม่
+      const res = UrlFetchApp.fetchAll(part.map(n => ({
+        url: SAT_PROC_URL_, method: 'post', contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + token, Accept: 'image/png' },
+        payload: JSON.stringify(n.body), muteHttpExceptions: true
+      })));
+      part.forEach((n, j) => {
+        const r = res[j];
+        if (r.getResponseCode() !== 200) { out[n.id] = ''; console.warn('spot ' + n.id + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 160)); return; }
+        const blob = r.getBlob().setName('spot_' + n.id + '.png');
+        const old = fmap()['spot_' + n.id + '.png']; if (old) old.setTrashed(true);
+        folder.createFile(blob);
+        const img = 'data:image/png;base64,' + Utilities.base64Encode(blob.getBytes());
+        out[n.id] = img; try { cache.put('spot_' + n.id, img, 21600); } catch (e) {}
+      });
+    }
+  }
+  return out;
+}
+
+// ลองจากหน้าแก้โค้ด: สร้างภาพจุดน้ำขังทุกแปลงล่วงหน้า (แอปเปิดแผนที่ครั้งแรกจะเร็ว)
+function buildWaterSpots() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ids = readSheet_(ss, SH.PLOTS).filter(p => p.boundary).map(p => p.plot_id).concat(readSheet_(ss, 'Lands').filter(l => l.boundary).map(l => l.land_id));
+  const r = getWaterSpots(ids, true);
+  const ok = Object.keys(r).filter(k => r[k]).length;
+  console.log('จุดน้ำขัง: สร้าง ' + ok + '/' + ids.length + ' แปลง');
+  return ok + '/' + ids.length;
+}

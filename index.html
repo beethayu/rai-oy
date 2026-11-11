@@ -160,6 +160,13 @@
     .sw-leg { display: flex; gap: 12px; font-size: 11.5px; color: #6B736E; } .sw-leg i { display: inline-block; width: 10px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 1px; }
     .sw-in { display: flex; align-items: center; justify-content: space-between; gap: 10px; } .sw-in input { font-size: 16px; min-width: 0; width: 45%; border: 1px solid #D5DED8; border-radius: 10px; padding: 6px 10px; text-align: right; }
     .sw-sim { margin-top: 8px; font-size: 14px; }
+    .sw-tb { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 4px; }
+    .sw-tb th { font-size: 12.5px; color: #6B736E; font-weight: 600; text-align: left; padding: 4px 4px; border-bottom: 1px solid #E1E6E2; }
+    .sw-tb td { padding: 6px 4px; border-bottom: 1px solid #F0F2F1; vertical-align: top; line-height: 1.35; }
+    .sw-tb td small { font-size: 11.5px; opacity: .85; }
+    .sw-yr { background: #F1F5F9; border-radius: 8px; padding: 2px 8px; }
+    .leaflet-control-rotate-arrow::before { content: 'เหนือ'; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font: 700 10px 'IBM Plex Sans Thai', sans-serif; color: #B3261E; white-space: nowrap; }
+    .leaflet-control-rotate-arrow { position: relative; }
     .gbox { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
     .ghd { font-family: inherit; color: inherit; width: 100%; text-align: left; background: #fff; border: 0; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
     .ghd.warn { border-left: 4px solid #E08A3C; }
@@ -1357,6 +1364,17 @@
     </div>
   </div>
 
+  <div class="modal fade" id="climModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">📊 ฝนประจำพื้นที่</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="clim-body"></div>
+      </div>
+    </div>
+  </div>
   <div class="modal fade" id="soilModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -4646,11 +4664,108 @@ Export.table.toDrive({
       items.forEach(x => { x.wetSeen = (x.good || []).filter(q => q.water >= 0.3 && q.ndvi < 0.5 && !(hazy[q.d] >= 3) && !blip(x, q)).map(q => q.d); });
       satInfo = { items, peer };
     }
+    // ===== 📊 ฝนประจำพื้นที่ + น้ำที่อ้อยต้องการ =====
+    // ระยะอ้อย (ช่วงวันตาม กรมวิชาการเกษตร ศวพ.นครสวรรค์) · ค่าพืช Kc ตาม FAO-56 → ใช้ชุดเดียวกับหน้า น้ำในดิน
+    function caneStage(age, type) {
+      if (age === null || age === undefined) return { k: 1, n: '' };
+      if (type === 'อ้อยตอ') return age < 45 ? { k: 0.5, n: 'ตั้งต้น' } : age < 120 ? { k: 0.6, n: 'พักตัว' } : age < 225 ? { k: 0.9, n: 'แตกกอ' } : age < 330 ? { k: 1.25, n: 'ย่างปล้อง' } : { k: 0.75, n: 'สุกแก่' };
+      return age < 30 ? { k: 0.4, n: 'ตั้งต้น' } : age < 170 ? { k: 0.8, n: 'แตกกอ' } : age < 295 ? { k: 1.25, n: 'ย่างปล้อง' } : { k: 0.75, n: 'สุกแก่' };
+    }
+    let climData = null, climBusy = false, climErr = '', climArea = '', climPlot = '';
+    const TH_MON_S = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    function openClim(area) {
+      if (area) climArea = area;
+      hideModal('soilModal');
+      setTimeout(() => { bootstrap.Modal.getOrCreateInstance($('climModal')).show(); climRender(); climLoad(); }, 250);
+    }
+    function climLoad() {
+      if (climData || climBusy) return;
+      try { const c = JSON.parse(lsGet('raioy_clim') || 'null'); if (c && Date.now() - c.t < 30 * 864e5) { climData = c; climRender(); return; } } catch (e) {}
+      climBusy = true; climErr = '';
+      callApi('rainClimate', []).then(d => { climData = d; lsSet('raioy_clim', JSON.stringify(d)); })
+        .catch(() => { climErr = 'โหลดข้อมูลฝนย้อนหลังไม่ได้ ลองใหม่อีกครั้ง'; })
+        .then(() => { climBusy = false; climRender(); });
+    }
+    const md2 = s => { const [m, d] = s.split('-'); return `${+d} ${TH_MON_S[+m - 1]}`; };
+    const mdNum = s => { const [m, d] = s.split('-'); return +m * 100 + +d; };
+    function climFirstMed(a) {
+      const v = Object.values(a.firstRain || {}).sort((x, y) => mdNum(x) - mdNum(y));
+      return v.length ? v[Math.floor((v.length - 1) / 2)] : '05-15';
+    }
+    function climRender() {
+      const B = $('clim-body'); if (!B) return;
+      if (!climData) { B.innerHTML = `<div class="srow-s p-2">${climErr ? esc(climErr) + ` <a href="#" onclick="event.preventDefault();climLoad()">ลองใหม่</a>` : 'กำลังดึงฝนย้อนหลัง 6 ปี…'}</div>`; return; }
+      const A = climData.areas; if (!A.length) { B.innerHTML = '<div class="srow-s p-2">ยังไม่มีพิกัดแปลง</div>'; return; }
+      const a = A.find(x => x.loc === climArea) || A[0]; climArea = a.loc;
+      const chips = `<div class="ch-chips mb-2" style="flex-wrap:nowrap;overflow-x:auto">${A.map(x => `<button type="button" class="ch-chip${x.loc === a.loc ? ' on' : ''}" style="flex:none" onclick="climArea='${qa(x.loc)}';climPlot='';climRender()">${esc(x.loc)}</button>`).join('')}</div>`;
+      const M = m => a.months[m] || a.months[String(m)] || { mm: 0, et: 4, heavy: 0 };
+      // กราฟฝนรายเดือน
+      const W = 340, H = 150, bw = W / 12, mx = Math.max(...[...Array(12)].map((_, i) => M(i + 1).mm), 100);
+      let g = '';
+      for (let i = 0; i < 12; i++) {
+        const v = M(i + 1).mm, h = v / mx * (H - 40), c = v < 50 ? '#D9B77A' : v >= 250 ? '#1F4E9E' : '#5A9EF2';
+        g += `<rect x="${i * bw + 3}" y="${H - 20 - h}" width="${bw - 6}" height="${h}" rx="3" fill="${c}"/><text x="${i * bw + bw / 2}" y="${H - 24 - h}" font-size="10" text-anchor="middle" fill="#333">${v}</text><text x="${i * bw + bw / 2}" y="${H - 6}" font-size="9.5" text-anchor="middle" fill="#6B736E">${TH_MON_S[i]}</text>`;
+      }
+      const hv = [...Array(12)].map((_, i) => [i, M(i + 1).heavy]).filter(x => x[1] >= 0.3).map(x => `${TH_MON_S[x[0]]} ${x[1]} วัน`).join(' · ');
+      const c1 = `<div class="sw-card"><div class="fw-bold">ฝนเฉลี่ยรายเดือน (มม.)</div><div class="srow-s mb-1">${climData.from}–${String(climData.to).slice(0, 4)} · ${esc(a.loc)}</div>
+        <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}</svg>
+        <div class="sw-leg"><span><i style="background:#D9B77A"></i>แล้ง &lt;50</span><span><i style="background:#5A9EF2"></i>ฝน</span><span><i style="background:#1F4E9E"></i>หนัก ≥250 เสี่ยงขัง</span></div>
+        ${hv ? `<div class="mt-1" style="font-size:13.5px">วันฝนหนัก (≥40 มม./วัน) เฉลี่ยต่อปี: ${hv}</div>` : ''}</div>`;
+      // ฝนแรก
+      const fr = a.firstRain || {}, med = climFirstMed(a), yrs = Object.keys(fr).sort();
+      const c2 = `<div class="sw-card"><div class="fw-bold">🌧️ ฝนแรก (เริ่มหน้าฝน)</div>
+        <div style="font-size:15px">ปกติมาราว <b>${md2(med)}</b> · เร็วสุด ${md2(Object.values(fr).sort((x, y) => mdNum(x) - mdNum(y))[0] || med)} · ช้าสุด ${md2(Object.values(fr).sort((x, y) => mdNum(y) - mdNum(x))[0] || med)}</div>
+        <div class="d-flex flex-wrap gap-2 mt-1" style="font-size:13px">${yrs.map(y => `<span class="sw-yr">${+y + 543 - 2500}: ${md2(fr[y])}</span>`).join('')}</div>
+        <div class="srow-s mt-1">นับวันแรกตั้งแต่ เม.ย. ที่ฝนรวม 10 วันถึง 50 มม.</div></div>`;
+      // อายุแปลงตอนฝนแรก / ต้น ก.ย.
+      const plots = gData.plots.filter(p => a.plots.includes(p.plot_id));
+      const ageAt = (p, md) => { const pl = beToISO(p.plant_date); if (!pl) return null; const y = +pl.slice(0, 4); let t = new Date(`${y}-${md}`); if (t < new Date(pl)) t = new Date(`${y + 1}-${md}`); return Math.round((t - new Date(pl)) / 864e5); };
+      const mo = d => d === null ? '-' : (d / 30).toFixed(1) + ' ด.';
+      const rows = plots.map(p => {
+        const f = ageAt(p, med), s = ageAt(p, '09-01'), wet = plotTags(p).includes('น้ำขังง่าย');
+        const bad = (f !== null && f < 90) || (s !== null && s < 180);
+        return `<tr><td>${esc(p.plot_name)}${wet ? ' <span class="sw-pr">💧</span>' : ''}<div class="srow-s">${p.cane_type === 'อ้อยตอ' ? 'ไว้ตอ' : 'ปลูก'} ${p.plant_date && p.plant_date !== '-' ? thDate(beToISO(p.plant_date)) : '-'}</div></td>
+          <td style="color:${f !== null && f < 90 ? (wet ? '#B3261E' : '#B4630B') : 'inherit'}">${mo(f)}</td><td style="color:${s !== null && s < 180 ? (wet ? '#B3261E' : '#B4630B') : 'inherit'}">${mo(s)}</td></tr>`;
+      }).join('');
+      const c3 = `<div class="sw-card"><div class="fw-bold">อายุอ้อยตอนเข้าหน้าฝน</div>
+        <table class="sw-tb"><tr><th>แปลง</th><th>ฝนแรก ~${md2(med)}</th><th>1 ก.ย. (ฝนหนัก)</th></tr>${rows || '<tr><td colspan="3">ไม่มีแปลง</td></tr>'}</table>
+        <div class="srow-s mt-1">สีส้ม/แดง = อายุน้อยกว่า 3 ด. ตอนฝนแรก หรือน้อยกว่า 6 ด. ตอน ก.ย. (แดง = แปลงน้ำขังง่าย) · อ้อยช่วงงอก แตกกอ ย่างปล้องช่วงแรก ถ้าน้ำท่วมยอด 2–5 วัน ตายได้ราวครึ่ง</div></div>`;
+      // น้ำที่อ้อยต้องการ vs ฝน (รายเดือน ตั้งแต่ปลูก)
+      const pp = plots.find(p => p.plot_id === climPlot) || plots.find(p => beToISO(p.plant_date)) || plots[0];
+      let c4 = '';
+      if (pp && beToISO(pp.plant_date)) {
+        climPlot = pp.plot_id;
+        const pl = new Date(beToISO(pp.plant_date)), wet = plotTags(pp).includes('น้ำขังง่าย');
+        let tn = 0, tr = 0, ti = 0, tx = 0, body = '';
+        for (let i = 0; i < 12; i++) {
+          const d0 = new Date(pl.getFullYear(), pl.getMonth() + i, 1), m = d0.getMonth() + 1, dim = new Date(d0.getFullYear(), m, 0).getDate();
+          const mid = new Date(d0.getFullYear(), m - 1, 15), age = Math.max(0, Math.round((mid - pl) / 864e5));
+          const startDay = i === 0 ? pl.getDate() : 1, days = dim - startDay + 1, frac = days / dim;
+          const stg = caneStage(age, pp.cane_type), mm = M(m), need = Math.round(mm.et * stg.k * days), rain = Math.round(mm.mm * frac);
+          const stop = (m === 11 || m === 12) && !(pp.cane_type === 'อ้อยใหม่' && age < YOUNG_NEW_DAYS);
+          if (m === 1 && i > 0 && age > 300) break;
+          const diff = rain - need;
+          let res;
+          if (stop) res = `<span style="color:#6B736E">งดน้ำก่อนตัด</span>`;
+          else if (diff < -10) { res = `<span style="color:#B4630B">ขาด ${-diff} มม.<br><small>≈ ${Math.round(-diff * 1.6)} ลบ.ม./ไร่</small></span>`; ti += -diff; }
+          else if (diff > 60) { res = `<span style="color:#1F6FB2">ฝนเกิน ${diff} มม.${wet ? '<br><small>เสี่ยงขัง</small>' : ''}</span>`; tx += diff; }
+          else res = `<span style="color:#1F7A45">พอดี</span>`;
+          tn += stop ? 0 : need; tr += rain;
+          body += `<tr><td>${TH_MON_S[m - 1]}<div class="srow-s">${(age / 30).toFixed(0)} ด. ${stg.n}</div></td><td>${stop ? '-' : need}</td><td>${rain}</td><td>${res}</td></tr>`;
+        }
+        c4 = `<div class="sw-card"><div class="fw-bold">💧 น้ำที่อ้อยต้องการ เทียบฝนเฉลี่ย</div>
+          <div class="ch-chips my-1" style="flex-wrap:nowrap;overflow-x:auto">${plots.filter(p => beToISO(p.plant_date)).map(p => `<button type="button" class="ch-chip${p.plot_id === pp.plot_id ? ' on' : ''}" style="flex:none" onclick="climPlot='${p.plot_id}';climRender()">${esc(p.plot_name)}</button>`).join('')}</div>
+          <div class="srow-s mb-1">${pp.cane_type === 'อ้อยตอ' ? 'ไว้ตอ' : 'ปลูก'} ${thDate(beToISO(pp.plant_date))} · ถ้าปลูก/ไว้ตอวันเดียวกันในปีปกติ</div>
+          <table class="sw-tb"><tr><th>เดือน</th><th>ต้องการ</th><th>ฝน</th><th>ผล</th></tr>${body}
+          <tr style="font-weight:700"><td>รวม</td><td>${tn}</td><td>${tr}</td><td>${ti ? `ต้องขึ้นน้ำ ~${ti} มม.` : 'ฝนพอ'}</td></tr></table>
+          <div class="srow-s mt-1">หน่วย มม. · 1 มม. = 1.6 ลบ.ม./ไร่ · ต้องการ = การระเหยเฉลี่ยของเดือน × ค่าพืชตามระยะอ้อย (FAO-56) · ฝนเฉลี่ยรายเดือนซ่อนช่วงฝนทิ้งช่วง ใช้หน้า "น้ำในดิน" ดูรายวัน · ฝนที่เกินไม่ได้เก็บไว้ใช้เดือนถัดไปทั้งหมด</div></div>`;
+      }
+      B.innerHTML = chips + c2 + c3 + c1 + c4 + `<div class="srow-s">ข้อมูลฝนย้อนหลัง: Open-Meteo (แบบจำลอง ช่องละ ~10–25 กม. พื้นที่ใกล้กันจึงได้ค่าใกล้เคียงกัน) · ช่วงระยะอ้อย: กรมวิชาการเกษตร (ศูนย์วิจัยพืชไร่นครสวรรค์)</div>`;
+    }
     // ===== 💧 น้ำในดิน (ประมาณ) =====
     // ถังน้ำต่อแปลง: + ฝน (Open-Meteo) + ขึ้นน้ำ (เต็มถัง) − น้ำที่อ้อยใช้/ระเหย (ET0 × ค่าตามอายุอ้อย) · เกินถัง = ไหลออก/ซึมลึก/ขังในแอ่ง
     const SOIL_CAP = { sand: 45, norm: 90 }, SOIL_TTL = 45 * 60 * 1000;
-    let soilWx = null, soilBusy = false, soilErr = '', soilOpen = '', soilSim = { soil: 'sand', kc: 1.15, rain: '10, 20' };
-    const soilKc = age => age === null ? 1 : age < 45 ? 0.45 : age < 105 ? 0.8 : 1.15;
+    let soilWx = null, soilBusy = false, soilErr = '', soilOpen = '', soilSim = { soil: 'sand', kc: 1.25, rain: '10, 20' };
     function soilLoad(cb) {
       if (soilWx && Date.now() - soilWx.t < SOIL_TTL) { if (cb) cb(); return; }
       const locs = wxLocs().filter(l => !l.isHome && (l.plots || []).length);
@@ -4684,7 +4799,7 @@ Export.table.toDrive({
       const pl = beToISO(p.plant_date), age = t => pl ? Math.round((new Date(t) - new Date(pl)) / 864e5) : null;
       let S = cap * 0.5;
       const rows = T.map((t, k) => {
-        const rain = +(d.precipitation_sum[k] || 0), e = ev[t], kc = soilKc(age(t)), et = (+(d.et0_fao_evapotranspiration[k] || 0)) * kc;
+        const rain = +(d.precipitation_sum[k] || 0), e = ev[t], kc = caneStage(age(t), p.cane_type).k, et = (+(d.et0_fao_evapotranspiration[k] || 0)) * kc;
         S += rain;
         if (e === 'ขึ้นน้ำ') S = Math.max(S, cap); else if (e === 'ฝนตก') S = Math.max(S, cap * 0.8);
         const over = Math.max(0, S - cap); S = Math.min(S, cap);
@@ -4773,12 +4888,13 @@ Export.table.toDrive({
       const ch = (k, v, t) => `<button type="button" class="ch-chip${soilSim[k] === v ? ' on' : ''}" onclick="soilSimSet('${k}',${typeof v === 'string' ? `'${v}'` : v})">${t}</button>`;
       const sim = `<div class="sw-card"><div class="fw-bold mb-1">🧮 ลองสมมติฝน</div>
         <div class="ch-chips mb-1">${ch('soil', 'sand', 'ดินทราย')}${ch('soil', 'norm', 'ดินทั่วไป')}</div>
-        <div class="ch-chips mb-2">${ch('kc', 0.45, 'อ้อยเล็ก')}${ch('kc', 0.8, 'อ้อยกลาง')}${ch('kc', 1.15, 'อ้อยโต')}</div>
+        <div class="ch-chips mb-2">${ch('kc', 0.4, 'อ้อยเล็ก')}${ch('kc', 0.8, 'อ้อยกลาง')}${ch('kc', 1.25, 'อ้อยโต')}</div>
         <label class="sw-in"><span>ฝนแต่ละวัน (มม.)</span><input type="text" inputmode="decimal" value="${esc(soilSim.rain)}" onchange="soilSim.rain=this.value;soilRender()"></label>
         <div class="sw-sim">${soilSimRun()}</div></div>`;
       const intro = `<div class="sw-card sw-intro"><b>ดินเหมือนถังเก็บน้ำ</b> ฝนกับการขึ้นน้ำเติมถัง อ้อยกับแดดดึงออกทุกวัน
         ดินทรายถังเล็ก (~${SOIL_CAP.sand} มม.) ดินทั่วไป (~${SOIL_CAP.norm} มม.) ฝนที่เกินถังจะไหลออก ซึมลึก หรือขังในจุดที่เป็นแอ่ง
-        <div class="srow-s mt-1">ค่าประมาณจากฝน Open-Meteo + วันขึ้นน้ำ/ฝนตกที่บันทึกในแอป · ดินทรายดูจากป้าย "ทราย" ของแปลง</div></div>`;
+        <div class="srow-s mt-1">ค่าประมาณจากฝน Open-Meteo + วันขึ้นน้ำ/ฝนตกที่บันทึกในแอป · ดินทรายดูจากป้าย "ทราย" ของแปลง</div>
+        <button type="button" class="btn btn-sm btn-success w-100 mt-2 fw-bold" onclick="openClim()">📊 ฝนรายเดือน · ฝนแรก · น้ำที่อ้อยต้องการ</button></div>`;
       if (!soilWx) { B.innerHTML = intro + `<div class="srow-s p-2">${soilErr ? esc(soilErr) + ` <a href="#" onclick="event.preventDefault();soilLoad(soilRender)">ลองใหม่</a>` : 'กำลังโหลดฝนย้อนหลัง 3 สัปดาห์…'}</div>` + sim; return; }
       const groups = {}, order = [];
       gData.plots.forEach(p => { const r = soilCalc(p); if (!r) return; const l = plotLoc(p.plot_name); if (!groups[l]) { groups[l] = []; order.push(l); } groups[l].push(r); });

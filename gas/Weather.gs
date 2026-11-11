@@ -188,7 +188,7 @@ function rainClimate(refresh) {
     for (let m = 1; m <= 12; m++) {
       const a = Object.values(yr).filter(o => o.m === m && o.n >= 25);
       mon[m] = a.length ? { mm: Math.round(a.reduce((s, o) => s + o.mm, 0) / a.length), et: +(a.reduce((s, o) => s + o.et / o.n, 0) / a.length).toFixed(2),
-        heavy: +(a.reduce((s, o) => s + o.heavy, 0) / a.length).toFixed(1), years: a.map(o => [o.y, Math.round(o.mm)]) } : null;
+        heavy: +(a.reduce((s, o) => s + o.heavy, 0) / a.length).toFixed(1), n: a.length } : null;
     }
     return { loc: p.loc, plots: p.plots, months: mon, firstRain: first };
   });

@@ -416,10 +416,15 @@
     .wp-dleg i { width: 90px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, #1D4ED8, #93C5FD, #FEF08A, #D97706); }
     .wp-dleg small { flex-basis: 100%; color: var(--muted); font-size: 12px; }
     .wp-act { position: sticky; bottom: -8px; background: #fff; padding: 8px 0; margin-top: 4px; }
+    .wp-act .btn { white-space: nowrap; padding-left: 6px; padding-right: 6px; }
     .wp-sec { font-size: 12.5px; color: var(--muted); margin: 8px 0 4px; }
     .wp-row { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #EEF1EF; background: none; color: inherit; padding: 9px 2px; font-size: 14.5px; }
     .wp-pt { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; color: #fff; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 5px rgba(0,0,0,.5); }
     .wp-pt.sel { outline: 3px solid #FFD23F; }
+    .wp-hd { width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 4px solid; box-shadow: 0 1px 5px rgba(0,0,0,.5); }
+    .wp-hd.mid { width: 18px; height: 18px; border-width: 3px; opacity: .85; }
+    .wp-sum { cursor: pointer; }
+    .wp-sum .chev { float: right; color: var(--muted); font-size: 13px; font-weight: 600; }
     .wp-note { position: absolute; left: 15px; top: 34px; transform: translateX(-50%); white-space: nowrap; background: rgba(255,255,255,.92); border-radius: 6px; padding: 0 6px; font-size: 12.5px; font-weight: 700; color: #1F2A24; }
     .wp-lbl { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; background: rgba(255,255,255,.92); border-radius: 6px; padding: 0 6px; font-size: 12.5px; font-weight: 700; color: #1F2A24; }
     .km-row { padding: 8px 0; }
@@ -5791,15 +5796,15 @@ Export.table.toDrive({
     // วาดหัว/ท้ายแปลง คลอง คูที่จะขุด ทางลาด แนวร่อง จุดถม/ปาด + ซ้อนจุดน้ำขัง (ดาวเทียม 2 ปี) + ความสูงพื้น (Copernicus DEM 30 ม.) + ทางน้ำจาก OpenStreetMap
     // เก็บชีต WaterPlans (saveWaterPlan) · ภาพเดียวส่งช่างปรับที่/ชักร่อง (wpExport)
     const WP_T = {
-      in: { n: 'หัวแปลง (น้ำเข้า)', k: 'pt', c: '#1E6FD9', g: 'เข้า', h: 'แตะจุดที่น้ำเข้าแปลง' },
-      out: { n: 'ท้ายแปลง (น้ำออก)', k: 'pt', c: '#7A4A1E', g: 'ออก', h: 'แตะจุดที่น้ำออกจากแปลง' },
-      slope: { n: 'ทางลาด (สูง → ต่ำ)', k: 'ar', c: '#FF9F1C', w: 5, h: 'แตะด้านที่สูงก่อน แล้วแตะด้านที่ต่ำ' },
-      supply: { n: 'คลองส่งน้ำ', k: 'ln', c: '#2F80ED', w: 6 },
-      drain: { n: 'คลองระบาย', k: 'ln', c: '#00A39A', w: 6 },
-      ditch: { n: 'คูที่จะขุด', k: 'ln', c: '#E53935', w: 5, d: '10 8' },
-      row: { n: 'แนวร่อง', k: 'ln', c: '#C6F36B', w: 3, d: '4 7' },
-      up: { n: 'ถมให้สูง', k: 'pt', c: '#C2410C', g: '▲', h: 'แตะจุดที่ต้องถมให้สูงขึ้น' },
-      low: { n: 'ปาดให้ต่ำ / แอ่งพักน้ำ', k: 'pt', c: '#0E7490', g: '▼', h: 'แตะจุดที่ต้องปาดให้ต่ำ หรือทำแอ่งพักน้ำ' }
+      in: { s: '', n: 'หัวแปลง (น้ำเข้า)', k: 'pt', c: '#1E6FD9', g: 'เข้า', h: 'แตะจุดที่น้ำเข้าแปลง' },
+      out: { s: '', n: 'ท้ายแปลง (น้ำออก)', k: 'pt', c: '#7A4A1E', g: 'ออก', h: 'แตะจุดที่น้ำออกจากแปลง' },
+      slope: { s: 'ทางลาด', n: 'ทางลาด (สูง → ต่ำ)', k: 'ar', c: '#FF9F1C', w: 5, h: 'แตะด้านที่สูงก่อน แล้วแตะด้านที่ต่ำ' },
+      supply: { s: 'คลองส่งน้ำ', n: 'คลองส่งน้ำ', k: 'ln', c: '#2F80ED', w: 6 },
+      drain: { s: 'คลองระบาย', n: 'คลองระบาย', k: 'ln', c: '#00A39A', w: 6 },
+      ditch: { s: 'คูที่จะขุด', n: 'คูที่จะขุด', k: 'ln', c: '#E53935', w: 5, d: '10 8' },
+      row: { s: 'แนวร่อง', n: 'แนวร่อง', k: 'ln', c: '#C6F36B', w: 3, d: '4 7' },
+      up: { s: 'ถมสูง', n: 'ถมให้สูง', k: 'pt', c: '#C2410C', g: '▲', h: 'แตะจุดที่ต้องถมให้สูงขึ้น' },
+      low: { s: 'ปาดต่ำ', n: 'ปาดให้ต่ำ / แอ่งพักน้ำ', k: 'pt', c: '#0E7490', g: '▼', h: 'แตะจุดที่ต้องปาดให้ต่ำ หรือทำแอ่งพักน้ำ' }
     };
     const WP_ORDER = ['in', 'out', 'slope', 'supply', 'drain', 'ditch', 'row', 'up', 'low'];
     const WP_DIR = ['เหนือ', 'ตะวันออกเฉียงเหนือ', 'ตะวันออก', 'ตะวันออกเฉียงใต้', 'ใต้', 'ตะวันตกเฉียงใต้', 'ตะวันตก', 'ตะวันตกเฉียงเหนือ'];
@@ -5957,18 +5962,43 @@ Export.table.toDrive({
       if (wpDemCache[key]) { wp.dem = wpDemCache[key]; wp.demSt = 'ok'; wpDemDraw(); return; }
       if (wp.demSt === 'load') return;
       wp.demSt = 'load'; wpLayBar();
-      callApi('getPlotDem', [id]).then(r => wpLoadImg(r.img).then(im => wpDemAnalyze(r, wpPix(im), wp.pts)))
+      const pts = wp.pts;
+      callApi('getPlotDem', [id]).then(r => wpLoadImg(r.img).then(im => { const d = wpPix(im); return wpDemAnalyze(r, (i, j) => { const k = (j * r.w + i) * 4; return d[k + 2] === 255 ? (d[k] * 256 + d[k + 1]) / 20 - 100 : null; }, pts, 'cop'); }))
+        .catch(e => { console.warn('DEM CDSE', e.message); return wpDemSrtm(pts); })
         .then(a => { wpDemCache[key] = a; if (!wp || wp.id !== id) return; wp.dem = a; wp.demSt = a.ok ? 'ok' : 'err'; wpDemDraw(); wpDraw(); wpLayBar(); wpPanel(); })
         .catch(e => { if (!wp || wp.id !== id) return; wp.demSt = 'err'; wp.demErr = e.message; wpLayBar(); wpPanel(); });
     }
-    function wpDemAnalyze(r, d, pts) {
+    // สำรอง: ความสูงจาก AWS Terrain Tiles (SRTM 30 ม. ปี 2543 · PNG แบบ terrarium) ดึงจากหน้าเว็บตรง ไม่ต้องผ่านหลังบ้าน
+    async function wpDemSrtm(pts) {
+      const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]), lat0 = (Math.min(...lats) + Math.max(...lats)) / 2;
+      const kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
+      const s = Math.min(...lats) - 60 / ky, n = Math.max(...lats) + 60 / ky, w = Math.min(...lngs) - 60 / kx, e = Math.max(...lngs) + 60 / kx;
+      const z = 15, proj = (la, ln) => { const k = 256 * 2 ** z, sl = Math.sin(la * Math.PI / 180); return [(ln + 180) / 360 * k, (0.5 - Math.log((1 + sl) / (1 - sl)) / (4 * Math.PI)) * k]; };
+      const A = proj(n, w), B = proj(s, e), tx0 = Math.floor(A[0] / 256), ty0 = Math.floor(A[1] / 256), tx1 = Math.floor(B[0] / 256), ty1 = Math.floor(B[1] / 256);
+      const cw = (tx1 - tx0 + 1) * 256, ch = (ty1 - ty0 + 1) * 256, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+      const cx = cv.getContext('2d'), jobs = [];
+      for (let tx = tx0; tx <= tx1; tx++) for (let ty = ty0; ty <= ty1; ty++) jobs.push(new Promise((ok, bad) => {
+        const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { cx.drawImage(im, (tx - tx0) * 256, (ty - ty0) * 256); ok(); }; im.onerror = () => bad(new Error('ดึงข้อมูลความสูงสำรองไม่ได้'));
+        im.src = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${tx}/${ty}.png`;
+      }));
+      await Promise.all(jobs);
+      const d = cx.getImageData(0, 0, cw, ch).data;
+      const W = Math.max(16, Math.min(160, Math.round((e - w) * kx / 5))), H = Math.max(16, Math.min(160, Math.round((n - s) * ky / 5)));
+      const zAt = (px, py) => { const i = Math.max(0, Math.min(cw - 1, px | 0)), j = Math.max(0, Math.min(ch - 1, py | 0)), k = (j * cw + i) * 4; return d[k] * 256 + d[k + 1] + d[k + 2] / 256 - 32768; };
+      return wpDemAnalyze({ bbox: [s, w, n, e], w: W, h: H }, (i, j) => {
+        const la = n - (j + .5) * (n - s) / H, ln = w + (i + .5) * (e - w) / W, q = proj(la, ln), px = q[0] - tx0 * 256 - .5, py = q[1] - ty0 * 256 - .5;
+        const x0 = Math.floor(px), y0 = Math.floor(py), fx = px - x0, fy = py - y0;   // นุ่มแบบ bilinear
+        return zAt(x0, y0) * (1 - fx) * (1 - fy) + zAt(x0 + 1, y0) * fx * (1 - fy) + zAt(x0, y0 + 1) * (1 - fx) * fy + zAt(x0 + 1, y0 + 1) * fx * fy;
+      }, pts, 'srtm');
+    }
+    function wpDemAnalyze(r, zget, pts, src) {
       const [s, w, n, e] = r.bbox, W = r.w, H = r.h, G = wpGeo(), cells = [];
       for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
-        const k = (j * W + i) * 4; if (d[k + 2] !== 255) continue;
         const lat = n - (j + .5) * (n - s) / H, lng = w + (i + .5) * (e - w) / W;
         if (!wpPip(lat, lng, pts)) continue;
+        const z = zget(i, j); if (z === null || !isFinite(z)) continue;
         const q = G.m([lat, lng]);
-        cells.push({ i, j, x: q.x, y: q.y, z: (d[k] * 256 + d[k + 1]) / 20 - 100, lat, lng });
+        cells.push({ i, j, x: q.x, y: q.y, z, lat, lng });
       }
       if (cells.length < 6) return { ok: false, err: 'แปลงเล็กเกินกว่าข้อมูลความสูงจะบอกได้' };
       // ระนาบ z = a + bx + cy (กำลังสองน้อยสุด)
@@ -5993,7 +6023,7 @@ Export.table.toDrive({
       });
       cx.putImageData(im, 0, 0);
       const half = range * 0.38, c0 = [mx, my];
-      return { ok: true, bearing: (Math.atan2(ux, uy) * 180 / Math.PI + 360) % 360, drop, rmse, conf, span: hi - lo, low, n: N,
+      return { ok: true, src, bearing: (Math.atan2(ux, uy) * 180 / Math.PI + 360) % 360, drop, rmse, conf, span: hi - lo, low, n: N,
         img: cv.toDataURL('image/png'), bounds: [[s, w], [n, e]],
         arrow: [G.ll(c0[0] - ux * half, c0[1] - uy * half), G.ll(c0[0] + ux * half, c0[1] + uy * half)] };
     }
@@ -6035,36 +6065,69 @@ Export.table.toDrive({
     }
 
     // ---------- วาดเส้น/จุด ----------
+    // จุดบนเส้นที่ระยะ f (0–1) ของความยาว ใช้วางป้ายกลางเส้น
+    function wpAlong(G, pts, f) {
+      const L = wpLen(G, pts) * f; let acc = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const a = G.m(pts[i - 1]), b = G.m(pts[i]), l = Math.hypot(b.x - a.x, b.y - a.y);
+        if (acc + l >= L && l > 0) { const t = (L - acc) / l; return G.ll(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t); }
+        acc += l;
+      }
+      return pts[pts.length - 1];
+    }
+    const wpTag = (T, n) => `<div class="wp-lbl" style="border:2px solid ${T.c}">${esc([T.s, n].filter(Boolean).join(' · '))}</div>`;
     function wpDraw() {
       if (!wpG || !wp) return;
       wpG.clearLayers();
-      const G = wpGeo();
+      const G = wpGeo(), LB = wp.lay.lbl;
       L.polygon(wp.pts, { color: '#FFFFFF', weight: 3, fillOpacity: 0, interactive: false }).addTo(wpG);
       if (wp.lay.dem && wp.dem && wp.dem.ok && wp.dem.conf !== 'ราบ') {
         const [a, b] = wp.dem.arrow;
         L.polyline([a, b], { color: '#7C3AED', weight: 4, dashArray: '6 6', opacity: .9, interactive: false }).addTo(wpG);
         L.polygon(wpHead(G, a, b, 14), { color: '#7C3AED', weight: 1, fillColor: '#7C3AED', fillOpacity: .9, interactive: false }).addTo(wpG);
-        if (wp.lay.lbl) L.marker(wpMid([a, b]), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#5B21B6">ข้อมูลความสูง</div>' }) }).addTo(wpG);
+        if (LB) L.marker(wpMid([a, b]), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#5B21B6;border:2px solid #7C3AED">ทางลาดจากข้อมูลความสูง</div>' }) }).addTo(wpG);
       }
-      if (wp.lay.dem && wp.dem && wp.dem.ok && wp.dem.low && wp.lay.lbl) L.marker(wp.dem.low, { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#1D4ED8">ต่ำสุด</div>' }) }).addTo(wpG);
+      if (LB && wp.lay.dem && wp.dem && wp.dem.ok && wp.dem.low) L.marker(wp.dem.low, { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: '<div class="wp-lbl" style="color:#1D4ED8">ต่ำสุด</div>' }) }).addTo(wpG);
       const hit = (l, i) => l.on('click', e => { L.DomEvent.stopPropagation(e); if (wp.tool) return wpTap(e.latlng); wpSel(i); });
       wp.feats.forEach((f, i) => {
         const T = WP_T[f.t], on = i === wp.sel;
         if (T.k === 'pt') {
-          hit(L.marker(f.p[0], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15],
-            html: `<div class="wp-pt${on ? ' sel' : ''}" style="background:${T.c}">${T.g}</div>${f.n && wp.lay.lbl ? `<div class="wp-note">${esc(f.n)}</div>` : ''}` }) }).addTo(wpG), i);
+          const tag = LB && (f.n || T.s) ? `<div class="wp-note" style="border:2px solid ${T.c}">${esc([T.s, f.n].filter(Boolean).join(' · '))}</div>` : '';
+          const m = L.marker(f.p[0], { draggable: on, icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15], html: `<div class="wp-pt${on ? ' sel' : ''}" style="background:${T.c}">${T.g}</div>${tag}` }) }).addTo(wpG);
+          hit(m, i);
+          if (on) m.on('dragend', e => { const ll = e.target.getLatLng(); f.p[0] = [+ll.lat.toFixed(6), +ll.lng.toFixed(6)]; wp.dirty = true; wpDraw(); wpPanel(); });
           return;
         }
         if (on) L.polyline(f.p, { color: '#FFD23F', weight: T.w + 8, opacity: .9, interactive: false }).addTo(wpG);
-        L.polyline(f.p, { color: T.c, weight: T.w, dashArray: T.d || null, opacity: 1, interactive: false, lineCap: 'round' }).addTo(wpG);
+        const line = L.polyline(f.p, { color: T.c, weight: T.w, dashArray: T.d || null, opacity: 1, interactive: false, lineCap: 'round' }).addTo(wpG);
         if (T.k === 'ar' && f.p.length > 1) L.polygon(wpHead(G, f.p[f.p.length - 2], f.p[f.p.length - 1], 16), { color: T.c, weight: 1, fillColor: T.c, fillOpacity: 1, interactive: false }).addTo(wpG);
         hit(L.polyline(f.p, { color: '#000', opacity: 0, weight: 22 }).addTo(wpG), i);
-        if (f.n && wp.lay.lbl) L.marker(f.p.length === 2 ? wpMid(f.p) : f.p[Math.floor(f.p.length / 2)], { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<div class="wp-lbl">${esc(f.n)}</div>` }) }).addTo(wpG);
+        if (LB) L.marker(wpAlong(G, f.p, T.k === 'ar' ? 0.4 : 0.5), { interactive: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: wpTag(T, f.n) }) }).addTo(wpG);
+        if (on) wpHandles(f.p, line, () => { wp.dirty = true; wpDraw(); wpPanel(); });
       });
       if (wp.cur.length) {
         const T = WP_T[wp.tool] || {};
-        if (wp.cur.length > 1) L.polyline(wp.cur, { color: T.c || '#FFD23F', weight: (T.w || 4), dashArray: '6 6', interactive: false }).addTo(wpG);
-        wp.cur.forEach(p => L.circleMarker(p, { radius: 7, color: '#fff', weight: 3, fillColor: T.c || '#FFD23F', fillOpacity: 1, interactive: false }).addTo(wpG));
+        const line = L.polyline(wp.cur, { color: T.c || '#FFD23F', weight: (T.w || 4), dashArray: '6 6', interactive: false }).addTo(wpG);
+        wpHandles(wp.cur, line, () => { wpDraw(); wpPanel(); }, true);
+      }
+    }
+    // จุดขาวลากได้ทุกมุมของเส้น + จุดเล็กกลางแต่ละช่วง (ลาก = เพิ่มมุมใหม่) · ลากระหว่างทางเส้นขยับตาม
+    function wpHandles(pts, line, done, drawing) {
+      const T = WP_T[wp.tool] || (wp.feats[wp.sel] && WP_T[wp.feats[wp.sel].t]) || { c: '#FFD23F' };
+      const icon = big => L.divIcon({ className: '', iconSize: big ? [26, 26] : [18, 18], iconAnchor: big ? [13, 13] : [9, 9], html: `<div class="wp-hd${big ? '' : ' mid'}" style="border-color:${T.c}"></div>` });
+      const fix = ll => [+ll.lat.toFixed(6), +ll.lng.toFixed(6)];
+      pts.forEach((p, k) => {
+        L.marker(p, { draggable: true, icon: icon(true), zIndexOffset: 1000 }).addTo(wpG)
+          .on('drag', e => { pts[k] = fix(e.target.getLatLng()); line.setLatLngs(pts); })
+          .on('dragend', done).on('click', e => L.DomEvent.stopPropagation(e));
+      });
+      if (drawing) return;
+      for (let k = 1; k < pts.length; k++) {
+        let idx = -1;
+        L.marker(wpMid([pts[k - 1], pts[k]]), { draggable: true, icon: icon(false), zIndexOffset: 900 }).addTo(wpG)
+          .on('dragstart', e => { idx = k; pts.splice(k, 0, fix(e.target.getLatLng())); })
+          .on('drag', e => { if (idx >= 0) { pts[idx] = fix(e.target.getLatLng()); line.setLatLngs(pts); } })
+          .on('dragend', done).on('click', e => L.DomEvent.stopPropagation(e));
       }
     }
     function wpTap(ll) {
@@ -6079,7 +6142,7 @@ Export.table.toDrive({
       if (wp.cur.length >= 2) { wp.feats.push({ t: wp.tool, p: wp.cur.slice(), n: '' }); wp.sel = wp.feats.length - 1; wp.dirty = true; }
       wp.cur = []; wp.tool = null; wpDraw(); wpPanel();
     }
-    function wpTool(t) { wp.tool = t; wp.cur = []; wp.sel = -1; wpDraw(); wpPanel(); }
+    function wpTool(t) { wp.tool = t; wp.tools = false; wp.cur = []; wp.sel = -1; wpDraw(); wpPanel(); }
     function wpSel(i) { wp.sel = i; wp.tool = null; wp.cur = []; wpDraw(); wpPanel(); }
     function wpNote(v) { const f = wp.feats[wp.sel]; if (!f) return; f.n = String(v).slice(0, 80); wp.dirty = true; }
     function wpDel() { if (wp.sel < 0) return; wp.feats.splice(wp.sel, 1); wp.sel = -1; wp.dirty = true; wpDraw(); wpPanel(); }
@@ -6149,7 +6212,7 @@ Export.table.toDrive({
       if (wp.tool) {
         const T = WP_T[wp.tool];
         H.style.display = 'block';
-        H.innerHTML = `<b>${T.n}</b> · ${T.h || `แตะไล่ตามแนว${T.n}ทีละจุด แล้วกด เสร็จ`}${T.k !== 'pt' && wp.cur.length ? ` (${wp.cur.length} จุด)` : ''}`;
+        H.innerHTML = `<b>${T.n}</b> · ${T.h || `แตะไล่ตามแนว${T.n}ทีละจุด (ลากจุดเพื่อขยับได้) แล้วกด เสร็จ`}${T.k !== 'pt' && wp.cur.length ? ` (${wp.cur.length} จุด)` : ''}`;
         P.innerHTML = `<div class="d-flex gap-2">
           ${T.k !== 'pt' ? `<button type="button" class="btn btn-outline-secondary" ${wp.cur.length ? '' : 'disabled'} onclick="wp.cur.pop();wpDraw();wpPanel()">ย้อน</button>` : ''}
           <button type="button" class="btn btn-outline-secondary${T.k === 'ln' ? '' : ' flex-fill'}" onclick="wp.tool=null;wp.cur=[];wpDraw();wpPanel()">ยกเลิก</button>
@@ -6159,6 +6222,7 @@ Export.table.toDrive({
       H.style.display = 'none';
       const G = wpGeo(), f = wp.feats[wp.sel];
       if (f) {
+        H.style.display = 'block'; H.innerHTML = WP_T[f.t].k === 'pt' ? '<b>ลากจุด</b> เพื่อย้ายตำแหน่ง' : '<b>ลากจุดขาว</b> เพื่อปรับแนว · ลาก<b>จุดเล็กกลางเส้น</b> = เพิ่มมุมหักเลี้ยว';
         const T = WP_T[f.t], info = T.k === 'pt' ? wpSide(G, f.p[0]) : `ยาว ~${Math.round(wpLen(G, f.p))} ม.${T.k === 'ar' ? ' · ลาดลงไปทาง' + wpDir(wpBear(G, f.p[0], f.p[f.p.length - 1])) : ''}`;
         P.innerHTML = `<div class="d-flex align-items-center gap-2 mb-2">${wpSw(f.t)}<b style="font-size:16px">${T.n}</b><small class="text-muted ms-auto">${info}</small></div>
           <input class="form-control mb-2" style="font-size:16px" placeholder="หมายเหตุ เช่น กว้าง 1 ม. ลึก 50 ซม." value="${esc(f.n)}" oninput="wpNote(this.value)" onchange="wpDraw()">
@@ -6167,22 +6231,24 @@ Export.table.toDrive({
       }
       const S = wpSummary(), bad = S.warn.length;
       const demErr = wp.lay.dem && wp.demSt === 'err' ? `<div class="l text-muted">ข้อมูลความสูง: ${esc((wp.dem && wp.dem.err) || wp.demErr || 'ขอไม่ได้')}</div>` : wp.lay.dem && wp.demSt === 'load' ? '<div class="l text-muted">กำลังขอข้อมูลความสูงพื้น…</div>' : '';
-      const card = `<div class="wp-card"><div class="h">สรุปแผนน้ำ${wp.updated ? ' · บันทึก ' + esc(wp.updated) : ''}</div>
-        <div class="t" style="color:${bad ? '#B45309' : wp.feats.length ? '#1F5E3B' : '#1F2A24'}">${esc(S.title)}</div>
+      const more = !!wp.more;
+      const card = `<div class="wp-card"><div class="wp-sum" onclick="wp.more=!wp.more;wpPanel()"><div class="h">สรุปแผนน้ำ${wp.updated ? ' · บันทึก ' + esc(wp.updated) : ''}<span class="chev">${more ? 'ย่อ ▲' : 'รายละเอียด ▼'}</span></div>
+        <div class="t" style="color:${bad ? '#B45309' : wp.feats.length ? '#1F5E3B' : '#1F2A24'}">${esc(S.title)}</div></div>
         ${S.warn.map(x => `<div class="l" style="color:#B45309;font-weight:600">${esc(x)}</div>`).join('')}
+        ${!wp.feats.length ? '<div class="l">กด <b>＋ วาด</b> แล้วเริ่มจาก <b>หัวแปลง</b> กับ <b>ท้ายแปลง</b> ต่อด้วย <b>ทางลาด</b> ที่รู้ (สูง → ต่ำ)</div>' : ''}
+        ${!more ? `${S.cmp ? `<div class="l fw-bold">${esc(S.cmp)}</div>` : ''}</div>` : `
         ${S.lines.map(x => `<div class="l">${esc(x)}</div>`).join('')}
-        ${!wp.feats.length ? '<div class="l">เริ่มจาก <b>หัวแปลง</b> กับ <b>ท้ายแปลง</b> แล้ววาด <b>ทางลาด</b> ที่รู้ (สูง → ต่ำ) · คลองที่มีอยู่ · คูที่จะขุด</div>' : ''}
         ${S.spot ? `<div class="l">${esc(S.spot)}</div>` : ''}
         ${S.demLine ? `<div class="l">${esc(S.demLine)}</div>` : ''}${demErr}
         ${S.cmp ? `<div class="l fw-bold">${esc(S.cmp)}</div>` : ''}
         ${S.D && S.D.conf !== 'ราบ' && !wp.feats.some(x => x.t === 'slope') ? `<button type="button" class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="wpUseDem()">ใช้ทางลาดจากข้อมูลความสูง (แก้ทีหลังได้)</button>` : ''}
         ${S.D ? `<div class="wp-dleg"><span>ต่ำ</span><i></i><span>สูง</span><small>สีบนแปลง = สูงต่ำเทียบกันในแปลงนี้ (${S.D.span.toFixed(1)} ม.)</small></div>` : ''}
-        <div class="nt">${S.spot ? 'น้ำขัง: ภาพ Sentinel-2 ย้อน 2 ปี เห็นได้เฉพาะตอนอ้อยเล็ก/หลังตัด · ' : ''}${S.D || wp.lay.dem ? 'ความสูง: Copernicus DEM 30 ม. (ESA, เรดาร์ปี 2554–2558) เป็นความสูงผิวบนรวมต้นไม้ คลาดเคลื่อนได้ 1–2 ม. ดูได้แค่แนวโน้มทั้งแปลง แอ่งเล็กในแปลงมองไม่เห็น · ' : ''}ทางน้ำในแผนที่จาก OpenStreetMap มักไม่มีคลองดินเล็ก</div></div>`;
+        <div class="nt">${S.spot ? 'น้ำขัง: ภาพ Sentinel-2 ย้อน 2 ปี เห็นได้เฉพาะตอนอ้อยเล็ก/หลังตัด · ' : ''}${S.D || wp.lay.dem ? `ความสูง: ${S.D && S.D.src === 'srtm' ? 'SRTM 30 ม. (NASA ปี 2543 ผ่าน AWS Terrain Tiles)' : 'Copernicus DEM 30 ม. (ESA, เรดาร์ปี 2554–2558)'} เป็นความสูงผิวบนรวมต้นไม้ คลาดเคลื่อนได้ 1–2 ม. ดูได้แค่แนวโน้มทั้งแปลง แอ่งเล็กในแปลงมองไม่เห็น · ` : ''}ทางน้ำในแผนที่จาก OpenStreetMap มักไม่มีคลองดินเล็ก</div></div>`}`;
       const tools = WP_ORDER.map(t => `<button type="button" onclick="wpTool('${t}')">${wpSw(t)}<span>${WP_T[t].n}</span></button>`).join('');
       const list = wp.feats.map((x, i) => { const T = WP_T[x.t]; return `<button type="button" class="wp-row" onclick="wpSel(${i})">${wpSw(x.t)}<span class="flex-fill">${T.n}${x.n ? ` · <span class="text-muted">${esc(x.n)}</span>` : ''}</span><small class="text-muted">${T.k === 'pt' ? wpSide(G, x.p[0]) : '~' + Math.round(wpLen(G, x.p)) + ' ม.'}</small></button>`; }).join('');
-      P.innerHTML = `<div class="wp-sec mt-0">แตะเพื่อวาดบนแผนที่</div><div class="wp-tools mb-2">${tools}</div>${card}
-        ${list ? `<div class="wp-sec mt-2">ที่วาดไว้ (แตะเพื่อแก้/ลบ)</div><div class="wp-list">${list}</div>` : ''}
-        <div class="d-flex gap-2 wp-act"><button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="wpExport()">📤 ภาพส่งช่าง</button>
+      P.innerHTML = `${wp.tools ? `<div class="wp-sec mt-0">เลือกสิ่งที่จะวาด แล้วแตะบนแผนที่</div><div class="wp-tools mb-2">${tools}</div>` : ''}${card}
+        ${list && more ? `<div class="wp-sec mt-2">ที่วาดไว้ (แตะเพื่อแก้/ลบ)</div><div class="wp-list">${list}</div>` : ''}
+        <div class="d-flex gap-2 wp-act"><button type="button" class="btn ${wp.tools ? 'btn-outline-secondary' : 'btn-primary'} fw-bold" style="flex:1.1" onclick="wp.tools=!wp.tools;wpPanel()">${wp.tools ? '✕ ปิด' : '＋ วาด'}</button><button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="wpExport()">📤 ภาพ</button>
           <button type="button" class="btn ${wp.dirty ? 'btn-success' : 'btn-outline-secondary'} fw-bold flex-fill" id="btnWpSave" ${wp.dirty ? '' : 'disabled'} onclick="wpSave()">${wp.dirty ? 'บันทึก' : wp.feats.length ? '✓ บันทึกแล้ว' : 'บันทึก'}</button></div>`;
     }
 
@@ -6302,7 +6368,7 @@ Export.table.toDrive({
         const block = (hd, ls) => { if (!ls.length) return; x.fillStyle = '#6B736E'; x.font = font(600, 24); x.fillText(hd, 32, y); y += 46; x.font = font(500, 30); ls.forEach(t => { x.fillStyle = /⚠️|❌/.test(t) ? '#B45309' : '#1F2A24'; x.fillText(t, 32, y); y += LH; }); };
         block('สรุป', wrapped); block('หมายเหตุหน้างาน', wrappedN);
         x.fillStyle = '#8A928D'; x.font = font(400, 20);
-        wpWrap(x, 'แอปไร่อ้อย · ภาพ © Esri · น้ำขัง Sentinel-2 · ความสูง Copernicus DEM 30 ม. (คลาดเคลื่อนได้ 1–2 ม.) · ทางน้ำ © OpenStreetMap', MW - 64).slice(0, 2).forEach((t, i) => x.fillText(t, 32, HEAD + MH + legH - 46 + i * 26));
+        wpWrap(x, `แอปไร่อ้อย · ภาพ © Esri · น้ำขัง Sentinel-2 · ความสูง ${S.D && S.D.src === 'srtm' ? 'SRTM' : 'Copernicus DEM'} 30 ม. (คลาดเคลื่อนได้ 1–2 ม.) · ทางน้ำ © OpenStreetMap`, MW - 64).slice(0, 2).forEach((t, i) => x.fillText(t, 32, HEAD + MH + legH - 46 + i * 26));
         let url;
         try { url = c.toDataURL('image/jpeg', 0.88); } catch (er) { if (!noTiles) return wpExport(true); throw er; }
         const bin = atob(url.split(',')[1]), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);

@@ -50,6 +50,13 @@ function weatherForecast(points) {
   return wxFetch_(pts, { hourly: WX_HOURLY_, daily: WX_DAILY_, forecast_days: 7, past_days: 1 });
 }
 
+// น้ำในดิน (สำรองให้หน้าเว็บ): ฝน + การระเหย ย้อน 21 วัน + พยากรณ์ 7 วัน
+function soilWeather(points) {
+  const pts = (points || []).filter(p => Number(p.lat) && Number(p.lng));
+  if (!pts.length) throw new Error('ไม่มีพิกัด');
+  return wxFetch_(pts, { daily: 'precipitation_sum,et0_fao_evapotranspiration', past_days: 21, forecast_days: 7 });
+}
+
 // หน้าเว็บตั้งพิกัดสำรอง (ตอนยังไม่มีแปลงไหนวาดขอบ)
 // บ้านผู้ใช้ (6 พ.ย. 69) → แถว "บ้าน" ในพยากรณ์ + RainLog · 0,0 = เอาออก
 function setHomeLoc(lat, lng) {

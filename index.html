@@ -147,6 +147,19 @@
     .fbtn b { font-size: 16px; color: #1F5E3B; } .fbtn span { font-size: 13px; color: #6B736E; line-height: 1.35; }
     .fbtn em { font-style: normal; font-weight: 700; color: var(--urg-ink); }
     .fbtn.bad { border-color: #F0C9A8; background: #FFF8F2; }
+    .sw-card { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; font-size: 14.5px; line-height: 1.55; }
+    .sw-intro { background: #F4F8FB; border-color: #D7E5EF; }
+    .sw-row { border-bottom: 1px solid #EEF1EF; } .sw-row:last-child { border-bottom: 0; }
+    .sw-main { font-family: inherit; color: inherit; width: 100%; background: none; border: 0; text-align: left; padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+    .sw-l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; } .sw-n { font-size: 15.5px; font-weight: 600; }
+    .sw-bar { height: 8px; border-radius: 4px; background: #EDF0EE; overflow: hidden; } .sw-bar i { display: block; height: 100%; border-radius: 4px; }
+    .sw-r { text-align: right; flex: none; display: flex; flex-direction: column; } .sw-r b { font-size: 15px; } .sw-r small { font-size: 12.5px; color: #6B736E; }
+    .sw-pr { font-size: 11.5px; font-weight: 600; color: #1F6FB2; background: #E4F0FA; border-radius: 999px; padding: 1px 6px; }
+    .sw-det { padding: 0 12px 12px; font-size: 14px; line-height: 1.6; } .sw-det > div { margin-top: 4px; }
+    .sw-prone { background: #E4F0FA; color: #1F4E79; border-radius: 10px; padding: 6px 10px; }
+    .sw-leg { display: flex; gap: 12px; font-size: 11.5px; color: #6B736E; } .sw-leg i { display: inline-block; width: 10px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 1px; }
+    .sw-in { display: flex; align-items: center; justify-content: space-between; gap: 10px; } .sw-in input { font-size: 16px; min-width: 0; width: 45%; border: 1px solid #D5DED8; border-radius: 10px; padding: 6px 10px; text-align: right; }
+    .sw-sim { margin-top: 8px; font-size: 14px; }
     .gbox { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
     .ghd { font-family: inherit; color: inherit; width: 100%; text-align: left; background: #fff; border: 0; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
     .ghd.warn { border-left: 4px solid #E08A3C; }
@@ -1344,6 +1357,17 @@
     </div>
   </div>
 
+  <div class="modal fade" id="soilModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">💧 น้ำในดิน (ประมาณ)</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="soil-body"></div>
+      </div>
+    </div>
+  </div>
   <div class="modal fade" id="satModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -4612,7 +4636,147 @@ Export.table.toDrive({
         }
         x.st = x.flags.length ? 'bad' : x.age > 30 ? 'none' : 'ok';
       });
+      items.forEach(x => { x.wetSeen = (x.good || []).filter(q => q.water >= 0.3 && q.ndvi < 0.5 && !(hazy[q.d] >= 3)).map(q => q.d); });
       satInfo = { items, peer };
+    }
+    // ===== 💧 น้ำในดิน (ประมาณ) =====
+    // ถังน้ำต่อแปลง: + ฝน (Open-Meteo) + ขึ้นน้ำ (เต็มถัง) − น้ำที่อ้อยใช้/ระเหย (ET0 × ค่าตามอายุอ้อย) · เกินถัง = ไหลออก/ซึมลึก/ขังในแอ่ง
+    const SOIL_CAP = { sand: 45, norm: 90 }, SOIL_TTL = 45 * 60 * 1000;
+    let soilWx = null, soilBusy = false, soilErr = '', soilOpen = '', soilSim = { soil: 'sand', kc: 1.15, rain: '10, 20' };
+    const soilKc = age => age === null ? 1 : age < 45 ? 0.45 : age < 105 ? 0.8 : 1.15;
+    function soilLoad(cb) {
+      if (soilWx && Date.now() - soilWx.t < SOIL_TTL) { if (cb) cb(); return; }
+      const locs = wxLocs().filter(l => !l.isHome && (l.plots || []).length);
+      if (!locs.length) { soilErr = 'ยังไม่มีพิกัดแปลง'; if (cb) cb(); return; }
+      if (soilBusy) return; soilBusy = true; soilErr = '';
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${locs.map(l => l.lat).join(',')}&longitude=${locs.map(l => l.lng).join(',')}&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=Asia%2FBangkok&past_days=21&forecast_days=7`;
+      fetch(url).then(r => r.json()).then(j => { if (j && j.error) throw new Error(j.reason); return Array.isArray(j) ? j : [j]; })
+        .catch(() => callApi('soilWeather', [locs.map(l => ({ lat: l.lat, lng: l.lng }))]))
+        .then(res => { if (!res || !res[0] || !res[0].daily) throw new Error('x'); soilWx = { t: Date.now(), locs, res }; })
+        .catch(() => { soilErr = 'โหลดข้อมูลฝนไม่ได้ ลองใหม่อีกครั้ง'; })
+        .then(() => { soilBusy = false; if (cb) cb(); });
+    }
+    function soilProne(p) {
+      const out = [];
+      if ((gData.activities || []).some(a => a.plot_id === p.plot_id && /สูบน้ำขัง|ระบายน้ำ/.test((a.activity_detail || '') + (a.remark || '')))) out.push('เคยบันทึกสูบ/ระบายน้ำขัง');
+      const x = satInfo && satInfo.items.find(i => i.key === 'plot|' + p.plot_id);
+      if (x && x.wetSeen && x.wetSeen.length) out.push('ดาวเทียมเคยเห็นน้ำบนแปลง ' + x.wetSeen.slice(-2).map(satDs).join(', '));
+      return out;
+    }
+    function soilCalc(p) {
+      if (!soilWx) return null;
+      const li = soilWx.locs.findIndex(l => l.plots.includes(p.plot_id)); if (li < 0) return null;
+      const d = soilWx.res[li].daily, T = d.time || [], today = todayISO();
+      const sand = plotTags(p).includes(TAG_SAND), cap = sand ? SOIL_CAP.sand : SOIL_CAP.norm;
+      const ev = {};
+      (gData.activities || []).forEach(a => {
+        if (a.plot_id !== p.plot_id || !['ขึ้นน้ำ', 'ฝนตก'].includes(a.activity_group) || /สูบน้ำขัง/.test(a.activity_detail || '')) return;
+        const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (iso) ev[iso] = ev[iso] === 'ขึ้นน้ำ' ? 'ขึ้นน้ำ' : a.activity_group;
+      });
+      const pl = beToISO(p.plant_date), age = t => pl ? Math.round((new Date(t) - new Date(pl)) / 864e5) : null;
+      let S = cap * 0.5;
+      const rows = T.map((t, k) => {
+        const rain = +(d.precipitation_sum[k] || 0), e = ev[t], kc = soilKc(age(t)), et = (+(d.et0_fao_evapotranspiration[k] || 0)) * kc;
+        S += rain;
+        if (e === 'ขึ้นน้ำ') S = Math.max(S, cap); else if (e === 'ฝนตก') S = Math.max(S, cap * 0.8);
+        const over = Math.max(0, S - cap); S = Math.min(S, cap);
+        const use = et * (S / cap < 0.5 ? Math.max(0.15, S / cap / 0.5) : 1);
+        S = Math.max(0, S - use);
+        return { t, rain, ev: e || '', over, use, et, S, fut: t >= today };
+      });
+      const past = rows.filter(r => !r.fut), now = past[past.length - 1]; if (!now) return null;
+      const fut = rows.filter(r => r.fut), pct = now.S / cap;
+      const over3 = past.slice(-3).reduce((a, r) => a + r.over, 0);
+      const rain7 = past.slice(-7).reduce((a, r) => a + r.rain, 0), rainF = fut.reduce((a, r) => a + r.rain, 0);
+      // ถ้าฝนไม่ตก อยู่ได้กี่วันก่อนต่ำกว่าครึ่งถัง
+      let s = now.S, left = 0; const etAvg = fut.length ? fut.reduce((a, r) => a + r.et, 0) / fut.length : now.et;
+      if (s / cap >= 0.5) { while (left < 30 && s / cap >= 0.5) { s -= (fut[left] ? fut[left].et : etAvg); left++; } left--; }
+      const overF = fut.slice(0, 3).reduce((a, r) => a + r.over, 0);
+      const st = over3 >= 10 ? 'wet' : pct >= 0.5 ? 'ok' : pct >= 0.25 ? 'dry1' : 'dry';
+      const lastIrr = [...past].reverse().find(r => r.ev === 'ขึ้นน้ำ');
+      return { p, cap, sand, rows, now, pct, st, over3, rain7, rainF, left, overF, etNow: now.use, ageNow: age(today), lastIrr, prone: soilProne(p) };
+    }
+    const SOIL_ST = { wet: ['ดินอิ่มน้ำ', '#1F6FB2', '#E4F0FA'], ok: ['ชื้นดี', '#1F7A45', '#E3F2E8'], dry1: ['เริ่มแห้ง', '#B4630B', '#FCEFDD'], dry: ['แห้ง', '#B3261E', '#FBE3E1'] };
+    function soilBtnSub() {
+      if (!soilWx) { soilLoad(() => { if (curTab === 'all') render(); }); return soilErr ? 'แตะเพื่อลองใหม่' : 'กำลังคำนวณ…'; }
+      const c = { wet: 0, ok: 0, dry1: 0, dry: 0 };
+      gData.plots.forEach(p => { const r = soilCalc(p); if (r) c[r.st]++; });
+      return ['wet', 'dry', 'dry1', 'ok'].filter(k => c[k]).map(k => k === 'ok' ? `${SOIL_ST[k][0]} ${c[k]}` : `<em style="color:${SOIL_ST[k][1]}">${SOIL_ST[k][0]} ${c[k]}</em>`).join(' · ');
+    }
+    function openSoil(id) {
+      if (id) soilOpen = id;
+      bootstrap.Modal.getOrCreateInstance($('soilModal')).show();
+      soilRender(); soilLoad(soilRender);
+    }
+    function soilChart(r) {
+      const W = 340, H = 120, n = r.rows.length, bw = W / n, maxR = Math.max(30, ...r.rows.map(x => x.rain)), y = v => H - 18 - v * (H - 30);
+      let g = `<line x1="0" x2="${W}" y1="${y(0.5)}" y2="${y(0.5)}" stroke="#E0A040" stroke-dasharray="3 3"/><text x="2" y="${y(0.5) - 3}" font-size="9" fill="#B4630B">ครึ่งถัง</text>`;
+      const fi = r.rows.findIndex(x => x.fut);
+      if (fi >= 0) g += `<rect x="${fi * bw}" y="0" width="${W - fi * bw}" height="${H - 18}" fill="#F3F5F4"/><text x="${fi * bw + 3}" y="10" font-size="9" fill="#6B736E">พยากรณ์</text>`;
+      r.rows.forEach((x, i) => {
+        if (x.ev === 'ขึ้นน้ำ') g += `<rect x="${i * bw}" y="${y(1)}" width="${bw - 1}" height="${H - 18 - y(1)}" fill="#BFE0F5" opacity=".6"/>`;
+        if (x.rain > 0.2) { const h = Math.max(2, x.rain / maxR * (H - 30)); g += `<rect x="${i * bw + 1}" y="${H - 18 - h}" width="${bw - 2}" height="${h}" rx="1.5" fill="#3B82C4" opacity="${x.fut ? 0.45 : 0.9}"/>`; }
+        if (x.rain >= 5) g += `<text x="${i * bw + bw / 2}" y="${H - 20 - Math.max(2, x.rain / maxR * (H - 30))}" font-size="8.5" text-anchor="middle" fill="#1F4E79">${Math.round(x.rain)}</text>`;
+      });
+      g += `<polyline fill="none" stroke="#1F7A45" stroke-width="2.2" points="${r.rows.map((x, i) => `${(i + 0.5) * bw},${y(x.S / r.cap)}`).join(' ')}"/>`;
+      [0, Math.floor(n / 2), fi > 0 ? fi : n - 1].forEach(i => { if (r.rows[i]) g += `<text x="${Math.min(W - 24, i * bw)}" y="${H - 5}" font-size="9" fill="#6B736E">${thDate(r.rows[i].t).slice(0, -3)}</text>`; });
+      return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}</svg>
+        <div class="sw-leg"><span><i style="background:#3B82C4"></i>ฝน (มม.)</span><span><i style="background:#BFE0F5"></i>ขึ้นน้ำ</span><span><i style="background:#1F7A45;height:3px"></i>น้ำในดิน</span></div>`;
+    }
+    function soilDetail(r) {
+      const mm = v => Math.round(v), f = t => thDate(t).slice(0, -3);
+      const ln = [];
+      ln.push(`ตอนนี้ดินมีน้ำราว <b>${mm(r.now.S)} มม.</b> จากที่เก็บได้ ~${r.cap} มม. (${r.sand ? 'ดินทราย เก็บน้ำได้น้อย' : 'ดินทั่วไป'})`);
+      ln.push(`อ้อย${r.ageNow !== null ? 'อายุ ' + Math.max(0, Math.floor(r.ageNow / 30)) + ' ด.' : ''} ใช้น้ำ + แดดระเหย ราว <b>${r.now.et.toFixed(1)} มม./วัน</b>`);
+      if (r.st === 'wet') ln.push(`3 วันที่ผ่านมา ฝนเกินที่ดินรับได้ราว <b>${mm(r.over3)} มม.</b> ส่วนเกินไหลออกหรือซึมลึก ตรงไหนเป็นแอ่งจะขัง`);
+      if (r.pct >= 0.5) ln.push(`ถ้าฝนไม่ตก ดินยังชื้นพอ <b>อีก ~${r.left} วัน</b>${r.left >= 1 ? ` (ถึงราว ${f(new Date(Date.now() + r.left * 864e5).toISOString().slice(0, 10))})` : ''} แล้วเริ่มควรขึ้นน้ำ`);
+      else ln.push(`น้ำในดินต่ำกว่าครึ่ง อ้อยเริ่มดึงน้ำได้ยาก${r.rainF >= 15 ? ' (พยากรณ์มีฝน รอดูก่อนได้)' : ' ถึงเวลาขึ้นน้ำ'}`);
+      ln.push(`7 วันที่ผ่านมา ฝนราว ${mm(r.rain7)} มม. · พยากรณ์ 7 วันข้างหน้า ${mm(r.rainF)} มม.${r.lastIrr ? ' · ขึ้นน้ำล่าสุด ' + f(r.lastIrr.t) : ''}`);
+      if (r.overF >= 10) ln.push(`⚠️ ถ้าฝนตกตามพยากรณ์ 3 วันนี้ น้ำจะเกินที่ดินรับได้ราว ${mm(r.overF)} มม.`);
+      return `<div class="sw-det">${soilChart(r)}${ln.map(x => `<div>${x}</div>`).join('')}
+        ${r.prone.length ? `<div class="sw-prone">💧 แปลงนี้มีจุดเสี่ยงน้ำขัง: ${r.prone.map(esc).join(' · ')}</div>` : ''}
+        <button type="button" class="btn btn-sm btn-outline-success mt-2 w-100" onclick="hideModal('soilModal');setTimeout(()=>openSat('plot|${r.p.plot_id}'),300)">🛰️ ดูภาพดาวเทียมแปลงนี้</button></div>`;
+    }
+    function soilSimRun() {
+      const cap = SOIL_CAP[soilSim.soil], et = 4.5 * soilSim.kc, rains = String(soilSim.rain).split(/[,\s]+/).map(Number).filter(v => v >= 0 && !isNaN(v)).slice(0, 10);
+      if (!rains.length) return '<div class="srow-s">ใส่ฝนแต่ละวัน คั่นด้วย , เช่น 10, 20</div>';
+      let S = cap * 0.2, over = 0; const out = [];
+      rains.forEach((r, i) => { S += r; const o = Math.max(0, S - cap); over += o; S = Math.min(S, cap); S = Math.max(0, S - et); out.push(`วันที่ ${i + 1}: ฝน ${r} มม. → ดินเหลือ ${Math.round(S)} มม.${o ? ` <span style="color:#1F6FB2">(เกิน ${Math.round(o)} มม.)</span>` : ''}`); });
+      let d = 0, s = S; while (s / cap >= 0.5 && d < 30) { s -= et; d++; }
+      return out.map(x => `<div>${x}</div>`).join('') + `<div class="mt-1"><b>${S / cap >= 0.5 ? `หลังฝนวันสุดท้าย ชื้นพออีกราว ${Math.max(0, d - 1)} วัน` : 'ฝนรวมยังไม่พอให้ดินชื้นถึงครึ่ง'}</b>${over ? ` · น้ำล้นรวม ${Math.round(over)} มม. (ไหลออก/ซึมลึก/ขังในแอ่ง)` : ''}</div>
+        <div class="srow-s">สมมติก่อนฝนดินค่อนข้างแห้ง · แดดปกติ (ระเหย ~4.5 มม./วัน) · ใช้น้ำ ${et.toFixed(1)} มม./วัน</div>`;
+    }
+    function soilSimSet(k, v) { soilSim[k] = v; soilRender(); }
+    function soilRender() {
+      const B = $('soil-body'); if (!B) return;
+      const ch = (k, v, t) => `<button type="button" class="ch-chip${soilSim[k] === v ? ' on' : ''}" onclick="soilSimSet('${k}',${typeof v === 'string' ? `'${v}'` : v})">${t}</button>`;
+      const sim = `<div class="sw-card"><div class="fw-bold mb-1">🧮 ลองสมมติฝน</div>
+        <div class="ch-chips mb-1">${ch('soil', 'sand', 'ดินทราย')}${ch('soil', 'norm', 'ดินทั่วไป')}</div>
+        <div class="ch-chips mb-2">${ch('kc', 0.45, 'อ้อยเล็ก')}${ch('kc', 0.8, 'อ้อยกลาง')}${ch('kc', 1.15, 'อ้อยโต')}</div>
+        <label class="sw-in"><span>ฝนแต่ละวัน (มม.)</span><input type="text" inputmode="decimal" value="${esc(soilSim.rain)}" onchange="soilSim.rain=this.value;soilRender()"></label>
+        <div class="sw-sim">${soilSimRun()}</div></div>`;
+      const intro = `<div class="sw-card sw-intro"><b>ดินเหมือนถังเก็บน้ำ</b> ฝนกับการขึ้นน้ำเติมถัง อ้อยกับแดดดึงออกทุกวัน
+        ดินทรายถังเล็ก (~${SOIL_CAP.sand} มม.) ดินทั่วไป (~${SOIL_CAP.norm} มม.) ฝนที่เกินถังจะไหลออก ซึมลึก หรือขังในจุดที่เป็นแอ่ง
+        <div class="srow-s mt-1">ค่าประมาณจากฝน Open-Meteo + วันขึ้นน้ำ/ฝนตกที่บันทึกในแอป · ดินทรายดูจากป้าย "ทราย" ของแปลง</div></div>`;
+      if (!soilWx) { B.innerHTML = intro + `<div class="srow-s p-2">${soilErr ? esc(soilErr) + ` <a href="#" onclick="event.preventDefault();soilLoad(soilRender)">ลองใหม่</a>` : 'กำลังโหลดฝนย้อนหลัง 3 สัปดาห์…'}</div>` + sim; return; }
+      const groups = {}, order = [];
+      gData.plots.forEach(p => { const r = soilCalc(p); if (!r) return; const l = plotLoc(p.plot_name); if (!groups[l]) { groups[l] = []; order.push(l); } groups[l].push(r); });
+      const rank = { wet: 0, dry: 1, dry1: 2, ok: 3 };
+      let h = intro;
+      order.forEach(l => {
+        const rs = groups[l].sort((a, b) => rank[a.st] - rank[b.st] || a.pct - b.pct), r0 = rs[0];
+        h += `<div class="srow-h d-flex justify-content-between"><span>${esc(l)}</span><span style="font-weight:500;color:#6B736E;font-size:13px">ฝน 7 วัน ${Math.round(r0.rain7)} มม. · พยากรณ์ ${Math.round(r0.rainF)} มม.</span></div><div class="srow-box">`;
+        rs.forEach(r => {
+          const [lb, c, bg] = SOIL_ST[r.st], open = soilOpen === r.p.plot_id;
+          const right = r.st === 'wet' ? `น้ำเกิน ${Math.round(r.over3)} มม.` : r.pct >= 0.5 ? `ชื้นอีก ~${r.left} วัน` : 'ควรขึ้นน้ำ';
+          h += `<div class="sw-row${open ? ' open' : ''}"><button type="button" class="sw-main" onclick="soilOpen=soilOpen==='${r.p.plot_id}'?'':'${r.p.plot_id}';soilRender()">
+            <span class="sw-l"><span class="sw-n">${esc(r.p.plot_name)}${r.sand ? ' <span class="prow-tag">ทราย</span>' : ''}${r.prone.length ? ' <span class="sw-pr">💧แอ่ง</span>' : ''}</span>
+            <span class="sw-bar"><i style="width:${Math.round(Math.min(1, r.pct) * 100)}%;background:${c}"></i></span></span>
+            <span class="sw-r"><b style="color:${c}">${lb}</b><small>${right}</small></span></button>${open ? soilDetail(r) : ''}</div>`;
+        });
+        h += '</div>';
+      });
+      B.innerHTML = h + sim;
     }
     // ภาพสีแปลงจาก Apps Script: รวมคำขอที่เข้ามาใกล้ๆ กันเป็นก้อนเดียว (getSatImages) · ภาพเดียวกันขอครั้งเดียว · weak = โหมดหาจุดอ่อน
     const satWait = {}; let satBatch = [], satTimer = null;
@@ -4807,7 +4971,8 @@ Export.table.toDrive({
       satQuiet();
       const it = satInfo ? satInfo.items.filter(x => !x.land) : null, bad = it ? it.filter(x => x.st === 'bad').length : 0, ok = it ? it.filter(x => x.st === 'ok').length : 0;
       const sat = !it ? 'กำลังโหลด…' : bad ? `<em>⚠️ ${bad} ควรไปดู</em> · ✅ ${ok}` : `✅ ปกติ ${ok} แปลง`;
-      return `<div class="fbtns">${map}<button type="button" class="fbtn${bad ? ' bad' : ''}" onclick="openSat()"><b>🛰️ ดาวเทียม</b><span>${sat}</span></button></div>`;
+      return `<div class="fbtns">${map}<button type="button" class="fbtn${bad ? ' bad' : ''}" onclick="openSat()"><b>🛰️ ดาวเทียม</b><span>${sat}</span></button>
+        <button type="button" class="fbtn" style="grid-column:1/-1" onclick="openSoil()"><b>💧 น้ำในดิน (ประมาณ)</b><span>${soilBtnSub()}</span></button></div>`;
     }
     // โหลดข้อมูลดาวเทียมเงียบ ๆ ครั้งเดียว (ไม่มีข้อความเด้ง) เพื่อโชว์สรุปบนปุ่ม
     var satQuietGo = false;

@@ -843,7 +843,7 @@
               <optgroup label="ทั่วไป">
               <option value="อุ้มร่อง">อุ้มร่อง</option>
               <option value="ฝังปุ๋ย">ฝังปุ๋ย</option>
-              <option value="สับหญ้า / ถากหญ้า">สับหญ้า / ถากหญ้า</option>
+              <option value="สับหญ้า / ถากหญ้า">สับหญ้า (รถ)</option>
               </optgroup>
             </select>
             <select class="form-select form-select-sm" id="act_eq"></select>
@@ -2680,7 +2680,7 @@
       if (!p) return;
       let logs = gData.activities.filter(a => a.plot_id === pid);
       let chLogs = [...logs].reverse();
-      let trac = {}, plant = [], subFert = [], weed = [];
+      let trac = {}, plant = [], subFert = [], weed = [], labor = [];
       const tAdd = (k, v) => (trac[k] = trac[k] || []).push(v);
       let waterDates = [], sprayList = [], fertList = [], harvList = [];
       let totalFertBags = 0, totalSprayTanks = 0, totalTrips = 0, totalTons = 0;
@@ -2694,14 +2694,19 @@
           else if (k === 'ฝังปุ๋ย') { subFert.push(`${dt} (${q !== '-' ? q : l.equipment})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
           else weed.push(`${dt}: ${d}`);
         } else if (g === 'ขึ้นน้ำ' || g === 'ฝนตก') {
-          waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment !== '-' ? l.equipment : 'ขึ้นน้ำ')})`);
+          waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment && l.equipment !== '-' ? l.equipment : 'ขึ้นน้ำ')})`);
         } else if (g === 'ฉีดยา') {
           sprayList.push(`<b>${dt}</b>: ${d} [${q}] โดย ${l.operator}`);
           let m = q.match(/(\d+(\.\d+)?)/); if (m) totalSprayTanks += parseFloat(m[1]);
         } else if (g === 'ใส่ปุ๋ย') {
           if (d.includes('ปลูก')) plant.push(`${dt} (${d})`);
-          fertList.push(`<b>${dt}</b>: ${d} [${q}] โดย ${l.operator}`);
-          let m = q.match(/(\d+(\.\d+)?)/); if (m) totalFertBags += parseFloat(m[1]);
+          const who = l.operator && l.operator !== '-' ? ` โดย ${l.operator}` : '';
+          // งานคน (ไม่ใช่ปุ๋ย): ถากหญ้า ซ่อมอ้อย ตัดพันธุ์ ขุดร่อง → แยกการ์ด ไม่ปนกับกระสอบปุ๋ย
+          if (/ถากหญ้า|ดายหญ้า|ซ่อมอ้อย|ตัดพันธุ์|ขุด/.test(d) && !/ปุ๋ย/.test(d)) labor.push({ k: /หญ้า/.test(d) ? 'ถากหญ้า' : /ซ่อม/.test(d) ? 'ซ่อมอ้อย' : d, v: `<b>${dt}</b>: ${d}${q && q !== '-' ? ` [${q}]` : ''}${who}` });
+          else {
+            fertList.push(`<b>${dt}</b>: ${d} [${q}]${who}`);
+            let m = q.match(/(\d+(\.\d+)?)/); if (m) totalFertBags += parseFloat(m[1]);
+          }
         } else if (g === 'ตัดอ้อย') {
           harvList.push(`<b>${dt}</b>: ${d} | 🚛 ${l.equipment} | จำนวน: <b>${q}</b>`);
           let mTon = q.match(/(\d+(\.\d+)?)\s*ตัน/), mTrip = q.match(/(\d+)\s*เที่ยว/);
@@ -2754,7 +2759,8 @@
             <div class="fw-bold text-secondary mb-1">🚜 งานเตรียมดิน / รถไถ / อุ้มร่อง</div>
             ${(p.cane_type === 'อ้อยตอ' ? ['ครูดร่อง', 'อุ้มร่อง'] : ['ริปเปอร์', 'ผาน 3', 'ผาน 7', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 3', 'ผาน 7'].includes(k)))
               .map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []); return `<div>• <b>${TRAC_LBL[k] || k}:</b> ${a.length ? a.join(', ') : k === 'ชักร่อง' && p.plant_date ? p.plant_date : none}</div>`; }).join('')}
-            <div>• <b>ฝังปุ๋ย/สับหญ้า:</b> ${[...subFert, ...weed].length ? [...subFert, ...weed].join(', ') : none}</div>
+            <div>• <b>ฝังปุ๋ย:</b> ${subFert.length ? subFert.join(', ') : none}</div>
+            ${weed.length ? `<div>• <b>สับหญ้า/อื่น ๆ (รถ):</b> ${weed.join(', ')}</div>` : ''}
           </div></div>
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-primary mb-1">💧 ประวัติการขึ้นน้ำ & ฝนตก (รวม ${waterDates.length} รอบ)</div>
@@ -2764,6 +2770,10 @@
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-success mb-1">🌱 ประวัติการใส่ปุ๋ย/บำรุง ${totalFertBags > 0 ? `(รวม ~${totalFertBags} กระสอบ)` : ''}</div>
             <div style="max-height:95px;overflow-y:auto;">${fertList.length ? fertList.map(f => `<div>• ${f}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติใส่ปุ๋ย</span>'}</div>
+          </div></div>
+          <div class="col-12 col-md-6"><div class="dossier-stat">
+            <div class="fw-bold mb-1" style="color:#8A5A12">👷 งานคน: ถากหญ้า / ซ่อมอ้อย ${labor.length ? `(${['ถากหญ้า', 'ซ่อมอ้อย'].map(t => { const n = labor.filter(x => x.k === t).length; return n ? t + ' ' + n + ' ครั้ง' : ''; }).filter(Boolean).join(' · ') || labor.length + ' ครั้ง'})` : ''}</div>
+            <div style="max-height:95px;overflow-y:auto;">${labor.length ? labor.map(x => `<div>• ${x.v}</div>`).join('') : '<span class="text-muted">ยังไม่มีบันทึก (ลงได้ที่ ปุ๋ย / บำรุง → ถากหญ้า)</span>'}</div>
           </div></div>
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-dark mb-1">🔫 ประวัติฉีดยาคุมหญ้า ${totalSprayTanks > 0 ? `(รวม ${totalSprayTanks} ถัง 200L)` : ''}</div>

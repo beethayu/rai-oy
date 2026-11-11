@@ -283,6 +283,7 @@ function readAll_(ss) {
     ...readRock_(ss),
     lands: readSheet_(ss, 'Lands'),
     waterPlans: readSheet_(ss, 'WaterPlans'),
+    flows: readSheet_(ss, 'Flow'),
     plotPhotos: sortDesc_(readSheet_(ss, 'PlotPhotos')),
     yields: readSheet_(ss, 'Yields'),
     rainLog: readRain_(ss),

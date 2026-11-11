@@ -147,6 +147,19 @@
     .fbtn b { font-size: 16px; color: #1F5E3B; } .fbtn span { font-size: 13px; color: #6B736E; line-height: 1.35; }
     .fbtn em { font-style: normal; font-weight: 700; color: var(--urg-ink); }
     .fbtn.bad { border-color: #F0C9A8; background: #FFF8F2; }
+    .fl-step { position: relative; background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 12px 10px 54px; cursor: pointer; }
+    .fl-step.due { border-color: #E9A23B; box-shadow: inset 4px 0 0 #E9A23B; }
+    .fl-step.note { border-style: dashed; background: #FBFAF5; }
+    .fl-step.edit { padding: 12px; cursor: default; border-color: #1F5E3B; }
+    .fl-num { position: absolute; left: 12px; top: 10px; width: 30px; height: 30px; border-radius: 50%; background: #1F5E3B; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .fl-step.note .fl-num { background: #B4630B; }
+    .fl-n { font-size: 16.5px; font-weight: 700; line-height: 1.3; }
+    .fl-w { font-size: 13px; color: #6B736E; margin-top: 1px; }
+    .fl-note { font-size: 13.5px; margin-top: 3px; color: #1F2A24; }
+    .fl-prog { font-size: 13.5px; margin-top: 5px; }
+    .fl-arrow { width: 3px; height: 18px; background: #9BB5A6; margin: 0 0 6px 26px; position: relative; }
+    .fl-arrow::after { content: ''; position: absolute; left: -5px; bottom: -6px; border-left: 6.5px solid transparent; border-right: 6.5px solid transparent; border-top: 8px solid #9BB5A6; }
+    .fl-pl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 6px 0; border-top: 1px solid #EEF1EF; }
     .sw-card { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; font-size: 14.5px; line-height: 1.55; }
     .sw-intro { background: #F4F8FB; border-color: #D7E5EF; }
     .sw-row { border-bottom: 1px solid #EEF1EF; } .sw-row:last-child { border-bottom: 0; }
@@ -1444,6 +1457,17 @@
           <div class="fm-hint wp-hint" id="wpHint" style="display:none"></div>
         </div>
         <div class="modal-footer py-2"><div id="wpPanel"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="flowModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title">📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-3 mbody" id="flow-body" style="background:#F4F5F1"></div>
       </div>
     </div>
   </div>
@@ -4840,6 +4864,152 @@ Export.table.toDrive({
       }
       B.innerHTML = chips + c2 + c3 + c1 + c4 + `<div class="srow-s">ข้อมูลฝนย้อนหลัง: Open-Meteo (แบบจำลอง ช่องละ ~10–25 กม. พื้นที่ใกล้กันจึงได้ค่าใกล้เคียงกัน) · ช่วงระยะอ้อย: กรมวิชาการเกษตร (ศูนย์วิจัยพืชไร่นครสวรรค์)</div>`;
     }
+    // ===== 📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ (flowchart แก้ได้ · สถานะแต่ละแปลงดูจากบันทึกจริง) =====
+    // ขั้นตอน: { n ชื่อ, k 'once'|'repeat'|'note', f–t วันนับจากวันปลูก/วันตัด (ติดลบ = ก่อนปลูก), g กลุ่มบันทึกที่นับ, m คำในบันทึก คั่น , , tool, note }
+    // ทำแล้ว = มีบันทึกกลุ่ม/คำตรง ในช่วง f−20 ถึง t+45 วัน · ถึงคิว = อายุอยู่ในช่วงและยังไม่มีบันทึก · เลยช่วงไม่มีบันทึก = เทา (แอปเพิ่งเริ่มจด ไม่เตือนแดง)
+    const FL_RT = 'รถไถเตรียมดิน/บำรุง';
+    const FL_G = [[FL_RT, 'รถไถ'], ['ขึ้นน้ำ', 'ขึ้นน้ำ'], ['ฉีดยา', 'ฉีดยา'], ['ใส่ปุ๋ย', 'ปุ๋ย / งานคน'], ['ตัดอ้อย', 'ตัดอ้อย']];
+    const FL_WATER_NOTE = 'ช่วงฝนน้อยขึ้นทุก ~14 วัน วนแปลงนี้เสร็จไปแปลงถัดไป';
+    const FL_DEF = {
+      'อ้อยใหม่': [
+        { n: 'ริปเปอร์', f: -30, t: -7, g: [FL_RT], m: 'ริปเปอร์', tool: 'ริปเปอร์', note: 'ถ้าดินแข็งแน่น · ดินไม่แข็งข้ามได้' },
+        { n: 'ผาน 3 (ไถดะ)', f: -25, t: -5, g: [FL_RT], m: 'ผาน 3', tool: 'ผาน 3' },
+        { n: 'ผาน 7 (ไถแปร)', f: -14, t: -1, g: [FL_RT], m: 'ผาน 7', tool: 'ผาน 7' },
+        { n: 'ชักร่อง / ปลูก + ปุ๋ยรองพื้น', f: 0, t: 0, g: [FL_RT, 'ใส่ปุ๋ย'], m: 'ชักร่อง,ปลูก,รองพื้น' },
+        { n: 'ขึ้นน้ำครั้งแรก', f: 0, t: 3, g: ['ขึ้นน้ำ'], m: '' },
+        { n: 'ฉีดยาคุมหญ้า', f: 5, t: 15, g: ['ฉีดยา'], m: '' },
+        { n: 'ซ่อมอ้อย', f: 30, t: 50, g: ['ใส่ปุ๋ย'], m: 'ซ่อม' },
+        { n: 'อุ้มร่อง', f: 40, t: 60, g: [FL_RT], m: 'อุ้มร่อง' },
+        { n: 'ถากหญ้า (คนงาน)', f: 45, t: 75, g: ['ใส่ปุ๋ย'], m: 'ถากหญ้า' },
+        { n: 'ฝังปุ๋ย / ปุ๋ยแต่งหน้า', f: 60, t: 90, g: [FL_RT, 'ใส่ปุ๋ย'], m: 'ฝังปุ๋ย,แต่งหน้า' },
+        { n: 'ฉีดยาคุมหญ้า รอบ 2', f: 75, t: 100, g: ['ฉีดยา'], m: '' },
+        { n: 'ขึ้นน้ำวนรอบ', k: 'repeat', f: 0, t: 300, g: ['ขึ้นน้ำ'], m: '', note: FL_WATER_NOTE },
+        { n: 'งดน้ำ 2 เดือนก่อนตัด', k: 'note', note: 'พ.ย.–ธ.ค. ให้อ้อยสะสมความหวาน เหลือดูแค่น้ำขัง' },
+        { n: 'ตัดอ้อย', f: 300, t: 420, g: ['ตัดอ้อย'], m: '' }],
+      'อ้อยตอ': [
+        { n: 'สับใบ / เผาใบ', f: 0, t: 7, g: [FL_RT], m: 'สับ,เผา', note: 'ภายใน 1–7 วันหลังตัด' },
+        { n: 'ครูดร่อง (ระหว่างแถว)', f: 3, t: 20, g: [FL_RT], m: 'ครูดร่อง', tool: 'ริปเปอร์ 2 ขา', note: 'ให้เป็นแนวน้ำไหล' },
+        { n: 'ขึ้นน้ำครั้งแรก', f: 10, t: 30, g: ['ขึ้นน้ำ'], m: '', note: 'รอให้อ้อยตองอกสักระยะก่อน' },
+        { n: 'ฉีดยาคุมหญ้า', f: 20, t: 45, g: ['ฉีดยา'], m: '' },
+        { n: 'ซ่อมตอ', f: 30, t: 50, g: ['ใส่ปุ๋ย'], m: 'ซ่อม' },
+        { n: 'ถากหญ้า (คนงาน)', f: 30, t: 75, g: ['ใส่ปุ๋ย'], m: 'ถากหญ้า' },
+        { n: 'ฝังปุ๋ย / ใส่ปุ๋ยอ้อยตอ', f: 30, t: 75, g: [FL_RT, 'ใส่ปุ๋ย'], m: 'ฝังปุ๋ย,ปุ๋ยอ้อยตอ', note: 'ไม่ใส่ปุ๋ยทันทีหลังตัด' },
+        { n: 'อุ้มร่อง', f: 60, t: 100, g: [FL_RT], m: 'อุ้มร่อง' },
+        { n: 'ขึ้นน้ำวนรอบ', k: 'repeat', f: 0, t: 300, g: ['ขึ้นน้ำ'], m: '', note: FL_WATER_NOTE },
+        { n: 'งดน้ำ 2 เดือนก่อนตัด', k: 'note', note: 'พ.ย.–ธ.ค. ให้อ้อยสะสมความหวาน เหลือดูแค่น้ำขัง' },
+        { n: 'ตัดอ้อย', f: 330, t: 420, g: ['ตัดอ้อย'], m: '' }]
+    };
+    let flKey = 'อ้อยใหม่', flOpen = -1, flEdit = -1, flDraft = null; const flSteps = {};
+    function flGet(key) {
+      if (flSteps[key]) return flSteps[key];
+      const r = (gData.flows || []).find(x => x.key === key); let a = null;
+      try { a = JSON.parse((r && r.data) || 'null'); } catch (e) {}
+      if (!Array.isArray(a) || !a.length) a = JSON.parse(JSON.stringify(FL_DEF[key]));
+      a.forEach(s => { s.k = s.k || 'once'; s.g = Array.isArray(s.g) ? s.g : []; s.m = s.m || ''; s.f = num(s.f); s.t = num(s.t); });
+      return (flSteps[key] = a);
+    }
+    const flPlots = key => gData.plots.filter(p => p.cane_type === key && beToISO(p.plant_date));
+    function flActs(p) {
+      return (gData.activities || []).filter(a => a.plot_id === p.plot_id).map(a => ({ g: a.activity_group, d: (a.activity_detail || '') + ' ' + (a.activity_group === FL_RT ? tracKind(a.activity_detail, p.cane_type) : ''), t: beToISO(String(a.timestamp || '').split(' ')[0]) })).filter(x => x.t);
+    }
+    function flStat(s, p, acts) {
+      const st = beToISO(p.plant_date), dd = t => Math.round((Date.parse(t) - Date.parse(st)) / 864e5), age = dd(todayISO());
+      const kw = String(s.m || '').split(',').map(x => x.trim()).filter(Boolean);
+      const hit = acts.filter(a => s.g.includes(a.g) && (!kw.length || kw.some(w => a.d.includes(w)))).map(a => Object.assign({ age: dd(a.t) }, a));
+      if (s.k === 'repeat') { const n = new Set(hit.filter(a => a.age >= s.f).map(a => a.t)).size; return { st: 'rep', n, txt: n ? n + ' วัน' : 'ยังไม่มีบันทึก' }; }
+      const inW = hit.filter(a => a.age >= s.f - 20 && a.age <= s.t + 45).sort((a, b) => a.t < b.t ? 1 : -1);
+      if (inW.length) return { st: 'done', txt: '✓ ' + thDate(inW[0].t) };
+      if (age < s.f) return { st: 'wait', txt: `อีก ${s.f - age} วัน` };
+      if (age <= s.t) return { st: 'due', txt: 'ถึงคิว' };
+      return { st: 'none', txt: 'ไม่มีบันทึก' };
+    }
+    // ถึงคิวทั้งหมด (โชว์บนปุ่มในแท็บแปลง)
+    function flDueCount() {
+      let n = 0;
+      ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => { const st = flGet(k).filter(s => s.k === 'once'); flPlots(k).forEach(p => { const A = flActs(p); st.forEach(s => { if (flStat(s, p, A).st === 'due') n++; }); }); });
+      return n;
+    }
+    function openFlow(key) { if (key) flKey = key; flOpen = -1; flEdit = -1; showM('flowModal'); flRender(); }
+    const flBase = () => flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด';
+    function flWin(s) {
+      if (s.k === 'note') return '';
+      if (s.k === 'repeat') return 'ตลอดฤดู';
+      const b = flBase();
+      if (s.f === s.t) return s.f === 0 ? 'วัน' + b : s.f < 0 ? `${-s.f} วันก่อน${b}` : `วันที่ ${s.f} หลัง${b}`;
+      if (s.t <= 0) return `${-s.t}–${-s.f} วันก่อน${b}`;
+      return `วันที่ ${s.f}–${s.t} หลัง${b}`;
+    }
+    function flRender() {
+      const B = $('flow-body'); if (!B) return;
+      const steps = flGet(flKey), plots = flPlots(flKey), A = {};
+      plots.forEach(p => { A[p.plot_id] = flActs(p); });
+      let h = `<div class="sat-seg mt-0">${['อ้อยใหม่', 'อ้อยตอ'].map(k => `<button type="button" class="${k === flKey ? 'on' : ''}" onclick="flKey='${k}';flOpen=-1;flEdit=-1;flRender()">${k === 'อ้อยใหม่' ? '🌱 อ้อยใหม่' : '🌿 อ้อยตอ'}</button>`).join('')}</div>
+        <div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด (วันเริ่มบำรุงตอ)'} · แตะกล่อง = ดูรายแปลง / แก้ · สถานะดูจากบันทึกในแอป</div>`;
+      let no = 0;
+      steps.forEach((s, i) => {
+        if (i) h += '<div class="fl-arrow"></div>';
+        if (s.k === 'once') no++;
+        h += flEdit === i ? flEditHtml() : flStepHtml(s, i, s.k === 'repeat' ? '↻' : s.k === 'note' ? '!' : no, plots, A);
+      });
+      if (flEdit === steps.length) h += '<div class="fl-arrow"></div>' + flEditHtml();
+      h += `${flEdit < 0 ? `<button type="button" class="btn btn-outline-success w-100 mt-3 fw-bold" onclick="flStartEdit(${steps.length})">＋ เพิ่มขั้นตอน</button>` : ''}
+        <div class="srow-s mt-3">ร่างจากวิธีที่คุณเล่า + วันที่ในบันทึกจริง (เช่น หนองบวบหอม 3 แรก) แก้ได้ทุกกล่อง · <a href="#" onclick="event.preventDefault();flReset()">กลับไปใช้ร่างเริ่มต้น</a></div>`;
+      B.innerHTML = h;
+    }
+    function flStepHtml(s, i, badge, plots, A) {
+      const R = s.k === 'note' ? [] : plots.map(p => ({ p, r: flStat(s, p, A[p.plot_id]) }));
+      const done = R.filter(x => x.r.st === 'done').length, due = R.filter(x => x.r.st === 'due');
+      let prog = '';
+      if (s.k === 'repeat') { const tot = R.reduce((a, x) => a + x.r.n, 0); prog = `<div class="fl-prog">↻ ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; }
+      else if (s.k === 'once') prog = `<div class="fl-prog"><b style="color:${done ? '#1F7A45' : '#6B736E'}">${done ? '✓ ' : ''}ทำแล้ว ${done}/${plots.length} แปลง</b>${due.length ? ` · <b style="color:#B4630B">ถึงคิว ${due.length}: ${due.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
+      const col = { done: '#1F7A45', due: '#B4630B', wait: '#6B736E', none: '#9AA19C', rep: '#1F2A24' };
+      const open = flOpen === i;
+      const det = !open ? '' : `<div class="mt-2" onclick="event.stopPropagation()">
+        ${R.map(x => `<div class="fl-pl"><span>${esc(x.p.plot_name)}</span><span style="color:${col[x.r.st]};font-weight:${x.r.st === 'due' ? 700 : 500}">${x.r.txt}</span></div>`).join('')}
+        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-success fw-bold flex-fill" onclick="flStartEdit(${i})">แก้</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" ${i ? '' : 'disabled'} onclick="flMove(${i},-1)">↑</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" ${i < flGet(flKey).length - 1 ? '' : 'disabled'} onclick="flMove(${i},1)">↓</button>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="flDel(${i})">ลบ</button></div></div>`;
+      return `<div class="fl-step${s.k === 'note' ? ' note' : ''}${due.length ? ' due' : ''}" onclick="flOpen=flOpen===${i}?-1:${i};flEdit=-1;flRender()">
+        <div class="fl-num">${badge}</div><div class="fl-n">${esc(s.n)}</div>
+        ${flWin(s) || s.tool ? `<div class="fl-w">${flWin(s)}${s.tool ? `${flWin(s) ? ' · ' : ''}🔧 ${esc(s.tool)}` : ''}</div>` : ''}
+        ${s.note ? `<div class="fl-note">${esc(s.note)}</div>` : ''}${prog}${det}</div>`;
+    }
+    function flStartEdit(i) {
+      const s = flGet(flKey)[i];
+      flDraft = s ? JSON.parse(JSON.stringify(s)) : { n: '', k: 'once', f: 0, t: 14, g: [], m: '', tool: '', note: '' };
+      flEdit = i; flOpen = -1; flRender();
+    }
+    function flEditHtml() {
+      const d = flDraft, b = flBase(), inp = (k, ph, ty) => `<input class="form-control mb-2" style="font-size:16px" ${ty ? `type="${ty}" inputmode="numeric"` : ''} placeholder="${ph}" value="${esc(d[k] == null ? '' : d[k])}" oninput="flDraft.${k}=this.value">`;
+      const kinds = [['once', 'ทำครั้งเดียว'], ['repeat', 'ทำซ้ำทั้งฤดู'], ['note', 'ข้อควรจำ']];
+      return `<div class="fl-step edit" onclick="event.stopPropagation()">
+        <div class="fw-bold mb-2">${flGet(flKey)[flEdit] ? 'แก้ขั้นตอน' : 'ขั้นตอนใหม่'}</div>
+        ${inp('n', 'ชื่อขั้นตอน เช่น ถากหญ้า')}
+        <div class="sat-seg mt-0">${kinds.map(k => `<button type="button" class="${d.k === k[0] ? 'on' : ''}" onclick="flDraft.k='${k[0]}';flRender()">${k[1]}</button>`).join('')}</div>
+        ${d.k === 'once' ? `<div class="d-flex align-items-center gap-2 mb-1"><span style="flex:none">วันที่</span><input class="form-control" style="font-size:16px" type="number" inputmode="numeric" value="${d.f}" oninput="flDraft.f=this.value"><span style="flex:none">ถึง</span><input class="form-control" style="font-size:16px" type="number" inputmode="numeric" value="${d.t}" oninput="flDraft.t=this.value"><span style="flex:none">หลัง${b}</span></div>
+          <div class="srow-s mb-2">ติดลบ = ก่อน${b} เช่น -14 ถึง -1</div>` : ''}
+        ${d.k !== 'note' ? `<div class="srow-s mb-1">นับว่าทำแล้วจากบันทึกกลุ่ม:</div>
+          <div class="ch-chips mb-2">${FL_G.map(g => `<button type="button" class="ch-chip${d.g.includes(g[0]) ? ' on' : ''}" onclick="flDraft.g=flDraft.g.includes('${g[0]}')?flDraft.g.filter(x=>x!=='${g[0]}'):flDraft.g.concat('${g[0]}');flRender()">${g[1]}</button>`).join('')}</div>
+          ${inp('m', 'คำในบันทึก คั่นด้วย , เช่น ถากหญ้า (ว่าง = ทุกงานในกลุ่ม)')}` : ''}
+        ${inp('tool', 'เครื่องมือ (ถ้ามี)')}${inp('note', 'หมายเหตุ เช่น ถ้าดินแข็งแน่น')}
+        <div class="d-flex gap-2"><button type="button" class="btn btn-outline-secondary flex-fill" onclick="flEdit=-1;flRender()">ยกเลิก</button><button type="button" class="btn btn-success fw-bold flex-fill" onclick="flSaveEdit()">บันทึก</button></div></div>`;
+    }
+    function flSaveEdit() {
+      const d = flDraft; d.n = String(d.n || '').trim(); if (!d.n) return alert('ใส่ชื่อขั้นตอน');
+      d.f = Math.round(num(d.f)); d.t = Math.round(num(d.t)); if (d.k === 'once' && d.t < d.f) [d.f, d.t] = [d.t, d.f];
+      if (d.k === 'repeat') { d.f = 0; d.t = 400; }
+      ['m', 'tool', 'note'].forEach(k => { d[k] = String(d[k] || '').trim(); });
+      const a = flGet(flKey); a[flEdit] = d; flOpen = flEdit; flEdit = -1; flPersist();
+    }
+    function flMove(i, dir) { const a = flGet(flKey), j = i + dir; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; flOpen = j; flPersist(); }
+    function flDel(i) { const a = flGet(flKey); if (!confirm(`ลบขั้น "${a[i].n}"?`)) return; a.splice(i, 1); flOpen = -1; flPersist(); }
+    function flReset() { if (!confirm(`ใช้ร่างเริ่มต้นของ${flKey}แทนที่แก้ไว้?`)) return; flSteps[flKey] = null; flSteps[flKey] = JSON.parse(JSON.stringify(FL_DEF[flKey])); flGet(flKey); flOpen = -1; flPersist(); }
+    function flPersist() {
+      flRender();
+      const key = flKey;
+      call('saveFlow', [key, JSON.stringify(flGet(key))], d => { gData.flows = d.flows; saveCache(gData); if (curTab === 'all') render(); });
+    }
     // ===== ฝนรายวันย้อนหลัง + จำลองการขึ้นน้ำทีละปี =====
     const climDaily = {}, climDErr = {}, climDBusy = {};
     try { Object.assign(climDaily, JSON.parse(lsGet('raioy_climd') || '{}')); Object.keys(climDaily).forEach(k => { if (!climDaily[k] || Date.now() - climDaily[k].t > 30 * 864e5) delete climDaily[k]; }); } catch (e) {}
@@ -5274,16 +5444,20 @@ Export.table.toDrive({
     }
     const fmSatItem = (kind, id) => satInfo && satInfo.items.find(i => i.key === kind + '|' + id);
 
+    function flowBtn() {
+      let due = 0; try { due = flDueCount(); } catch (e) {}
+      return `<button type="button" class="fbtn${due ? ' bad' : ''}" style="grid-column:1/-1" onclick="openFlow()"><b>📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ</b><span>${due ? `<em>ถึงคิว ${due} งาน</em>` : 'ไม่มีงานถึงคิว'} · แก้ขั้นตอนเองได้</span></button>`;
+    }
     function farmBtnHtml() {
       const n = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length;
       const left = gData.plots.length - n;
       const map = `<button type="button" class="fbtn" onclick="openFarmMap()"><b>🗺️ แผนที่ไร่</b><span>${left ? `ยังไม่วาดขอบ ${left} แปลง` : `${gData.plots.length} แปลง`}${nl ? ` · ที่ดิน ${nl}` : ''}</span></button>`;
-      if (!n) return `<div class="fbtns" style="grid-template-columns:1fr">${map}</div>`;
+      if (!n) return `<div class="fbtns" style="grid-template-columns:1fr">${map}${flowBtn()}</div>`;
       satQuiet();
       const it = satInfo ? satInfo.items.filter(x => !x.land) : null, bad = it ? it.filter(x => x.st === 'bad').length : 0, ok = it ? it.filter(x => x.st === 'ok').length : 0;
       const sat = !it ? 'กำลังโหลด…' : bad ? `<em>⚠️ ${bad} ควรไปดู</em> · ✅ ${ok}` : `✅ ปกติ ${ok} แปลง`;
       return `<div class="fbtns">${map}<button type="button" class="fbtn${bad ? ' bad' : ''}" onclick="openSat()"><b>🛰️ ดาวเทียม</b><span>${sat}</span></button>
-        <button type="button" class="fbtn" style="grid-column:1/-1" onclick="openSoil()"><b>💧 น้ำในดิน (ประมาณ)</b><span>${soilBtnSub()}</span></button></div>`;
+        <button type="button" class="fbtn" style="grid-column:1/-1" onclick="openSoil()"><b>💧 น้ำในดิน (ประมาณ)</b><span>${soilBtnSub()}</span></button>${flowBtn()}</div>`;
     }
     // โหลดข้อมูลดาวเทียมเงียบ ๆ ครั้งเดียว (ไม่มีข้อความเด้ง) เพื่อโชว์สรุปบนปุ่ม
     var satQuietGo = false;

@@ -165,8 +165,7 @@
     .sw-tb td { padding: 6px 4px; border-bottom: 1px solid #F0F2F1; vertical-align: top; line-height: 1.35; }
     .sw-tb td small { font-size: 11.5px; opacity: .85; }
     .sw-yr { background: #F1F5F9; border-radius: 8px; padding: 2px 8px; }
-    .leaflet-control-rotate-arrow::before { content: 'เหนือ'; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font: 700 10px 'IBM Plex Sans Thai', sans-serif; color: #B3261E; white-space: nowrap; }
-    .leaflet-control-rotate-arrow { position: relative; }
+    .leaflet-control-rotate-arrow { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M24 8l7 16H17z' fill='%23EA4335'/%3E%3Cpath d='M24 40l-7-16h14z' fill='%23A7ADB2'/%3E%3C/svg%3E") !important; background-size: 48px 48px !important; }
     .gbox { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
     .ghd { font-family: inherit; color: inherit; width: 100%; text-align: left; background: #fff; border: 0; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
     .ghd.warn { border-left: 4px solid #E08A3C; }
@@ -402,7 +401,7 @@
     .wp-lay::-webkit-scrollbar { display: none; }
     .wp-lay button { flex: none; border: 0; border-radius: 999px; padding: 7px 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,.95); color: #1F2A24; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
     .wp-lay button.on { background: #1F5E3B; color: #fff; }
-    .wp-hint { position: absolute; left: 10px; right: 10px; top: 52px; z-index: 600; margin-top: 0; }
+    .wp-hint { position: absolute; left: 10px; right: 68px; top: 10px; z-index: 600; margin-top: 0; }
     .wp-tools { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     .wp-tools button { border: 1px solid #DDE3DE; background: #fff; color: inherit; border-radius: 10px; padding: 6px 7px; font-size: 13.5px; line-height: 1.25; display: flex; align-items: center; gap: 6px; text-align: left; min-height: 46px; }
     .wp-tools button:active { background: var(--green-soft); }
@@ -425,8 +424,25 @@
     .wp-lbl { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; background: rgba(255,255,255,.92); border-radius: 6px; padding: 0 6px; font-size: 12.5px; font-weight: 700; color: #1F2A24; }
     .km-row { padding: 8px 0; }
     .km-row + .km-row { border-top: 1px solid #EEF1EF; }
-    .leaflet-control-rotate { border: 0 !important; box-shadow: 0 2px 8px rgba(0,0,0,.25) !important; border-radius: 12px !important; }
-    .leaflet-control-rotate a, .leaflet-control-rotate-toggle { width: 44px !important; height: 44px !important; line-height: 44px !important; border-radius: 12px !important; }
+    .leaflet-control-rotate { border: 0 !important; box-shadow: 0 2px 8px rgba(0,0,0,.25) !important; border-radius: 50% !important; }
+    .leaflet-control-rotate a, .leaflet-control-rotate-toggle { width: 48px !important; height: 48px !important; line-height: 48px !important; border-radius: 50% !important; }
+    /* ปุ่มกลมขวาบน (เลเยอร์ / เข็มทิศ / ไปที่ฉัน) แบบ Google Maps */
+    .mp-btn { position: absolute; right: 10px; z-index: 550; width: 48px; height: 48px; border-radius: 50%; border: 0; background: #fff; color: #1F5E3B; box-shadow: 0 2px 8px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; padding: 0; }
+    .mp-btn.on { background: #D4ECE3; }
+    #fmMap .leaflet-top.leaflet-right { top: 112px; }
+    #wpMap .leaflet-top.leaflet-right { top: 58px; }
+    .ly-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1100; background: #fff; border-radius: 18px 18px 0 0; padding: 12px 16px 14px; box-shadow: 0 -4px 18px rgba(0,0,0,.2); animation: fmUp .2s ease-out; }
+    .ly-hd { display: flex; align-items: center; justify-content: space-between; }
+    .ly-hd b { font-size: 18px; }
+    .ly-hd button { border: 0; background: none; color: inherit; font-size: 22px; width: 40px; height: 40px; }
+    .ly-h { font-size: 15px; font-weight: 700; margin: 8px 0 8px; }
+    .ly-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border-bottom: 1px solid #EEF1EF; padding-bottom: 10px; }
+    .ly-grid:last-child { border-bottom: 0; }
+    .ly-it { border: 0; background: none; color: inherit; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; line-height: 1.25; text-align: center; }
+    .ly-th { width: 58px; height: 58px; border-radius: 14px; border: 3px solid transparent; box-shadow: 0 0 0 1px #DDE3DE; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #F1F4F2; }
+    .ly-it.on .ly-th { border-color: #0E7C86; box-shadow: none; }
+    .ly-it.on .ly-l { color: #0E7C86; font-weight: 700; }
+    .ly-it small { font-size: 11.5px; color: var(--muted); margin-top: -3px; }
     .wx-strip { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: #fff; color: inherit; border: 1px solid #E1E6E2; border-radius: 14px; padding: 10px 14px; margin-bottom: 4px; }
     .wx-ic { font-size: 28px; line-height: 1; }
     .wx-strip .wx-l { flex: 1; min-width: 0; }
@@ -1361,12 +1377,10 @@
             <div class="fm-res" id="fmRes" style="display:none"></div>
             <div class="fm-hint" id="fmHint" style="display:none"></div>
           </div>
-          <button type="button" class="rk-fab" style="top:120px" id="fmLayerBtn" onclick="fmToggleLayer()">แผนที่ถนน</button>
-          <button type="button" class="rk-fab" style="top:166px" onclick="fmGoMe()">ไปที่ฉัน</button>
-          <button type="button" class="rk-fab" style="top:212px" id="fmPoiBtn" onclick="poiToggle()">ซ่อนชื่อสถานที่</button>
-          <button type="button" class="rk-fab" style="top:258px" id="fmLandBtn" onclick="fmToggleLands()">โชว์ที่ดินดูไว้</button>
-          <button type="button" class="rk-fab" style="top:304px" id="fmRainBtn" onclick="fmRainToggle()">🌧️ ฝน</button>
-          <button type="button" class="rk-fab" style="top:350px" id="fmSatBtn" onclick="fmSatToggle()">🛰️ ดาวเทียม</button>
+          <div style="display:none"><button type="button" id="fmLayerBtn"></button><button type="button" id="fmPoiBtn"></button><button type="button" id="fmLandBtn"></button><button type="button" id="fmRainBtn"></button><button type="button" id="fmSatBtn"></button></div>
+          <button type="button" class="mp-btn" style="top:62px" id="fmLyBtn" onclick="lyToggle('fm')" aria-label="เลเยอร์"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3 2.5 8.2 12 13.4l9.5-5.2z" fill="#1F5E3B"/><path d="M4.6 11.6 2.5 12.8 12 18l9.5-5.2-2.1-1.2L12 15.7z" fill="#1F5E3B" opacity=".55"/></svg></button>
+          <button type="button" class="mp-btn" style="top:180px" onclick="fmGoMe()" aria-label="ไปที่ฉัน"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#1E6FD9" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="#1E6FD9"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="#1E6FD9" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <div class="ly-sheet" id="fmLy" style="display:none"></div>
           <div class="fm-rbar" id="fmSatBar" style="display:none"></div>
           <div class="fm-rbar" id="fmRainBar" style="display:none">
             <div class="fm-rrow"><div class="fm-rseg"><button type="button" id="fmRainH" onclick="fmRainMode('h')">รายชั่วโมง</button><button type="button" id="fmRainD" onclick="fmRainMode('d')">รายวัน</button></div><b id="fmRainLbl" class="text-end">…</b></div>
@@ -1412,7 +1426,8 @@
         </div>
         <div class="modal-body">
           <div id="wpMap"></div>
-          <div class="wp-lay" id="wpLay"></div>
+          <button type="button" class="mp-btn" style="top:10px" onclick="lyToggle('wp')" aria-label="เลเยอร์"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3 2.5 8.2 12 13.4l9.5-5.2z" fill="#1F5E3B"/><path d="M4.6 11.6 2.5 12.8 12 18l9.5-5.2-2.1-1.2L12 15.7z" fill="#1F5E3B" opacity=".55"/></svg></button>
+          <div class="ly-sheet" id="wpLy" style="display:none"></div>
           <div class="fm-hint wp-hint" id="wpHint" style="display:none"></div>
         </div>
         <div class="modal-footer py-2"><div id="wpPanel"></div></div>
@@ -5191,12 +5206,12 @@ Export.table.toDrive({
     }
 
     function openFarmMap(pid, edit) {
-      fmSel = null; fmEdit = null; $('fmRes').style.display = 'none'; $('fmQ').value = '';
+      fmSel = null; fmEdit = null; $('fmRes').style.display = 'none'; $('fmQ').value = ''; if (lyOpen) lyToggle(lyOpen);
       showM('farmMapModal');
       loadLeaflet().then(() => {
         if (!fmMap) {
           fmMap = L.map('fmMap', { zoomControl: false, rotate: true, touchRotate: true, shiftKeyRotate: true,
-            rotateControl: { closeOnZeroBearing: false, position: 'bottomleft' } });
+            rotateControl: { closeOnZeroBearing: false, position: 'topright' } });
           fmSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18, attribution: 'ภาพ © Esri' });
           fmStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19, attribution: '© OpenStreetMap' });
           fmSat.addTo(fmMap);
@@ -5205,6 +5220,7 @@ Export.table.toDrive({
           fmMap.on('click', e => {
             $('fmRes').style.display = 'none';
             if (kmItems) return;
+            if (lyOpen === 'fm') return lyToggle('fm');
             if (fmEdit) { fmEdit.pts.push(fmSnap(e.latlng)); fmDrawEdit(); }
             else if (fmSel) { fmSel = null; fmRender(); }
           });
@@ -5693,6 +5709,40 @@ Export.table.toDrive({
     }
 
     // ค้นหา: แปลง/ที่ดินของเรา → พิกัด/ลิงก์ Google Maps → ชื่อสถานที่ (OpenStreetMap)
+    // ===== เลือกเลเยอร์ (แบบ Google Maps): ปุ่มกลมขวาบน → แผ่นล่าง ประเภทแผนที่ + ข้อมูลบนแผนที่ =====
+    let lyOpen = '';
+    const LY_TH = {
+      sat: 'background:linear-gradient(135deg,#4F7A3A 0 32%,#9B7B52 32% 56%,#5E8C46 56% 80%,#7A6142 80%)',
+      street: 'background:linear-gradient(90deg,transparent 42%,#fff 42% 56%,transparent 56%),linear-gradient(0deg,transparent 58%,#F6C26B 58% 68%,transparent 68%),#E9F0E6',
+      spot: 'background:radial-gradient(circle at 60% 40%,#0D3A9E 0 18%,#5A9EF2 18% 38%,#BFE0FF 38% 55%,#F1F4F2 55%)',
+      dem: 'background:linear-gradient(180deg,#1D4ED8,#93C5FD,#FEF08A,#D97706)'
+    };
+    function lyToggle(m) {
+      lyOpen = lyOpen === m ? '' : m;
+      ['fm', 'wp'].forEach(k => { const e = $(k + 'Ly'); if (e) e.style.display = lyOpen === k ? '' : 'none'; });
+      if (lyOpen) lyRender(lyOpen);
+    }
+    function lyRender(m) {
+      const E = $(m + 'Ly'); if (!E || lyOpen !== m) return;
+      let base, items;
+      if (m === 'fm') {
+        base = [{ on: fmUseSat, l: 'ดาวเทียม', th: LY_TH.sat, a: 'if(!fmUseSat)fmToggleLayer()' }, { on: !fmUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'if(fmUseSat)fmToggleLayer()' }];
+        const nl = (gData.lands || []).length;
+        items = [{ on: poiOn, l: 'ชื่อสถานที่', ic: '📍', a: 'poiToggle()' }].concat(nl ? [{ on: fmShowLands, l: 'ที่ดินดูไว้', s: nl + ' แปลง', ic: '<span style="width:30px;height:24px;border:3px dashed #B48CE8;border-radius:4px"></span>', a: 'fmToggleLands()' }] : [],
+          [{ on: fmRain, l: 'ฝน', s: 'พยากรณ์', ic: '🌧️', a: 'fmRainToggle();if(fmRain)lyToggle(\'fm\')' }, { on: fmSatOn, l: 'ภาพดาวเทียม', s: 'ความเขียว/น้ำขัง', ic: '🛰️', a: 'fmSatToggle();if(fmSatOn)lyToggle(\'fm\')' }]);
+      } else {
+        if (!wp) return;
+        const st = (on, s, ok) => !on ? '' : s === 'load' ? 'กำลังโหลด…' : s === 'err' ? 'โหลดไม่ได้' : ok || '';
+        base = [{ on: wpUseSat, l: 'ดาวเทียม', th: LY_TH.sat, a: 'wpBaseT(true)' }, { on: !wpUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'wpBaseT(false)' }];
+        items = [{ on: wp.lay.spot, l: 'น้ำขัง 2 ปี', s: st(wp.lay.spot, wp.spotSt), th: LY_TH.spot, a: "wpLayT('spot')" },
+          { on: wp.lay.dem, l: 'ความสูงพื้น', s: st(wp.lay.dem, wp.demSt), th: LY_TH.dem, a: "wpLayT('dem')" },
+          { on: wp.lay.osm, l: 'ทางน้ำในแผนที่', s: st(wp.lay.osm, wp.osmSt, wp.osm ? wp.osm.length + ' เส้น' : ''), ic: '<svg width="34" height="20"><path d="M2 14c6-10 10 4 16-4s10 2 14-4" fill="none" stroke="#3BA7E0" stroke-width="3" stroke-dasharray="2 4" stroke-linecap="round"/></svg>', a: "wpLayT('osm')" }];
+      }
+      const it = x => `<button type="button" class="ly-it${x.on ? ' on' : ''}" onclick="${x.a};lyRender('${m}')"><span class="ly-th" style="${x.th || ''}">${x.ic || ''}</span><span class="ly-l">${x.l}</span>${x.s ? `<small>${x.s}</small>` : ''}</button>`;
+      E.innerHTML = `<div class="ly-hd"><b>เลเยอร์</b><button type="button" onclick="lyToggle('${m}')" aria-label="ปิด">✕</button></div>
+        <div class="ly-h">ประเภทแผนที่</div><div class="ly-grid">${base.map(it).join('')}</div>
+        <div class="ly-h">บนแผนที่</div><div class="ly-grid">${items.map(it).join('')}</div>`;
+    }
     // ===== 💧 แผนน้ำรายแปลง =====
     // วาดหัว/ท้ายแปลง คลอง คูที่จะขุด ทางลาด แนวร่อง จุดถม/ปาด + ซ้อนจุดน้ำขัง (ดาวเทียม 2 ปี) + ความสูงพื้น (Copernicus DEM 30 ม.) + ทางน้ำจาก OpenStreetMap
     // เก็บชีต WaterPlans (saveWaterPlan) · ภาพเดียวส่งช่างปรับที่/ชักร่อง (wpExport)
@@ -5765,27 +5815,37 @@ Export.table.toDrive({
       wp = { kind, id, name: kind === 'plot' ? o.plot_name : o.name, rai: num(o.map_rai) || num(o.area_rai), pts, feats: pl.feats, updated: pl.updated,
         dirty: false, tool: null, cur: [], sel: -1, lay: Object.assign({ spot: true, dem: true, osm: true }, wpLayPref()),
         dem: null, demSt: '', spotSt: '', spotA: null, osm: null, osmSt: '', back, exp: null };
-      $('wpTitle').innerText = 'แผนน้ำ · ' + wp.name;
+      $('wpTitle').innerText = 'แผนน้ำ · ' + wp.name; if (lyOpen) lyToggle(lyOpen);
       $('wpHint').style.display = 'none';
       showM('wpModal'); wpPanel();
       loadLeaflet().then(() => {
         if (!wpMap) {
-          wpMap = L.map('wpMap', { zoomControl: false, rotateControl: false });
+          wpMap = L.map('wpMap', { zoomControl: false, rotate: true, touchRotate: true, rotateControl: { closeOnZeroBearing: false, position: 'topright' } });
           wpSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18, attribution: 'ภาพ © Esri' }).addTo(wpMap);
           wpStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, maxNativeZoom: 19, attribution: '© OpenStreetMap' });
           const root = wpMap.getPane('rotatePane') || undefined;   // leaflet-rotate: ภาพซ้อนต้องอยู่ใน rotatePane
           wpMap.createPane('wpDem', root).style.zIndex = 385; wpMap.createPane('wpSpot', root).style.zIndex = 390;
           wpDemG = L.layerGroup().addTo(wpMap); wpSpotG = L.layerGroup().addTo(wpMap); wpOsmG = L.layerGroup().addTo(wpMap); wpG = L.layerGroup().addTo(wpMap);
-          wpMap.on('click', e => wpTap(e.latlng));
-          $('wpModal').addEventListener('shown.bs.modal', () => wpMap.invalidateSize());
+          wpMap.on('click', e => { if (lyOpen === 'wp') return lyToggle('wp'); wpTap(e.latlng); });
+          $('wpModal').addEventListener('shown.bs.modal', () => { wpMap.invalidateSize(); if (wp && !wp.moved) wpFit(); });
+          wpMap.on('dragstart zoomstart', () => { if (wp && wp.fitted) wp.moved = true; });
         }
         [wpDemG, wpSpotG, wpOsmG, wpG].forEach(g => g.clearLayers());
         setTimeout(() => {
           if (!wp) return;
-          wpMap.invalidateSize(); wpMap.fitBounds(L.latLngBounds(wp.pts), { padding: [36, 36], maxZoom: 20 });
+          wpFit();
           wpDraw(); wpSpotLoad(); wpDemLoad(); wpOsmLoad(); wpLayBar();
         }, 350);
       }).catch(e => { hideModal('wpModal'); alert(e.message); });
+    }
+    // พอดีแปลง: รอให้แผนที่รู้ขนาดจริงก่อน (ขนาด 0 = ซูมสุดจนเห็นแค่มุมแปลง)
+    function wpFit(n) {
+      if (!wp || !wpMap) return;
+      wpMap.invalidateSize();
+      const sz = wpMap.getSize();
+      if ((sz.x < 100 || sz.y < 100) && (n || 0) < 15) return setTimeout(() => wpFit((n || 0) + 1), 120);
+      const b = L.latLngBounds(wp.pts), z = Math.min(19, wpMap.getBoundsZoom(b, false, L.point(64, 64)));
+      wp.fitted = false; wpMap.setView(b.getCenter(), z, { animate: false }); wp.fitted = true;
     }
     function wpClose() {
       if (wp && wp.dirty && !confirm('ยังไม่ได้บันทึกแผนน้ำ ปิดเลยไหม?')) return;
@@ -5799,21 +5859,14 @@ Export.table.toDrive({
     }
 
     // ---------- ชั้นซ้อน ----------
-    function wpLayBar() {
-      if (!wp) return;
-      const st = (on, s, ok) => !on ? '' : s === 'load' ? ' …' : s === 'err' ? ' ✕' : ok || '';
-      const n = wp.osm ? wp.osm.length : 0;
-      $('wpLay').innerHTML = `<button type="button" class="${wp.lay.spot ? 'on' : ''}" onclick="wpLayT('spot')">💧 น้ำขัง 2 ปี${st(wp.lay.spot, wp.spotSt)}</button>
-        <button type="button" class="${wp.lay.dem ? 'on' : ''}" onclick="wpLayT('dem')">⛰️ ความสูงพื้น${st(wp.lay.dem, wp.demSt)}</button>
-        <button type="button" class="${wp.lay.osm ? 'on' : ''}" onclick="wpLayT('osm')">〰️ ทางน้ำในแผนที่${st(wp.lay.osm, wp.osmSt, wp.osm ? ` (${n})` : '')}</button>
-        <button type="button" onclick="wpBaseT()">${wpUseSat ? 'แผนที่ถนน' : 'ภาพดาวเทียม'}</button>`;
-    }
+    function wpLayBar() { if (lyOpen === 'wp') lyRender('wp'); }
     function wpLayT(k) {
       wp.lay[k] = !wp.lay[k]; lsSet('raioy_wplay', JSON.stringify(wp.lay));
       if (k === 'spot') wpSpotLoad(); if (k === 'dem') { wpDemLoad(); wpDraw(); } if (k === 'osm') wpOsmLoad();
       wpLayBar(); wpPanel();
     }
-    function wpBaseT() {
+    function wpBaseT(v) {
+      if (v !== undefined && v === wpUseSat) return;
       wpUseSat = !wpUseSat;
       if (wpUseSat) { wpMap.removeLayer(wpStreet); wpSat.addTo(wpMap); } else { wpMap.removeLayer(wpSat); wpStreet.addTo(wpMap); }
       wpLayBar();

@@ -1436,3 +1436,37 @@ function closeWatchesFor_(ss, plotIds, group, detail, logId) {
     }
   }
 }
+
+// เปลี่ยนชื่อรถ/เครื่อง/คนงาน: ชื่อใช้เป็นตัวเชื่อมทุกชีต → แก้ MasterOptions, Assets (+ แบตติดรถ), AssetLogs, Activities.equipment/operator
+function renameAsset(oldN, newN) {
+  oldN = String(oldN || '').trim(); newN = String(newN || '').trim();
+  if (!oldN || !newN || oldN === newN) throw new Error('ชื่อไม่ถูกต้อง');
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const aSh = ss.getSheetByName(SH.ASSET), ad = aSh.getDataRange().getDisplayValues();
+    if (ad.some((r, i) => i && r[2] === newN)) throw new Error('มีชื่อ "' + newN + '" อยู่แล้ว');
+    let cat = '';
+    for (let i = 1; i < ad.length; i++) if (ad[i][2] === oldN) {
+      cat = ad[i][1]; aSh.getRange(i + 1, 3).setNumberFormat('@').setValue(newN);
+      if (ad[i][6] && ad[i][6].includes('(' + oldN + ')')) aSh.getRange(i + 1, 7).setValue(ad[i][6].split('(' + oldN + ')').join('(' + newN + ')'));
+    }
+    if (!cat) throw new Error('ไม่พบ "' + oldN + '"');
+    const oSh = ss.getSheetByName(SH.OPT), od = oSh.getDataRange().getDisplayValues(), oc = od[0].indexOf(cat);
+    if (oc >= 0) for (let r = 1; r < od.length; r++) if (od[r][oc] === oldN) oSh.getRange(r + 1, oc + 1).setNumberFormat('@').setValue(newN);
+    // แก้ทั้งคอลัมน์ทีเดียว (ชื่อในรายการคั่นด้วย , ให้ตรงทั้งคำ)
+    const fixCol = (sh, col) => {
+      if (!sh) return; const c = headCol_(sh, col), n = sh.getLastRow() - 1; if (n < 1) return;
+      const rg = sh.getRange(2, c, n, 1), v = rg.getDisplayValues(); let ch = false;
+      const out = v.map(([x]) => {
+        if (!x || x.indexOf(oldN) < 0) return [x];
+        const t = x.split(',').map(s => s.trim() === oldN ? (ch = true, s.replace(oldN, newN)) : s).join(',');
+        return [t];
+      });
+      if (ch) rg.setValues(out);
+    };
+    fixCol(ss.getSheetByName(SH.ALOG), 'asset_name');
+    const act = ss.getSheetByName(SH.ACT);
+    if (act) { const h = act.getRange(1, 1, 1, act.getLastColumn()).getDisplayValues()[0]; ['equipment', 'operator'].forEach(k => { if (h.includes(k)) fixCol(act, k); }); }
+    return readAll_(ss);
+  });
+}

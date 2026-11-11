@@ -2819,7 +2819,7 @@
       if (name && !a) return;
       regNewCat = cat === 'Home' ? 'Home' : 'Car';
       $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + a.name : regNewCat === 'Home' ? '🚗 เพิ่มรถส่วนตัว' : '🪪 เพิ่มรถที่ใช้ในไร่';
-      $('rg_name').value = a ? a.name : ''; $('rg_newbox').style.display = a ? 'none' : 'block'; $('rg_newname').value = '';
+      $('rg_name').value = a ? a.name : ''; $('rg_newname').value = a ? a.name : '';
       $('rg_plate').value = a ? a.plate || '' : ''; $('rg_exp').value = a ? beToISO(a.reg_expire) || '' : '';
       $('rg_tplate').value = a ? a.trailer_plate || '' : ''; $('rg_texp').value = a ? beToISO(a.trailer_reg_expire) || '' : '';
       $('rg_tr_box').style.display = (!a && regNewCat === 'Car') || (a && (a.category === 'Truck' || a.category === 'Car')) ? 'block' : 'none';
@@ -2831,7 +2831,13 @@
       if ($('rg_tr_box').style.display !== 'none') { p.trailer_plate = $('rg_tplate').value.trim(); p.trailer_expire = $('rg_texp').value ? isoToBE($('rg_texp').value) : ''; }
       let nm = $('rg_name').value;
       const save = () => call('setAssetReg', [nm, p], d => { hideModal('regModal'); init(d); }, $('btnRg'), 'บันทึกแล้ว');
-      if (nm) return save();
+      if (nm) {
+        const nn = $('rg_newname').value.trim();
+        if (!nn) return alert('ใส่ชื่อรถก่อนครับ');
+        if (nn === nm) return save();
+        if ((gData.assets || []).some(x => x.name === nn)) return alert('มีชื่อ "' + nn + '" อยู่แล้ว');
+        return call('renameAsset', [nm, nn], d => { init(d); nm = nn; save(); }, $('btnRg'));
+      }
       nm = $('rg_newname').value.trim(); if (!nm) return alert(regNewCat === 'Home' ? 'ใส่ชื่อรถก่อนครับ เช่น Jazz' : 'ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
       call('updateMasterOption', [regNewCat, 'add', nm], d => { init(d); save(); }, $('btnRg'));
     }

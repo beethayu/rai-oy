@@ -2632,6 +2632,10 @@
               <input type="checkbox" class="form-check-input m-0" id="dp_sand" ${plotTags(p).includes(TAG_SAND) ? 'checked' : ''}>
               <span class="chip chip-sand">ดินทราย แห้งง่าย</span>
               <span class="text-muted fw-normal">(ป้ายบอกเฉย ๆ ไม่เปลี่ยนคิวน้ำ)</span></label></div>
+            <div class="col-12"><label class="d-flex align-items-center gap-2 fw-bold" style="cursor:pointer;">
+              <input type="checkbox" class="form-check-input m-0" id="dp_wet" ${plotTags(p).includes('น้ำขังง่าย') ? 'checked' : ''}>
+              <span class="sw-pr" style="font-size:13px">💧 น้ำขังง่าย</span>
+              <span class="text-muted fw-normal">(หน้าน้ำในดินจะเตือนแปลงนี้ก่อน)</span></label></div>
           </div>
         </div>
 
@@ -2698,8 +2702,9 @@
         cane_type: $('dp_type').value, cane_variety: $('dp_var').value.trim(), plant_date: isoToBE($('dp_date').value)
       };
       const p0 = (gData.plots || []).find(x => x.plot_id === pid);
-      const tags = plotTags(p0).filter(t => t !== TAG_SAND);
+      const tags = plotTags(p0).filter(t => t !== TAG_SAND && t !== 'น้ำขังง่าย');
       if ($('dp_sand') && $('dp_sand').checked) tags.push(TAG_SAND);
+      if ($('dp_wet') && $('dp_wet').checked) tags.push('น้ำขังง่าย');
       payload.tags = tags.join(',');
       call('updatePlotInfo', [payload], d => { init(d); openDossier(pid); alert('บันทึกข้อมูลประจำแปลงเรียบร้อย!'); }, $('btnPlotSave'));
     }
@@ -4636,7 +4641,9 @@ Export.table.toDrive({
         }
         x.st = x.flags.length ? 'bad' : x.age > 30 ? 'none' : 'ok';
       });
-      items.forEach(x => { x.wetSeen = (x.good || []).filter(q => q.water >= 0.3 && q.ndvi < 0.5 && !(hazy[q.d] >= 3)).map(q => q.d); });
+      // เห็นน้ำแต่ความเขียวตกแล้วเด้งกลับภายในไม่กี่วัน = เมฆ/เงาเมฆ ไม่ใช่น้ำขัง (เช่น 25 เม.ย. 69 หนองบวบหอม 3: 0.43 → 0.02 → 0.36)
+      const blip = (x, q) => { const a = x.good.filter(o => Math.abs(satAge(o.d) - satAge(q.d)) <= 7 && o.d !== q.d); const b = a.filter(o => o.d < q.d).pop(), c = a.find(o => o.d > q.d); return !!(b && c && b.ndvi - q.ndvi >= 0.2 && c.ndvi - q.ndvi >= 0.2); };
+      items.forEach(x => { x.wetSeen = (x.good || []).filter(q => q.water >= 0.3 && q.ndvi < 0.5 && !(hazy[q.d] >= 3) && !blip(x, q)).map(q => q.d); });
       satInfo = { items, peer };
     }
     // ===== 💧 น้ำในดิน (ประมาณ) =====
@@ -4658,9 +4665,10 @@ Export.table.toDrive({
     }
     function soilProne(p) {
       const out = [];
+      if (plotTags(p).includes('น้ำขังง่าย')) out.push('เจ้าของไร่ยืนยันว่าน้ำขังจริง');
       if ((gData.activities || []).some(a => a.plot_id === p.plot_id && /สูบน้ำขัง|ระบายน้ำ/.test((a.activity_detail || '') + (a.remark || '')))) out.push('เคยบันทึกสูบ/ระบายน้ำขัง');
       const x = satInfo && satInfo.items.find(i => i.key === 'plot|' + p.plot_id);
-      if (x && x.wetSeen && x.wetSeen.length) out.push('ดาวเทียมเคยเห็นน้ำบนแปลง ' + x.wetSeen.slice(-2).map(satDs).join(', '));
+      if (x && x.wetSeen && x.wetSeen.length) out.push('ดาวเทียมเคยเห็นน้ำบนแปลง ' + x.wetSeen.slice(-3).map(d => `<a href="#" onclick="event.preventDefault();soilSeeDate('${p.plot_id}','${d}')">${satDs(d)}</a>`).join(', '));
       return out;
     }
     function soilCalc(p) {
@@ -4739,8 +4747,12 @@ Export.table.toDrive({
       ln.push(`7 วันที่ผ่านมา ฝนราว ${mm(r.rain7)} มม. · พยากรณ์ 7 วันข้างหน้า ${mm(r.rainF)} มม.${r.lastIrr ? ' · ขึ้นน้ำล่าสุด ' + f(r.lastIrr.t) : ''}`);
       if (r.overF >= 10) ln.push(`⚠️ ถ้าฝนตกตามพยากรณ์ 3 วันนี้ น้ำจะเกินที่ดินรับได้ราว ${mm(r.overF)} มม.`);
       return `<div class="sw-det">${soilChart(r)}${ln.map(x => `<div>${x}</div>`).join('')}
-        ${r.prone.length ? `<div class="sw-prone">💧 แปลงนี้มีจุดเสี่ยงน้ำขัง: ${r.prone.map(esc).join(' · ')}</div>` : ''}
+        ${r.prone.length ? `<div class="sw-prone">💧 แปลงนี้มีจุดเสี่ยงน้ำขัง: ${r.prone.join(' · ')} <span style="opacity:.75">(แตะวันที่ = ดูภาพวันนั้นบนแผนที่)</span></div>` : ''}
         <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="soilToSpots('${r.p.plot_id}')">🗺️ จุดน้ำขังบนแผนที่</button><button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="hideModal('soilModal');setTimeout(()=>openSat('plot|${r.p.plot_id}'),300)">🛰️ ภาพดาวเทียม</button></div></div>`;
+    }
+    function soilSeeDate(id, d) {
+      hideModal('soilModal'); fmSatMode = 'n';
+      satEnsure(() => { const x = satInfo.items.find(i => i.key === 'plot|' + id); if (x && x.last && d !== x.last.d) fmSatDate[x.key] = d; setTimeout(() => satToMap('plot|' + id), 50); });
     }
     function soilToSpots(id) {
       hideModal('soilModal'); fmSatMode = 'f';

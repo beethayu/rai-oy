@@ -433,6 +433,30 @@ function syncPlots_(ss, plotIds) {
   rg.setValues(out);
 }
 
+// ===== รถจ้าง: คอลัมน์ hire ต่อท้ายชีต Activities (สร้างเองครั้งแรกที่มีงานจ้าง) =====
+// เก็บ JSON ต่อแถว (ต่อแปลง) {by ผู้รับจ้าง, u หน่วย ชม.|ไร่|ตัน|เหมา, r ราคาต่อหน่วย, q จำนวนของแปลงนี้, a บาท} · เหมา: q = บาท
+// payload.hire = {by, u, r, q: [จำนวนเรียงตาม plotIds] หรือเลขเดียว}
+const HIRE_U_ = ['ชม.', 'ไร่', 'ตัน', 'เหมา'];
+function hireCell_(h, i) {
+  if (!h || typeof h !== 'object') return '';
+  const u = HIRE_U_.indexOf(h.u) >= 0 ? h.u : 'ชม.', by = String(h.by || '').trim().slice(0, 60);
+  const q = Math.max(0, Number(Array.isArray(h.q) ? h.q[i] : h.q) || 0), r = u === 'เหมา' ? 0 : Math.max(0, Number(h.r) || 0);
+  if (!by && !q && !r) return '';
+  return JSON.stringify({ by, u, r, q, a: u === 'เหมา' ? q : Math.round(q * r * 100) / 100 });
+}
+function hireCol_(sh, make) { // เลขคอลัมน์ hire (1-based) · ยังไม่มีและ make = สร้างหัวคอลัมน์
+  const w = Math.max(sh.getLastColumn(), 1), hd = sh.getRange(1, 1, 1, w).getDisplayValues()[0], c = hd.indexOf('hire');
+  if (c >= 0) return c + 1;
+  if (!make) return 0;
+  sh.getRange(1, w + 1).setValue('hire').setFontWeight('bold').setBackground('#38761d').setFontColor('#ffffff');
+  return w + 1;
+}
+function withHire_(sh, rows, h) {
+  if (!h || !rows.length || !rows.some((r, i) => hireCell_(h, i))) return rows;
+  const c = hireCol_(sh, true);
+  return rows.map((r, i) => { const x = r.slice(); while (x.length < c) x.push(''); x[c - 1] = hireCell_(h, i); return x; });
+}
+
 function saveActivities(payload) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -449,6 +473,8 @@ function saveActivities(payload) {
           const rg = sh.getRange(i + 1, 2, 1, 8);
           rg.setNumberFormat('@');
           rg.setValues([[date, pid0, g, payload.activity_detail || '-', payload.equipment || '-', payload.quantity || '-', payload.operator || '-', rmk]]);
+          const hc = hireCol_(sh, !!hireCell_(payload.hire, 0));
+          if (hc) sh.getRange(i + 1, hc).setNumberFormat('@').setValue(hireCell_(payload.hire, 0));
           break;
         }
       }
@@ -459,8 +485,8 @@ function saveActivities(payload) {
     }
 
     const base = Date.now();
-    const rows = payload.plotIds.map((pid, i) => ['L' + base + '_' + i, date, pid, g,
-      payload.activity_detail || '-', payload.equipment || '-', payload.quantity || '-', payload.operator || '-', rmk]);
+    const rows = withHire_(sh, payload.plotIds.map((pid, i) => ['L' + base + '_' + i, date, pid, g,
+      payload.activity_detail || '-', payload.equipment || '-', payload.quantity || '-', payload.operator || '-', rmk]), payload.hire);
     appendRows_(sh, rows);
     applyUsage_(ss, payload.usage, rows[0][0], pid0, date, g);
     syncPlots_(ss, payload.plotIds);

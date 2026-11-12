@@ -163,6 +163,22 @@
     .fl-step.ask .fl-num { background: #6B2E86; }
     .fl-tag { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; white-space: nowrap; }
     .fl-tag-repeat { background: #E3EFE7; color: #1F5E3B; } .fl-tag-branch { background: #FDEBD3; color: #8A4A06; } .fl-tag-ask { background: #EFE4F4; color: #6B2E86; }
+    .hire-box { background: #FFF8EE; border-color: #E9C48F !important; }
+    .hire-seg { display: flex; background: #F1E3CF; border-radius: 10px; padding: 3px; gap: 3px; }
+    .hire-seg button { flex: 1; border: 0; background: transparent; color: inherit; font-weight: 700; padding: 7px 4px; border-radius: 8px; font-size: 15px; }
+    .hire-seg button.on { background: #fff; color: #8A4A06; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+    .hire-f { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .hire-f > span { flex: 0 0 92px; font-size: 14px; font-weight: 700; color: #6B736E; }
+    .hire-f input { flex: 1; min-width: 0; font-size: 16px; border: 1px solid #DCCDB8; border-radius: 8px; padding: 6px 10px; background: #fff; }
+    .hire-u { display: flex; gap: 4px; flex: 1; }
+    .hire-u button { flex: 1; border: 1px solid #DCCDB8; background: #fff; color: inherit; border-radius: 8px; padding: 6px 0; font-size: 14px; font-weight: 600; }
+    .hire-u button.on { background: #8A4A06; border-color: #8A4A06; color: #fff; }
+    .hire-r { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid #F0E2CC; }
+    .hire-r:first-child { margin-top: 8px; }
+    .hire-r .hn { flex: 1; min-width: 0; font-size: 14px; } .hire-r .hn small { color: #6B736E; display: block; }
+    .hire-r input { width: 86px; font-size: 16px; border: 1px solid #DCCDB8; border-radius: 8px; padding: 5px 8px; text-align: right; }
+    .hire-r b { width: 82px; text-align: right; font-size: 14px; }
+    .hire-sum { text-align: right; font-weight: 700; color: #8A4A06; margin-top: 6px; font-size: 16px; } .fl-tag-seq { background: #E4ECF7; color: #24508A; }
     .fl-q { font-size: 15px; font-weight: 700; color: #6B2E86; margin-top: 3px; }
     .fl-br { margin-top: 6px; background: #FFF8EE; border: 1.5px dashed #B4630B; border-radius: 10px; padding: 6px 10px; font-size: 13.5px; }
     .fl-ph { cursor: pointer; margin: 14px 0 8px; padding: 8px 12px; border-radius: 12px; background: #E3EFE7; color: #1F2A24; }
@@ -896,18 +912,27 @@
             <small class="fw-bold">เลือกงานรถไถ & เครื่องจักร:</small>
             <select class="form-select form-select-sm mb-1 mt-1" id="trac_task" onchange="placeFert()">
               <optgroup label="อ้อยใหม่ (เตรียมดินตามลำดับ)">
-                <option value="ริปเปอร์">ริปเปอร์</option>
-                <option value="ผาน 3">ผาน 3 (ไถดะ)</option>
-                <option value="ผาน 7">ผาน 7 (ไถแปร)</option>
-                <option value="ชักร่อง / ปลูกอ้อย">ชักร่อง / ปลูกอ้อย</option>
+                <option value="ผาน 7 รื้อตอ">ผาน 7 รื้อตอ</option>
+                <option value="ริปเปอร์ 2 ขา (ดินแข็ง)">ริปเปอร์ 2 ขา (ดินแข็ง แทนผาน 7)</option>
+                <option value="ผาน 4 (ไถดะ)">ผาน 4 รอบ 1 (ไถดะ)</option>
+                <option value="ผาน 4 (ไถแปร)">ผาน 4 รอบ 2 (ไถแปร)</option>
+                <option value="ผาน 4 รอบ 3">ผาน 4 รอบ 3 (ดินก้อนใหญ่)</option>
+                <option value="ผานชักร่อง">ผานชักร่อง</option>
+                <option value="ทอยอ้อย (ปลูก)">ทอยอ้อย (ปลูก)</option>
+                <option value="ฝังปุ๋ยรองพื้น + กลบ">ฝังปุ๋ยรองพื้น + กลบ</option>
               </optgroup>
               <optgroup label="อ้อยตอ">
+                <option value="กวาดใบ + อัดใบ">กวาดใบ + อัดใบ</option>
+                <option value="สับใบ">สับใบ</option>
+                <option value="ไถ + ลงริปเปอร์ (ตอเผา)">ไถ + ลงริปเปอร์ (ตอเผา)</option>
                 <option value="ครูดร่อง">ครูดร่อง (ระหว่างแถว)</option>
               </optgroup>
               <optgroup label="ทั่วไป">
               <option value="อุ้มร่อง">อุ้มร่อง</option>
               <option value="ฝังปุ๋ย">ฝังปุ๋ย</option>
+              <option value="ล้มหลังร่อง + พูนโคน">ล้มหลังร่อง + พูนโคน</option>
               <option value="สับหญ้า / ถากหญ้า">สับหญ้า (รถ)</option>
+              <option value="ปรับที่">ปรับที่</option>
               </optgroup>
             </select>
             <select class="form-select form-select-sm" id="act_eq"></select>
@@ -961,7 +986,7 @@
             <div class="row g-1 mb-2">
               <div class="col-6">
                 <small class="fw-bold">วิธีตัด:</small>
-                <select class="form-select form-select-sm" id="harv_method">
+                <select class="form-select form-select-sm" id="harv_method" onchange="hireSet(this.value === 'รถตัดอ้อย', 'ตัน')">
                   <option value="รถตัดอ้อย">🚜 รถตัดอ้อย</option>
                   <option value="คนตัด">🔪 คนตัด</option>
                 </select>
@@ -977,6 +1002,18 @@
             <small class="fw-bold d-block mb-1">🚛 เลือกรถสิบล้อขนส่ง (ติ๊กได้หลายคัน):</small>
             <div id="truck_chks" class="small mb-2"></div>
             <input type="text" class="form-control form-control-sm" id="harv_qty" placeholder="จำนวนเที่ยว / น้ำหนักตัน (เช่น 3 เที่ยว 45 ตัน)">
+          </div>
+
+          <div id="hire_block" class="mb-2 p-2 rounded border hire-box" style="display:none;">
+            <div class="hire-seg"><button type="button" id="hire_no" onclick="hireSet(false)">🚜 รถเรา</button><button type="button" id="hire_yes" onclick="hireSet(true)">🤝 รถจ้าง</button></div>
+            <div id="hire_body" style="display:none;">
+              <label class="hire-f"><span>ผู้รับจ้าง</span><input type="text" id="hire_by" list="hire_names" placeholder="เจ้าของรถ / ผู้รับจ้าง" onchange="hireRate()"></label>
+              <datalist id="hire_names"></datalist>
+              <div class="hire-f"><span>คิดเงินเป็น</span><div class="hire-u" id="hire_units"></div></div>
+              <label class="hire-f" id="hire_rate_row"><span id="hire_rate_lbl">ราคา / ชม.</span><input type="number" inputmode="decimal" id="hire_rate" placeholder="บาท" oninput="hireCalc()"></label>
+              <div id="hire_rows"></div>
+              <div class="hire-sum" id="hire_sum"></div>
+            </div>
           </div>
 
           <div class="mb-2 p-2 bg-light rounded border">
@@ -2731,9 +2768,12 @@
       if (/ริปเปอร์/.test(d) && /ครูด/.test(d)) return type === 'อ้อยตอ' ? 'ครูดร่อง' : 'ริปเปอร์';
       if (/ครูด/.test(d) || (/ริปเปอร์/.test(d) && type === 'อ้อยตอ')) return 'ครูดร่อง';
       if (/ริปเปอร์/.test(d)) return 'ริปเปอร์';
+      if (/ผาน\s*(4|สี่)/.test(d)) return 'ผาน 4';
       if (/ผาน\s*(3|สาม)|ไถดะ/.test(d)) return 'ผาน 3';
       if (/ผาน\s*(7|เจ็ด)|ไถแปร/.test(d)) return 'ผาน 7';
-      if (/ชักร่อง|ปลูก/.test(d)) return 'ชักร่อง';
+      if (/ทอย/.test(d)) return 'ปลูก';
+      if (/ชักร่อง/.test(d)) return 'ชักร่อง';
+      if (/ปลูก/.test(d)) return 'ปลูก';
       if (/อุ้มร่อง/.test(d)) return 'อุ้มร่อง';
       if (/ฝังปุ๋ย/.test(d)) return 'ฝังปุ๋ย';
       if (/ไถ|ผาน/.test(d)) return 'ไถ';
@@ -2753,7 +2793,7 @@
         let g = l.activity_group || '', d = l.activity_detail || '', q = l.quantity || '', dt = l.timestamp;
         if (g === 'รถไถเตรียมดิน/บำรุง') {
           const k = tracKind(d, p.cane_type), v = `${dt}${l.equipment && l.equipment !== '-' ? ` (${l.equipment})` : ''}`;
-          if (k === 'ชักร่อง') plant.push(v);
+          if (k === 'ชักร่อง' || k === 'ปลูก') plant.push(v);
           else if (k && k !== 'ฝังปุ๋ย') tAdd(k, v);
           else if (k === 'ฝังปุ๋ย') { subFert.push(`${dt} (${q !== '-' ? q : l.equipment})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
           else weed.push(`${dt}: ${d}`);
@@ -2851,6 +2891,10 @@
             <div class="fw-bold text-danger mb-1">🌾 สรุปการตัดอ้อย & ขนส่งหน้าหีบ ${totalTons > 0 ? `(รวม ${totalTons} ตัน | เฉลี่ย ${(totalTons / parseFloat(p.area_rai || 1)).toFixed(2)} ตัน/ไร่)` : ''} ${totalTrips > 0 ? `[${totalTrips} เที่ยว]` : ''}</div>
             <div>${harvList.length ? harvList.map(h => `<div>• ${h}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการตัดอ้อยในฤดูกาลนี้</span>'}</div>
           </div></div>
+          ${(H => H.length ? `<div class="col-12"><div class="dossier-stat" style="border-color:#E9C48F">
+            <div class="fw-bold mb-1" style="color:#8A4A06">🤝 รถจ้าง · รวม ${baht(H.reduce((s, x) => s + num(x.h.a), 0))} บาท</div>
+            ${H.map(x => `<div>• <b>${esc(x.l.timestamp)}</b> ${esc(x.l.activity_detail)} · ${esc(hireTxt(x.h).replace('🤝 ', ''))}</div>`).join('')}
+          </div></div>` : '')(logs.map(l => ({ l, h: hireOf(l) })).filter(x => x.h))}
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -2864,7 +2908,7 @@
               ${logs.map(l => `
                 <tr style="cursor:pointer;" onclick="hideModal('dossierModal');openLogInspect('${l.log_id}')">
                   <td class="fw-bold text-primary text-decoration-underline">${l.timestamp}</td><td><b>${l.activity_group}</b></td><td>${l.activity_detail}</td>
-                  <td>${l.equipment}</td><td>${l.quantity}</td><td>${l.operator}</td><td>${l.remark}</td>
+                  <td>${l.equipment}${hireOf(l) ? `<br><small class="text-muted">${esc(hireTxt(hireOf(l)))}</small>` : ''}</td><td>${l.quantity}</td><td>${l.operator}</td><td>${l.remark}</td>
                 </tr>`).join('') || '<tr><td colspan="7" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>'}
             </tbody>
           </table>
@@ -3620,7 +3664,9 @@
         document.querySelectorAll('.pm-chk').forEach(c => c.checked = (log.equipment || '').includes(c.value));
         $('water_det').value = det !== '-' ? det : 'ราดร่อง/ขึ้นน้ำ';
       } else if (log.activity_group === 'รถไถเตรียมดิน/บำรุง') {
-        $('trac_task').value = det.split(' | ')[0];
+        const tv = det.split(' | ')[0], ts = $('trac_task'); // บันทึกเก่า (ผาน 3, ริปเปอร์ …) ไม่มีในรายการแล้ว → เพิ่มตัวเลือกชั่วคราว
+        if (![...ts.options].some(o => o.value === tv)) ts.add(new Option(tv, tv));
+        ts.value = tv;
         $('act_eq').value = log.equipment;
         placeFert(); fillFert(det);
       } else if (log.activity_group === 'ฉีดยา') {
@@ -3637,6 +3683,7 @@
         document.querySelectorAll('.tr-chk').forEach(c => c.checked = (log.equipment || '').includes(c.value));
         $('harv_qty').value = log.quantity !== '-' ? log.quantity : '';
       }
+      if (hireGrp(log.activity_group)) { const x = hireOf(log); if (x) hireFill(x); else if (log.activity_group === 'ตัดอ้อย') hireSet(false); }
     }
 
     function resetActForm() {
@@ -3647,6 +3694,7 @@
       ['chem_qty', 'gen_det', 'gen_qty', 'harv_qty', 'fert_total'].forEach(id => $(id).value = '');
       $('water_det').value = 'ราดร่อง/ขึ้นน้ำ'; $('trac_task').selectedIndex = 0;
       $('chem_preview').innerHTML = ''; $('fert_sum').innerText = '';
+      $('hire_by').value = ''; $('hire_rate').value = ''; $('hire_rows').innerHTML = ''; $('hire_sum').innerText = '';
     }
 
     function openAct(pid, pname, mode) {
@@ -3695,6 +3743,65 @@
       call('deleteActivity', [logId, plotId], init);
     }
 
+    // ===== รถจ้าง (12 พ.ย. 69): ผู้รับจ้าง · หน่วย ชม./ไร่/ตัน/เหมา × ราคา · จำนวนแยกรายแปลง → คอลัมน์ hire ในชีต Activities (gas hireCell_) =====
+    const HIRE_U = ['ชม.', 'ไร่', 'ตัน', 'เหมา'];
+    let hireOn = false, hireU = 'ชม.';
+    const hireOf = l => { try { const x = JSON.parse((l && l.hire) || 'null'); return x && typeof x === 'object' ? x : null; } catch (e) { return null; } };
+    const hireTxt = x => x ? `🤝 ${x.by || 'รถจ้าง'} · ${x.u === 'เหมา' ? 'เหมา' : `${baht(x.q)} ${x.u} × ${baht(x.r)}`} = ${baht(x.a)} บาท` : '';
+    const hireGrp = g => g === 'รถไถเตรียมดิน/บำรุง' || g === 'ตัดอ้อย';
+    function hireShow(g) {
+      $('hire_block').style.display = hireGrp(g) ? 'block' : 'none';
+      if (g === 'ตัดอ้อย') hireSet($('harv_method').value === 'รถตัดอ้อย', 'ตัน'); else hireSet(false, 'ชม.');
+    }
+    function hireSet(on, u) {
+      hireOn = !!on; if (u) hireU = u;
+      $('hire_yes').classList.toggle('on', hireOn); $('hire_no').classList.toggle('on', !hireOn);
+      $('hire_no').innerText = $('act_grp').value === 'ตัดอ้อย' ? '🔪 ไม่ได้จ้าง' : '🚜 รถเรา';
+      $('hire_body').style.display = hireOn ? 'block' : 'none';
+      $('act_eq').disabled = hireOn;
+      if (hireOn) {
+        const names = []; (gData.activities || []).forEach(l => { const x = hireOf(l); if (x && x.by && !names.includes(x.by)) names.push(x.by); });
+        $('hire_names').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+        hireRender();
+      }
+    }
+    function hireUnit(u) { hireU = u; hireRate(); hireRender(); }
+    function hireRate() { // ผู้รับจ้าง + หน่วยเดิม → ราคาครั้งล่าสุด (ถ้ายังไม่ได้ใส่)
+      const by = $('hire_by').value.trim(); if (!by || $('hire_rate').value) return;
+      const x = (gData.activities || []).map(hireOf).find(x => x && x.by === by && x.u === hireU && x.r);
+      if (x) { $('hire_rate').value = x.r; hireCalc(); }
+    }
+    function hireRender() {
+      const ids = $('act_pid').value.split(',').filter(Boolean), old = {};
+      document.querySelectorAll('.h-q').forEach(i => { old[i.dataset.id] = i.value; });
+      $('hire_units').innerHTML = HIRE_U.map(u => `<button type="button" class="${u === hireU ? 'on' : ''}" onclick="hireUnit('${u}')">${u}</button>`).join('');
+      const lump = hireU === 'เหมา';
+      $('hire_rate_row').style.display = lump ? 'none' : 'flex';
+      $('hire_rate_lbl').innerText = `ราคา / ${hireU}`;
+      $('hire_rows').innerHTML = ids.map(id => {
+        const p = (gData.plots || []).find(x => x.plot_id === id) || { plot_name: id }, v = old[id] != null ? old[id] : hireU === 'ไร่' && num(p.area_rai) ? num(p.area_rai) : '';
+        return `<div class="hire-r"><span class="hn">${esc(p.plot_name)}<small>${p.area_rai ? esc(p.area_rai) + ' ไร่ · ' : ''}${lump ? 'ค่าเหมา (บาท)' : 'จำนวน ' + hireU}</small></span>
+          <input type="number" inputmode="decimal" class="h-q" data-id="${esc(id)}" value="${esc(v)}" placeholder="${lump ? 'บาท' : hireU}" oninput="hireCalc()">${lump ? '' : '<b class="h-a"></b>'}</div>`;
+      }).join('');
+      hireCalc();
+    }
+    function hireCalc() {
+      const r = num($('hire_rate').value), lump = hireU === 'เหมา'; let tot = 0, tq = 0;
+      document.querySelectorAll('.h-q').forEach(i => { const q = num(i.value), a = lump ? q : q * r; tot += a; tq += q; const b = i.parentNode.querySelector('.h-a'); if (b) b.innerText = q && r ? baht(a) : ''; });
+      $('hire_sum').innerText = tot ? `รวม ${baht(tot)} บาท${lump ? '' : ` (${baht(tq)} ${hireU})`}` : '';
+    }
+    function hireCollect() {
+      if (!hireOn) return null;
+      const q = [...document.querySelectorAll('.h-q')].map(i => num(i.value)), by = $('hire_by').value.trim(), r = num($('hire_rate').value);
+      return by || r || q.some(Boolean) ? { by, u: hireU, r: hireU === 'เหมา' ? 0 : r, q } : null;
+    }
+    function hireFill(x) {
+      if (!x) return;
+      $('hire_by').value = x.by || ''; $('hire_rate').value = x.r || '';
+      hireSet(true, HIRE_U.includes(x.u) ? x.u : 'ชม.');
+      const i = document.querySelector('.h-q'); if (i) { i.value = x.q || ''; hireCalc(); }
+    }
+
     function selGrp(g) {
       $('act_grp').value = g;
       document.querySelectorAll('.grp-btn').forEach(b => b.classList.remove('active'));
@@ -3705,6 +3812,7 @@
       $('sub_chem').style.display = g === 'ฉีดยา' ? 'block' : 'none';
       $('sub_gen').style.display = g === 'ใส่ปุ๋ย' ? 'block' : 'none';
       $('sub_harv').style.display = g === 'ตัดอ้อย' ? 'block' : 'none';
+      hireShow(g);
       placeFert();
     }
 
@@ -3733,6 +3841,15 @@
         eq = trs.length ? trs.join(', ') : '-';
         qty = $('harv_qty').value || '-';
       }
+      const hire = hireGrp(g) ? hireCollect() : null;
+      if (hire) {
+        if (g === 'รถไถเตรียมดิน/บำรุง') {
+          eq = 'รถจ้าง' + (hire.by ? ' ' + hire.by : '');
+          const pids = $('act_pid').value.split(',').filter(Boolean);
+          if (qty === '-' && pids.length === 1 && hire.u !== 'เหมา' && hire.q[0]) qty = `${hire.q[0]} ${hire.u}`;
+        }
+        if (hire.u !== 'เหมา' && !hire.r && !confirm('ยังไม่ได้ใส่ราคาต่อหน่วย บันทึกไปก่อนแล้วค่อยแก้?')) return;
+      }
       if (!checkDate($('act_dt').value)) return;
       let wks = []; document.querySelectorAll('.w-chk:checked').forEach(c => wks.push(c.value));
 
@@ -3740,7 +3857,7 @@
         edit_log_id: $('edit_log_id').value, plotIds: $('act_pid').value.split(',').filter(Boolean), activity_group: g, activity_detail: det,
         equipment: eq, quantity: qty, operator: wks.length ? wks.join(' + ') : 'ไม่ระบุ',
         custom_date: isoToBE($('act_dt').value), remark: $('act_rmk').value,
-        is_ongoing: $('mode_ongoing').checked, usage
+        is_ongoing: $('mode_ongoing').checked, usage, hire
       };
       // ทำหลายวัน (เช่น โทรถามงานแล้วลงย้อนหลัง): บันทึกแยกวันละ 1 รายการ ให้สรุปงานคนงานนับวันถูก
       const d1 = $('act_dt').value, d2 = $('act_dt2').value;
@@ -3769,7 +3886,7 @@
           const first = i === 0, last = i === days.length - 1, day = days[i++];
           const p = { ...base, custom_date: isoToBE(day), is_ongoing: last ? base.is_ongoing : false,
             remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${i}/${days.length})`)(dayRmk(base.remark, last)),
-            quantity: first ? base.quantity : '-', usage: first ? base.usage : undefined };
+            quantity: first ? base.quantity : '-', usage: first ? base.usage : undefined, hire: first ? base.hire : undefined };
           call('saveActivities', [p], next, btn, `⏳ กำลังบันทึก ${i}/${days.length} วัน...`);
         };
         return next();
@@ -3810,7 +3927,7 @@
     // ขั้นตอน 📋 แบบย่อให้แชต: ชื่อ + ช่วงวัน และงานถึงคิว/ทำแล้วรายแปลง (คำนวณในเครื่อง ไม่อ่านชีตใหม่)
     function chatFlow() {
       try {
-        const win = s => s.k === 'note' ? 'ข้อควรจำ' : s.f === s.t ? `วันที่ ${s.f}` : `วันที่ ${s.f} ถึง ${s.t}`;
+        const win = s => s.sq ? 'เตรียมดินทำต่อกันตามลำดับ ไม่ผูกวัน' : s.k === 'note' ? 'ข้อควรจำ' : s.f === s.t ? `วันที่ ${s.f}` : `วันที่ ${s.f} ถึง ${s.t}`;
         const kd = s => s.k === 'repeat' ? ` · ทำซ้ำได้ ${s.max} ครั้ง ซ้ำเมื่อ${s.cond || 'จำเป็น'}` : s.k === 'branch' && s.b ? ` · กิ่ง: ถ้า${s.b.c} → ${s.b.n} ภายใน ${s.b.w} วัน`
           : s.k === 'ask' ? ` · ถามรายแปลง: ${s.q} (${s.o.map(o => o.l + ' → ' + (FL_GO[o.go] || o.go)).join(', ')})` : '';
         const steps = {}; ['อ้อยใหม่', 'อ้อยตอ'].forEach(k => {
@@ -3821,10 +3938,9 @@
         const plots = {};
         gData.plots.forEach(p => {
           const i = flInfo(p); if (!i) return;
-          if (i.replant) { plots[p.plot_id] = { type: 'รื้อตอ รอปลูกใหม่' }; return; }
           const c = flCtx(p); if (!c) return;
           const R = c.steps.filter(s => s.k !== 'note').map(s => ({ s, r: flStat(s, p) })), ph = flPhaseOf(p);
-          plots[p.plot_id] = { type: i.type, from: i.start, phase: ph && ph.t, due: flDue(p).map(x => x.n), ask: flAsks(p).map(x => x.n),
+          plots[p.plot_id] = { type: i.pre ? 'รื้อตอแล้ว กำลังเตรียมดินปลูกใหม่ (ยังไม่ปลูก)' : i.type, from: i.pre ? null : i.start, phase: ph && ph.t, due: flDue(p).map(x => x.n), ask: flAsks(p).map(x => x.n),
             done: R.filter(x => x.r.st === 'done').map(x => x.s.n + ' ' + x.r.txt.replace('✓ ', '')), skip: R.filter(x => x.r.st === 'skip').map(x => x.s.n),
             ans: R.filter(x => x.s.k === 'ask' && x.r.a).map(x => `${x.s.q}: ${(x.s.o.find(o => o.v === x.r.a.v) || {}).l || x.r.a.v}`),
             next: R.filter(x => x.r.st === 'wait').slice(0, 2).map(x => x.s.n + ' ' + x.r.txt) };
@@ -4068,6 +4184,13 @@
       }
       return days;
     }
+    // รถจ้างจากแชต {by, unit, rate, qty: {plot_id: n}} → payload.hire (จำนวนเรียงตามแปลง)
+    function chHire(a) {
+      const x = a && a.hire; if (!x || typeof x !== 'object') return null;
+      const u = HIRE_U.includes(x.unit) ? x.unit : 'ชม.', qm = x.qty && typeof x.qty === 'object' ? x.qty : {};
+      const q = (a.plots || []).map((id, i) => num(qm[id] != null ? qm[id] : (i === 0 && typeof x.qty !== 'object' ? x.qty : 0)));
+      return { by: String(x.by || '').trim(), u, r: u === 'เหมา' ? 0 : num(x.rate), q };
+    }
     function chatOps(items) {
       const ops = [];
       items.forEach(it => {
@@ -4081,12 +4204,13 @@
           const base = { plotIds: a.plots, activity_group: a.group, activity_detail: a.detail || (rain ? 'น้ำฝนธรรมชาติ' : '-'),
             equipment: (a.equipment || []).join(', ') || '-', quantity: a.quantity || '-',
             operator: rain ? 'ธรรมชาติ' : ((a.workers || []).join(' + ') || 'ไม่ระบุ'), remark: a.remark || '', is_ongoing: !!a.ongoing };
+          const hr = chHire(a); if (hr) { base.hire = hr; if (a.group === 'รถไถเตรียมดิน/บำรุง' && base.equipment === '-') base.equipment = 'รถจ้าง' + (hr.by ? ' ' + hr.by : ''); }
           const d1 = a.date || todayISO(), d2 = a.date_to && a.date_to > d1 ? a.date_to : '';
           if (!d2) return ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d1) } });
           const days = chatDays(d1, d2), rng = `${thDate(d1)}–${thDate(d2)}`;
           days.forEach((d, k) => {
             const last = k === days.length - 1;
-            ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d), is_ongoing: last ? base.is_ongoing : false, quantity: k ? '-' : base.quantity,
+            ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d), is_ongoing: last ? base.is_ongoing : false, quantity: k ? '-' : base.quantity, hire: k ? undefined : base.hire,
               remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${k + 1}/${days.length})`)(dayRmk(base.remark, last)) } });
           });
         } else if (a.type === 'finish') {
@@ -4130,6 +4254,7 @@
         h = `<div class="ch-t">${CH_ICON[it.group] || '📝'} ${esc(g)}${it.detail && it.detail !== '-' && it.group !== 'ฝนตก' ? ' · ' + esc(it.detail) : ''}${it.ongoing ? ' <span class="pill pill-doing">กำลังทำ</span>' : ''}</div>`
           + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', (it.equipment || []).join(', '), 'equipment')
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity')
+          + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
       } else if (it.type === 'finish') {
         h = `<div class="ch-t">✅ งานเสร็จ</div>` + it.plots.map(pid => { const og = chOg(pid);
@@ -4949,7 +5074,8 @@ Export.table.toDrive({
     // k: once ทำครั้งเดียว · repeat ทำซ้ำได้ {max, cond, gap} ครั้งที่ 2+ ขึ้นคิวเมื่อผู้ใช้กด "ต้องทำซ้ำ" เท่านั้น
     //    branch มีกิ่ง {b: {c ถ้า, n งาน, w ภายในกี่วัน, g, m, cm คำในบันทึกที่แปลว่าเข้าเงื่อนไข}} เตือนเมื่อตอบ/บันทึกว่าเข้าเงื่อนไข
     //    ask มีคำถาม {q, o: [{v, l, go: do|skip|next|ratoon|replant, m คำในบันทึกที่เดาคำตอบได้}]} · note ข้อควรจำ
-    // ctx { acts: [{g, d, age}], age: อายุวันนี้, ans: {id: {v, age}} } (age = วันนับจากวันเริ่มรอบ)
+    // ctx { acts: [{g, d, age}], age: อายุวันนี้, ans: {id: {v, age}}, p0: วันเริ่มเตรียมดิน, pre: ยังไม่ปลูก } (age = วันนับจากวันเริ่มรอบ)
+    // sq 1 = ขั้นเตรียมดินแบบต่อกัน (ไม่ผูกวัน) · sq 2 = ขั้นปลูก (ปลูกแล้ว = ผ่าน)
     function flowNorm_(a) {
       a.forEach(s => {
         s.k = s.k || 'once';
@@ -4991,7 +5117,7 @@ Export.table.toDrive({
       const H = ctx._h = {}, best = new Map();
       steps.forEach(s => {
         H[s.id] = [];
-        if (s.k === 'note') return;
+        if (s.k === 'note' || s.sq) return;
         if (s.w && s.w.a) { const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null; if (a && !String(s.w.v).split(',').includes(a.v)) return; }
         let h = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45, s.x);
         const ov = ctx.ans['h:' + s.id];
@@ -5003,8 +5129,33 @@ Export.table.toDrive({
       Object.keys(H).forEach(k => H[k].sort((x, y) => x.age - y.age));
       return H;
     }
+    // เตรียมดินแบบต่อกัน: บันทึกนับตามลำดับขั้น (บันทึกหนึ่งนับขั้นเดียว) · บันทึกขั้นเดียวกันห่างไม่เกิน 2 วัน = งานเดียวกัน (ไถหลายวัน)
+    //   ขั้นแรกที่ยังไม่ทำต่อจากขั้นล่าสุดที่ทำ = ถึงคิว (เฉพาะตอนยังไม่ปลูก) · ข้ามไปทำขั้นหลังแล้ว = ขั้นก่อนหน้า none
+    function flowSeq_(steps, ctx) {
+      if (ctx._q) return ctx._q;
+      const R = ctx._q = {}, Q = steps.filter(s => s.sq && s.k !== 'note'), live = ctx.pre || ctx.age < 0, end = ctx.pre ? ctx.age : 0;
+      let from = ctx.p0 == null ? -150 : ctx.p0, last = -1;
+      Q.forEach((s, i) => {
+        const ov = ctx.ans['h:' + s.id];
+        let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x), at = null;
+        if (ov && ov.v === 'not') h = h.filter(a => a.age > ov.age);
+        if (ov && ov.v === 'done') at = ov.age;
+        else if (h.length) { at = h[0].age; h.forEach(a => { if (a.age <= at + 2) at = a.age; }); }
+        else if (+s.sq === 2 && !ctx.pre && ctx.age >= 0) at = 0;
+        if (at === null) return;
+        R[s.id] = { st: 'done', at }; from = at + 1; last = i;
+      });
+      Q.forEach((s, i) => {
+        if (R[s.id]) return;
+        const pv = Q[i - 1], pr = pv && R[pv.id];
+        R[s.id] = i < last || !live ? { st: 'none' } : i === last + 1 ? { st: 'due', af: pv ? pv.n : '', pa: pr ? pr.at : null } : { st: 'wait', af: pv.n };
+      });
+      return R;
+    }
     function flowStat_(s, ctx, steps) {
       const age = ctx.age, k = s.k;
+      if (ctx.pre && !s.sq) return k === 'note' ? { st: 'note', n: 0 } : { st: 'wait', pre: true }; // ยังไม่ปลูก: ขั้นหลังปลูกรอไว้ก่อน
+      if (s.sq) return flowSeq_(steps, ctx)[s.id] || { st: 'none' };
       if (s.w && s.w.a) {
         const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null;
         if (!a) return { st: 'hold', q: q ? q.q || q.n : '' };
@@ -5069,8 +5220,12 @@ Export.table.toDrive({
       let r = null;
       if (cut && (!pl || cut > pl)) {
         const a = flAnsRaw(p.plot_id).cut;
-        r = a && a.v === 'new' && a.d && flDd(cut, a.d) >= -200 ? { type: 'อ้อยใหม่', start: null, replant: true } : { type: 'อ้อยตอ', start: cut };
-      } else if (pl) r = { type: p.cane_type, start: pl };
+        if (a && a.v === 'new' && a.d && flDd(cut, a.d) >= -200) { // รื้อตอ: เตรียมดินต่อกันจากวันตัด · บันทึกทอย/ปลูกแล้ว = เริ่มนับอายุอ้อยใหม่
+          const t = (gData.activities || []).filter(x => x.plot_id === p.plot_id && /ทอย|ปลูก/.test(x.activity_detail || '') && !/ซ่อม|ชักร่อง/.test(x.activity_detail || ''))
+            .map(x => beToISO(String(x.timestamp || '').split(' ')[0])).filter(x => x && x > cut && x <= t0).sort()[0];
+          r = t ? { type: 'อ้อยใหม่', start: t, p0: cut } : { type: 'อ้อยใหม่', start: cut, p0: cut, pre: true, replant: true };
+        } else r = { type: 'อ้อยตอ', start: cut };
+      } else if (pl) r = { type: p.cane_type, start: pl, p0: cut && cut < pl ? cut : null };
       return (m[k] = r);
     }
     function flCtx(p) {
@@ -5081,16 +5236,17 @@ Export.table.toDrive({
         .filter(x => x.t).map(x => ({ g: x.g, d: x.d, age: flDd(i.start, x.t) }));
       const raw = flAnsRaw(p.plot_id), ans = {};
       Object.keys(raw).forEach(id => { if (raw[id] && raw[id].d) ans[id] = { v: raw[id].v, age: flDd(i.start, raw[id].d) }; });
-      return (m[k] = { i, steps: flGet(i.type), ctx: { acts, age: flDd(i.start, todayISO()), ans } });
+      return (m[k] = { i, steps: flGet(i.type), ctx: { acts, age: flDd(i.start, todayISO()), ans, pre: !!i.pre, p0: i.p0 ? flDd(i.start, i.p0) : null } });
     }
     const flPlots = key => gData.plots.filter(p => { const c = flCtx(p); return c && c.i.type === key; });
     function flStat(s, p) {
       const c = flCtx(p); if (!c) return { st: 'none', txt: '' };
       const r = flowStat_(s, c.ctx, c.steps), d = a => thDate(flAt(c.i.start, a));
       const lbl = v => { const o = (s.o || []).find(x => x.v === v); return o ? o.l : v; };
-      let t = { done: '✓ ' + (r.at != null ? d(r.at) : ''), due: 'ถึงคิว', wait: `อีก ${r.d} วัน`, none: 'ไม่มีบันทึก', skip: 'ไม่ต้องทำ', hold: `รอตอบ "${r.q}"`, ask: '❓ รอตอบ', ans: '', note: r.n ? `บันทึก ${r.n} วัน` : '' }[r.st];
+      let t = { done: '✓ ' + (r.at != null ? d(r.at) : ''), due: 'ถึงคิว', wait: r.pre ? 'หลังปลูก' : r.af ? `รอ ${r.af}` : `อีก ${r.d} วัน`, none: 'ไม่มีบันทึก', skip: 'ไม่ต้องทำ', hold: `รอตอบ "${r.q}"`, ask: '❓ รอตอบ', ans: '', note: r.n ? `บันทึก ${r.n} วัน` : '' }[r.st];
       if (r.a && (r.st === 'ans' || r.st === 'done' || r.st === 'due' || r.st === 'wait')) t = `${lbl(r.a.v)}${r.a.by === 'log' ? ' (จากบันทึก)' : ''}${r.st === 'ans' ? '' : ' · ' + t}`;
       if (r.st === 'skip' && r.o) t = `${r.o.l} · ไม่ต้องทำ`;
+      if (s.sq && r.st === 'due' && r.af) t = `ถึงคิว · ${r.af} ✓ ${r.pa != null ? d(r.pa) : ''}`;
       if (s.k === 'repeat' && r.n) t = r.again ? `ครั้งที่ ${r.n + 1} ถึงคิว` : `ครั้งที่ ${r.n} ✓ ${d(r.at)}${r.more != null ? ` · ครั้งที่ ${r.n + 1} ถ้าจำเป็น ภายใน ${d(r.more)}` : ''}`;
       if (r.br) t += r.br.st === 'due' ? ` · ${s.b.n} ถึงคิว` : r.br.st === 'done' ? ` · ${s.b.n} ✓ ${d(r.br.at)}` : ` · ${s.b.c} (${d(r.br.T)})`;
       if (r.st === 'note') { // ข้อควรจำ: บอกว่าแปลงนี้อยู่ช่วงนั้นหรือยัง + ขึ้นน้ำล่าสุด
@@ -5111,7 +5267,7 @@ Export.table.toDrive({
     // ระยะของแปลงตอนนี้ (การ์ดแปลง)
     function flPhaseOf(p) {
       const i = flInfo(p); if (!i) return null;
-      if (i.replant) return { t: 'รื้อตอ รอปลูกใหม่' };
+      if (i.pre) { const d = flDue(p)[0]; return { t: 'เตรียมดินปลูกใหม่' + (d ? ' · ถึงคิว ' + d.n : '') }; }
       const age = flDd(i.start, todayISO()); if (age < 0) return { t: 'เตรียมดิน · อีก ' + -age + ' วันปลูก' };
       return { t: `${FL_PH[flPhase(age)][1]} · อายุ ${age} วัน`, age };
     }
@@ -5152,6 +5308,8 @@ Export.table.toDrive({
     const flMon = d => { const m = Math.round(d / 15) / 2; return m % 1 ? m.toFixed(1) : String(m); }; // ปัดครึ่งเดือน
     function flWin(s) {
       if (s.k === 'note') return '';
+      if (+s.sq === 2) return 'ทำต่อจากขั้นก่อน · วันนี้ = วันปลูก';
+      if (s.sq) { const Q = flGet(flKey).filter(x => x.sq), i = Q.indexOf(s); return i > 0 ? `ทำต่อจาก ${esc(Q[i - 1].n)}` : 'เริ่มเมื่อตอบรื้อตอ / ก่อนวันปลูก'; }
       const b = flBase(), base = 'หลัง' + b;
       if (s.f === 0 && s.t === 0) return 'วัน' + b;
       if (s.t <= 0) return `ก่อน${b} ${flRng(-s.t || 1, -s.f)}`;
@@ -5160,7 +5318,7 @@ Export.table.toDrive({
       const lo = s.f < 25 ? `${s.f} วัน – ` : flMon(s.f) === flMon(s.t) ? '' : flMon(s.f) + '–';
       return `${base} ${lo}${flMon(s.t)} เดือน <small>(วันที่ ${s.f}–${s.t})</small>`;
     }
-    const flKTag = s => s.k === 'once' || s.k === 'note' ? '' : `<span class="fl-tag fl-tag-${s.k}">${FL_K.find(k => k[0] === s.k)[1]}</span>`;
+    const flKTag = s => s.sq ? '<span class="fl-tag fl-tag-seq">ต่อกัน</span>' : s.k === 'once' || s.k === 'note' ? '' : `<span class="fl-tag fl-tag-${s.k}">${FL_K.find(k => k[0] === s.k)[1]}</span>`;
     // ผังแบบย่อ (12 พ.ย. 69 ผู้ใช้: ผังยาวดูยาก หน้าแก้งง): ขั้นละบรรทัดเดียว แตะแล้วกาง · ระยะที่ไม่มีแปลงและไม่มีงานพับไว้ · หน้าแก้มีแค่ที่จำเป็น ที่เหลือใน "ตั้งค่าเพิ่ม"
     const flPhTog = {}; let flAdv = false, flMv = '';
     function flMoveHit(pid, from, to, d) { flMv = ''; flAnswer(pid, 'h:' + from, 'not', d); setTimeout(() => flAnswer(pid, 'h:' + to, 'done', d), 400); }
@@ -5169,7 +5327,7 @@ Export.table.toDrive({
       const R = plots.map(p => ({ p, r: flStat(s, p) }));
       const live = R.filter(x => x.r.st !== 'skip' && x.r.st !== 'hold'), done = R.filter(x => x.r.st === 'done').length;
       const due = R.filter(x => x.r.st === 'due' || (x.r.br && x.r.br.st === 'due')).length, ask = R.filter(x => x.r.st === 'ask').length;
-      const wait = R.filter(x => x.r.st === 'wait').map(x => x.r.d);
+      const wait = R.filter(x => x.r.st === 'wait' && x.r.d != null).map(x => x.r.d);
       let pill = '';
       if (s.k === 'note') pill = '';
       else if (due) pill = `<span class="fl-pill o">ถึงคิว ${due}</span>`;
@@ -5197,7 +5355,7 @@ Export.table.toDrive({
         if (s.w && s.w.a) { let j = i; while (j < steps.length && steps[j].w && steps[j].w.a === s.w.a) j++; segs[segs.length - 1].items.push([i, j]); i = j; }
         else { segs[segs.length - 1].items.push([i]); i++; }
       }
-      const agePh = p => flPhase(flCtx(p).ctx.age);
+      const agePh = p => flCtx(p).ctx.pre ? 0 : flPhase(flCtx(p).ctx.age);
       let no = 0;
       segs.forEach(sg => {
         const P = FL_PH[sg.ph], inPh = plots.filter(p => agePh(p) === sg.ph).sort((a, b) => flCtx(b).ctx.age - flCtx(a).ctx.age);
@@ -5205,7 +5363,7 @@ Export.table.toDrive({
         const S = idx.map(k => flSum(steps[k], plots)), hot = S.some(x => x.due || x.ask);
         const key = flKey + sg.ph, open = key in flPhTog ? flPhTog[key] : (inPh.length > 0 || hot || idx.includes(flEdit) || idx.includes(flOpen));
         h += `<div class="fl-ph${open ? '' : ' shut'}" onclick="flPhTog['${qa(key)}']=${!open};flRender()"><div><b>${P[1]}</b> <span>${P[2]}</span><em>${inPh.length ? `ตอนนี้ ${inPh.length} แปลง` : ''}${hot ? `${inPh.length ? ' · ' : ''}<i>มีงาน</i>` : ''} ${open ? '▴' : '▾'}</em></div>
-          ${open ? `<div class="fl-ph-d">${P[3]}</div>${inPh.length ? `<div class="fl-ph-p">${inPh.map(p => { const a = flCtx(p).ctx.age; return `<div class="fl-ph-r"><span>${esc(p.plot_name)}</span><span>${a < 0 ? `<b>อีก ${-a} วันปลูก</b>` : a < 30 ? `<b>${a} วัน</b>` : `<b>${Math.floor(a / 30)} เดือน ${a % 30} วัน</b> <small>(${a} วัน)</small>`}</span></div>`; }).join('')}</div>` : ''}` : `<div class="fl-ph-d">${idx.length} ขั้น · แตะดู</div>`}</div>`;
+          ${open ? `<div class="fl-ph-d">${P[3]}</div>${inPh.length ? `<div class="fl-ph-p">${inPh.map(p => { const c = flCtx(p).ctx, a = c.age; return `<div class="fl-ph-r"><span>${esc(p.plot_name)}</span><span>${c.pre ? `<b>รื้อตอ</b> <small>(ตัดมา ${a} วัน)</small>` : a < 0 ? `<b>อีก ${-a} วันปลูก</b>` : a < 30 ? `<b>${a} วัน</b>` : `<b>${Math.floor(a / 30)} เดือน ${a % 30} วัน</b> <small>(${a} วัน)</small>`}</span></div>`; }).join('')}</div>` : ''}` : `<div class="fl-ph-d">${idx.length} ขั้น · แตะดู</div>`}</div>`;
         sg.items.forEach(it => {
           if (it.length === 2) { if (open) h += flLanesHtml(steps, it[0], it[1], plots); return; }
           const i = it[0], s = steps[i]; if (s.k !== 'note') no++;

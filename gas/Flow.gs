@@ -12,13 +12,15 @@ const FLOW_CUT_ = q => ({ id: 'cut', n: 'ตัดอ้อย', k: 'ask', g: ['
   note: 'ตามคิวโรงงาน · ไม่มีเครื่องวัดความหวาน ตัดตามคิว · รื้อเมื่อตอตายมาก หรือไว้ตอครบ 3–4 ปี' });
 const FLOW_DEF_ = {
   'อ้อยใหม่': [
-    { id: 'd1', n: 'รื้อตอเก่า', f: -60, t: -30, g: [FLOW_RT_], m: 'รื้อตอ', note: 'ถ้าเดิมเป็นอ้อยตอที่ตัดสินใจรื้อ' },
-    { id: 'd2', n: 'ริปเปอร์', k: 'ask', f: -30, t: -7, g: [FLOW_RT_], m: 'ริปเปอร์', tool: 'ริปเปอร์', q: 'ดินแข็งแน่นไหม?',
-      o: [{ v: 'hard', l: 'แข็ง', go: 'do' }, { v: 'soft', l: 'ไม่แข็ง', go: 'skip' }] },
-    { id: 'd3', n: 'ผาน 3 (ไถดะ)', f: -25, t: -5, g: [FLOW_RT_], m: 'ผาน 3', tool: 'ผาน 3' },
-    { id: 'd4', n: 'ผาน 7 (ไถแปร)', f: -14, t: -1, g: [FLOW_RT_], m: 'ผาน 7', tool: 'ผาน 7' },
-    { id: 'd5', n: 'ตัดพันธุ์อ้อย', f: -3, t: -1, g: [], m: 'ตัดพันธุ์,ท่อนพันธุ์,ลำพันธุ์' },
-    { id: 'd6', n: 'ชักร่อง / ปลูก + ปุ๋ยรองพื้น', f: 0, t: 0, g: [FLOW_RT_, 'ใส่ปุ๋ย'], m: 'ชักร่อง,ปลูก,รองพื้น' },
+    // เตรียมดินจริงของไร่ (บันทึกตาจง/พร ม.ค.–เม.ย. 69) ทำต่อกันตามลำดับ (sq): ขั้นก่อนเสร็จ → ขั้นต่อไปถึงคิว ไม่ผูกวันปลูก
+    //   เริ่มเมื่อตัดแล้วตอบ "รื้อตอ" หรือวันปลูกยังไม่ถึง · sq 2 = ทอยอ้อย (ปลูก) บันทึกทอยแล้ว = เริ่มนับอายุ · f/t ของขั้น sq ใช้แค่จัดระยะในผัง
+    { id: 'p1', sq: 1, n: 'ผาน 7 รื้อตอ', f: -90, t: -1, g: [FLOW_RT_], m: 'ผาน 7,รื้อตอ,ริปเปอร์', tool: 'ผาน 7 (ดินแข็ง/แม่ยา: ริปเปอร์ 2 ขา รถใหญ่)', note: 'ดินแข็ง/แม่ยา ใช้ริปเปอร์ 2 ขาแทนผาน 7' },
+    { id: 'p2', sq: 1, n: 'ผาน 4 รอบ 1 (ไถดะ)', f: -90, t: -1, g: [FLOW_RT_], m: 'ผาน 4,ไถดะ', tool: 'ผาน 4' },
+    { id: 'p3', sq: 1, n: 'ผาน 4 รอบ 2 (ไถแปร)', f: -90, t: -1, g: [FLOW_RT_], m: 'ผาน 4,ไถแปร', tool: 'ผาน 4', note: 'ดินก้อนใหญ่ → ผาน 4 รอบ 3 ก่อนชักร่อง (จดได้ตามปกติ)' },
+    { id: 'p4', sq: 1, n: 'ผานชักร่อง', f: -90, t: -1, g: [FLOW_RT_], m: 'ชักร่อง', tool: 'ผานชักร่อง', note: 'ชักร่องแล้วรอพันธุ์/คนงาน 2–6 สัปดาห์ เป็นปกติ' },
+    { id: 'p5', sq: 1, n: 'ตัดพันธุ์อ้อย', f: -90, t: -1, g: [], m: 'ตัดพันธุ์,ท่อนพันธุ์,ลำพันธุ์' },
+    { id: 'p6', sq: 2, n: 'ทอยอ้อย (ปลูก)', f: 0, t: 0, g: [], m: 'ทอย,ปลูก', x: 'ซ่อม,ชักร่อง', tool: 'รถไถหางทอย', note: 'รถไถวางลำ คนสับท่อนละ 3 ตา วางคู่สลับหัวท้าย · วันทอย = วันปลูก (แอปเริ่มนับอายุจากวันนี้)' },
+    { id: 'p7', n: 'ฝังปุ๋ยรองพื้น + กลบ', f: 0, t: 7, g: [FLOW_RT_, 'ใส่ปุ๋ย'], m: 'รองพื้น,กลบ', tool: 'รถไถเล็ก', note: 'คนตามกลบ' },
     { id: 'd7', n: 'ขึ้นน้ำครั้งแรก', k: 'branch', f: 0, t: 3, g: ['ขึ้นน้ำ'], m: '',
       b: { c: 'ฝนหนัก น้ำขัง', n: 'ขุดร่องระบายน้ำ', w: 3, g: [], m: 'ระบาย,ขุดร่อง,สูบน้ำ', cm: 'น้ำขัง' } },
     { id: 'd8', n: 'ฉีดยาคุมหญ้า', f: 5, t: 15, g: ['ฉีดยา'], m: '', note: 'ตอนดินชื้น' },
@@ -94,7 +96,8 @@ function saveFlowAns(plotId, id, v, d) {
 // k: once ทำครั้งเดียว · repeat ทำซ้ำได้ {max, cond, gap} ครั้งที่ 2+ ขึ้นคิวเมื่อผู้ใช้กด "ต้องทำซ้ำ" เท่านั้น
 //    branch มีกิ่ง {b: {c ถ้า, n งาน, w ภายในกี่วัน, g, m, cm คำในบันทึกที่แปลว่าเข้าเงื่อนไข}} เตือนเมื่อตอบ/บันทึกว่าเข้าเงื่อนไข
 //    ask มีคำถาม {q, o: [{v, l, go: do|skip|next|ratoon|replant, m คำในบันทึกที่เดาคำตอบได้}]} · note ข้อควรจำ
-// ctx { acts: [{g, d, age}], age: อายุวันนี้, ans: {id: {v, age}} } (age = วันนับจากวันเริ่มรอบ)
+// ctx { acts: [{g, d, age}], age: อายุวันนี้, ans: {id: {v, age}}, p0: วันเริ่มเตรียมดิน, pre: ยังไม่ปลูก } (age = วันนับจากวันเริ่มรอบ)
+// sq 1 = ขั้นเตรียมดินแบบต่อกัน (ไม่ผูกวัน) · sq 2 = ขั้นปลูก (ปลูกแล้ว = ผ่าน)
 function flowNorm_(a) {
   a.forEach(s => {
     s.k = s.k || 'once';
@@ -136,7 +139,7 @@ function flowHits_(steps, ctx) {
   const H = ctx._h = {}, best = new Map();
   steps.forEach(s => {
     H[s.id] = [];
-    if (s.k === 'note') return;
+    if (s.k === 'note' || s.sq) return;
     if (s.w && s.w.a) { const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null; if (a && !String(s.w.v).split(',').includes(a.v)) return; }
     let h = flowHit_(ctx.acts, s.g, s.m, s.f - 20, s.t + 45, s.x);
     const ov = ctx.ans['h:' + s.id];
@@ -148,8 +151,33 @@ function flowHits_(steps, ctx) {
   Object.keys(H).forEach(k => H[k].sort((x, y) => x.age - y.age));
   return H;
 }
+// เตรียมดินแบบต่อกัน: บันทึกนับตามลำดับขั้น (บันทึกหนึ่งนับขั้นเดียว) · บันทึกขั้นเดียวกันห่างไม่เกิน 2 วัน = งานเดียวกัน (ไถหลายวัน)
+//   ขั้นแรกที่ยังไม่ทำต่อจากขั้นล่าสุดที่ทำ = ถึงคิว (เฉพาะตอนยังไม่ปลูก) · ข้ามไปทำขั้นหลังแล้ว = ขั้นก่อนหน้า none
+function flowSeq_(steps, ctx) {
+  if (ctx._q) return ctx._q;
+  const R = ctx._q = {}, Q = steps.filter(s => s.sq && s.k !== 'note'), live = ctx.pre || ctx.age < 0, end = ctx.pre ? ctx.age : 0;
+  let from = ctx.p0 == null ? -150 : ctx.p0, last = -1;
+  Q.forEach((s, i) => {
+    const ov = ctx.ans['h:' + s.id];
+    let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x), at = null;
+    if (ov && ov.v === 'not') h = h.filter(a => a.age > ov.age);
+    if (ov && ov.v === 'done') at = ov.age;
+    else if (h.length) { at = h[0].age; h.forEach(a => { if (a.age <= at + 2) at = a.age; }); }
+    else if (+s.sq === 2 && !ctx.pre && ctx.age >= 0) at = 0;
+    if (at === null) return;
+    R[s.id] = { st: 'done', at }; from = at + 1; last = i;
+  });
+  Q.forEach((s, i) => {
+    if (R[s.id]) return;
+    const pv = Q[i - 1], pr = pv && R[pv.id];
+    R[s.id] = i < last || !live ? { st: 'none' } : i === last + 1 ? { st: 'due', af: pv ? pv.n : '', pa: pr ? pr.at : null } : { st: 'wait', af: pv.n };
+  });
+  return R;
+}
 function flowStat_(s, ctx, steps) {
   const age = ctx.age, k = s.k;
+  if (ctx.pre && !s.sq) return k === 'note' ? { st: 'note', n: 0 } : { st: 'wait', pre: true }; // ยังไม่ปลูก: ขั้นหลังปลูกรอไว้ก่อน
+  if (s.sq) return flowSeq_(steps, ctx)[s.id] || { st: 'none' };
   if (s.w && s.w.a) {
     const q = steps.find(x => x.id === s.w.a), a = q ? flowAns_(q, ctx) : null;
     if (!a) return { st: 'hold', q: q ? q.q || q.n : '' };
@@ -212,9 +240,12 @@ function flowTrac_(d, type) {
   if (/ริปเปอร์/.test(d) && /ครูด/.test(d)) return type === 'อ้อยตอ' ? 'ครูดร่อง' : 'ริปเปอร์';
   if (/ครูด/.test(d) || (/ริปเปอร์/.test(d) && type === 'อ้อยตอ')) return 'ครูดร่อง';
   if (/ริปเปอร์/.test(d)) return 'ริปเปอร์';
+  if (/ผาน\s*(4|สี่)/.test(d)) return 'ผาน 4';
   if (/ผาน\s*(3|สาม)|ไถดะ/.test(d)) return 'ผาน 3';
   if (/ผาน\s*(7|เจ็ด)|ไถแปร/.test(d)) return 'ผาน 7';
-  if (/ชักร่อง|ปลูก/.test(d)) return 'ชักร่อง';
+  if (/ทอย/.test(d)) return 'ปลูก';
+  if (/ชักร่อง/.test(d)) return 'ชักร่อง';
+  if (/ปลูก/.test(d)) return 'ปลูก';
   if (/อุ้มร่อง/.test(d)) return 'อุ้มร่อง';
   if (/ฝังปุ๋ย/.test(d)) return 'ฝังปุ๋ย';
   return '';
@@ -226,10 +257,13 @@ function flowInfo_(p, logs, today, ans) {
   const cut = cuts.length ? Math.max.apply(null, cuts) : null, pl = flowDay_(p.plant_date);
   if (cut !== null && (pl === null || cut > pl)) {
     const a = (ans || {}).cut, ad = a ? flowDay_(a.d) : null;
-    if (a && a.v === 'new' && ad !== null && ad >= cut - 200) return { type: 'อ้อยใหม่', start: null, replant: true };
+    if (a && a.v === 'new' && ad !== null && ad >= cut - 200) { // รื้อตอ: เตรียมดินต่อกันจากวันตัด · บันทึกทอย/ปลูกแล้ว = เริ่มนับอายุอ้อยใหม่
+      const t = logs.filter(x => /ทอย|ปลูก/.test(x.activity_detail || '') && !/ซ่อม|ชักร่อง/.test(x.activity_detail || '')).map(x => flowDay_(x.timestamp)).filter(d => d !== null && d > cut && d <= today);
+      return t.length ? { type: 'อ้อยใหม่', start: Math.min.apply(null, t), p0: cut } : { type: 'อ้อยใหม่', start: cut, p0: cut, pre: true, replant: true };
+    }
     return { type: 'อ้อยตอ', start: cut };
   }
-  return pl === null ? null : { type: p.cane_type, start: pl };
+  return pl === null ? null : { type: p.cane_type, start: pl, p0: cut !== null && cut < pl ? cut : null };
 }
 // ctx ของแปลงสำหรับแกนคิด (อายุนับจากวันเริ่มรอบ)
 function flowCtx_(p, logs, steps, today) {
@@ -238,7 +272,7 @@ function flowCtx_(p, logs, steps, today) {
   const acts = logs.map(a => ({ g: a.activity_group, d: String(a.activity_detail || '') + ' ' + (a.activity_group === FLOW_RT_ ? flowTrac_(a.activity_detail, inf.type) : ''), age: flowDay_(a.timestamp) }))
     .filter(a => a.age !== null).map(a => (a.age -= inf.start, a));
   const A = {}; Object.keys(ans).forEach(id => { const d = flowDay_(ans[id].d); if (d !== null) A[id] = { v: ans[id].v, age: d - inf.start }; });
-  return { inf, steps: steps[inf.type], ctx: { acts, age: today - inf.start, ans: A } };
+  return { inf, steps: steps[inf.type], ctx: { acts, age: today - inf.start, ans: A, pre: !!inf.pre, p0: inf.p0 == null ? null : inf.p0 - inf.start } };
 }
 // งานถึงคิว + คำถามรอตอบของแปลง → [{n, g}] (คำถามขึ้นต้น ❓)
 function flowDue_(p, logs, steps, today) {

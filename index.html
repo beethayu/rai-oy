@@ -163,6 +163,21 @@
     .fl-step.ask .fl-num { background: #6B2E86; }
     .fl-tag { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; white-space: nowrap; }
     .fl-tag-repeat { background: #E3EFE7; color: #1F5E3B; } .fl-tag-branch { background: #FDEBD3; color: #8A4A06; } .fl-tag-ask { background: #EFE4F4; color: #6B2E86; }
+    .chem-open { display: flex; align-items: center; gap: 12px; width: 100%; border: 1px solid var(--line); background: #fff; color: inherit; border-radius: 14px; padding: 12px 14px; margin: 4px 0 10px; text-align: left; }
+    .chem-open > span:first-child { font-size: 24px; } .chem-open > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; } .chem-open b { font-size: 16px; } .chem-open small { color: #6B736E; font-size: 13px; } .chem-open > span:last-child { font-size: 22px; color: #9AA19C; }
+    .chem-h { font-size: 17px; font-weight: 700; margin: 2px 2px 8px; } .chem-h small { font-size: 12.5px; font-weight: 400; color: #6B736E; display: block; }
+    .chem-f, .chem-c { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+    .chem-ft { font-size: 16.5px; font-weight: 700; color: #1F5E3B; } .chem-fw { font-size: 13.5px; color: #4A524D; margin: 2px 0 8px; line-height: 1.5; }
+    .chem-tb { border-top: 1px solid #ECEAE2; }
+    .chem-tr { display: grid; grid-template-columns: minmax(0, 1fr) 82px 82px; gap: 6px; align-items: center; width: 100%; border: 0; border-bottom: 1px solid #F0EEE6; background: transparent; color: inherit; padding: 7px 0; text-align: left; font-size: 14.5px; }
+    .chem-tr > span:not(:first-child) { text-align: right; font-weight: 600; } .chem-th { font-size: 12.5px; color: #6B736E; font-weight: 600; padding: 5px 0; }
+    .chem-k { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+    .chem-miss { color: #8A4A06; font-weight: 600; font-size: 13px; }
+    .chem-note { font-size: 12.5px; color: #6B736E; margin: 0 4px 8px; line-height: 1.5; }
+    .chem-ct { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; } .chem-ca { font-size: 13.5px; color: #6B736E; margin-bottom: 6px; }
+    .chem-row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; padding: 5px 0; border-top: 1px solid #F0EEE6; font-size: 14.5px; } .chem-row > span { color: #6B736E; } .chem-row b { font-weight: 600; }
+    .chem-care { font-size: 13.5px; color: #8A4A06; margin-top: 6px; } .chem-src { font-size: 12px; color: #9AA19C; margin-top: 4px; }
+    .chem-c.hl { border-color: #1F5E3B; box-shadow: 0 0 0 2px #CFE3D6; }
     .fl-stage { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 8px 6px 8px; margin: 10px 0 12px; }
     .fl-stg { display: grid; grid-template-columns: 28px repeat(4, minmax(0, 1fr)); margin-top: 4px; }
     .fl-stg::before { content: ''; }
@@ -1573,6 +1588,14 @@
           <div class="fm-hint wp-hint" id="wpHint" style="display:none"></div>
         </div>
         <div class="modal-footer py-2"><div id="wpPanel"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="chemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header mhd py-2"><h6 class="modal-title">🧪 คลังยา + สูตรของไร่</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" style="background:#F4F3EC" id="chem-body"></div>
       </div>
     </div>
   </div>
@@ -3440,6 +3463,49 @@
     function tglStockRow(id) { stockOpenId = stockOpenId === id ? '' : id; renderStock(); }
     function tglStockLog() { stockLogOpen = !stockLogOpen; renderStock(); }
 
+    // ===== 🧪 คลังยา + สูตรของไร่ (14 พ.ย. 69): ข้อมูลคัดแล้วใน chems.json (จากฉลาก/ผู้ใช้) + อัตราที่ไร่ผสมจริงจากสต็อก (per_tank) =====
+    let chemLib = null; try { chemLib = JSON.parse(lsGet('raioy_chems') || 'null'); } catch (e) {}
+    function openChemLib() {
+      showM('chemModal'); chemRender();
+      fetch('chems.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => { chemLib = j; lsSet('raioy_chems', JSON.stringify(j)); chemRender(); }).catch(() => {});
+    }
+    const chemInv = c => (gData.inventory || []).find(i => i.category === 'Chemical' && c.match.some(m => String(i.name).toLowerCase().includes(m.toLowerCase())));
+    const CHEM_K = { 'คุม': ['#E4EEF8', '#24508A'], 'ฆ่า': ['#FBE3E0', '#9A2B1E'], 'คุม + ฆ่า': ['#F1E6F6', '#6B2E86'] };
+    function chemRender() {
+      const B = $('chem-body'); if (!B) return;
+      if (!chemLib) { B.innerHTML = '<div class="text-muted p-3">กำลังโหลด…</div>'; return; }
+      const L = chemLib, byId = {}; L.items.forEach(c => { byId[c.id] = c; });
+      const amt = (c, k) => { const it = chemInv(c), pt = it ? num(it.per_tank) : 0; return pt ? `${baht(pt * k)} ${esc(it.unit)}` : '<span class="chem-miss">ยังไม่ได้ใส่</span>'; };
+      const kind = k => { const s = CHEM_K[k] || CHEM_K['คุม']; return `<span class="chem-k" style="background:${s[0]};color:${s[1]}">${esc(k)}</span>`; };
+      let h = `<div class="chem-h">สูตรของไร่ <small>ต่อถัง ${L.tankL} ลิตร · ต่อไร่ คิดที่ ${L.perRai} ถัง/ไร่</small></div>`;
+      L.formulas.forEach(f => {
+        h += `<div class="chem-f"><div class="chem-ft">${esc(f.t)}</div><div class="chem-fw">${esc(f.when)}</div>
+          <div class="chem-tb"><div class="chem-tr chem-th"><span>ยา</span><span>ต่อถัง</span><span>ต่อไร่</span></div>
+          ${f.items.map(id => { const c = byId[id]; return c ? `<button type="button" class="chem-tr" onclick="chemGo('${id}')"><span><b>${esc(c.name)}</b> ${kind(c.kind)}</span><span>${amt(c, 1)}</span><span>${f.noRai ? '–' : amt(c, L.perRai)}</span></button>` : ''; }).join('')}</div></div>`;
+      });
+      h += `<div class="chem-note">${esc(L.perRaiNote)} · อัตราต่อถังมาจากรายการสต็อก (แก้ได้ที่ แท็บสต็อก → แตะยา → แก้ไข)</div>
+        <div class="chem-h mt-3">ยาแต่ละตัว</div>`;
+      L.items.forEach(c => {
+        const it = chemInv(c), pt = it ? num(it.per_tank) : 0, q = it ? num(it.stock) : 0;
+        const used = it ? (gData.stockLogs || []).filter(s => s.item_name === it.name && num(s.change_qty) < 0) : [];
+        const tot = used.reduce((a, s) => a + -num(s.change_qty), 0);
+        const inF = L.formulas.filter(f => f.items.includes(c.id)).map(f => f.t);
+        h += `<div class="chem-c" id="chem_${c.id}">
+          <div class="chem-ct"><span>${esc(c.name)}</span>${kind(c.kind)}</div>
+          <div class="chem-ca">${esc(c.active)}</div>
+          <div class="chem-row"><span>ทำอะไร</span><b>${esc(c.does)}</b></div>
+          <div class="chem-row"><span>หญ้า</span><b>${esc(c.weeds)}</b></div>
+          <div class="chem-row"><span>ใช้ในสูตร</span><b>${esc(inF.join(' · ') || '-')}</b></div>
+          <div class="chem-row"><span>ไร่ผสม</span><b>${pt ? `${baht(pt)} ${esc(it.unit)} / ถัง ${L.tankL} ลิตร` : '<span class="chem-miss">ยังไม่ได้ใส่ (ใส่ที่แท็บสต็อก → แก้ไข)</span>'}</b></div>
+          <div class="chem-row"><span>คงเหลือ</span><b>${it ? `${fmtQty(it, q)}${pt && q > 0 ? ` ≈ ${Math.floor(q / pt)} ถัง` : ''}` : 'ไม่มีในสต็อก'}</b></div>
+          ${used.length ? `<div class="chem-row"><span>ใช้ไปแล้ว</span><b>${baht(tot)} ${esc(it.unit)} (${used.length} ครั้ง)</b></div>` : ''}
+          <div class="chem-care">⚠️ ${esc(c.care)}</div>
+          <div class="chem-src">ที่มา: ${esc(c.src)}</div></div>`;
+      });
+      h += `<div class="chem-note">อัตราตามฉลากจะเพิ่มเมื่อส่งรูปฉลากด้านที่มีวิธีใช้ · ข้อมูลยาแก้ได้ บอกในแชตกับ Claude</div>`;
+      B.innerHTML = h;
+    }
+    function chemGo(id) { const el = $('chem_' + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
     function renderStock() {
       const inv = gData.inventory || [];
       const bad = inv.filter(it => ['neg', 'low'].includes(stockState(it)));
@@ -3479,6 +3545,7 @@
       };
       [['Chemical', 'ยาฉีด'], ['Fertilizer', 'ปุ๋ย'], ['Fuel', 'น้ำมัน'], ['Other', 'อื่นๆ']].forEach(([c, t]) => {
         const list = inv.filter(it => c === 'Other' ? !['Chemical', 'Fertilizer', 'Fuel'].includes(it.category) : it.category === c);
+        if (c === 'Chemical') html += `<button type="button" class="chem-open" onclick="openChemLib()"><span>🧪</span><span><b>คลังยา + สูตรของไร่</b><small>ยาแต่ละตัวทำอะไร · ผสมเท่าไร · ใช้ตอนไหน</small></span><span>›</span></button>`;
         if (list.length) html += `<div class="srow-h">${t}</div><div class="srow-box">${list.map(row).join('')}</div>`;
       });
       html += `<div class="d-flex gap-2 mt-3">

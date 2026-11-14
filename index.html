@@ -1838,6 +1838,11 @@
     document.addEventListener('hide.bs.modal', e => { ghostUntil = Date.now() + 600; dbg('ปิด ' + (e.target.id || 'หน้าต่าง')); });
     document.addEventListener('show.bs.modal', e => dbg('เปิด ' + (e.target.id || 'หน้าต่าง')));
     document.addEventListener('hidden.bs.modal', e => { if (e.target.id === 'actModal') pkSavedReset = false; });
+    // กลับหน้าก่อนหน้า: เปิดหน้าต่างลูกจากหน้าดูแปลง/ผัง แล้วกดปิด → กลับมาหน้าเดิมที่ตำแหน่งเดิม (เดิมเด้งออกไปหน้าหลัก)
+    let backFn = null;
+    function dsLeave(pid) { const b = document.querySelector('#dossierModal .modal-body'), y = b ? b.scrollTop : 0; backFn = () => { openDossier(pid); const put = () => { const n = document.querySelector('#dossierModal .modal-body'); if (n) n.scrollTop = y; }; put(); setTimeout(put, 60); setTimeout(put, 400); }; hideModal('dossierModal'); }
+    function flLeave() { backFn = () => { showM('flowModal'); flRender(); }; hideModal('flowModal'); }
+    document.addEventListener('hidden.bs.modal', () => { if (!backFn) return; setTimeout(() => { if (!backFn || document.querySelector('.modal.show')) return; const f = backFn; backFn = null; try { f(); } catch (e) {} }, 380); });
     ['click', 'touchend', 'pointerup'].forEach(ev => document.addEventListener(ev, e => {
       if (Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
     }, true));
@@ -2934,7 +2939,7 @@
           </div>
         </div>
 
-        <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="hideModal('dossierModal');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${fmtRai(num(p.map_rai) * 1600)}` : 'วาดขอบแปลงบนแผนที่'}</button>
+        <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="dsLeave('${p.plot_id}');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${fmtRai(num(p.map_rai) * 1600)}` : 'วาดขอบแปลงบนแผนที่'}</button>
         ${(() => { const pp = (gData.plotPhotos || []).filter(x => x.plot_id === p.plot_id); return pp.length ? `<div class="p-2 bg-light rounded border mb-3"><div class="fw-bold text-success mb-1">📷 รูปหน้างาน (${pp.length})</div>
           ${pp.slice(0, 8).map(x => `<button type="button" class="hrow" onclick="viewPhotos('${qa(p.plot_name)}','${qa(x.file_ids)}')"><span class="hrow-d">${esc(x.timestamp)}</span><span class="hrow-b">${esc(x.diagnosis || 'รูปสภาพแปลง')}<span class="hrow-s">${esc(x.note || '')}${x.note ? ' · ' : ''}แตะดูรูป</span></span></button>`).join('')}</div>` : ''; })()}
         ${dossierYieldHtml(p)}
@@ -2986,14 +2991,14 @@
 
         <div class="d-flex justify-content-between align-items-center mb-1">
           <h6 class="fw-bold text-dark m-0">🕒 3. ประวัติงานทั้งหมด (${logs.length} รายการ)</h6>
-          <button class="btn btn-sm btn-success fw-bold py-0" onclick="hideModal('dossierModal');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ เพิ่มงานใหม่</button>
+          <button class="btn btn-sm btn-success fw-bold py-0" onclick="dsLeave('${p.plot_id}');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ เพิ่มงานใหม่</button>
         </div>
         <div class="table-responsive">
           <table class="table table-sm table-bordered small mb-0">
             <thead class="table-light"><tr><th>วันที่ (กดเพื่อแจ้งปัญหา)</th><th>หมวดงาน</th><th>รายละเอียด</th><th>เครื่องจักร/พญานาค</th><th>จำนวน</th><th>คนงาน</th><th>หมายเหตุ</th></tr></thead>
             <tbody>
               ${logs.map(l => `
-                <tr style="cursor:pointer;" onclick="hideModal('dossierModal');openLogInspect('${l.log_id}')">
+                <tr style="cursor:pointer;" onclick="dsLeave('${p.plot_id}');openLogInspect('${l.log_id}')">
                   <td class="fw-bold text-primary text-decoration-underline text-nowrap">${l.timestamp}</td><td style="min-width:84px"><b>${l.activity_group}</b></td><td>${l.activity_detail}</td>
                   <td>${l.equipment}${hireOf(l) ? `<br><small class="text-muted">${esc(hireTxt(hireOf(l)))}</small>` : ''}</td><td>${l.quantity}</td><td style="min-width:70px">${l.operator}</td><td style="min-width:230px">${l.remark}</td>
                 </tr>`).join('') || '<tr><td colspan="7" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>'}
@@ -5717,11 +5722,11 @@ Export.table.toDrive({
       const due = R.filter(x => x.r.st === 'due').map(x => x.p.plot_id);
       const rows = chemFmItems(f).map(c => { const it = chemInv(c), pt = it ? num(it.per_tank) : 0; return `<div class="fl-chem-r"><span>${esc(c.name)}</span><b>${pt ? `${baht(pt)} ${esc(it.unit)}` : '<span class="chem-miss">ยังไม่ใส่อัตรา</span>'}</b></div>`; }).join('');
       return `<div class="fl-chem"><div class="fl-chem-t">🧪 สูตรของไร่ · ต่อถัง ${chemLib.tankL} ลิตร</div><div class="fl-chem-n">${esc(f.t)}</div>${rows}
-        <div class="fl-chem-b"><button type="button" onclick="hideModal('flowModal');setTimeout(()=>openChemLib('${fid}'),300)">ดูคลังยา</button>${due.length ? `<button type="button" class="p" onclick="flChemAct('${fid}','${due.map(qa).join(',')}')">บันทึกฉีดยา ${due.length} แปลงถึงคิว</button>` : ''}</div></div>`;
+        <div class="fl-chem-b"><button type="button" onclick="flLeave();setTimeout(()=>openChemLib('${fid}'),300)">ดูคลังยา</button>${due.length ? `<button type="button" class="p" onclick="flChemAct('${fid}','${due.map(qa).join(',')}')">บันทึกฉีดยา ${due.length} แปลงถึงคิว</button>` : ''}</div></div>`;
     }
     function flChemAct(fid, ids) {
       const a = ids.split(',').filter(Boolean), names = a.map(id => (gData.plots.find(p => p.plot_id === id) || {}).plot_name || id);
-      hideModal('flowModal');
+      flLeave();
       setTimeout(() => { openAct(a.join(','), a.length > 1 ? `${a.length} แปลง (${names.join(', ')})` : names[0], 'new'); selGrp('ฉีดยา'); chemPick(fid); }, 300);
     }
     function flStartEdit(i) {

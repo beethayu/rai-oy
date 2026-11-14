@@ -2835,7 +2835,15 @@
 
     // ================= แฟ้มข้อมูลแปลง =================
     // งานรถไถ: อ้อยใหม่ ริปเปอร์ → ผาน 3 → ผาน 7 → ชักร่อง · อ้อยตอ ลงเหล็กระหว่างแถว = ครูดร่อง (ของเก่าลงไว้ว่า "ริปเปอร์ / ครูดร่อง" แยกตามชนิดอ้อย)
-    const TRAC_LBL = { 'ริปเปอร์': 'ริปเปอร์', 'ผาน 3': 'ผาน 3 (ไถดะ)', 'ผาน 7': 'ผาน 7 (ไถแปร)', 'ไถ': 'ไถ (ไม่ระบุผาน)', 'ชักร่อง': 'ชักร่อง/ปลูก', 'ครูดร่อง': 'ครูดร่อง (ระหว่างแถว)', 'อุ้มร่อง': 'อุ้มร่อง' };
+    // บันทึกรายวันติดกัน (ห่าง ≤ 2 วัน ส่วนท้ายเหมือนกัน) → ช่วงเดียว "19/01–20/01/2569 (รถ)" (ลงย้อนหลังจากสมุดเป็นรายวัน)
+    function dRange(a) {
+      const P = a.map(v => { const m = String(v).match(/^(\d\d)\/(\d\d)\/(\d{4})(.*)$/); return m ? { v, t: new Date(+m[3] - 543, +m[2] - 1, +m[1]).getTime(), dm: m[1] + '/' + m[2], rest: m[4] } : { v }; });
+      const out = []; let g = null;
+      P.forEach(x => { if (g && x.t && g.b.t && x.rest === g.a.rest && x.t - g.b.t > 0 && x.t - g.b.t <= 2 * 864e5) g.b = x; else { if (g) out.push(g); g = { a: x, b: x }; } });
+      if (g) out.push(g);
+      return out.map(g => g.a === g.b || !g.a.t ? g.a.v : `${g.a.dm}–${g.b.v}`);
+    }
+    const TRAC_LBL = { 'ริปเปอร์': 'ริปเปอร์', 'ผาน 3': 'ผาน 3', 'ผาน 4': 'ผาน 4 (ไถดะ / แปร)', 'ผาน 7': 'ผาน 7 (รื้อตอ)', 'ไถ': 'ไถ (ไม่ระบุผาน)', 'ชักร่อง': 'ชักร่อง / ทอยปลูก', 'ครูดร่อง': 'ครูดร่อง (ระหว่างแถว)', 'อุ้มร่อง': 'อุ้มร่อง' };
     function tracKind(d, type) {
       d = String(d || '');
       if (/ริปเปอร์/.test(d) && /ครูด/.test(d)) return type === 'อ้อยตอ' ? 'ครูดร่อง' : 'ริปเปอร์';
@@ -2934,15 +2942,15 @@
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-secondary mb-1">🚜 งานเตรียมดิน / รถไถ / อุ้มร่อง</div>
-            ${(p.cane_type === 'อ้อยตอ' ? ['ครูดร่อง', 'อุ้มร่อง'] : ['ริปเปอร์', 'ผาน 3', 'ผาน 7', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 3', 'ผาน 7'].includes(k)))
-              .map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []); return `<div>• <b>${TRAC_LBL[k] || k}:</b> ${a.length ? a.join(', ') : k === 'ชักร่อง' && p.plant_date ? p.plant_date : none}</div>`; }).join('')}
-            <div>• <b>ฝังปุ๋ย:</b> ${subFert.length ? subFert.join(', ') : none}</div>
+            ${(p.cane_type === 'อ้อยตอ' ? ['ครูดร่อง', 'อุ้มร่อง'] : ['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 4', 'ผาน 7', 'ชักร่อง'].includes(k)))
+              .map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []); return `<div>• <b>${TRAC_LBL[k] || k}:</b> ${a.length ? dRange(a).join(', ') : k === 'ชักร่อง' && p.plant_date ? p.plant_date : none}</div>`; }).join('')}
+            <div>• <b>ฝังปุ๋ย:</b> ${subFert.length ? dRange(subFert).join(', ') : none}</div>
             ${weed.length ? `<div>• <b>สับหญ้า/อื่น ๆ (รถ):</b> ${weed.join(', ')}</div>` : ''}
           </div></div>
           <div class="col-12 col-md-6"><div class="dossier-stat">
-            <div class="fw-bold text-primary mb-1">💧 ประวัติการขึ้นน้ำ & ฝนตก (รวม ${waterDates.length} รอบ)</div>
+            <div class="fw-bold text-primary mb-1">💧 ประวัติการขึ้นน้ำ & ฝนตก (รวม ${dRange(waterDates).length} รอบ)</div>
             <div>• <b>วันน้ำล่าสุด:</b> <span class="badge bg-primary">${p.last_water_date || '-'}</span></div>
-            <div class="mt-1" style="max-height:95px;overflow-y:auto;">${waterDates.length ? waterDates.map((w, i) => `<div>รอบที่ ${i + 1}: ${w}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการให้น้ำ</span>'}</div>
+            <div class="mt-1" style="max-height:95px;overflow-y:auto;">${waterDates.length ? dRange(waterDates).map((w, i) => `<div>รอบที่ ${i + 1}: ${w}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการให้น้ำ</span>'}</div>
           </div></div>
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-success mb-1">🌱 ประวัติการใส่ปุ๋ย/บำรุง ${totalFertBags > 0 ? `(รวม ~${totalFertBags} กระสอบ)` : ''}</div>
@@ -2986,8 +2994,8 @@
             <tbody>
               ${logs.map(l => `
                 <tr style="cursor:pointer;" onclick="hideModal('dossierModal');openLogInspect('${l.log_id}')">
-                  <td class="fw-bold text-primary text-decoration-underline">${l.timestamp}</td><td><b>${l.activity_group}</b></td><td>${l.activity_detail}</td>
-                  <td>${l.equipment}${hireOf(l) ? `<br><small class="text-muted">${esc(hireTxt(hireOf(l)))}</small>` : ''}</td><td>${l.quantity}</td><td>${l.operator}</td><td>${l.remark}</td>
+                  <td class="fw-bold text-primary text-decoration-underline text-nowrap">${l.timestamp}</td><td style="min-width:84px"><b>${l.activity_group}</b></td><td>${l.activity_detail}</td>
+                  <td>${l.equipment}${hireOf(l) ? `<br><small class="text-muted">${esc(hireTxt(hireOf(l)))}</small>` : ''}</td><td>${l.quantity}</td><td style="min-width:70px">${l.operator}</td><td style="min-width:230px">${l.remark}</td>
                 </tr>`).join('') || '<tr><td colspan="7" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>'}
             </tbody>
           </table>
@@ -5385,7 +5393,8 @@ Export.table.toDrive({
       let from = ctx.p0 == null ? -150 : ctx.p0, last = -1;
       Q.forEach((s, i) => {
         const ov = ctx.ans['h:' + s.id];
-        let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x), at = null;
+        const own = String(s.m || '').split(','), uq = Q.slice(i + 1).flatMap(t => String(t.m || '').split(',')).map(w => w.trim()).filter(w => w && !own.includes(w)); // คำเฉพาะของขั้นถัดไป (เช่น ไถแปร) ไม่นับเป็นขั้นนี้
+    let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x).filter(a => !uq.some(w => a.d.includes(w))), at = null;
         if (ov && ov.v === 'not') h = h.filter(a => a.age > ov.age);
         if (ov && ov.v === 'done') at = ov.age;
         else if (h.length) { at = h[0].age; h.forEach(a => { if (a.age <= at + 2) at = a.age; }); }
@@ -5437,7 +5446,8 @@ Export.table.toDrive({
         if (n < mx && a && a.v === 'again' && a.age >= last - 1) return { st: 'due', n, again: true, at: last };
         return { st: 'done', at: last, n, more: n < mx && age <= last + (+s.gap || 14) ? last + (+s.gap || 14) : null };
       }
-      const r = hits.length ? { st: 'done', at: hits[hits.length - 1].age, n: 1 } : base();
+      let e1 = hits.length ? hits[0].age : 0; hits.forEach(h => { if (h.age <= e1 + 2) e1 = h.age; }); // งานครั้งเดียว: เสร็จ = วันสุดท้ายของชุดแรก (บันทึกรายวันต่อกัน) ไม่ใช่บันทึกหลังสุด
+  const r = hits.length ? { st: 'done', at: e1, n: 1 } : base();
       if (k === 'branch') r.br = flowBr_(s, ctx);
       return r;
     }

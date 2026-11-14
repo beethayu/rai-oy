@@ -161,7 +161,8 @@ function flowSeq_(steps, ctx) {
   let from = ctx.p0 == null ? -150 : ctx.p0, last = -1;
   Q.forEach((s, i) => {
     const ov = ctx.ans['h:' + s.id];
-    let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x), at = null;
+    const own = String(s.m || '').split(','), uq = Q.slice(i + 1).flatMap(t => String(t.m || '').split(',')).map(w => w.trim()).filter(w => w && !own.includes(w)); // คำเฉพาะของขั้นถัดไป (เช่น ไถแปร) ไม่นับเป็นขั้นนี้
+    let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x).filter(a => !uq.some(w => a.d.includes(w))), at = null;
     if (ov && ov.v === 'not') h = h.filter(a => a.age > ov.age);
     if (ov && ov.v === 'done') at = ov.age;
     else if (h.length) { at = h[0].age; h.forEach(a => { if (a.age <= at + 2) at = a.age; }); }
@@ -213,7 +214,8 @@ function flowStat_(s, ctx, steps) {
     if (n < mx && a && a.v === 'again' && a.age >= last - 1) return { st: 'due', n, again: true, at: last };
     return { st: 'done', at: last, n, more: n < mx && age <= last + (+s.gap || 14) ? last + (+s.gap || 14) : null };
   }
-  const r = hits.length ? { st: 'done', at: hits[hits.length - 1].age, n: 1 } : base();
+  let e1 = hits.length ? hits[0].age : 0; hits.forEach(h => { if (h.age <= e1 + 2) e1 = h.age; }); // งานครั้งเดียว: เสร็จ = วันสุดท้ายของชุดแรก (บันทึกรายวันต่อกัน) ไม่ใช่บันทึกหลังสุด
+  const r = hits.length ? { st: 'done', at: e1, n: 1 } : base();
   if (k === 'branch') r.br = flowBr_(s, ctx);
   return r;
 }

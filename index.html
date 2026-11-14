@@ -3498,7 +3498,10 @@
           <div class="chem-row"><span>หญ้า</span><b>${esc(c.weeds)}</b></div>
           <div class="chem-row"><span>ใช้ในสูตร</span><b>${esc(inF.join(' · ') || '-')}</b></div>
           <div class="chem-row"><span>ไร่ผสม</span><b>${pt ? `${baht(pt)} ${esc(it.unit)} / ถัง ${L.tankL} ลิตร` : '<span class="chem-miss">ยังไม่ได้ใส่ (ใส่ที่แท็บสต็อก → แก้ไข)</span>'}</b></div>
-          ${c.rate ? (() => { const r = c.rate, pr = pt && it.unit === r.unit ? pt * L.perRai : 0, d = !pr ? '' : pr < r.lo * 0.95 ? ` · <span class="o">ไร่ใช้ ~${baht(Math.round(pr))} ${esc(r.unit)}/ไร่ น้อยกว่าที่แนะนำ</span>` : pr > r.hi * 1.05 ? ` · <span class="o">ไร่ใช้ ~${baht(Math.round(pr))} ${esc(r.unit)}/ไร่ มากกว่าที่แนะนำ</span>` : ` · <span class="g">ไร่ใช้ ~${baht(Math.round(pr))} ${esc(r.unit)}/ไร่ อยู่ในช่วง</span>`;
+          ${c.rate ? (() => { const r = c.rate;
+            if (r.conc && pt && it.unit === r.unit) { const k = pt / L.tankL, d2 = k < r.conc[0] * 0.95 ? `<span class="o">ไร่ผสม ${(k).toFixed(2)} ${esc(r.unit)}/ลิตร จางกว่าฉลาก (${r.conc[0]}–${r.conc[1]})</span>` : k > r.conc[1] * 1.05 ? `<span class="o">ไร่ผสม ${(k).toFixed(2)} ${esc(r.unit)}/ลิตร เข้มกว่าฉลาก (${r.conc[0]}–${r.conc[1]})</span>` : `<span class="g">ไร่ผสม ${(k).toFixed(2)} ${esc(r.unit)}/ลิตร อยู่ในช่วงฉลาก (${r.conc[0]}–${r.conc[1]})</span>`;
+              return `<div class="chem-row"><span>ผู้ผลิตแนะนำ</span><b>${esc(r.txt)} · ${d2}</b></div>`; }
+            const pr = pt && it.unit === r.unit ? pt * L.perRai : 0, d = !pr ? '' : pr < r.lo * 0.95 ? ` · <span class="o">ไร่ใช้ ~${baht(Math.round(pr))} ${esc(r.unit)}/ไร่ น้อยกว่าที่แนะนำ</span>` : pr > r.hi * 1.05 ? ` · <span class="o">ไร่ใช้ ~${baht(Math.round(pr))} ${esc(r.unit)}/ไร่ มากกว่าที่แนะนำ</span>` : ` · <span class="g">ไร่ใช้ ~${baht(Math.round(pr))} ${esc(r.unit)}/ไร่ อยู่ในช่วง</span>`;
             return `<div class="chem-row"><span>ผู้ผลิตแนะนำ</span><b>${esc(r.txt)}${d}</b></div>`; })() : ''}
           <div class="chem-row"><span>คงเหลือ</span><b>${it ? `${fmtQty(it, q)}${pt && q > 0 ? ` ≈ ${Math.floor(q / pt)} ถัง` : ''}` : 'ไม่มีในสต็อก'}</b></div>
           ${used.length ? `<div class="chem-row"><span>ใช้ไปแล้ว</span><b>${baht(tot)} ${esc(it.unit)} (${used.length} ครั้ง)</b></div>` : ''}

@@ -179,6 +179,27 @@
     .chem-row { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; padding: 5px 0; border-top: 1px solid #F0EEE6; font-size: 14.5px; } .chem-row > span { color: #6B736E; } .chem-row b { font-weight: 600; }
     .chem-row .o { color: #B4630B; } .chem-row .g { color: #1F7A45; }
     .chem-care { font-size: 13.5px; color: #8A4A06; margin-top: 6px; } .chem-src { font-size: 12px; color: #9AA19C; margin-top: 4px; }
+    #chemModal { z-index: 1075; }
+    .cf-hd { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #4A524D; margin: 8px 2px 5px; } .cf-hd small { font-weight: 400; color: #6B736E; font-size: 12.5px; }
+    .cf-lib { border: 0; background: transparent; color: #1F5E3B; font-weight: 700; font-size: 14.5px; padding: 2px 0; }
+    .cf-fm { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; } .cf-fm::-webkit-scrollbar { display: none; }
+    .cf-fm button { flex: 0 0 auto; border: 1px solid var(--line); background: #fff; color: inherit; border-radius: 999px; padding: 6px 13px; font-size: 14.5px; font-weight: 600; white-space: nowrap; }
+    .cf-fm button.on { background: #1F5E3B; border-color: #1F5E3B; color: #fff; }
+    .cf-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .cf-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid #F0EEE6; margin: 0; font-size: 15px; } .cf-row:first-child { border-top: 0; }
+    .cf-row input { width: 20px; height: 20px; flex: 0 0 auto; accent-color: #1F5E3B; } .cf-row .n { flex: 1; min-width: 0; } .cf-row .n small { display: block; color: #6B736E; font-size: 12.5px; }
+    .cf-row .r { font-weight: 600; white-space: nowrap; text-align: right; } .cf-row .r small { display: block; font-weight: 400; color: #6B736E; font-size: 12px; }
+    .cf-tank { display: flex; align-items: center; gap: 8px; padding: 6px 12px; } .cf-tank input { border: 0; font-size: 20px; font-weight: 700; padding: 4px 0; box-shadow: none !important; } .cf-tank span { color: #6B736E; }
+    #chem_hint .cf-sug { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #4A524D; margin: 6px 4px 0; } #chem_hint .cf-sug button { border: 1px solid #1F5E3B; color: #1F5E3B; background: #fff; border-radius: 999px; padding: 3px 12px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+    .cf-sum { background: #fff; border: 1px solid #CFE3D6; border-radius: 14px; padding: 10px 12px; margin-top: 10px; }
+    .cf-sum-h { font-size: 12.5px; color: #6B736E; font-weight: 600; } .cf-sum-t { font-size: 17px; font-weight: 700; color: #1F5E3B; margin-bottom: 4px; }
+    .cf-sum-r { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 6px 0; border-top: 1px solid #F0EEE6; font-size: 14.5px; } .cf-sum-r b { text-align: right; font-size: 16px; } .cf-sum-r small { grid-column: 1 / -1; color: #6B736E; font-size: 12.5px; } .cf-sum-r small.bad { color: #B42318; font-weight: 600; }
+    .cf-warn { font-size: 13px; color: #8A4A06; margin-top: 6px; }
+    .fl-chem { background: #fff; border: 1px solid #F1D3D1; border-radius: 12px; padding: 9px 11px; margin: 6px 0; }
+    .fl-chem-t { font-size: 13px; color: #6B736E; font-weight: 600; } .fl-chem-n { font-size: 15.5px; font-weight: 700; color: #1F2A24; margin: 1px 0 4px; }
+    .fl-chem-r { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; border-top: 1px solid #F4F1EA; } .fl-chem-r b { font-weight: 600; }
+    .fl-chem-b { display: flex; gap: 6px; margin-top: 7px; } .fl-chem-b button { flex: 1; border-radius: 10px; padding: 7px 6px; font-size: 14px; font-weight: 700; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; } .fl-chem-b button.p { background: #1F5E3B; color: #fff; }
+    .chem-f.hl { border-color: #1F5E3B; box-shadow: 0 0 0 2px #CFE3D6; }
     .chem-c.hl { border-color: #1F5E3B; box-shadow: 0 0 0 2px #CFE3D6; }
     .fl-stage { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 8px 6px 8px; margin: 10px 0 12px; }
     .fl-stg { display: grid; grid-template-columns: 28px repeat(4, minmax(0, 1fr)); margin-top: 4px; }
@@ -985,16 +1006,15 @@
           </div>
 
           
-          <div id="sub_chem" style="display:none;" class="mb-2 p-2 bg-light rounded border">
-            <small class="fw-bold d-block mb-1">สูตรลัด:</small>
-            <div class="d-flex gap-1 mb-2">
-              <button type="button" class="btn btn-sm btn-outline-success flex-fill fw-bold" onclick="chemPreset('CHEM_PRESET_NEW')">🌱 อ้อยใหม่</button>
-              <button type="button" class="btn btn-sm btn-outline-success flex-fill fw-bold" onclick="chemPreset('CHEM_PRESET_GROW')">🌿 อ้อยโต</button>
-            </div>
-            <small class="fw-bold d-block mb-1">ติ๊กเลือกยาที่ผสม (อัตราต่อถัง 200L):</small>
-            <div id="chem_chks" class="small"></div>
-            <input type="number" inputmode="decimal" class="form-control form-control-sm mt-1" id="chem_qty" placeholder="จำนวนถัง 200 ลิตร (เช่น 2, 3.5)" oninput="chemPreview()">
-            <div id="chem_preview" class="small mt-1"></div>
+          <div id="sub_chem" style="display:none;" class="mb-2">
+            <div class="cf-hd"><span>สูตรของไร่</span><button type="button" class="cf-lib" onclick="openChemLib(chemFm)">🧪 คลังยา ›</button></div>
+            <div id="chem_fm" class="cf-fm"></div>
+            <div class="cf-hd"><span>ยาที่ผสม <small>อัตราต่อถัง 200 ลิตร</small></span></div>
+            <div id="chem_chks" class="cf-box"></div>
+            <div class="cf-hd"><span>จำนวนถัง 200 ลิตร</span></div>
+            <div class="cf-box cf-tank"><input type="number" inputmode="decimal" min="0" step="any" class="form-control" id="chem_qty" placeholder="เช่น 2, 3.5" oninput="chemPreview()"><span>ถัง</span></div>
+            <div id="chem_hint"></div>
+            <div id="chem_preview"></div>
           </div>
 
           
@@ -3468,9 +3488,14 @@
 
     // ===== 🧪 คลังยา + สูตรของไร่ (14 พ.ย. 69): ข้อมูลคัดแล้วใน chems.json (จากฉลาก/ผู้ใช้) + อัตราที่ไร่ผสมจริงจากสต็อก (per_tank) =====
     let chemLib = null; try { chemLib = JSON.parse(lsGet('raioy_chems') || 'null'); } catch (e) {}
-    function openChemLib() {
-      showM('chemModal'); chemRender();
-      fetch('chems.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => { chemLib = j; lsSet('raioy_chems', JSON.stringify(j)); chemRender(); }).catch(() => {});
+    let chemLibAt = 0;
+    function chemLoad(cb) {
+      if (chemLibAt && Date.now() - chemLibAt < 6e5) { if (cb) cb(); return; }
+      fetch('chems.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => { chemLib = j; chemLibAt = Date.now(); lsSet('raioy_chems', JSON.stringify(j)); if (cb) cb(); }).catch(() => {});
+    }
+    function openChemLib(fid) {
+      showM('chemModal'); chemRender(); if (fid) setTimeout(() => chemGo(fid, 'chemf_'), 350);
+      chemLoad(chemRender);
     }
     const chemInv = c => (gData.inventory || []).find(i => i.category === 'Chemical' && c.match.some(m => String(i.name).toLowerCase().includes(m.toLowerCase())));
     const CHEM_K = { 'คุม': ['#E4EEF8', '#24508A'], 'ฆ่า': ['#FBE3E0', '#9A2B1E'], 'คุม + ฆ่า': ['#F1E6F6', '#6B2E86'] };
@@ -3482,7 +3507,7 @@
       const kind = k => { const s = CHEM_K[k] || CHEM_K['คุม']; return `<span class="chem-k" style="background:${s[0]};color:${s[1]}">${esc(k)}</span>`; };
       let h = `<div class="chem-h">สูตรของไร่ <small>ต่อถัง ${L.tankL} ลิตร · ต่อไร่ คิดที่ ${L.perRai} ถัง/ไร่</small></div>`;
       L.formulas.forEach(f => {
-        h += `<div class="chem-f"><div class="chem-ft">${esc(f.t)}</div><div class="chem-fw">${esc(f.when)}</div>
+        h += `<div class="chem-f" id="chemf_${f.id}"><div class="chem-ft">${esc(f.t)}</div><div class="chem-fw">${esc(f.when)}</div>
           <div class="chem-tb"><div class="chem-tr chem-th"><span>ยา</span><span>ต่อถัง</span><span>ต่อไร่</span></div>
           ${f.items.map(id => { const c = byId[id]; return c ? `<button type="button" class="chem-tr" onclick="chemGo('${id}')"><span><b>${esc(c.name)}</b> ${kind(c.kind)}<small class="chem-ta">${esc(c.active)}</small></span><span>${amt(c, 1)}</span><span>${f.noRai ? '–' : amt(c, L.perRai)}</span></button>` : ''; }).join('')}</div></div>`;
       });
@@ -3513,7 +3538,7 @@
       h += `<div class="chem-note">อัตราตามฉลากจะเพิ่มเมื่อส่งรูปฉลากด้านที่มีวิธีใช้ · ข้อมูลยาแก้ได้ บอกในแชตกับ Claude</div>`;
       B.innerHTML = h;
     }
-    function chemGo(id) { const el = $('chem_' + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
+    function chemGo(id, pre) { const el = $((pre || 'chem_') + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
     function renderStock() {
       const inv = gData.inventory || [];
       const bad = inv.filter(it => ['neg', 'low'].includes(stockState(it)));
@@ -3627,10 +3652,40 @@
     }
 
     // ================= ฟอร์มยา / ปุ๋ย =================
+    // ===== หน้าบันทึกฉีดยา (14 พ.ย. 69): เลือกสูตรของไร่ (chems.json) → ติ๊กยาในสต็อกให้ → ใส่ถัง → คิดยาแต่ละตัว + ตัดสต็อก =====
+    let chemFm = '';
+    function chemFmList() { return chemLib ? chemLib.formulas : []; }
+    function chemFmItems(f) { const by = {}; (chemLib ? chemLib.items : []).forEach(c => { by[c.id] = c; }); return f.items.map(id => by[id]).filter(Boolean); }
+    function chemRows() {
+      let chems = (gData.inventory || []).filter(i => i.category === 'Chemical');
+      if (!chems.length) chems = (gData.options.Chemical || []).map(n => ({ name: n, per_tank: 0, unit: '' }));
+      const on = new Set([...document.querySelectorAll('.c-chk:checked')].map(c => c.value));
+      $('chem_chks').innerHTML = chems.map((c, i) => `<label class="cf-row" for="ch_${i}"><input class="c-chk" type="checkbox" value="${esc(c.name)}" id="ch_${i}" ${on.has(c.name) ? 'checked' : ''} onchange="chemFm='';chemPreview()"><span class="n">${esc(c.name)}${c.unit ? `<small>เหลือ ${fmtQty(c, num(c.stock))}</small>` : ''}</span><span class="r">${num(c.per_tank) ? `${baht(num(c.per_tank))} ${esc(c.unit)}<small>ต่อถัง</small>` : '<small>ยังไม่ใส่อัตรา</small>'}</span></label>`).join('') || '<div class="cf-row text-muted">ยังไม่มียาในสต็อก (เพิ่มได้ที่แท็บสต็อก)</div>';
+      chemFmRender();
+    }
+    function chemFmRender() {
+      const L = chemFmList(), el = $('chem_fm'); if (!el) return;
+      el.innerHTML = L.length ? L.map(f => `<button type="button" class="${chemFm === f.id ? 'on' : ''}" onclick="chemPick('${f.id}')">${esc(f.t)}</button>`).join('')
+        : `<button type="button" onclick="chemPreset('CHEM_PRESET_NEW')">🌱 อ้อยใหม่</button><button type="button" onclick="chemPreset('CHEM_PRESET_GROW')">🌿 อ้อยโต</button>`;
+    }
+    function chemPick(fid) {
+      const f = chemFmList().find(x => x.id === fid); if (!f) return;
+      chemFm = chemFm === fid ? '' : fid;
+      const names = chemFm ? chemFmItems(f).map(c => chemInv(c)).filter(Boolean).map(it => it.name) : [];
+      document.querySelectorAll('.c-chk').forEach(c => c.checked = names.includes(c.value));
+      chemFmRender(); chemPreview();
+    }
     function chemPreset(key) {
       const list = String(S(key) || '').split(',').map(s => s.trim()).filter(Boolean);
       document.querySelectorAll('.c-chk').forEach(c => c.checked = list.includes(c.value));
       chemPreview();
+    }
+    // ถังที่ควรใช้: ไร่รวมของแปลงที่เลือก × ถัง/ไร่ของไร่ (ปัดขึ้นทีละครึ่งถัง) · สูตรรอบไร่ไม่คิดต่อไร่
+    function chemSuggest() {
+      const f = chemFmList().find(x => x.id === chemFm); if (f && f.noRai) return null;
+      const ids = $('act_pid').value.split(',').filter(Boolean), rai = ids.reduce((a, id) => a + num(((gData.plots || []).find(p => p.plot_id === id) || {}).area_rai), 0);
+      const k = chemLib ? num(chemLib.perRai) : 0; if (!rai || !k) return null;
+      return { rai, t: Math.ceil(rai * k * 2) / 2, k };
     }
     function chemUsage() {
       const t = num($('chem_qty').value), out = [];
@@ -3638,9 +3693,14 @@
       return out;
     }
     function chemPreview() {
-      const u = chemUsage();
-      $('chem_preview').innerHTML = u.length ? '<b>จะตัดสต็อก:</b> ' + u.map(x => { const it = invItem(x.name); const after = num(it.stock) - x.qty;
-        return `${x.name} −${r1(x.qty)} ${it.unit} <span class="${after < 0 ? 'text-danger' : 'text-muted'}">(เหลือ ${fmtQty(it, after)})</span>`; }).join(' • ') : '';
+      const t = num($('chem_qty').value), sel = [...document.querySelectorAll('.c-chk:checked')].map(c => c.value), sg = chemSuggest();
+      $('chem_hint').innerHTML = sg ? `<div class="cf-sug"><span>แปลงที่เลือก ${r1(sg.rai)} ไร่ × ${sg.k} ถัง/ไร่ ≈ <b>${sg.t} ถัง</b></span>${t === sg.t ? '' : `<button type="button" onclick="$('chem_qty').value=${sg.t};chemPreview()">ใส่ ${sg.t}</button>`}</div>` : '';
+      if (!sel.length) { $('chem_preview').innerHTML = ''; return; }
+      const miss = sel.filter(n => { const it = invItem(n); return !it || !(num(it.per_tank) > 0); });
+      const rows = sel.filter(n => !miss.includes(n)).map(n => { const it = invItem(n), pt = num(it.per_tank), q = r3(pt * t), after = num(it.stock) - q;
+        return `<div class="cf-sum-r"><span>${esc(n)}</span><b>${t ? `${baht(r1(q))} ${esc(it.unit)}` : '–'}</b><small${t && after < 0 ? ' class="bad"' : ''}>${baht(pt)} ${esc(it.unit)} × ${t || '?'} ถัง${t ? (after < 0 ? ` · มี ${fmtQty(it, num(it.stock))} ขาดอีก ${fmtQty(it, -after)}` : ` · เหลือ ${fmtQty(it, after)}`) : ''}</small></div>`; }).join('');
+      $('chem_preview').innerHTML = `<div class="cf-sum"><div class="cf-sum-h">${t ? 'ต้องใช้ยาทั้งหมด · ตัดสต็อกเมื่อบันทึก' : 'ใส่จำนวนถังเพื่อคิดยา'}</div>${t ? `<div class="cf-sum-t">${t} ถัง = น้ำ ${baht(t * 200)} ลิตร</div>` : ''}${rows}
+        ${miss.length ? `<div class="cf-warn">ยังไม่รู้อัตราต่อถังของ ${miss.map(esc).join(', ')} — ไม่ตัดสต็อกตัวนี้ (ใส่ได้ที่แท็บสต็อก → แตะยา → แก้ไข)</div>` : ''}</div>`;
     }
 
     function placeFert() {
@@ -3700,9 +3760,7 @@
       }).join('');
 
       // ยา: ดึงจากชีต Inventory
-      let chems = (gData.inventory || []).filter(i => i.category === 'Chemical');
-      if (!chems.length) chems = (gData.options.Chemical || []).map(n => ({ name: n, per_tank: 0, unit: '' }));
-      $('chem_chks').innerHTML = chems.map((c, i) => `<div class="form-check form-check-inline"><input class="form-check-input c-chk" type="checkbox" value="${c.name}" id="ch_${i}" onchange="chemPreview()"><label class="form-check-label" for="ch_${i}">${c.name}${num(c.per_tank) ? ` <span class="text-muted">(${c.per_tank}${c.unit})</span>` : ''}</label></div>`).join('');
+      chemRows(); chemLoad(chemFmRender);
 
       // ปุ๋ย: ดึงจากชีต Inventory
       const ferts = (gData.inventory || []).filter(i => i.category === 'Fertilizer');
@@ -3801,7 +3859,7 @@
       document.querySelectorAll('.f-qty').forEach(i => i.value = '');
       ['chem_qty', 'gen_det', 'gen_qty', 'harv_qty', 'fert_total'].forEach(id => $(id).value = '');
       $('water_det').value = 'ราดร่อง/ขึ้นน้ำ'; $('trac_task').selectedIndex = 0;
-      $('chem_preview').innerHTML = ''; $('fert_sum').innerText = '';
+      $('chem_preview').innerHTML = ''; $('chem_hint').innerHTML = ''; chemFm = ''; chemFmRender(); $('fert_sum').innerText = '';
       $('hire_by').value = ''; $('hire_rate').value = ''; $('hire_rows').innerHTML = ''; $('hire_sum').innerText = '';
     }
 
@@ -3918,6 +3976,7 @@
       $('sub_water').style.display = g === 'ขึ้นน้ำ' ? 'block' : 'none';
       $('sub_trac').style.display = g === 'รถไถเตรียมดิน/บำรุง' ? 'block' : 'none';
       $('sub_chem').style.display = g === 'ฉีดยา' ? 'block' : 'none';
+      if (g === 'ฉีดยา') chemPreview();
       $('sub_gen').style.display = g === 'ใส่ปุ๋ย' ? 'block' : 'none';
       $('sub_harv').style.display = g === 'ตัดอ้อย' ? 'block' : 'none';
       hireShow(g);
@@ -5609,6 +5668,7 @@ Export.table.toDrive({
       const brDue = R.filter(x => x.r.br && x.r.br.st === 'due');
       let extra = '';
       if (s.tool) extra += `<div class="fl-w">🔧 ${esc(s.tool)}</div>`;
+      if ((s.g || []).includes('ฉีดยา')) extra += flChemHtml(s, R);
       if (s.k === 'repeat') extra += `<div class="fl-w">ซ้ำได้ ${s.max || 2} ครั้ง${s.cond ? ' · ซ้ำเมื่อ' + esc(s.cond) : ''}</div>`;
       if (s.k === 'ask') extra += `<div class="fl-q">❓ ${esc(s.q || s.n)}</div><div class="fl-w">${s.o.map(o => o.go === 'next' ? esc(o.l) : `${esc(o.l)} → ${FL_GO[o.go] || o.go}`).join(' · ')}</div>`;
       if (s.k === 'branch' && s.b) extra += `<div class="fl-br">ถ้า <b>${esc(s.b.c)}</b> → ${esc(s.b.n)} ภายใน ${s.b.w || 7} วัน แล้วกลับเส้นหลัก${brDue.length ? `<br><b style="color:#B4630B">ถึงคิว: ${brDue.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
@@ -5638,6 +5698,21 @@ Export.table.toDrive({
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i ? '' : 'disabled'} onclick="flMove(${i},-1)">↑</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" ${i < flGet(flKey).length - 1 ? '' : 'disabled'} onclick="flMove(${i},1)">↓</button>
           <button type="button" class="btn btn-sm btn-outline-danger" onclick="flDel(${i})">ลบ</button></div></div></div>`;
+    }
+    // ขั้นฉีดยา → สูตรของไร่จาก chems.json + ปุ่มคลังยา / บันทึกฉีดยาแปลงที่ถึงคิว
+    function flChemId(s) { return flKey === 'อ้อยตอ' ? 'ratoon' : /รอบ\s*2/.test(s.n) ? 'new2' : 'new1'; }
+    function flChemHtml(s, R) {
+      if (!chemLib) { chemLoad(flRender); return ''; }
+      const fid = flChemId(s), f = chemFmList().find(x => x.id === fid); if (!f) return '';
+      const due = R.filter(x => x.r.st === 'due').map(x => x.p.plot_id);
+      const rows = chemFmItems(f).map(c => { const it = chemInv(c), pt = it ? num(it.per_tank) : 0; return `<div class="fl-chem-r"><span>${esc(c.name)}</span><b>${pt ? `${baht(pt)} ${esc(it.unit)}` : '<span class="chem-miss">ยังไม่ใส่อัตรา</span>'}</b></div>`; }).join('');
+      return `<div class="fl-chem"><div class="fl-chem-t">🧪 สูตรของไร่ · ต่อถัง ${chemLib.tankL} ลิตร</div><div class="fl-chem-n">${esc(f.t)}</div>${rows}
+        <div class="fl-chem-b"><button type="button" onclick="hideModal('flowModal');setTimeout(()=>openChemLib('${fid}'),300)">ดูคลังยา</button>${due.length ? `<button type="button" class="p" onclick="flChemAct('${fid}','${due.map(qa).join(',')}')">บันทึกฉีดยา ${due.length} แปลงถึงคิว</button>` : ''}</div></div>`;
+    }
+    function flChemAct(fid, ids) {
+      const a = ids.split(',').filter(Boolean), names = a.map(id => (gData.plots.find(p => p.plot_id === id) || {}).plot_name || id);
+      hideModal('flowModal');
+      setTimeout(() => { openAct(a.join(','), a.length > 1 ? `${a.length} แปลง (${names.join(', ')})` : names[0], 'new'); selGrp('ฉีดยา'); chemPick(fid); }, 300);
     }
     function flStartEdit(i) {
       const s = flGet(flKey)[i];

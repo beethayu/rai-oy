@@ -136,3 +136,45 @@ function importBoundaries(items) {
     return { plots: readSheet_(ss, SH.PLOTS), lands: readSheet_(ss, 'Lands'), done: done };
   });
 }
+
+
+// ===== พื้นที่เสียหายในแปลง (14 พ.ย. 69 ไฟไหม้หนองบวบหอม): ไฟไหม้ / น้ำท่วม / อื่น ๆ วาดบนแผนที่ (เดินปักหมุด GPS) =====
+const DMG_H_ = ['dmg_id', 'created', 'plot_id', 'date', 'type', 'note', 'boundary', 'map_rai', 'center_lat', 'center_lng'];
+const DMG_T_ = ['ไฟไหม้', 'น้ำท่วม', 'สัตว์/ขโมย', 'อื่น ๆ'];
+function saveDamage(o) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = getOrCreate_(ss, 'Damages', DMG_H_);
+    o = o || {};
+    const d = sh.getDataRange().getDisplayValues();
+    const r = o.dmg_id ? d.findIndex((row, i) => i > 0 && row[0] === o.dmg_id) : -1;
+    if (o.dmg_id && r < 1 && !o.isNew) throw new Error('ไม่พบรายการนี้');
+    const cur = {};
+    DMG_H_.forEach((k, i) => { cur[k] = r > 0 ? d[r][i] : ''; });
+    if (r < 1) { cur.dmg_id = o.dmg_id || 'X' + Date.now(); cur.created = getTodayStr(); }
+    if (o.plot_id !== undefined) cur.plot_id = String(o.plot_id || '');
+    if (o.date !== undefined) cur.date = String(o.date || '').trim() || getTodayStr();
+    if (o.type !== undefined) cur.type = DMG_T_.indexOf(o.type) >= 0 ? o.type : 'อื่น ๆ';
+    if (o.note !== undefined) cur.note = String(o.note || '').trim().slice(0, 300);
+    if (o.boundary !== undefined) {
+      const pts = parsePath_(o.boundary), info = polyInfo_(pts);
+      if (!info) throw new Error('ต้องปักอย่างน้อย 3 หมุด');
+      cur.boundary = cleanPath_(pts); cur.map_rai = String(Math.round(info.m2 / RAI_M2_ * 100) / 100);
+      cur.center_lat = info.lat.toFixed(6); cur.center_lng = info.lng.toFixed(6);
+    }
+    if (!cur.date) cur.date = getTodayStr();
+    if (!cur.type) cur.type = 'อื่น ๆ';
+    const row = [DMG_H_.map(k => String(cur[k] || ''))];
+    if (r > 0) sh.getRange(r + 1, 1, 1, DMG_H_.length).setNumberFormat('@').setValues(row);
+    else appendRows_(sh, row);
+    return { damages: readSheet_(ss, 'Damages'), savedDmg: cur.dmg_id };
+  });
+}
+function deleteDamage(id) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName('Damages');
+    if (!sh) return { damages: [] };
+    const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((row, i) => i > 0 && row[0] === id);
+    if (r > 0) sh.deleteRow(r + 1);
+    return { damages: readSheet_(ss, 'Damages') };
+  });
+}

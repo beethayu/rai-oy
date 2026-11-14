@@ -282,6 +282,7 @@ function readAll_(ss) {
     expenses: sortDesc_(readSheet_(ss, 'Expenses', true)),
     ...readRock_(ss),
     lands: readSheet_(ss, 'Lands'),
+    damages: readSheet_(ss, 'Damages'),
     waterPlans: readSheet_(ss, 'WaterPlans'),
     flows: readSheet_(ss, 'Flow'),
     flowDef: FLOW_DEF_,

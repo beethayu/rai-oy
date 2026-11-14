@@ -2847,7 +2847,7 @@
     function tracKind(d, type) {
       d = String(d || '');
       if (/ริปเปอร์/.test(d) && /ครูด/.test(d)) return type === 'อ้อยตอ' ? 'ครูดร่อง' : 'ริปเปอร์';
-      if (/ครูด/.test(d) || (/ริปเปอร์/.test(d) && type === 'อ้อยตอ')) return 'ครูดร่อง';
+      if (/ครูด/.test(d)) return 'ครูดร่อง';
       if (/ริปเปอร์/.test(d)) return 'ริปเปอร์';
       if (/ผาน\s*(4|สี่)/.test(d)) return 'ผาน 4';
       if (/ผาน\s*(3|สาม)|ไถดะ/.test(d)) return 'ผาน 3';
@@ -2942,7 +2942,7 @@
         <div class="row g-2 mb-3 small">
           <div class="col-12 col-md-6"><div class="dossier-stat">
             <div class="fw-bold text-secondary mb-1">🚜 งานเตรียมดิน / รถไถ / อุ้มร่อง</div>
-            ${(p.cane_type === 'อ้อยตอ' ? ['ครูดร่อง', 'อุ้มร่อง'] : ['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 4', 'ผาน 7', 'ชักร่อง'].includes(k)))
+            ${(p.cane_type === 'อ้อยตอ' ? ['ริปเปอร์', 'ครูดร่อง', 'อุ้มร่อง'] : ['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 4', 'ผาน 7', 'ชักร่อง'].includes(k)))
               .map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []); return `<div>• <b>${TRAC_LBL[k] || k}:</b> ${a.length ? dRange(a).join(', ') : k === 'ชักร่อง' && p.plant_date ? p.plant_date : none}</div>`; }).join('')}
             <div>• <b>ฝังปุ๋ย:</b> ${subFert.length ? dRange(subFert).join(', ') : none}</div>
             ${weed.length ? `<div>• <b>สับหญ้า/อื่น ๆ (รถ):</b> ${weed.join(', ')}</div>` : ''}

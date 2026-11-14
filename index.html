@@ -2947,7 +2947,8 @@
           ${(X => X.length ? `<div class="col-12"><div class="dossier-stat" style="border-color:#E9A69B">
             <div class="fw-bold mb-1" style="color:#9A2B1E">🔥 พื้นที่เสียหาย · รวม ${fmtRai(X.reduce((s, x) => s + num(x.map_rai), 0) * 1600)}</div>
             ${X.map(x => `<div>• <b>${esc(x.date)}</b> ${dmgT(x.type)[1]} ${esc(x.type)} ≈ ${fmtRai(num(x.map_rai) * 1600)}${x.note ? ' · ' + esc(x.note) : ''}</div>`).join('')}
-            <div class="srow-s mt-1">ดู/แก้แนวได้ที่ 🗺️ แผนที่ไร่</div>
+            ${X.filter(x => !x.boundary).map(x => `<button type="button" class="btn btn-sm btn-outline-danger fw-bold mt-2 me-1" onclick="dmgDraw('${qa(x.dmg_id)}')">📍 วาดแนวบนแผนที่ (${esc(x.date)})</button>`).join('')}
+            <div class="srow-s mt-1">${X.some(x => !x.boundary) ? 'ยังไม่ได้วาดแนว = ไร่ที่ประมาณไว้ · ' : ''}ดู/แก้แนวได้ที่ 🗺️ แผนที่ไร่</div>
           </div></div>` : '')((gData.damages || []).filter(x => x.plot_id === pid))}
           ${(H => H.length ? `<div class="col-12"><div class="dossier-stat" style="border-color:#E9C48F">
             <div class="fw-bold mb-1" style="color:#8A4A06">🤝 รถจ้าง · รวม ${baht(H.reduce((s, x) => s + num(x.h.a), 0))} บาท</div>
@@ -4219,6 +4220,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
+          chFixPlots(items, txt);
           const m = { ai: true, t: r.reply || '', items, ask: r.ask || [], state: items.length ? 'draft' : 'info' };
           // เก็บรูปชุดนี้ไว้ใช้ต่อเมื่อยังรอตอบ/แก้ (มีรายการที่แนบรูป หรือมีคำถามค้าง) ไม่งั้นปล่อย
           if (ph.length && (items.some(it => (it.photo_ids || []).length) || (m.ask.length && !items.length))) { chat.pics = { ids: ph, th }; m.th = th; } else chat.pics = null;
@@ -4229,6 +4231,18 @@
         }).finally(() => { chatBusy = false; chatSave(); chatRender(true); });
     }
     const chAsset = n => (gData.assets || []).find(a => a.category !== 'Worker' && a.name === String(n || '').trim());
+    // กันแชตจับแปลงผิด (14 พ.ย. 69: ตอบ "หนองบวบหอม 1" แต่การ์ดเป็น หนองบวบหอม 3 (แรก)): ข้อความ/คำตอบชิปมีชื่อแปลงเต็มชื่อเดียว
+    // แต่รายการ (แปลงเดียว) เป็นแปลงอื่น → ใช้แปลงที่พิมพ์ แล้วทำช่องแปลงเป็นสีส้มให้ตรวจ
+    function chFixPlots(items, txt) {
+      const t = String(txt || '').split('→').pop();
+      let hit = (gData.plots || []).filter(p => p.plot_name && t.includes(p.plot_name));
+      hit = hit.filter(p => !hit.some(q => q !== p && q.plot_name.includes(p.plot_name)));
+      if (hit.length !== 1) return;
+      items.forEach(it => {
+        if (!Array.isArray(it.plots) || it.plots.length !== 1 || it.plots[0] === hit[0].plot_id) return;
+        it.plots = [hit[0].plot_id]; if (!it.unsure.includes('plots')) it.unsure.push('plots');
+      });
+    }
     function chatNorm(it, ph) {
       if (!it || !it.type) return null;
       ph = ph || [];
@@ -4325,7 +4339,8 @@
         } else if (a.type === 'cancel') {
           if (a.which === 'watch') a.plots.forEach(pid => chCancelWatch(pid, a.reason).forEach(w => ops.push({ fn: 'unwatch', watch_id: w.watch_id })));
           else a.plots.forEach(pid => chCancelLogs(pid, a.which).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));
-        } else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
+        } else if (a.type === 'damage') (a.plots || []).forEach(pid => ops.push({ fn: 'dmg', p: { plot_id: pid, type: dmgT(a.kind)[0], date: isoToBE(a.date || todayISO()), rai: num(a.rai), note: a.note || '' } }));
+        else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
           date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [], state: a.state || '' }); }
@@ -4374,6 +4389,11 @@
           return ls.length ? ls.map(l => row(esc(chPlot(pid).plot_name), `${esc(l.activity_group)} · ${esc(l.activity_detail)} (${esc(l.timestamp)})`)).join('')
             : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มี${it.which === 'last' ? 'รายการ' : 'งานที่กำลังทำ'}ให้ยกเลิก</div>`; }).join('')
           + `<div class="ch-warn" style="background:#FDECEC;color:#8A1C1C">ลบแล้วกู้คืนไม่ได้ · ยาที่ตัดสต็อกไปจะคืนให้</div>`;
+      } else if (it.type === 'damage') {
+        const t = dmgT(it.kind);
+        h = `<div class="ch-t">${t[1]} พื้นที่เสียหาย · ${esc(t[0])}</div>` + row('แปลง', pn(it.plots), 'plots') + row('วันที่เกิด', dt(it.date), 'date')
+          + row('ประมาณ', num(it.rai) ? baht(it.rai) + ' ไร่' : 'ยังไม่รู้', 'rai') + row('หมายเหตุ', it.note)
+          + `<div class="ch-warn" style="background:#EEF5EF;color:#1F5E3B">บันทึกแล้ววาดแนวจริงได้ที่ หน้าดูแปลง → 📍 วาดแนวบนแผนที่</div>`;
       } else if (it.type === 'watch') {
         h = `<div class="ch-t">📌 ฝากดู · ${esc(it.reason || 'ไปดูอาการ')}</div>` + row('แปลง', pn(it.plots), 'plots') + row('หมายเหตุ', it.note);
       } else if (it.type === 'add') {
@@ -6513,6 +6533,10 @@ Export.table.toDrive({
     // ===== พื้นที่เสียหาย (ไฟไหม้/น้ำท่วม) =====
     const DMG_T = [['ไฟไหม้', '🔥', '#E4572E'], ['น้ำท่วม', '🌊', '#2F7FD8'], ['สัตว์/ขโมย', '🐾', '#8A5A2B'], ['อื่น ๆ', '⚠️', '#8A6D00']];
     const dmgT = t => DMG_T.find(x => x[0] === t) || DMG_T[3];
+    function dmgDraw(id) { // จากหน้าดูแปลง → แผนที่ไร่ เริ่มวาดแนวของรายการที่จดจากแชต
+      const x = (gData.damages || []).find(o => o.dmg_id === id); if (!x) return;
+      hideModal('dossierModal'); setTimeout(() => { openFarmMap(x.plot_id); setTimeout(() => fmStartDmg('', id), 900); }, 300);
+    }
     function fmStartDmg(pid, id) {
       const o = id ? (gData.damages || []).find(x => x.dmg_id === id) : null;
       const p = gData.plots.find(x => x.plot_id === (o ? o.plot_id : pid));

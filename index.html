@@ -171,6 +171,15 @@
     .fl-stg i { font-style: normal; font-size: 11.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-top: 2px; }
     .fl-stg i.g { background: #E3EFE6; color: #1F5E3B; } .fl-stg i.o { background: #FCEBD3; color: #8A4A06; } .fl-stg i.r { background: #F8E1DE; color: #9A2B1E; }
     .fl-stn { font-size: 12px; color: #6B736E; margin: 6px 4px 0; }
+    .fl-jobs { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px; margin: 0 0 12px; }
+    .fl-jh { font-size: 13px; color: #6B736E; font-weight: 600; margin: 0 2px 4px; }
+    .fl-jr { display: grid; grid-template-columns: 46px 84px minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; border: 0; border-top: 1px solid #F0EEE6; background: transparent; color: inherit; padding: 7px 2px; text-align: left; }
+    .fl-jc { font-size: 13px; font-weight: 700; }
+    .fl-jt { position: relative; height: 12px; background: #F1EFE7; border-radius: 4px; }
+    .fl-jt i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+    .fl-jn { font-size: 14.5px; font-weight: 600; line-height: 1.3; } .fl-jd { font-size: 13px; color: #4A524D; white-space: nowrap; }
+    .fl-jl { display: flex; justify-content: center; gap: 14px; margin-top: 8px; font-size: 13px; font-weight: 600; color: #4A524D; }
+    .fl-jl i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
     .fm-pinbar { display: flex; gap: 8px; align-items: center; } .fm-pinbar .btn { height: 52px; font-size: 17px; }
     .fm-acc { flex: 0 0 auto; font-size: 13.5px; font-weight: 700; padding: 6px 10px; border-radius: 999px; background: #EEF0EE; color: #4A524D; }
     .fm-acc.g { background: #E3EFE6; color: #1F5E3B; } .fm-acc.o { background: #FCEBD3; color: #8A4A06; } .fm-acc.r { background: #F8E1DE; color: #9A2B1E; }
@@ -5098,6 +5107,43 @@ Export.table.toDrive({
       return `<div class="fl-stage">${FL_STAGE_SVG}<div class="fl-stg">${FL_STAGE.map(x => `<button type="button" onclick="flStageGo(${x[0]})"><b>${FL_PH[x[0]][1].replace('ระยะ', '')}</b><span>${x[0] === 4 ? '8–14 เดือน' : FL_PH[x[0]][2]}</span><em>สูง ${x[1]}</em><i class="${x[2]}">${x[3]}</i></button>`).join('')}</div>
         <div class="fl-stn">ความสูงถึงปลายใบโดยประมาณ ขึ้นกับพันธุ์ น้ำ ปุ๋ย · แตะช่อง = ดูงานของระยะนั้น</div></div>`;
     }
+    // งานทั้งฤดูแบบแถบ (14 พ.ย. 69 ผู้ใช้ชอบรูปตัวอย่าง: ป้ายชนิดงานสี | แถบเวลา | ชื่องาน | ช่วงวัน) ดึงจากผังจริง ขั้นละแถว ไม่รวมงาน
+    const FL_CAT = { r: ['งานรถ', '#C98A1E'], w: ['น้ำ', '#2F7FD8'], s: ['ฉีดยา', '#D0453F'], p: ['คนงาน', '#3E9A45'] };
+    function flCatOf(s) {
+      const g = s.g || [];
+      if (g.includes('ขึ้นน้ำ') || /น้ำ/.test(s.n)) return 'w';
+      if (g.includes('ฉีดยา')) return 's';
+      if (g.includes('รถไถเตรียมดิน/บำรุง') || g.includes('ตัดอ้อย') || /รถ/.test(s.tool || '')) return 'r';
+      return 'p';
+    }
+    const flJx = d => Math.log(1 + Math.max(0, Math.min(420, d)) / 10) / Math.log(43) * 100; // แกนเวลาแบบล็อก: ช่วงแรกที่งานเยอะกว้างกว่า
+    function flJobsHtml(steps) {
+      const rows = [], prep = steps.filter(s => s.sq === 1 || (s.t < 0 && s.k !== 'note'));
+      if (prep.length) rows.push({ i: steps.indexOf(prep[0]), c: 'r', n: flKey === 'อ้อยใหม่' ? 'เตรียมดิน (ก่อนปลูก)' : prep[0].n, a: -1, b: -1, txt: 'ก่อนปลูก' });
+      steps.forEach((s, i) => {
+        if (prep.includes(s) || (s.w && s.w.a && rows.some(r => r.wa === s.w.a))) return;
+        if (s.k === 'ask' && steps.some(x => x.w && x.w.a === s.id)) return; // คำถามที่มีทางแยก: โชว์แถวของทางแยกแทน
+        let a = s.f, b = s.t;
+        if (s.af) { const q = steps.find(x => x.id === s.af), ad = Array.isArray(s.ad) ? s.ad : [0, 7]; if (q) { a = q.f + (+ad[0] || 0); b = q.f + (+ad[1] || 0); } }
+        const n = s.w && s.w.a ? (steps.find(x => x.id === s.w.a) || s).n : s.k === 'ask' && !(s.g || []).includes('ตัดอ้อย') ? s.n + ' (ถ้าทำ)' : s.n;
+        const txt = a >= 120 ? `${flMon(a)}–${flMon(b)} เดือน` : a === b ? `วันที่ ${a}` : `${a}–${b} วัน`;
+        rows.push({ i, c: flCatOf(s), n, a, b, txt, wa: s.w && s.w.a });
+      });
+      return `<div class="fl-jobs"><div class="fl-jh">งานทั้งฤดู · ${flKey}</div>${rows.map(r => {
+        const C = FL_CAT[r.c], x1 = r.a < 0 ? 0 : flJx(r.a), x2 = r.a < 0 ? 4 : flJx(r.b), w = Math.max(8, x2 - x1);
+        return `<button type="button" class="fl-jr" onclick="flJobGo(${r.i})"><span class="fl-jc" style="color:${C[1]}">${C[0]}</span>
+          <span class="fl-jt"><i style="left:${Math.min(x1, 100 - w).toFixed(1)}%;width:${w.toFixed(1)}%;background:${C[1]}"></i></span>
+          <span class="fl-jn">${esc(r.n)}</span><span class="fl-jd">${r.txt}</span></button>`;
+      }).join('')}
+        <div class="fl-jl">${Object.values(FL_CAT).map(c => `<span><i style="background:${c[1]}"></i>${c[0]}</span>`).join('')}</div>
+        <div class="fl-stn">ช่วงวันนับจากวัน${flBase()} ตามผังที่ใช้อยู่ · แถบเวลาช่วงแรกขยายให้กว้าง · แตะแถว = ไปที่ขั้นนั้น</div></div>`;
+    }
+    function flJobGo(i) {
+      const s = flGet(flKey)[i]; if (!s) return;
+      const ph = s.sq || s.t < 0 ? 0 : flPhase(s.f);
+      flPhTog[flKey + ph] = true; flOpen = i; flEdit = -1; flRender();
+      setTimeout(() => { const el = document.querySelector('.fl-step.open') || document.querySelector(`[data-ph="${ph}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
+    }
     function flStageGo(ph) {
       Object.keys(flPhTog).forEach(k => { if (k.startsWith(flKey)) flPhTog[k] = false; });
       flPhTog[flKey + ph] = true; flRender();
@@ -5389,7 +5435,7 @@ Export.table.toDrive({
       const B = $('flow-body'); if (!B) return;
       const steps = flGet(flKey), plots = flPlots(flKey);
       let h = `<div class="sat-seg mt-0">${['อ้อยใหม่', 'อ้อยตอ'].map(k => `<button type="button" class="${k === flKey ? 'on' : ''}" onclick="flKey='${k}';flOpen=-1;flEdit=-1;flRender()">${k === 'อ้อยใหม่' ? '🌱 อ้อยใหม่' : '🌿 อ้อยตอ'}</button>`).join('')}</div>
-        ${flStageHtml()}<div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด'} · แตะขั้น = ดูรายแปลง / ตอบ / แก้ · แตะแถบระยะ = พับ/กาง</div>`;
+        ${flStageHtml()}${flJobsHtml(steps)}<div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด'} · แตะขั้น = ดูรายแปลง / ตอบ / แก้ · แตะแถบระยะ = พับ/กาง</div>`;
       let skip = []; try { skip = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {}
       const miss = flRow(flKey) ? flDef(flKey).filter(d => { const s = steps.find(x => x.id === d.id); return (!s || (d.rev || 0) > (s.rev || 0)) && !skip.includes(flKey + d.id + (d.rev || '')); }) : [];
       if (miss.length) h += `<div class="fl-old"><b>${steps.some(s => /^d\d+$/.test(s.id)) ? 'ร่างมีขั้นใหม่/แก้แล้ว ที่ผังของคุณยังไม่มี' : 'ผังนี้เป็นแบบเดิมที่แก้ไว้'}</b><div class="srow-s">${miss.slice(0, 4).map(d => esc(d.n)).join(', ')}${miss.length > 4 ? ` และอีก ${miss.length - 4} ขั้น` : ''} · ผังเดิมยังใช้ได้ตามปกติ</div>

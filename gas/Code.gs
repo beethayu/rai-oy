@@ -517,8 +517,10 @@ function importHistory(rows) {
       const row = ['H' + base + '_' + i, r[0], r[1], r[2], r[3] || '-', r[4] || '-', r[5] || '-', r[6] || '-', rmk];
       const k = key([row[1], row[2], row[3], row[4], 0, 0, 0, row[8]]);
       if (seen.has(k)) return;
-      seen.add(k); out.push(row); plots.add(row[2]);
+      seen.add(k); plots.add(row[2]);
+      out.push(r[8] && typeof r[8] === 'object' ? withHire_(sh, [row], r[8])[0] : row); // r[8] = รถจ้าง {by,u,r,q}
     });
+    if (out.length) { const w = Math.max.apply(null, out.map(x => x.length)); out.forEach(x => { while (x.length < w) x.push(''); }); }
     appendRows_(sh, out);
     if (plots.size) syncPlots_(ss, [...plots]);
     const res = readAll_(ss);

@@ -171,6 +171,7 @@
     .chem-tb { border-top: 1px solid #ECEAE2; }
     .chem-tr { display: grid; grid-template-columns: minmax(0, 1fr) 82px 82px; gap: 6px; align-items: center; width: 100%; border: 0; border-bottom: 1px solid #F0EEE6; background: transparent; color: inherit; padding: 7px 0; text-align: left; font-size: 14.5px; }
     .chem-tr > span:not(:first-child) { text-align: right; font-weight: 600; } .chem-th { font-size: 12.5px; color: #6B736E; font-weight: 600; padding: 5px 0; }
+    .chem-ta { display: block; font-size: 12.5px; color: #6B736E; font-weight: 400; margin-top: 1px; }
     .chem-k { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
     .chem-miss { color: #8A4A06; font-weight: 600; font-size: 13px; }
     .chem-note { font-size: 12.5px; color: #6B736E; margin: 0 4px 8px; line-height: 1.5; }
@@ -3482,7 +3483,7 @@
       L.formulas.forEach(f => {
         h += `<div class="chem-f"><div class="chem-ft">${esc(f.t)}</div><div class="chem-fw">${esc(f.when)}</div>
           <div class="chem-tb"><div class="chem-tr chem-th"><span>ยา</span><span>ต่อถัง</span><span>ต่อไร่</span></div>
-          ${f.items.map(id => { const c = byId[id]; return c ? `<button type="button" class="chem-tr" onclick="chemGo('${id}')"><span><b>${esc(c.name)}</b> ${kind(c.kind)}</span><span>${amt(c, 1)}</span><span>${f.noRai ? '–' : amt(c, L.perRai)}</span></button>` : ''; }).join('')}</div></div>`;
+          ${f.items.map(id => { const c = byId[id]; return c ? `<button type="button" class="chem-tr" onclick="chemGo('${id}')"><span><b>${esc(c.name)}</b> ${kind(c.kind)}<small class="chem-ta">${esc(c.active)}</small></span><span>${amt(c, 1)}</span><span>${f.noRai ? '–' : amt(c, L.perRai)}</span></button>` : ''; }).join('')}</div></div>`;
       });
       h += `<div class="chem-note">${esc(L.perRaiNote)} · อัตราต่อถังมาจากรายการสต็อก (แก้ได้ที่ แท็บสต็อก → แตะยา → แก้ไข)</div>
         <div class="chem-h mt-3">ยาแต่ละตัว</div>`;

@@ -5212,16 +5212,29 @@ Export.table.toDrive({
         <div class="fl-jl">${Object.values(FL_CAT).map(c => `<span><i style="background:${c[1]}"></i>${c[0]}</span>`).join('')}</div>
         <div class="fl-stn">ช่วงวันนับจากวัน${flBase()} ตามผังที่ใช้อยู่ · แถบเวลาช่วงแรกขยายให้กว้าง · แตะแถว = ไปที่ขั้นนั้น</div></div>`;
     }
+    // ระยะ (กลุ่มที่แสดงในผัง) ของขั้นที่ i — ต้องคิดแบบเดียวกับ flRender: ระยะเดินหน้าอย่างเดียว ขั้นที่วันน้อยกว่าขั้นก่อนอยู่กลุ่มเดิม
+    function flSegPh(steps, i) {
+      let ph = -1, seen = false;
+      for (let k = 0; k <= i; k++) { const s = steps[k]; if (s.k === 'note' && !s.f && !s.t) continue; const p2 = flPhase(s.f); if (p2 > ph || !seen) { ph = Math.max(ph, p2); seen = true; } }
+      return Math.max(0, ph);
+    }
+    // เลื่อนในกล่องผังเอง (14 พ.ย. 69: scrollIntoView บน iPhone เลื่อนไม่ตรง) · รอวาดเสร็จ 2 เฟรม
+    function flScrollTo(el) {
+      const mb = el && el.closest('.modal-body'); if (!mb) return;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const y = el.getBoundingClientRect().top - mb.getBoundingClientRect().top + mb.scrollTop - 12;
+        mb.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      }));
+    }
     function flJobGo(i) {
-      const s = flGet(flKey)[i]; if (!s) return;
-      const ph = s.sq || s.t < 0 ? 0 : flPhase(s.f);
-      flPhTog[flKey + ph] = true; flOpen = i; flEdit = -1; flRender();
-      setTimeout(() => { const el = document.querySelector('.fl-step.open') || document.querySelector(`[data-ph="${ph}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
+      const steps = flGet(flKey), s = steps[i]; if (!s) return;
+      flPhTog[flKey + flSegPh(steps, i)] = true; flOpen = i; flEdit = -1; flRender();
+      flScrollTo(document.querySelector('#flow-body .fl-step.open'));
     }
     function flStageGo(ph) {
       Object.keys(flPhTog).forEach(k => { if (k.startsWith(flKey)) flPhTog[k] = false; });
       flPhTog[flKey + ph] = true; flRender();
-      setTimeout(() => { const el = document.querySelector(`[data-ph="${ph}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+      flScrollTo(document.querySelector(`#flow-body [data-ph="${ph}"]`));
     }
     const flPhase = age => { let i = 0; FL_PH.forEach((p, j) => { if (age >= p[0]) i = j; }); return i; };
     // ===== แกนคิดสถานะขั้นตอน 📋 — โค้ดชุดเดียวกันทั้ง gas/Flow.gs และ index.html (แก้ต้องก๊อปไปทั้งสองที่) =====

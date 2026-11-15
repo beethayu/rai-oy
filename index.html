@@ -180,6 +180,14 @@
     .chem-row .o { color: #B4630B; } .chem-row .g { color: #1F7A45; }
     .chem-care { font-size: 13.5px; color: #8A4A06; margin-top: 6px; } .chem-src { font-size: 12px; color: #9AA19C; margin-top: 4px; }
     #chemModal { z-index: 1075; }
+    .ds-f { display: flex; gap: 6px; margin-bottom: 8px; } .ds-f button { border: 1px solid var(--line); background: #fff; color: inherit; border-radius: 999px; padding: 5px 13px; font-size: 14px; font-weight: 600; } .ds-f button.on { background: #1F5E3B; border-color: #1F5E3B; color: #fff; }
+    .ds-y { font-size: 12.5px; font-weight: 700; color: #6B736E; margin: 10px 2px 4px; }
+    .ds-r { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; margin-bottom: 5px; cursor: pointer; } .ds-r.op { border-color: #1F5E3B; border-radius: 12px 12px 0 0; margin-bottom: 0; } .ds-r.rain { background: #F6F7F6; padding: 6px 11px; }
+    .ds-d { flex: 0 0 84px; font-size: 14px; font-weight: 700; color: #1F2A24; line-height: 1.25; } .ds-d small { display: block; font-weight: 400; color: #6B736E; font-size: 12px; }
+    .ds-m { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.3; } .ds-m small { display: block; color: #6B736E; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-g { font-size: 12.5px; font-weight: 700; }
+    .ds-q { flex: 0 0 auto; font-size: 14px; font-weight: 700; text-align: right; white-space: nowrap; } .ds-q span { color: #9AA39D; margin-left: 6px; font-weight: 400; }
+    .ds-x { border: 1px solid #1F5E3B; border-top: 0; border-radius: 0 0 12px 12px; background: #FAFBF9; margin-bottom: 5px; }
+    .ds-xi { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 11px; border-top: 1px solid #ECEEE9; font-size: 14px; cursor: pointer; } .ds-xi:first-child { border-top: 0; } .ds-xi small { display: block; color: #4A524D; font-size: 13px; } .ds-xi > span { color: #1F5E3B; font-weight: 700; font-size: 13px; white-space: nowrap; }
     .cf-hd { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: #4A524D; margin: 8px 2px 5px; } .cf-hd small { font-weight: 400; color: #6B736E; font-size: 12.5px; }
     .cf-lib { border: 0; background: transparent; color: #1F5E3B; font-weight: 700; font-size: 14.5px; padding: 2px 0; }
     .cf-fm { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; } .cf-fm::-webkit-scrollbar { display: none; }
@@ -1118,7 +1126,7 @@
   <div class="modal fade" id="dossierModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header bg-dark text-white py-2">
+        <div class="modal-header text-white py-2" style="background:#1F5E3B">
           <h6 class="modal-title fw-bold" id="dosTitle">📓 แฟ้มประวัติแปลงแบบละเอียด</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -1131,13 +1139,14 @@
   <div class="modal fade" id="logInspModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white py-2">
+        <div class="modal-header text-white py-2" style="background:#1F5E3B">
           <h6 class="modal-title fw-bold" id="inspTitle">📌 รายละเอียดงาน & บันทึกเหตุการณ์หน้างาน</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3">
           <div id="inspDetailBox" class="p-2 bg-light rounded border mb-3"></div>
-          <div class="p-3 rounded border border-danger" style="background:#fff8f8;">
+          <button type="button" class="btn btn-outline-danger w-100 fw-bold" id="inspIssueBtn" onclick="this.style.display='none';$('inspIssueBox').style.display='block'">⚠️ แจ้งรถเสีย / คนงานมีปัญหา จากงานนี้</button>
+          <div class="p-3 rounded border border-danger" id="inspIssueBox" style="background:#fff8f8;display:none;">
             <h6 class="fw-bold text-danger mb-2">🚨 บันทึกเหตุการณ์หน้างานจากงานนี้ (รถเสีย / พญานาค / คนงาน)</h6>
             <input type="hidden" id="insp_ref_plot">
             <label class="small fw-bold">1. เลือกคนงาน หรือ เครื่องจักรที่มีปัญหาในงานนี้:</label>
@@ -1979,6 +1988,14 @@
     }
 
     // ป้ายน้ำแบบ V7: แดง = ขาดน้ำ, ส้ม = ดินหมาดฉีดยาได้, ฟ้า = เพิ่งให้น้ำ, เขียว = ปกติ, เทา = ไม่ต้องสนใจ
+    // น้ำล่าสุดของแปลงเป็นฝน (ไม่ใช่ขึ้นน้ำ) ไหม → {mm} · ใช้บอกในป้ายน้ำว่า "ฝนตก ข้ามได้"
+    function lastRain(p) {
+      const d = String(p.last_water_date || '').slice(0, 10); if (!d) return null;
+      const A = (gData.activities || []).filter(a => a.plot_id === p.plot_id && String(a.timestamp).slice(0, 10) === d);
+      if (A.some(a => a.activity_group === 'ขึ้นน้ำ')) return null;
+      const r = A.find(a => a.activity_group === 'ฝนตก'); if (!r) return null;
+      return { mm: (String(r.remark).match(/~?([\d.]+)\s*มม/) || [])[1] || '' };
+    }
     function waterChip(p, st, pDays, wDays) {
       if (st.isHarvested) return null;
       if (p.cane_type === 'อ้อยใหม่' && pDays === null) return null;
@@ -1986,7 +2003,9 @@
       if (wDays === null) return { c: 'gray', t: 'ยังไม่มีวันน้ำ' };
       const limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
       const sMin = num(S('SPRAY_DAY_MIN')) || 3, sMax = num(S('SPRAY_DAY_MAX')) || 5;
-      if (wDays >= limit) return { c: 'red', t: `ขาดน้ำ ${wDays} วัน (ครบ ${limit} ว.)` };
+      const rn = lastRain(p), rt = rn ? `🌧 ฝนตก${rn.mm ? ` ~${rn.mm} มม.` : ''}` : '';
+      if (rn && wDays < limit) return { c: wDays < sMin ? 'blue' : 'ok', t: wDays < sMin ? `${rt} ${wDays ? wDays + ' วันก่อน' : 'วันนี้'} · ข้ามขึ้นน้ำได้` : `${rt} ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
+      if (wDays >= limit) return { c: 'red', t: `ขาดน้ำ ${wDays} วัน (ครบ ${limit} ว.)${rn ? ' · ล่าสุดเป็นฝน' : ''}` };
       if (wDays >= sMin && wDays <= sMax && flSprayDue(p)) return { c: 'urg', t: `หลังน้ำ ${wDays} วัน · ดินหมาด ฉีดยาได้` };
       if (wDays < sMin) return { c: 'blue', t: `เพิ่งให้น้ำ ${wDays} วัน` };
       return { c: 'ok', t: `ให้น้ำ ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
@@ -2910,7 +2929,7 @@
       (gData.stockLogs || []).forEach(s => { if (s.plot_id === pid && num(s.change_qty) < 0) used[s.item_name] = (used[s.item_name] || 0) - num(s.change_qty); });
       const usedHtml = Object.keys(used).map(n => `<span class="badge bg-light text-dark border me-1 mb-1 fw-normal">${n}: <b>${fmtQty(invItem(n) || { unit: '' }, used[n])}</b></span>`).join('') || '<span class="text-muted">ยังไม่มี (เริ่มนับตั้งแต่ V7.0)</span>';
 
-      $('dosTitle').innerText = `📓 ${p.plot_id} - ${p.plot_name} (${p.area_rai} ไร่)`;
+      $('dosTitle').innerText = `${p.plot_name} · ${p.area_rai} ไร่`;
       let none = '<span class="text-muted">ยังไม่มีบันทึก</span>';
       let html = `
         <div class="p-2 bg-light rounded border mb-3">
@@ -2989,24 +3008,47 @@
           </div></div>` : '')(logs.map(l => ({ l, h: hireOf(l) })).filter(x => x.h))}
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <h6 class="fw-bold text-dark m-0">🕒 3. ประวัติงานทั้งหมด (${logs.length} รายการ)</h6>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold text-dark m-0">🕒 3. ประวัติงาน</h6>
           <button class="btn btn-sm btn-success fw-bold py-0" onclick="dsLeave('${p.plot_id}');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ เพิ่มงานใหม่</button>
         </div>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered small mb-0">
-            <thead class="table-light"><tr><th>วันที่ (กดเพื่อแจ้งปัญหา)</th><th>หมวดงาน</th><th>รายละเอียด</th><th>เครื่องจักร/พญานาค</th><th>จำนวน</th><th>คนงาน</th><th>หมายเหตุ</th></tr></thead>
-            <tbody>
-              ${logs.map(l => `
-                <tr style="cursor:pointer;" onclick="dsLeave('${p.plot_id}');openLogInspect('${l.log_id}')">
-                  <td class="fw-bold text-primary text-decoration-underline text-nowrap">${l.timestamp}</td><td style="min-width:84px"><b>${l.activity_group}</b></td><td>${l.activity_detail}</td>
-                  <td>${l.equipment}${hireOf(l) ? `<br><small class="text-muted">${esc(hireTxt(hireOf(l)))}</small>` : ''}</td><td>${l.quantity}</td><td style="min-width:70px">${l.operator}</td><td style="min-width:230px">${l.remark}</td>
-                </tr>`).join('') || '<tr><td colspan="7" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>'}
-            </tbody>
-          </table>
-        </div>`;
-      $('dosBody').innerHTML = html;
+        <div id="dsHist"></div>`;
+      $('dosBody').innerHTML = html; dsOpen = {}; dsHist(pid);
       bootstrap.Modal.getOrCreateInstance($('dossierModal')).show();
+    }
+
+    // ===== ประวัติงานในหน้าดูแปลง: รายการบรรทัดเดียว · วันติดกันงานเดียวกันรวมเป็นแถวเดียว · แตะ = กางรายวัน · ฝนแยกตัวกรอง =====
+    function grpLabel(l) { const g = l.activity_group, d = l.activity_detail || ''; if (g === 'ใส่ปุ๋ย' && /ซ่อม|ถาก|ตัดพันธุ์|ปลูกอ้อย/.test(d)) return 'งานคน'; if (g === 'รถไถเตรียมดิน/บำรุง') return 'รถไถ'; return g; }
+    function rmkClean(r) { return String(r || '').replace(/\[✅เสร็จสิ้น\]\s*/, '').replace(/\s*\(ย้อนหลังจากไฟล์จดมือ\)/, '').trim(); }
+    const DS_COL = { 'ขึ้นน้ำ': '#1D6FB8', 'ฉีดยา': '#B42318', 'รถไถ': '#9A6700', 'งานคน': '#1F7A45', 'ตัดอ้อย': '#7A2E0E', 'ใส่ปุ๋ย': '#6B4E16', 'ฝนตก': '#6B736E' };
+    let dsFilt = 'work', dsOpen = {};
+    function dsT(l) { const m = String(l.timestamp).match(/^(\d\d)\/(\d\d)\/(\d{4})/); return m ? new Date(+m[3] - 543, +m[2] - 1, +m[1]).getTime() : 0; }
+    function dsD(t, yr) { const d = new Date(t); return `${d.getDate()} ${TH_MON[d.getMonth()]}${yr ? ' ' + String(d.getFullYear() + 543).slice(2) : ''}`; }
+    function dsHist(pid) {
+      const el = $('dsHist'); if (!el) return;
+      const all = gData.activities.filter(a => a.plot_id === pid).map(l => ({ l, t: dsT(l) })).sort((a, b) => b.t - a.t);
+      const nRain = all.filter(x => x.l.activity_group === 'ฝนตก').length, nWork = all.length - nRain;
+      const L = all.filter(x => dsFilt === 'all' || (dsFilt === 'rain') === (x.l.activity_group === 'ฝนตก'));
+      const runs = [], lastOf = {}; // งานเดียวกันห่างไม่เกิน 2 วัน (วันเว้นวันก็รวม) = แถวเดียว แม้มีงานอื่นคั่น
+      L.forEach(x => { const k = [x.l.activity_group, x.l.activity_detail, x.l.operator, x.l.equipment].join('|');
+        const g = lastOf[k]; if (g && g.a - x.t <= 2 * 864e5) { g.a = x.t; g.items.push(x); } else runs.push(lastOf[k] = { k, a: x.t, b: x.t, items: [x] }); });
+      const chip = (v, t) => `<button type="button" class="${dsFilt === v ? 'on' : ''}" onclick="dsFilt='${v}';dsHist('${pid}')">${t}</button>`;
+      let h = `<div class="ds-f">${chip('work', `งาน ${nWork}`)}${chip('rain', `🌧 ฝน ${nRain}`)}${chip('all', 'ทั้งหมด')}</div>`, yr = '';
+      runs.forEach((r, i) => {
+        const l = r.items[0].l, lb = grpLabel(l), y = new Date(r.b).getFullYear() + 543;
+        if (y !== yr) { yr = y; h += `<div class="ds-y">${y}</div>`; }
+        const dt = r.a === r.b ? dsD(r.b) : new Date(r.a).getMonth() === new Date(r.b).getMonth() ? `${new Date(r.a).getDate()}–${dsD(r.b)}` : `${dsD(r.a)} – ${dsD(r.b)}`;
+        const qs = r.items.map(x => String(x.l.quantity || '').match(/^([\d.]+)\s*(\S+)$/)).filter(Boolean), qu = qs.length && qs.every(m => m[2] === qs[0][2]) ? `${r1(qs.reduce((a, m) => a + parseFloat(m[1]), 0))} ${qs[0][2]}` : '';
+        const key = r.k + r.b, op = dsOpen[key], rain = l.activity_group === 'ฝนตก', mmS = rain ? r.items.reduce((t, x) => t + (parseFloat((String(x.l.remark).match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0) : 0, mm = mmS ? (r.items.length > 1 ? 'รวม ' : '') + r1(mmS) : '';
+        const who = [l.operator, l.equipment].filter(v => v && v !== '-' && v !== 'ธรรมชาติ').map(esc).join(' · ');
+        h += `<div class="ds-r${rain ? ' rain' : ''}${op ? ' op' : ''}" onclick="dsOpen[this.dataset.k]=!dsOpen[this.dataset.k];dsHist('${pid}')" data-k="${esc(key)}">
+          <div class="ds-d">${dt}${r.items.length > 1 ? `<small>${r.items.length} วัน</small>` : ''}</div>
+          <div class="ds-m"><span class="ds-g" style="color:${DS_COL[lb] || '#4A524D'}">${rain ? '🌧 ฝนตก' : esc(lb)}</span> <b>${rain ? (mm ? `~${mm} มม.` : '') : esc(l.activity_detail === '-' ? '' : l.activity_detail)}</b>${who ? `<small>${who}</small>` : ''}</div>
+          <div class="ds-q">${qu ? esc(qu) : ''}<span>${op ? '⌃' : '›'}</span></div></div>`;
+        if (op) h += `<div class="ds-x">${r.items.map(x => { const q = x.l.quantity && x.l.quantity !== '-' ? ` · <b>${esc(x.l.quantity)}</b>` : '', hr = hireOf(x.l) ? ` · ${esc(hireTxt(hireOf(x.l)))}` : '';
+          return `<div class="ds-xi" onclick="event.stopPropagation();dsLeave('${pid}');openLogInspect('${x.l.log_id}')"><div><b>${dsD(x.t, 1)}</b>${q}${hr}<small>${esc(rmkClean(x.l.remark)) || '–'}</small></div><span>แก้ไข ›</span></div>`; }).join('')}</div>`;
+      });
+      el.innerHTML = h + (runs.length ? '' : '<div class="text-center text-muted small py-3">ยังไม่มีข้อมูล</div>');
     }
 
     function savePlotProfile(pid) {
@@ -3034,11 +3076,11 @@
       $('inspDetailBox').innerHTML = `
         <div class="d-flex justify-content-between align-items-start">
           <div>
-            <span class="badge bg-success">${l.activity_group}</span> <b>${l.activity_detail}</b>
+            <span class="badge" style="background:${DS_COL[grpLabel(l)] || '#1F7A45'}">${grpLabel(l)}</span> <b>${l.activity_detail}</b>
             <div class="small mt-1">📅 <b>วันที่:</b> ${l.timestamp} | 📦 <b>ปริมาณ:</b> ${l.quantity}</div>
             <div class="small">👤 <b>ผู้ปฏิบัติงาน:</b> <span class="text-primary fw-bold">${l.operator}</span></div>
             <div class="small">🚜/🐍 <b>เครื่องจักรที่ใช้:</b> <span class="text-danger fw-bold">${l.equipment}</span></div>
-            <div class="small text-muted">💬 <b>สถานะ/หมายเหตุ:</b> ${l.remark}</div>
+            <div class="small text-muted">💬 <b>หมายเหตุ:</b> ${esc(rmkClean(l.remark)) || '–'}${String(l.remark).includes('ย้อนหลังจากไฟล์จดมือ') ? ' <i>(ลงย้อนหลังจากสมุดจด)</i>' : ''}</div>
           </div>
           <button class="btn btn-sm btn-warning fw-bold py-0" onclick="hideModal('logInspModal');openEditLog('${l.log_id}','${qa(p.plot_name)}')">✏️ แก้ไข</button>
         </div>`;
@@ -3057,6 +3099,7 @@
         + grp('🚜 รถไถทั้งหมด', '🚜', gData.options.Tractor) + grp('👤 คนงานทั้งหมด', '👤', gData.options.Worker);
       $('insp_asset_sel').innerHTML = optsHtml;
       updQuickIssues();
+      const noIss = l.activity_group === 'ฝนตก'; $('inspIssueBox').style.display = 'none'; $('inspIssueBtn').style.display = noIss ? 'none' : 'block'; // ฝนตกไม่มีรถ/คนให้แจ้ง · งานอื่นพับไว้เป็นปุ่ม
       bootstrap.Modal.getOrCreateInstance($('logInspModal')).show();
     }
 

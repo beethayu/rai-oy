@@ -141,6 +141,7 @@
     .ibtn { height: 44px; min-width: 44px; padding: 0 10px; border-radius: 12px; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .ibtn-rain { background: #fff; color: var(--doing); border: 0; }
     .ibtn-ghost { background: transparent; color: #fff; border: 1px solid #4E8466; }
+    .ibtn-ico { flex-direction: column; gap: 1px; padding: 0 6px; height: 50px; font-size: 12px; line-height: 1.1; white-space: nowrap; }
     .t-none { margin-top: 12px; background: rgba(255,255,255,.12); border-radius: 12px; padding: 8px 12px; font-size: 15px; font-weight: 600; color: #DDEDE2; }
     .fbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
     .fbtn { font-family: inherit; color: inherit; text-align: left; background: #fff; border: 1px solid #CFE0D5; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -405,6 +406,17 @@
     .srow-box { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; overflow: hidden; }
     .srow + .srow { border-top: 1px solid #EEF1EF; }
     .srow-bad { box-shadow: inset 4px 0 0 #C0392B; }
+    .srow-cut { box-shadow: inset 4px 0 0 #C98A1B; }
+    .cut-age { text-align: right; flex-shrink: 0; font-weight: 700; font-size: 15px; color: #8A5A0B; white-space: nowrap; }
+    .cut-age small { display: block; font-weight: 500; font-size: 13px; color: #6B736E; }
+    .rc-day { padding: 10px 14px; }
+    .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
+    .rc-dl { font-size: 13px; font-weight: 600; color: #6B736E; margin-bottom: 2px; }
+    .rc-j { font-size: 15px; color: #1F2A23; line-height: 1.45; }
+    .rc-j b { font-weight: 700; }
+    .rc-j span { color: #6B736E; font-size: 14px; }
+    .rc-none { font-size: 15px; color: #8A5A0B; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .rc-go { border: 1px solid #1F5E3B; color: #1F5E3B; background: #fff; border-radius: 999px; font-weight: 600; font-size: 14px; padding: 4px 12px; white-space: nowrap; }
     .srow.open { background: #F7FAF8; }
     .srow-main { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 0; background: transparent; color: inherit; text-align: left; }
     .srow-l { display: flex; flex-direction: column; min-width: 0; }
@@ -855,8 +867,8 @@
       <div class="hd-btns">
         <button type="button" class="ibtn ibtn-rain" onclick="openRain()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
-        <button type="button" class="ibtn ibtn-ghost" onclick="openPlan()">แผน</button>
-        <button type="button" class="ibtn ibtn-ghost" onclick="openBatModal()">แบต</button>
+        <button type="button" class="ibtn ibtn-ghost ibtn-ico" onclick="openPlan()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s-6 6.5-6 11a6 6 0 0 0 12 0c0-4.5-6-11-6-11Z"/></svg><span>แผนน้ำ</span></button>
+        <button type="button" class="ibtn ibtn-ghost ibtn-ico" onclick="openBatModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="16" height="11" rx="2"/><path d="M21 11v3M7 11v3M11 11v3"/></svg><span>แบตรถ</span></button>
         <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="showM('setModal')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
       </div>
@@ -2551,6 +2563,57 @@
       } catch (e) { return ''; }
     }
 
+    // ===== รอตัดฤดูนี้ (ต.ค.–มี.ค.): แปลงที่ยังไม่ตัดตั้งแต่ 1 ต.ค. เรียงอายุมากก่อน · ครบตัด = อ้อยใหม่ ≥ 300 วัน / อ้อยตอ ≥ 330 วัน (อายุจาก flInfo) =====
+    const CUT_MONTHS = [9, 10, 11, 0, 1, 2];
+    let cutAll = false;
+    function nearCutList() {
+      if (!CUT_MONTHS.includes(new Date().getMonth())) return [];
+      const t0 = todayISO(), n = new Date(), s0 = `${n.getMonth() >= 9 ? n.getFullYear() : n.getFullYear() - 1}-10-01`, out = [];
+      gData.plots.forEach(p => {
+        let i = null; try { i = flInfo(p); } catch (e) {}
+        if (!i || !i.start || i.pre) return;
+        if (String(p.status_note || '').includes('ตัดอ้อย') && String(p.status_note || '').includes('[กำลังทำ]')) return;
+        if (i.start >= s0) return;
+        const age = flDd(i.start, t0);
+        out.push({ p, age, type: i.type, ripe: age >= (i.type === 'อ้อยใหม่' ? 300 : 330) });
+      });
+      return out.sort((a, b) => b.age - a.age);
+    }
+    const ageTxt = d => `${Math.floor(d / 30)} เดือน${d % 30 ? ' ' + (d % 30) + ' วัน' : ''}`;
+    function nearCutHtml(head) {
+      const L = nearCutList(); if (!L.length) return '';
+      const show = cutAll ? L : L.slice(0, 5), nr = L.filter(r => r.ripe).length;
+      return head('รอตัดฤดูนี้', L.length + ' แปลง') + `<div class="srow-s" style="padding:0 4px 6px">${nr ? `<b style="color:#8A5A0B">อายุครบตัดแล้ว ${nr} แปลง</b>` : 'ยังไม่มีแปลงอายุครบตัด'} · ครบตัด = อ้อยใหม่ 10 เดือน / อ้อยตอ 11 เดือน</div>
+        <div class="srow-box">${show.map(({ p, age, type, ripe }) => `<div class="srow ${ripe ? 'srow-cut' : ''}"><button type="button" class="srow-main" onclick="openDossier('${p.plot_id}')">
+          <span class="srow-l"><span class="srow-n">${esc(p.plot_name)}</span><span class="srow-s">${esc(type)} · ${r1(num(p.area_rai))} ไร่</span></span>
+          <span class="cut-age"${ripe ? '' : ' style="color:#1F2A23"'}>${ageTxt(age)}<small>${ripe ? 'ครบตัด' : 'อายุ'}</small></span></button></div>`).join('')}
+        ${L.length > 5 ? `<div class="srow"><button type="button" class="srow-main" style="justify-content:center;color:#1F5E3B;font-weight:600" onclick="cutAll=!cutAll;render()">${cutAll ? 'ย่อ' : `ทั้งหมด ${L.length} แปลง`}</button></div>` : ''}</div>`;
+    }
+    // ===== เมื่อวาน–วันนี้บันทึกงานอะไรแล้ว (ไม่นับฝนตก) รวมตามงาน =====
+    function recentHtml(head) {
+      const d1 = new Date(); d1.setDate(d1.getDate() - 1);
+      const days = [{ iso: todayISO(), lb: 'วันนี้' }, { iso: `${d1.getFullYear()}-${pad(d1.getMonth() + 1)}-${pad(d1.getDate())}`, lb: 'เมื่อวาน' }];
+      const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
+      const body = days.map(d => {
+        const acts = (gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && beToISO(String(a.timestamp || '').split(' ')[0]) === d.iso);
+        if (!acts.length) return d.lb === 'วันนี้'
+          ? `<div class="rc-day"><div class="rc-none"><span>ยังไม่มีบันทึกงานวันนี้</span><button type="button" class="rc-go" onclick="switchTab('log')">+ บันทึกงาน</button></div></div>`
+          : `<div class="rc-day"><div class="rc-dl">เมื่อวาน</div><div class="rc-j"><span>ไม่มีบันทึกงาน</span></div></div>`;
+        const G = {};
+        acts.forEach(a => {
+          const det = a.activity_detail && a.activity_detail !== '-' ? a.activity_detail : '';
+          const k = grpLabel(a) + (det ? ' · ' + det : '');
+          const g = G[k] = G[k] || { ps: [], t: 0, doing: 0 };
+          if (!g.ps.includes(a.plot_id)) g.ps.push(a.plot_id);
+          const m = /([\d.]+)\s*ถัง/.exec(a.quantity || ''); if (m) g.t += num(m[1]);
+          if (String(a.remark || '').includes('กำลังทำ')) g.doing++;
+        });
+        return `<div class="rc-day"><div class="rc-dl">${d.lb}</div>${Object.keys(G).map(k => { const g = G[k];
+          return `<div class="rc-j"><b>${esc(k)}</b> ${g.ps.length} แปลง${g.t ? ' ' + r1(g.t) + ' ถัง' : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span>${g.ps.map(id => esc(pname(id))).join(', ')}</span></div>`; }).join('')}</div>`;
+      }).join('');
+      return head('เมื่อวาน–วันนี้ บันทึกอะไรแล้ว') + `<div class="srow-box">${body}</div>`;
+    }
+
     function todayHtml(rows, logsBy) {
       const byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
       const ws = (gData.watches || []).filter(w => byId[w.plot_id]);
@@ -2571,6 +2634,7 @@
       try { h += flAskHtml(); } catch (e) {}
       const rd = regDue();
       if (rd.length) h += `<button type="button" class="srow-main" style="background:#FFF4E0;border-radius:12px;margin-bottom:8px;width:100%" onclick="fleetPane='reg';switchTab('fleet');renderFleet();uiSave()"><span class="srow-l"><span class="srow-n">🪪 ใกล้หมดทะเบียน ${rd.length} คัน</span><span class="srow-s">${rd.slice(0, 3).map(i => esc(i.label) + ' ' + regInfo(i.exp).txt).join(' · ')}</span></span></button>`;
+      h += recentHtml(head) + nearCutHtml(head);
       h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
       h += ws.length ? `<div class="srow-box">${ws.map(w => {
         const p = byId[w.plot_id].p, ago = calcDays(w.created);
@@ -2713,7 +2777,9 @@
       $('sub-info').innerText = `${totRai} ไร่`;
       const n = new Date();
       $('hd-date').innerText = `${gData.plots.length} แปลง · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
-      $('sec-sub').innerText = `${list.length} แปลง`;
+      let nSec = list.length;
+      if (curTab === 'urgent') { const ids = new Set(list.map(r => r.p.plot_id)); try { nearCutList().forEach(r => ids.add(r.p.plot_id)); } catch (e) {} nSec = ids.size; }
+      $('sec-sub').innerText = `${nSec} แปลง`;
       $('notice-box').innerHTML = (curTab === 'urgent' && nNoWater)
         ? `<div class="notice">มี <b>${nNoWater} แปลง</b> ที่ยังไม่มีวันให้น้ำล่าสุด ระบบจึงยังเตือนคิวน้ำ/คิวฉีดยาของแปลงเหล่านี้ไม่ได้ <button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab('all')">ไปดูแปลงทั้งหมด</button></div>`
         : '';
@@ -6331,7 +6397,7 @@ Export.table.toDrive({
       const it = satInfo ? satInfo.items.filter(x => !x.land) : null, bad = it ? it.filter(x => x.st === 'bad').length : 0, ok = it ? it.filter(x => x.st === 'ok').length : 0;
       const sat = !it ? 'กำลังโหลด…' : bad ? `<em>⚠️ ${bad} ควรไปดู</em> · ✅ ${ok}` : `✅ ปกติ ${ok} แปลง`;
       return `<div class="fbtns">${map}<button type="button" class="fbtn${bad ? ' bad' : ''}" onclick="openSat()"><b>🛰️ ดาวเทียม</b><span>${sat}</span></button>
-        <button type="button" class="fbtn" style="grid-column:1/-1" onclick="openSoil()"><b>💧 น้ำในดิน (ประมาณ)</b><span>${soilBtnSub()}</span></button>${flowBtn()}</div>`;
+        ${gData.plots.every(p => isNearHarvest(p, calcDays(p.plant_date))) ? '' : `<button type="button" class="fbtn" style="grid-column:1/-1" onclick="openSoil()"><b>💧 น้ำในดิน (ประมาณ)</b><span>${soilBtnSub()}</span></button>`}${flowBtn()}</div>`;
     }
     // โหลดข้อมูลดาวเทียมเงียบ ๆ ครั้งเดียว (ไม่มีข้อความเด้ง) เพื่อโชว์สรุปบนปุ่ม
     var satQuietGo = false;

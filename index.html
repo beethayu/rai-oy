@@ -434,6 +434,7 @@
     .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
     .rc-dl { font-size: 13px; font-weight: 600; color: #6B736E; margin-bottom: 2px; }
     .rc-j { font-size: 15px; color: #1F2A23; line-height: 1.45; }
+    .rc-j + .rc-j { margin-top: 6px; }
     .rc-j b { font-weight: 700; }
     .rc-j span { color: #6B736E; font-size: 14px; }
     .rc-none { font-size: 15px; color: #8A5A0B; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -2613,31 +2614,42 @@
           <span class="cut-age"${ripe ? '' : ' style="color:#1F2A23"'}>${ageTxt(age)}<small>${ripe ? 'ครบตัด' : 'อายุ'}</small></span></button></div>`).join('')}
         ${L.length > 5 ? `<div class="srow"><button type="button" class="srow-main" style="justify-content:center;color:#1F5E3B;font-weight:600" onclick="cutAll=!cutAll;render()">${cutAll ? 'ย่อ' : `ทั้งหมด ${L.length} แปลง`}</button></div>` : ''}</div>`;
     }
-    // ===== เมื่อวาน–วันนี้บันทึกงานอะไรแล้ว (ไม่นับฝนตก) รวมตามงาน =====
+    // ===== งาน 7 วันล่าสุด (15 พ.ย. 69 แทน "เมื่อวาน–วันนี้"): ใครทำอะไร ที่ไหน กี่ถัง — ไม่นับฝนตก · วันที่ไม่มีงานไม่โชว์ (ยกเว้นวันนี้) =====
+    // ถัง: ลงหลายแปลงในข้อความเดียว quantity ซ้ำทุกแถว → นับครั้งเดียวต่อชุด (log_id ก่อน "_") ใช้ตัวนี้ทุกหน้า
+    const logBatch = l => String(l.log_id || '').split('_')[0] + '|' + String(l.timestamp || '').split(' ')[0];
+    function tankOf(logs) {
+      const seen = {}; let t = 0;
+      (logs || []).forEach(l => { const m = /([\d.]+)\s*ถัง/.exec(l.quantity || ''); if (!m) return; const k = logBatch(l); if (seen[k]) return; seen[k] = 1; t += num(m[1]); });
+      return t;
+    }
+    const logWho = l => String(l.operator || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ');
+    function logChems(logs) { // ยาที่ตัดสต็อกจริงของงานชุดนั้น (ไม่มี = ไม่โชว์ ไม่เดาสูตร)
+      const ids = new Set((logs || []).map(l => l.log_id)), sum = {};
+      (gData.stockLogs || []).forEach(x => { if (!ids.has(x.ref_log_id)) return; const q = -num(String(x.change_qty).replace(/,/g, '')); if (q <= 0) return; const o = sum[x.item_name] = sum[x.item_name] || { q: 0, u: x.unit }; o.q += q; });
+      return Object.keys(sum).map(n => `${n} ${r1(sum[n].q)} ${sum[n].u}`).join(' · ');
+    }
     function recentHtml(head) {
-      const d1 = new Date(); d1.setDate(d1.getDate() - 1);
-      const days = [{ iso: todayISO(), lb: 'วันนี้' }, { iso: `${d1.getFullYear()}-${pad(d1.getMonth() + 1)}-${pad(d1.getDate())}`, lb: 'เมื่อวาน' }];
       const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
-      const body = days.map(d => {
-        const acts = (gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && beToISO(String(a.timestamp || '').split(' ')[0]) === d.iso);
-        if (!acts.length) return d.lb === 'วันนี้'
-          ? `<div class="rc-day"><div class="rc-none"><span>ยังไม่มีบันทึกงานวันนี้</span><button type="button" class="rc-go" onclick="switchTab('log')">+ บันทึกงาน</button></div></div>`
-          : `<div class="rc-day"><div class="rc-dl">เมื่อวาน</div><div class="rc-j"><span>ไม่มีบันทึกงาน</span></div></div>`;
+      const days = [];
+      for (let k = 0; k < 7; k++) { const t = new Date(); t.setDate(t.getDate() - k); days.push({ iso: `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`, lb: k === 0 ? 'วันนี้' : k === 1 ? 'เมื่อวาน' : `${TH_DAY[t.getDay()]} ${t.getDate()} ${TH_MON[t.getMonth()]}` }); }
+      const all = (gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && a.activity_group !== 'ฝนตกเหมาแปลง');
+      let wk = 0;
+      const body = days.map((d, di) => {
+        const acts = all.filter(a => beToISO(String(a.timestamp || '').split(' ')[0]) === d.iso);
+        if (!acts.length) return di ? '' : `<div class="rc-day"><div class="rc-none"><span>ยังไม่มีบันทึกงานวันนี้</span><button type="button" class="rc-go" onclick="switchTab('log')">+ บันทึกงาน</button></div></div>`;
         const G = {};
         acts.forEach(a => {
-          const det = a.activity_detail && a.activity_detail !== '-' ? a.activity_detail : '';
-          const k = grpLabel(a) + (det ? ' · ' + det : '');
-          const g = G[k] = G[k] || { ps: [], t: 0, doing: 0 };
+          const det = a.activity_detail && a.activity_detail !== '-' ? a.activity_detail : '', who = logWho(a).join(' + ');
+          const g = G[grpLabel(a) + '|' + det + '|' + who] = G[grpLabel(a) + '|' + det + '|' + who] || { lb: det || grpLabel(a), who, ps: [], logs: [], doing: 0, spray: a.activity_group === 'ฉีดยา' };
           if (!g.ps.includes(a.plot_id)) g.ps.push(a.plot_id);
-          const m = /([\d.]+)\s*ถัง/.exec(a.quantity || ''); if (m) g.t += num(m[1]);
-          if (String(a.remark || '').includes('กำลังทำ')) g.doing++;
+          g.logs.push(a); if (String(a.remark || '').includes('กำลังทำ')) g.doing++;
         });
-        return `<div class="rc-day"><div class="rc-dl">${d.lb}</div>${Object.keys(G).map(k => { const g = G[k];
-          return `<div class="rc-j"><b>${esc(k)}</b> ${g.ps.length} แปลง${g.t ? ' ' + r1(g.t) + ' ถัง' : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span>${g.ps.map(id => esc(pname(id))).join(', ')}</span></div>`; }).join('')}</div>`;
+        const dayT = tankOf(acts.filter(a => a.activity_group === 'ฉีดยา')); wk += dayT;
+        return `<div class="rc-day"><div class="rc-dl">${d.lb}${dayT ? ` · ฉีดรวม ${r1(dayT)} ถัง` : ''}</div>${Object.keys(G).map(k => { const g = G[k], t = tankOf(g.logs), ch = g.spray ? logChems(g.logs) : '';
+          return `<div class="rc-j"><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>ยา: ${esc(ch)}</span>` : ''}</div>`; }).join('')}</div>`;
       }).join('');
-      return head('เมื่อวาน–วันนี้ บันทึกอะไรแล้ว') + `<div class="srow-box">${body}</div>`;
+      return head('งาน 7 วันล่าสุด', wk ? `ฉีดยารวม ${r1(wk)} ถัง` : '') + `<div class="srow-box">${body}</div>`;
     }
-
 
     // ===== 🛡️ เฝ้าไร่ (15 พ.ย. 69): คนงานนอนเฝ้าต่อเนื่อง · ไม่ใช่งานของแปลง (ไม่ขึ้นกำลังทำ ไม่บังถึงคิว) =====
     // นับ: คืน = จำนวนคืนที่ค้างแล้ว (วันนี้/วันเลิก − วันเริ่ม) · วัน = ออกเช้านับวันแรกด้วย ออกเย็นไม่นับวันแรก
@@ -3424,7 +3436,9 @@
       const row = (a, icon) => {
         const busyAt = activeMap[a.name], isOk = okSt(a), open = fleetOpen === a.name;
         const since = !isOk && dm[a.name] ? calcDays(dm[a.name]) : null;
+        const gd = a.category === 'Worker' && typeof guardOpen === 'function' ? guardOpen().find(g => String(g.workers || '').split(/\s*[+,]\s*/).includes(a.name)) : null;
         const pill = busyAt ? `<span class="pill pill-doing">ทำงาน ${esc(busyAt)}</span>`
+          : gd ? `<span class="pill pill-watch">เฝ้าไร่ ${esc(guardWhere(gd))}</span>`
           : isOk ? `<span class="pill pill-normal">ว่าง</span>`
           : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`;
         const subs = [];
@@ -3515,12 +3529,22 @@
       const per = {};
       logs.forEach(l => l.people.forEach(w => { (per[w] = per[w] || {})[l.iso] = (per[w][l.iso] || []).concat(l); }));
       const order = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);
+      (gData.guards || []).forEach(g => String(g.workers || '').split(/\s*[+,]\s*/).filter(Boolean).forEach(w => { const st = guardStat(g); if (st.s <= wsTo && st.e >= wsFrom) per[w] = per[w] || {}; }));
       const names = Object.keys(per).sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
       const rows = names.map(w => {
         const days = Object.keys(per[w]).sort();
         let night = 0, half = 0;
         days.forEach(d => { const ls = per[w][d]; if (ls.some(l => wsTags(l.remark).includes('ค้างคืน'))) night++; if (ls.every(l => wsTags(l.remark).includes('เลิกเที่ยง'))) half++; });
-        return { w, days, night, half, by: per[w] };
+        const mine = days.flatMap(d => per[w][d]).filter(l => l.activity_group === 'ฉีดยา');
+        const mates = [...new Set(mine.flatMap(l => l.people).filter(x => x !== w))];
+        let gNight = 0; const gAt = [];
+        (gData.guards || []).filter(g => String(g.workers || '').split(/\s*[+,]\s*/).includes(w)).forEach(g => {
+          const st = guardStat(g), prev = new Date(st.e + 'T00:00:00'); prev.setDate(prev.getDate() - 1);
+          const lastN = st.open ? st.e : `${prev.getFullYear()}-${pad(prev.getMonth() + 1)}-${pad(prev.getDate())}`; // คืนสุดท้ายที่ค้าง (ยังเฝ้าอยู่ = คืนนี้)
+          const a = st.s > wsFrom ? st.s : wsFrom, b = lastN < wsTo ? lastN : wsTo, n = a <= b ? dayDiff(a, b) + 1 : 0;
+          if (n) { gNight += n; gAt.push(guardWhere(g)); }
+        });
+        return { w, days, night, half, by: per[w], tank: tankOf(mine), mates, gNight, gAt: [...new Set(gAt)] };
       });
       return { logs, rows };
     }
@@ -3535,7 +3559,9 @@
           `<div class="py-1"><b>${thDate(d)}</b> · ${esc(l.plot)} · ${esc(l.activity_group)}${l.activity_detail && l.activity_detail !== '-' ? ' (' + esc(l.activity_detail) + ')' : ''}${wsTags(l.remark).length ? ' · <b class="text-danger">' + wsTags(l.remark).join(' ') + '</b>' : ''}${(l.remark || '').includes('กำลังทำ') ? ' <span class="text-primary">[เริ่ม ยังไม่เสร็จ]</span>' : ''}</div>`).join('')).join('')}</div>` : '';
         return `<div class="border-bottom py-2" style="cursor:pointer" onclick="wsToggle('${qa(r.w)}')">
             <div class="d-flex justify-content-between align-items-center"><b class="fs-6">${esc(r.w)}</b><span class="text-muted small">${open ? '▴' : '▾'}</span></div>
-            <div>ทำงาน <b>${r.days.length}</b> วัน${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}${r.half ? ` · ครึ่งวัน <b>${r.half}</b>` : ''}</div>${detail}</div>`;
+            <div${!r.days.length && r.gAt.length ? ' style="display:none"' : ''}>ทำงาน <b>${r.days.length}</b> วัน${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}${r.half ? ` · ครึ่งวัน <b>${r.half}</b>` : ''}</div>
+            ${r.tank ? `<div>ฉีดยา <b style="color:#B42318">${r1(r.tank)} ถัง</b>${r.mates.length ? ` <span class="text-muted small">(ทำกับ ${esc(r.mates.join(', '))} · ถังนับรวมทีม ไม่ใช่คนละ ${r1(r.tank)})</span>` : ''}</div>` : ''}
+            ${r.gAt.length ? `<div>🛡️ เฝ้าไร่ ${esc(r.gAt.join(', '))} <b>${r.gNight}</b> คืน <span class="text-muted small">(นับถึงคืนนี้)</span></div>` : ''}${detail}</div>`;
       }).join('') || '<div class="text-muted py-2">ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน</div>';
       return `
         <div class="d-flex justify-content-between align-items-center mb-2">

@@ -1818,6 +1818,8 @@
     const S = k => (gData.settings || {})[k];
     const num = v => { const n = parseFloat(String(v === undefined ? '' : v).replace(/,/g, '')); return isNaN(n) ? 0 : n; };
     const r1 = n => Math.round(n * 10) / 10;
+    // ชื่อรถแบบสั้นที่ไร่เรียก (ผู้ใช้ 15 พ.ย. 69: ชื่อรุ่นเต็มยาว งง) — ใช้ตอน "แสดง" เท่านั้น ข้อมูลในชีตยังเป็นชื่อเต็ม
+    const eqS = t => String(t == null ? '' : t).replace(/New Holland TS6020(\s*110\s*แรงม้า)?|TS6020/g, 'รถไถใหญ่').replace(/Kubota B2420|B2420/g, 'รถไถเล็ก');
     const r3 = n => Math.round(n * 1000) / 1000;
     const qa = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const escRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -2431,7 +2433,7 @@
             <div onclick="openLogInspect('${l.log_id}')" style="cursor:pointer;flex:1;">
               <b>${esc(l.timestamp)}</b> · <span class="fw-bold" style="color:#1F5E3B">${esc(l.activity_group)}</span>
               ${l.activity_detail !== '-' ? '(' + esc(l.activity_detail) + ')' : ''} ${l.quantity !== '-' ? '[' + esc(l.quantity) + ']' : ''}
-              <div class="text-muted small">คน: ${esc(l.operator)} ${l.equipment !== '-' ? '| รถ/ปั๊ม: ' + esc(l.equipment) : ''} ${esc(plain(l.remark))}</div>
+              <div class="text-muted small">คน: ${esc(l.operator)} ${l.equipment !== '-' ? '| รถ/ปั๊ม: ' + esc(eqS(l.equipment)) : ''} ${esc(plain(l.remark))}</div>
             </div>
             <div class="d-flex gap-1">
               <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditLog('${l.log_id}','${pn}')">แก้</button>
@@ -3439,7 +3441,7 @@
         if (!subs.length && last) subs.push(`ล่าสุด ${esc(last.timestamp)} · ${esc(last.event_type)}`);
         return `<div class="srow ${!isOk ? 'srow-bad' : ''} ${open ? 'open' : ''}">
           <button type="button" class="srow-main" onclick="tglFleet('${qa(a.name)}')">
-            <span class="srow-l"><span class="srow-n">${icon} ${esc(a.name)}</span>${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
+            <span class="srow-l"><span class="srow-n">${icon} ${esc(eqS(a.name))}</span>${eqS(a.name) !== a.name ? `<span class="srow-s">${esc(a.name)}</span>` : ''}${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
             ${pill}
           </button>
           ${open ? `<div class="srow-act">
@@ -4640,7 +4642,7 @@
       if (it.type === 'activity') {
         const g = it.group === 'รถไถเตรียมดิน/บำรุง' ? 'รถไถ' : it.group;
         h = `<div class="ch-t">${CH_ICON[it.group] || '📝'} ${esc(g)}${it.detail && it.detail !== '-' && it.group !== 'ฝนตก' ? ' · ' + esc(it.detail) : ''}${it.ongoing ? ' <span class="pill pill-doing">กำลังทำ</span>' : ''}</div>`
-          + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', (it.equipment || []).join(', '), 'equipment')
+          + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', eqS((it.equipment || []).join(', ')), 'equipment')
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity')
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
@@ -5852,7 +5854,7 @@ Export.table.toDrive({
         if (s.k === 'ask' && s.o.length && !flCutOnly(s)) w.push(`เลือกตามแปลง: ${s.o.map(o => o.l).join(' / ')}`);
         if (s.sq && +s.sq !== 2) { const Q = steps.filter(x => x.sq), i = Q.indexOf(s); if (i > 0) w.push(`ต่อจาก${Q[i - 1].n}`); }
         if (s.af) { const q = steps.find(x => x.id === s.af), ad = Array.isArray(s.ad) ? s.ad : [0, 7]; if (q) w.push(`หลัง${q.n} ${ad[0] ? ad[0] + '–' : 'ภายใน '}${ad[1]} วัน`); }
-        segs[segs.length - 1].items.push({ s, no: s.k === 'note' ? '!' : ++no, day: gdDay(steps, s), cat, who: s.k === 'note' || (s.k === 'ask' && !s.g.length) ? '' : s.tool || GD_WHO[cat], iff, extra: w.join(' · '), note: s.note || '', real: gdReal(steps, s) });
+        segs[segs.length - 1].items.push({ s, no: s.k === 'note' ? '!' : ++no, day: gdDay(steps, s), cat, who: s.k === 'note' || (s.k === 'ask' && !s.g.length) ? '' : eqS(s.tool || GD_WHO[cat]), iff, extra: w.join(' · '), note: eqS(s.note || ''), real: gdReal(steps, s) });
       });
       return segs;
     }

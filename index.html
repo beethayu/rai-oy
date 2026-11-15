@@ -3320,12 +3320,13 @@
         const qs = r.items.map(x => String(x.l.quantity || '').match(/^([\d.]+)\s*(\S+)$/)).filter(Boolean), qu = qs.length && qs.every(m => m[2] === qs[0][2]) ? `${r1(qs.reduce((a, m) => a + parseFloat(m[1]), 0))} ${qs[0][2]}` : '';
         const key = r.k + r.b, op = dsOpen[key], rain = l.activity_group === 'ฝนตก', mmS = rain ? r.items.reduce((t, x) => t + (parseFloat((String(x.l.remark).match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0) : 0, mm = mmS ? (r.items.length > 1 ? 'รวม ' : '') + r1(mmS) : '';
         const who = [l.operator, l.equipment].filter(v => v && v !== '-' && v !== 'ธรรมชาติ').map(esc).join(' · ');
+        const chs = l.activity_group === 'ฉีดยา' ? logChems(r.items.map(x => x.l)) : ''; // E4: แถวฉีดยาโชว์ยาด้วย (ถังอยู่ช่องขวา)
         h += `<div class="ds-r${rain ? ' rain' : ''}${op ? ' op' : ''}" onclick="dsOpen[this.dataset.k]=!dsOpen[this.dataset.k];dsHist('${pid}')" data-k="${esc(key)}">
           <div class="ds-d">${dt}${r.items.length > 1 ? `<small>${r.items.length} วัน</small>` : ''}</div>
-          <div class="ds-m"><span class="ds-g" style="color:${DS_COL[lb] || '#4A524D'}">${rain ? '🌧 ฝนตก' : esc(lb)}</span> <b>${rain ? (mm ? `~${mm} มม.` : '') : esc(l.activity_detail === '-' ? '' : l.activity_detail)}</b>${who ? `<small>${who}</small>` : ''}</div>
+          <div class="ds-m"><span class="ds-g" style="color:${DS_COL[lb] || '#4A524D'}">${rain ? '🌧 ฝนตก' : esc(lb)}</span> <b>${rain ? (mm ? `~${mm} มม.` : '') : esc(l.activity_detail === '-' ? '' : l.activity_detail)}</b>${who ? `<small>${who}</small>` : ''}${chs ? `<small style="white-space:normal">${esc(chs)}</small>` : ''}</div>
           <div class="ds-q">${qu ? esc(qu) : ''}<span>${op ? '⌃' : '›'}</span></div></div>`;
-        if (op) h += `<div class="ds-x">${r.items.map(x => { const q = x.l.quantity && x.l.quantity !== '-' ? ` · <b>${esc(x.l.quantity)}</b>` : '', hr = hireOf(x.l) ? ` · ${esc(hireTxt(hireOf(x.l)))}` : '';
-          return `<div class="ds-xi" onclick="event.stopPropagation();dsLeave('${pid}');openLogInspect('${x.l.log_id}')"><div><b>${dsD(x.t, 1)}</b>${q}${hr}<small>${esc(rmkClean(x.l.remark)) || '–'}</small></div><span>แก้ไข ›</span></div>`; }).join('')}</div>`;
+        if (op) h += `<div class="ds-x">${r.items.map(x => { const q = x.l.quantity && x.l.quantity !== '-' ? ` · <b>${esc(x.l.quantity)}</b>` : '', hr = hireOf(x.l) ? ` · ${esc(hireTxt(hireOf(x.l)))}` : '', xc = r.items.length > 1 && x.l.activity_group === 'ฉีดยา' ? logChems([x.l]) : '';
+          return `<div class="ds-xi" onclick="event.stopPropagation();dsLeave('${pid}');openLogInspect('${x.l.log_id}')"><div><b>${dsD(x.t, 1)}</b>${q}${hr}${xc ? `<small>${esc(xc)}</small>` : ''}<small>${esc(rmkClean(x.l.remark)) || '–'}</small></div><span>แก้ไข ›</span></div>`; }).join('')}</div>`;
       });
       el.innerHTML = h + (runs.length ? '' : '<div class="text-center text-muted small py-3">ยังไม่มีข้อมูล</div>');
     }
@@ -3717,12 +3718,24 @@
       let t = `📌 สรุปงานคนงาน (${thDate(wsFrom)} – ${thDate(wsTo)})\n`;
       [...new Set(logs.map(l => l.iso))].sort().forEach(d => {
         t += `\nวันที่ ${thDate(d)}\n`;
-        logs.filter(l => l.iso === d && l.people.length).forEach(l => {
-          const tg = wsTags(l.remark);
-          t += `• ${l.people.join(', ')} : ${l.plot} ${l.activity_group}${tg.length ? ' (' + tg.join(' ') + ')' : ''}\n`;
+        // E4 (16 พ.ย. 69): ให้ตรงกับจอ — งานหลายแปลงชุดเดียวกันรวมบรรทัดเดียว · ฉีดยาติดถัง + ยา (ผู้ใช้: "เวลาก๊อปไปต้องติดถังไปด้วย")
+        const B = {};
+        logs.filter(l => l.iso === d && l.people.length).forEach(l => { const k = String(l.log_id || l.plot + l.activity_group).split('_')[0] + '|' + l.people.join('+'); (B[k] = B[k] || []).push(l); });
+        Object.values(B).forEach(ls => {
+          const l = ls[0], tg = wsTags(l.remark), det = l.activity_detail && l.activity_detail !== '-' ? l.activity_detail : '';
+          const tk = l.activity_group === 'ฉีดยา' ? tankOf(ls) : 0, ch = l.activity_group === 'ฉีดยา' ? logChems(ls) : '';
+          const what = l.activity_group === 'ฉีดยา' ? (det || 'ฉีดยา') + (tk ? ` ${r1(tk)} ถัง` : '') : l.activity_group + (det ? ` (${det})` : '');
+          t += `• ${l.people.join(' + ')} : ${[...new Set(ls.map(x => x.plot))].join(', ')} ${what}${tg.length ? ' (' + tg.join(' ') + ')' : ''}\n` + (ch ? `   ${ch}\n` : '');
         });
       });
-      t += `\nรวม\n` + rows.map(r => `• ${r.w} ${r.days.length} วัน${r.night ? ' ค้างคืน ' + r.night : ''}${r.half ? ' ครึ่งวัน ' + r.half : ''}`).join('\n');
+      t += `\nรวม\n` + rows.map(r => {
+        const sp = r.days.flatMap(d => r.by[d]).filter(l => l.activity_group === 'ฉีดยา'), ch = r.tank ? logChems(sp) : '';
+        const parts = [];
+        if (r.days.length) parts.push(`${r.days.length} วัน${r.night ? ' ค้างคืน ' + r.night : ''}${r.half ? ' ครึ่งวัน ' + r.half : ''}`);
+        if (r.tank) parts.push(`ฉีดยา ${r1(r.tank)} ถัง`);
+        if (r.gAt.length) parts.push(`เฝ้าไร่ ${r.gAt.join(', ')} ${r.gNight} คืน (นับถึงคืนนี้)`);
+        return `• ${r.w} ${parts.join(' · ') || '0 วัน'}` + (ch ? `\n   ${ch}` : '');
+      }).join('\n');
       const done = () => alert('ก๊อปแล้ว ไปวางใน LINE ได้เลย');
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => prompt('ก๊อปข้อความนี้', t));
       else prompt('ก๊อปข้อความนี้', t);

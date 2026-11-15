@@ -30,7 +30,12 @@
       }
     })();
 
+    // ===== เวอร์ชันแอป (15 พ.ย. 69): GitHub Action แทน __BUILD__ ด้วย ปีเดือนวันชั่วโมงนาที(ไทย)-commit ก่อนขึ้น Pages =====
+    const APP_BUILD = '__BUILD__';
+    let apiBusy = 0;
+    const API_BG = /^(get[A-Z]\w*|weatherForecast|soilWeather|rainDaily|rainClimate|rockThumbs|chatPhotos)$/; // อ่านเบื้องหลัง ไม่กันการอัปเดต (บันทึก/AI กัน)
     function callApi(fn, args) {
+      const bg = API_BG.test(fn); if (!bg) apiBusy++;
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' ? 120000 : fn === 'getWaterSpots' ? 300000 : 60000);
       return fetch(API_URL, {
@@ -48,8 +53,53 @@
           }
           return j.result;
         })
-        .finally(() => clearTimeout(timer));
+        .finally(() => { clearTimeout(timer); if (!bg) apiBusy = Math.max(0, apiBusy - 1); });
     }
+    // "อัปเดต 15 พ.ย. 18:10" จาก APP_BUILD (2611151810-abc1234)
+    function buildTxt(b) {
+      const m = /^(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/.exec(b || ''); if (!m) return 'ทดสอบในเครื่อง';
+      const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      return `${+m[3]} ${M[+m[2] - 1]} ${m[4]}:${m[5]}`;
+    }
+    // เช็กเวอร์ชันใหม่: เปิดแอป / กลับเข้าแอป / ทุก 10 นาที · ดึง index.html แบบ no-store เทียบ APP_BUILD
+    // ห้ามโหลดใหม่ระหว่าง รอ API / แชตกำลังส่ง / กำลังพิมพ์ / วาดแผนที่ / แผนน้ำยังไม่บันทึก / มีรูปรอส่ง → ขึ้นแถบให้กดเอง
+    let updNew = '', updChecking = false, updLast = 0;
+    function updBusy() {
+      const a = document.activeElement;
+      return apiBusy > 0 || (typeof chatBusy !== 'undefined' && chatBusy) || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))
+        || (typeof fmEdit !== 'undefined' && fmEdit) || (typeof wp !== 'undefined' && wp && wp.dirty) || (typeof chatPics !== 'undefined' && chatPics.length)
+        || ($('syncToast') && $('syncToast').style.display === 'block');
+    }
+    function updBar() {
+      let b = $('updBar');
+      if (!updNew) { if (b) b.remove(); return; }
+      if (!b) { b = document.createElement('button'); b.id = 'updBar'; b.type = 'button'; b.onclick = () => updGo(true); document.body.appendChild(b); }
+      b.innerHTML = `✨ มีเวอร์ชันใหม่ (${buildTxt(updNew)}) · <u>แตะเพื่อโหลด</u>`;
+    }
+    function updGo(force) {
+      if (!updNew) return;
+      if (!force && updBusy()) { updBar(); return setTimeout(() => updGo(false), 15000); }
+      try { sessionStorage.setItem('raioy_upd_from', APP_BUILD); } catch (e) {}
+      const t = $('syncToast'); if (t) { t.innerText = '✨ กำลังโหลดเวอร์ชันใหม่…'; t.style.display = 'block'; }
+      setTimeout(() => location.replace(location.pathname + '?v=' + encodeURIComponent(updNew) + location.hash), 400);
+    }
+    function checkUpdate() {
+      if (/__/.test(APP_BUILD) || updChecking || document.hidden || Date.now() - updLast < 20000) return;
+      updChecking = true; updLast = Date.now();
+      fetch(location.pathname + '?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(h => {
+        const m = /const APP_BUILD = '([^']+)'/.exec(h);
+        if (m && m[1] !== APP_BUILD && !/__/.test(m[1])) { updNew = m[1]; updGo(false); }
+      }).catch(() => {}).finally(() => { updChecking = false; });
+    }
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+    window.addEventListener('pageshow', () => setTimeout(checkUpdate, 1500));
+    setInterval(checkUpdate, 600000);
+    window.addEventListener('load', () => {
+      setTimeout(checkUpdate, 3000);
+      let from = ''; try { from = sessionStorage.getItem('raioy_upd_from') || ''; sessionStorage.removeItem('raioy_upd_from'); } catch (e) {}
+      if (from && from !== APP_BUILD) setTimeout(() => { const t = $('syncToast'); if (!t) return; t.innerText = `✅ อัปเดตแล้ว · ${buildTxt(APP_BUILD)}`; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3500); }, 800);
+      if (/[?&]v=/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);
+    });
     function makeRunner(cfg) {
       return new Proxy({}, {
         get(_, name) {
@@ -859,6 +909,7 @@
     .asset-card.parked { border-left-color: #fd7e14; background: #fffdf8; }
     .avail-box { border-radius: 12px; padding: 10px; background: white; border: 1px solid #dee2e6; text-align: center; }
     .dossier-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; height: 100%; }
+    #updBar { position: fixed; left: 12px; right: 12px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 3001; border: 0; border-radius: 14px; background: #1F5E3B; color: #fff; font-weight: 700; font-size: 15px; padding: 12px 14px; box-shadow: 0 6px 18px rgba(0,0,0,.25); font-family: inherit; }
     #syncToast { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #212529; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 0.94rem; z-index: 3000; display: none; }
     #set_preview { white-space: pre-wrap; font-size: 0.88rem; background: #f1f8f1; border: 1px solid #b7dfb9; border-radius: 10px; padding: 10px; display: none; max-height: 260px; overflow-y: auto; }
     @media (max-width: 420px) { .status-grid { grid-template-columns: 1fr; } }
@@ -891,7 +942,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
         <button type="button" class="ibtn ibtn-ghost ibtn-ico" onclick="openPlan()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s-6 6.5-6 11a6 6 0 0 0 12 0c0-4.5-6-11-6-11Z"/></svg><span>แผนน้ำ</span></button>
         <button type="button" class="ibtn ibtn-ghost ibtn-ico" onclick="openBatModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="16" height="11" rx="2"/><path d="M21 11v3M7 11v3M11 11v3"/></svg><span>แบตรถ</span></button>
-        <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="showM('setModal')">
+        <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="$('set_build').innerText=buildTxt(APP_BUILD);showM('setModal')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
       </div>
     </div>
@@ -1464,6 +1515,10 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody">
+          <div class="card-sec" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div><h6 class="mb-1">เวอร์ชันแอป</h6><div class="msub mb-0">อัปเดตล่าสุด <b id="set_build"></b></div></div>
+            <button type="button" class="btn btn-outline-success fw-bold" onclick="updLast=0;this.innerText='กำลังเช็ก…';checkUpdate();setTimeout(()=>{this.innerText=updNew?'มีใหม่ กำลังโหลด…':'ล่าสุดแล้ว ✓'},2500)">เช็กอัปเดต</button>
+          </div>
           <div class="card-sec">
             <h6>แจ้งเตือน LINE ทุกเช้า</h6>
             <div class="msub mb-2" id="set_status"></div>

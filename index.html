@@ -2623,10 +2623,17 @@
       return t;
     }
     const logWho = l => String(l.operator || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ');
-    function logChems(logs) { // ยาที่ตัดสต็อกจริงของงานชุดนั้น (ไม่มี = ไม่โชว์ ไม่เดาสูตร)
+    // ยาของงานฉีดชุดนั้น: 1) ที่ตัดสต็อกจริง 2) ไม่มี และเป็น "ฉีดรอบไร่" → ตามสูตรหญ้ารอบไร่ของไร่ (chems.json formulas.edge) × ถัง เขียนกำกับ "ตามสูตร" 3) อื่น ๆ ไม่โชว์ ไม่เดา
+    const EDGE_MIX = ['กลูโฟสิเนต 15 เอสแอล', 'ฟอร์ซาซิน'];
+    const isEdgeSpray = l => l.activity_group === 'ฉีดยา' && /รอบไร่|ขอบแปลง/.test(String(l.activity_detail || '') + String(l.remark || ''));
+    const qtyTxt = (q, u) => u === 'ml' && q >= 1000 ? `${r1(q / 1000)} ลิตร` : u === 'g' && q >= 1000 ? `${r1(q / 1000)} กก.` : `${r1(q)} ${u === 'ml' ? 'มล.' : u === 'g' ? 'กรัม' : u}`;
+    function logChems(logs) {
       const ids = new Set((logs || []).map(l => l.log_id)), sum = {};
       (gData.stockLogs || []).forEach(x => { if (!ids.has(x.ref_log_id)) return; const q = -num(String(x.change_qty).replace(/,/g, '')); if (q <= 0) return; const o = sum[x.item_name] = sum[x.item_name] || { q: 0, u: x.unit }; o.q += q; });
-      return Object.keys(sum).map(n => `${n} ${r1(sum[n].q)} ${sum[n].u}`).join(' · ');
+      if (Object.keys(sum).length) return 'ยา: ' + Object.keys(sum).map(n => `${n} ${qtyTxt(sum[n].q, sum[n].u)}`).join(' · ');
+      const t = tankOf((logs || []).filter(isEdgeSpray)); if (!t) return '';
+      const mix = EDGE_MIX.map(n => (gData.inventory || []).find(i => i.name === n)).filter(i => i && num(i.per_tank));
+      return mix.length ? `ยาตามสูตรรอบไร่ ${r1(t)} ถัง: ` + mix.map(i => `${i.name} ${qtyTxt(num(i.per_tank) * t, i.unit)}`).join(' · ') : '';
     }
     function recentHtml(head) {
       const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
@@ -2646,7 +2653,7 @@
         });
         const dayT = tankOf(acts.filter(a => a.activity_group === 'ฉีดยา')); wk += dayT;
         return `<div class="rc-day"><div class="rc-dl">${d.lb}${dayT ? ` · ฉีดรวม ${r1(dayT)} ถัง` : ''}</div>${Object.keys(G).map(k => { const g = G[k], t = tankOf(g.logs), ch = g.spray ? logChems(g.logs) : '';
-          return `<div class="rc-j"><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>ยา: ${esc(ch)}</span>` : ''}</div>`; }).join('')}</div>`;
+          return `<div class="rc-j"><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>${esc(ch)}</span>` : ''}</div>`; }).join('')}</div>`;
       }).join('');
       return head('งาน 7 วันล่าสุด', wk ? `ฉีดยารวม ${r1(wk)} ถัง` : '') + `<div class="srow-box">${body}</div>`;
     }
@@ -3544,9 +3551,14 @@
           const a = st.s > wsFrom ? st.s : wsFrom, b = lastN < wsTo ? lastN : wsTo, n = a <= b ? dayDiff(a, b) + 1 : 0;
           if (n) { gNight += n; gAt.push(guardWhere(g)); }
         });
-        return { w, days, night, half, by: per[w], tank: tankOf(mine), mates, gNight, gAt: [...new Set(gAt)] };
+        return { w, team: [w], days, night, half, by: per[w], tank: tankOf(mine), mates, gNight, gAt: [...new Set(gAt)] };
       });
-      return { logs, rows };
+      // คนที่ทำงานชุดเดียวกันทุกรายการในช่วงนี้ (เช่น หำ + ผัน, หม่อง + จิตร) → รวมเป็นแถวทีมเดียว (ผู้ใช้ 15 พ.ย. 69)
+      const sig = r => JSON.stringify([r.days.map(d => r.by[d].map(l => l.log_id || l.iso + l.plot + l.activity_group).sort()), r.gAt, r.gNight]);
+      const teams = [];
+      rows.forEach(r => { const k = sig(r), t = teams.find(x => x.k === k); if (t) { t.r.w += ' + ' + r.w; t.r.team.push(r.team[0]); } else { r.team = [r.w]; teams.push({ k, r }); } });
+      teams.forEach(t => { t.r.mates = t.r.mates.filter(m => !t.r.team.includes(m)); });
+      return { logs, rows: teams.map(t => t.r) };
     }
 
     function workSumHtml() {
@@ -3560,7 +3572,8 @@
         return `<div class="border-bottom py-2" style="cursor:pointer" onclick="wsToggle('${qa(r.w)}')">
             <div class="d-flex justify-content-between align-items-center"><b class="fs-6">${esc(r.w)}</b><span class="text-muted small">${open ? '▴' : '▾'}</span></div>
             <div${!r.days.length && r.gAt.length ? ' style="display:none"' : ''}>ทำงาน <b>${r.days.length}</b> วัน${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}${r.half ? ` · ครึ่งวัน <b>${r.half}</b>` : ''}</div>
-            ${r.tank ? `<div>ฉีดยา <b style="color:#B42318">${r1(r.tank)} ถัง</b>${r.mates.length ? ` <span class="text-muted small">(ทำกับ ${esc(r.mates.join(', '))} · ถังนับรวมทีม ไม่ใช่คนละ ${r1(r.tank)})</span>` : ''}</div>` : ''}
+            ${r.tank ? `<div>ฉีดยา <b style="color:#B42318">${r1(r.tank)} ถัง</b>${r.mates.length ? ` <span class="text-muted small">(ทำกับ ${esc(r.mates.join(', '))} · ถังนับรวมทีม ไม่ใช่คนละ ${r1(r.tank)})</span>` : r.team.length > 1 ? ' <span class="text-muted small">(รวมทั้งทีม)</span>' : ''}</div>
+            ${(c => c ? `<div class="text-muted small">${esc(c)}</div>` : '')(logChems(r.days.flatMap(d => r.by[d]).filter(l => l.activity_group === 'ฉีดยา')))}` : ''}
             ${r.gAt.length ? `<div>🛡️ เฝ้าไร่ ${esc(r.gAt.join(', '))} <b>${r.gNight}</b> คืน <span class="text-muted small">(นับถึงคืนนี้)</span></div>` : ''}${detail}</div>`;
       }).join('') || '<div class="text-muted py-2">ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน</div>';
       return `

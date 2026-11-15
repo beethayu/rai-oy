@@ -583,6 +583,7 @@
     .mbody { background: #F4F3EF; }
     .card-sec { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
     .card-sec h6 { font-weight: 700; font-size: 16px; color: #1F5E3B; margin: 0 0 8px; }
+    .fm-back { border: 0; background: transparent; color: #fff; font-size: 16px; font-weight: 600; padding: 4px 10px 4px 0; min-height: 40px; }
     .grp-all { border: 0; background: transparent; color: #1F5E3B; font-size: 14px; font-weight: 600; padding: 0; }
     .opt-chip { display: inline-flex; align-items: center; gap: 6px; background: #EEF1EF; color: inherit; border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 15px; font-weight: 600; }
     .rk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -1646,8 +1647,9 @@
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
+          <button type="button" id="fmBackBtn" class="fm-back" style="display:none" onclick="fmBack()">← ย้อน</button>
           <h6 class="modal-title">แผนที่ไร่</h6>
-          <button type="button" class="btn-close btn-close-white" onclick="fmClose()"></button>
+          <button type="button" id="fmXBtn" class="btn-close btn-close-white" onclick="fmClose()"></button>
         </div>
         <div class="modal-body">
           <div id="fmMap"></div>
@@ -7002,7 +7004,21 @@ Export.table.toDrive({
     }
 
     // วาดแปลง/ที่ดินทั้งหมด (ยกเว้นอันที่กำลังแก้)
+    // G (16 พ.ย. 69): ตอนวาด หัวเป็น "← ย้อน" (กลับแผงแปลงในแผนที่ ไม่ปิดแผนที่) · ไม่ได้วาด = ✕ ปิดแผนที่เหมือนเดิม
+    function fmHdr() { const b = $('fmBackBtn'), x = $('fmXBtn'); if (b) b.style.display = fmEdit ? '' : 'none'; if (x) x.style.display = fmEdit ? 'none' : ''; }
+    function fmBack() {
+      const e = fmEdit; if (!e) return fmClose();
+      if (e.kind === 'dmg' && e.step === 'info') { e.step = 'draw'; return fmEditPanel(); }
+      if (e.pts.length && !e.ask) { e.ask = 1; return fmEditPanel(); }
+      fmExitEdit();
+    }
+    function fmExitEdit() {
+      const e = fmEdit, pid = e ? (e.kind === 'dmg' ? e.dmg.plot_id : e.kind === 'plot' ? e.id : '') : '';
+      fmEdit = null; fmEditLayer.clearLayers(); $('fmHint').style.display = 'none';
+      fmSel = pid ? { kind: 'plot', id: pid } : e && e.kind === 'land' && e.id ? { kind: 'land', id: e.id } : null; fmRender();
+    }
     function fmRender() {
+      fmHdr();
       if (!fmLayer) return;
       fmLayer.clearLayers();
       const sel = (k, id) => fmSel && fmSel.kind === k && fmSel.id === id;
@@ -7241,11 +7257,20 @@ Export.table.toDrive({
       const x = (gData.damages || []).find(o => o.dmg_id === id); if (!x) return;
       hideModal('dossierModal'); setTimeout(() => { openFarmMap(x.plot_id); setTimeout(() => fmStartDmg('', id), 900); }, 300);
     }
-    function fmStartDmg(pid, id) {
+    function fmStartDmg(pid, id, fresh) {
+      // G: แปลงมีรายการที่จดไว้แต่ยังไม่ได้วาด → ถามในแผง (ไม่ใช่ confirm เด้ง)
+      const und = !id && !fresh && pid ? (gData.damages || []).filter(x => x.plot_id === pid && pPath(x.boundary).length < 3) : [];
+      if (und.length) {
+        $('fmPanel').innerHTML = `<div class="fw-bold mb-2">แปลงนี้มีรายการที่ยังไม่ได้วาดแนว</div><div class="d-grid gap-2">
+          ${und.map(x => `<button type="button" class="btn btn-outline-danger fw-bold text-start" onclick="fmStartDmg('','${qa(x.dmg_id)}')">วาดแนวของ ${dmgT(x.type)[1]} ${esc(x.type)} ${esc(thDate(beToISO(x.date)) || x.date)}</button>`).join('')}
+          <button type="button" class="btn btn-outline-secondary fw-bold" onclick="fmStartDmg('${qa(pid)}','',1)">เป็นจุดใหม่</button>
+          <button type="button" class="btn btn-light" onclick="fmPanel()">ยกเลิก</button></div>`;
+        return;
+      }
       const o = id ? (gData.damages || []).find(x => x.dmg_id === id) : null;
       const p = gData.plots.find(x => x.plot_id === (o ? o.plot_id : pid));
       fmSel = null;
-      fmEdit = { kind: 'dmg', id: o ? o.dmg_id : '', pts: pPath(o && o.boundary), name: (o ? o.type : 'พื้นที่เสียหาย') + (p ? ' · ' + p.plot_name : ''),
+      fmEdit = { kind: 'dmg', step: 'draw', id: o ? o.dmg_id : '', pts: pPath(o && o.boundary), name: (o ? o.type : 'พื้นที่เสียหาย') + (p ? ' · ' + p.plot_name : ''),
         dmg: { plot_id: p ? p.plot_id : '', type: o ? o.type : 'ไฟไหม้', date: o ? beToISO(o.date) : todayISO(), note: o ? o.note : '' } };
       fmRender(); fmDrawEdit(); fmStartWatch();
       if (fmEdit.pts.length) fmFit(fmEdit.pts); else if (p && pPath(p.boundary).length) fmFit(pPath(p.boundary));
@@ -7295,6 +7320,28 @@ Export.table.toDrive({
       else H.innerHTML = e.pts.length < 3 ? `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · แตะมุมแปลงทีละมุมรอบแปลง (อย่างน้อย 3 มุม) · แตะใกล้มุมแปลงอื่นจะดูดติดให้`
         : `<b>${esc(e.name || 'ที่ดินใหม่')}</b> · ≈ <b>${fmtRai(m2)}</b>${o && num(o.area_rai) ? ` (ในระบบ ${num(o.area_rai)} ไร่)` : ''} · แตะเพิ่มมุม ลากมุมย้ายได้`;
       if (onlyArea) return;
+      fmHdr();
+      if (e.ask) {
+        $('fmPanel').innerHTML = `<div class="fw-bold mb-2">ทิ้ง ${e.pts.length} หมุดที่ปักไว้?</div><div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-danger fw-bold flex-fill" onclick="fmExitEdit()">ทิ้งหมุด</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit.ask=0;fmEditPanel()">วาดต่อ</button></div>`;
+        return;
+      }
+      if (e.kind === 'dmg') { // G: 2 ขั้น วาด → รายละเอียด
+        const ok = e.pts.length >= 3;
+        $('fmPanel').innerHTML = e.step === 'info' ? `<div class="fm-dmg mb-2">
+          <div class="fm-dseg">${DMG_T.map(t => `<button type="button" class="${e.dmg.type === t[0] ? 'on' : ''}" onclick="fmEdit.dmg.type='${t[0]}';fmEdit.name='${t[0]}'+(fmEdit.name.includes(' · ')?' · '+fmEdit.name.split(' · ')[1]:'');fmEditPanel()">${t[1]} ${t[0]}</button>`).join('')}</div>
+          <label class="fm-drow"><span>วันที่เกิด</span><input type="date" value="${esc(e.dmg.date)}" onchange="fmEdit.dmg.date=this.value"></label>
+          <label class="fm-drow"><span>หมายเหตุ</span><input type="text" value="${esc(e.dmg.note)}" placeholder="เช่น คนแอบเผา ยอดยังเขียว" oninput="fmEdit.dmg.note=this.value"></label>
+        </div><div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary fw-bold" onclick="fmEdit.step='draw';fmEditPanel()">← แก้แนว</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnFmSave" onclick="fmSave()">บันทึก (≈ ${fmtRai(m2)})</button></div>`
+        : `<div class="fm-pinbar mb-2"><button type="button" class="btn btn-primary fw-bold flex-fill" id="btnFmPin" onclick="fmPinHere()">📍 ปักตรงที่ยืน</button><span id="fmGpsAcc" class="fm-acc ${fmAccCls(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}">${fmAccTxt(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}</span></div>
+          <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary" ${e.pts.length ? '' : 'disabled'} onclick="fmEdit.pts.pop();fmDrawEdit()">↶ ลบหมุดล่าสุด</button>
+          <button type="button" class="btn btn-success fw-bold flex-fill" ${ok ? '' : 'disabled'} onclick="fmEdit.step='info';fmEditPanel()">${ok ? `ถัดไป (${e.pts.length} หมุด ≈ ${fmtRai(m2)})` : `ปักอีก ${3 - e.pts.length} หมุด`}</button></div>`;
+        return;
+      }
       $('fmPanel').innerHTML = `${e.kind === 'land' ? `<div class="row g-2 mb-2">
           <div class="col-6"><input class="form-control" id="ld_name" placeholder="ชื่อที่ดิน" value="${esc(e.land.name)}" oninput="fmEdit.land.name=this.value"></div>
           <div class="col-6"><input class="form-control" id="ld_owner" placeholder="เจ้าของ" value="${esc(e.land.owner)}" oninput="fmEdit.land.owner=this.value"></div>
@@ -7310,7 +7357,7 @@ Export.table.toDrive({
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-outline-secondary" onclick="fmEdit.pts.pop();fmDrawEdit()">↶ ลบหมุดล่าสุด</button>
           <button type="button" class="btn btn-outline-danger" onclick="if(!fmEdit.pts.length||confirm('ล้างมุมทั้งหมด?')){fmEdit.pts=[];fmDrawEdit()}">ล้าง</button>
-          <button type="button" class="btn btn-outline-secondary" onclick="fmEdit=null;fmEditLayer.clearLayers();fmRender()">ยกเลิก</button>
+          <button type="button" class="btn btn-outline-secondary" onclick="fmExitEdit()">ยกเลิก</button>
           <button type="button" class="btn btn-success fw-bold flex-fill" id="btnFmSave" onclick="fmSave()">บันทึก</button>
         </div>`;
     }

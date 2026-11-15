@@ -3070,6 +3070,10 @@
       document.querySelectorAll(`.pk-row[data-id="${id}"]`).forEach(r => { r.classList.toggle('on', on); r.querySelector('input').checked = on; });
       pkFoot();
     }
+    function pkArea(l) {
+      const ids = gData.plots.filter(p => plotLoc(p.plot_name) === l).map(p => p.plot_id), on = !ids.every(id => pkSel.has(id));
+      ids.forEach(id => on ? pkSel.add(id) : pkSel.delete(id)); renderPick(); pkFoot();
+    }
     function pkFoot() {
       const n = pkSel.size, b = $('pickGo');
       b.disabled = !n; b.innerText = n ? `ถัดไป: บันทึก${pkTask.t} ${n} แปลง` : 'ติ๊กแปลงก่อน (เลือกได้หลายแปลง)';
@@ -3098,7 +3102,9 @@
       if (hot.length) h += `<div class="srow-h">แนะนำ (ฝากดู / ถึงคิว)</div><div class="srow-box">${hot.map(item).join('')}</div>`;
       const groups = [], idx = {};
       rows.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
-      h += groups.map(g => `<div class="srow-h">${esc(g.l)}</div><div class="srow-box">${g.rows.map(item).join('')}</div>`).join('');
+      // E4 (16 พ.ย. 69): ปุ่ม "ทั้งพื้นที่" = ติ๊กทุกแปลงในพื้นที่ (ฉีดรอบไร่ไม่ผูกแปลง) · ลงชุดเดียว ถัง/ยานับครั้งเดียว
+      h += groups.map(g => `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(g.l)}</span>${g.rows.length > 1 && !q
+        ? `<button type="button" class="grp-all" onclick="pkArea('${qa(g.l)}')">${g.rows.every(r => pkSel.has(r.p.plot_id)) ? 'เอาออกทั้งพื้นที่' : 'ทั้งพื้นที่'}</button>` : ''}</div><div class="srow-box">${g.rows.map(item).join('')}</div>`).join('');
       $('pickList').innerHTML = h || '<div class="text-muted p-2">ไม่พบแปลงที่ค้นหา</div>';
     }
     function pickGo() {
@@ -4652,7 +4658,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chFixPlots(items, txt); items.forEach(chSpray);
+          chFixPlots(items, txt); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -4710,6 +4716,21 @@
     function chForxa() {
       const t = chat.msgs.slice(-6).filter(m => m.me).map(m => m.t || '').join('\n');
       return /→\s*กลูโฟอย่างเดียว/.test(t) ? 'no' : /→\s*ผสมฟอร์ซาซินด้วย/.test(t) ? 'yes' : '';
+    }
+    // E4: ฉีดรอบไร่ + พิมพ์ชื่อพื้นที่ (เช่น "ยายเวียน") โดยไม่ระบุแปลงย่อย = ทุกแปลงในพื้นที่ (ลงชุดเดียว ถัง/ยานับครั้งเดียว)
+    function chArea(items, txt) {
+      const T = String(txt || ''), locs = {};
+      (gData.plots || []).forEach(p => { const l = plotLoc(p.plot_name); (locs[l] = locs[l] || []).push(p); });
+      items.forEach(it => {
+        if (it.type !== 'activity' || it.group !== 'ฉีดยา' || !/รอบไร่|ขอบแปลง/.test(String(it.detail || '') + T)) return;
+        Object.keys(locs).forEach(l => {
+          const ps = locs[l]; if (ps.length < 2 || !T.includes(l)) return;
+          const sub = ps.map(p => p.plot_name.slice(l.length).replace(/[()]/g, '').trim()).filter(Boolean);
+          if (sub.some(x => T.includes(x))) return; // ระบุแปลงย่อย = ตามที่พิมพ์
+          it.plots = [...new Set((it.plots || []).concat(ps.map(p => p.plot_id)))];
+          it.areaAll = (it.areaAll || []).concat(l);
+        });
+      });
     }
     function chatDropChem(mi, i, k) { const it = chat.msgs[mi].items[i], u = { name: (it.chemList || [])[k] }; if (!u) return; it.dropChem = (it.dropChem || []).concat(u.name); chSpray(it); chatSave(); chatRender(); }
     function chatNorm(it, ph) {
@@ -4863,9 +4884,10 @@
         if (u && iv.name && num(iv.stock) - u.qty < 0) low.push(`${esc(n)} เหลือ ${esc(qtyPk(Math.max(0, num(iv.stock)), n))}`);
         return `<div class="ch-chem"><span class="${g ? 'ch-guess' : ''}">${esc(n)}</span><b>${u ? esc(qtyPk(u.qty, n)) : ''}</b>${live ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropChem(${mi},${i},${k})">✕</button>` : ''}</div>`; }).join('')
         + (low.length ? `<div class="ch-warn">สต็อกไม่พอ: ${low.join(' · ')} — บันทึกแล้วจะติดลบ (ยังบันทึกได้)</div>` : '');
+      const area = (it.areaAll || []).length ? `<div class="ch-cn">ฉีดรอบทั้งพื้นที่ ${esc(it.areaAll.join(', '))} (${(it.plots || []).length} แปลง) · ถังและยานับครั้งเดียว</div>` : '';
       const note = !t ? 'ใส่จำนวนถังก่อน แล้วจะคิดยาให้' : it.chemSrc === 'user' ? '' : `ตามสูตร${esc(it.chemFt)} · ${r1(t)} ถัง${g ? ' · เดาจากชนิดอ้อย ตรวจก่อนบันทึก' : ''}`;
       const miss = (it.chemMiss || []).length ? `<div class="ch-warn">ยังไม่รู้อัตราต่อถังของ ${it.chemMiss.map(esc).join(', ')} — ไม่ตัดสต็อกตัวนี้</div>` : '';
-      return `<div class="ch-row"><span>ยา</span><b style="font-weight:400;color:#5D6B62;font-size:13px">${t && (it.usage || []).length ? 'ตัดสต็อกเมื่อบันทึก' : ''}</b></div><div class="ch-chems">${rows}${note ? `<div class="ch-cn">${note}</div>` : ''}${miss}</div>`;
+      return `<div class="ch-row"><span>ยา</span><b style="font-weight:400;color:#5D6B62;font-size:13px">${t && (it.usage || []).length ? 'ตัดสต็อกเมื่อบันทึก' : ''}</b></div><div class="ch-chems">${area}${rows}${note ? `<div class="ch-cn">${note}</div>` : ''}${miss}</div>`;
     }
     function chItemHtml(it, i, mi, live) {
       const pn = ids => (ids || []).map(id => (chPlot(id) || { plot_name: id }).plot_name).join(', ');

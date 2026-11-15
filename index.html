@@ -527,6 +527,11 @@
     .ch-erow input.ch-guess { border-color: #E08A3C; background: #FFF6EC; color: #A4520E; }
     .ch-guess { color: #A04A00; border-bottom: 2px dotted #E07B00; }
     .ch-warn { font-size: 14px; color: #8A3F00; background: #FFF3E5; border-radius: 8px; padding: 4px 8px; margin-top: 4px; }
+    .ch-chems { margin: 0 0 4px 10px; padding-left: 10px; border-left: 3px solid #D9E6DD; }
+    .ch-chem { display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 1.5; }
+    .ch-chem span { flex: 1; color: #1F2A23; } .ch-chem b { font-weight: 600; }
+    .ch-cx { width: 30px; height: 30px; border: 0; background: none; color: #8A938D; font-size: 14px; color: inherit; opacity: .55; }
+    .ch-cn { font-size: 13px; color: #6B736E; margin-top: 2px; }
     .ch-x { position: absolute; top: 6px; right: 6px; width: 34px; height: 34px; border: 0; background: none; color: #6B736E; font-size: 16px; }
     .ch-acts { display: flex; gap: 8px; padding: 10px 12px; }
     .ch-acts .btn { border-radius: 10px; font-weight: 700; min-height: 44px; }
@@ -4571,8 +4576,11 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chFixPlots(items, txt);
-          const m = { ai: true, t: r.reply || '', items, ask: r.ask || [], state: items.length ? 'draft' : 'info' };
+          chFixPlots(items, txt); items.forEach(chSpray);
+          const ask = r.ask || [];
+          if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
+            ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
+          const m = { ai: true, t: r.reply || '', items, ask, state: items.length ? 'draft' : 'info' };
           // เก็บรูปชุดนี้ไว้ใช้ต่อเมื่อยังรอตอบ/แก้ (มีรายการที่แนบรูป หรือมีคำถามค้าง) ไม่งั้นปล่อย
           if (ph.length && (items.some(it => (it.photo_ids || []).length) || (m.ask.length && !items.length))) { chat.pics = { ids: ph, th }; m.th = th; } else chat.pics = null;
           chat.msgs.push(m);
@@ -4594,6 +4602,29 @@
         it.plots = [hit[0].plot_id]; if (!it.unsure.includes('plots')) it.unsure.push('plots');
       });
     }
+    // ===== E1 (15 พ.ย. 69): แชตฉีดยา → ยา + ตัดสต็อก · ลำดับ (ก) ยาที่ผู้ใช้บอก (ข) ฉีดรอบไร่ = EDGE_MIX (ค) สูตรของไร่ตามชนิดอ้อยแปลงแรก (สีส้ม)
+    // qty = per_tank × ถังของรายการ · ไม่มีถัง/ไม่มีอัตรา = ไม่ตัด (ไม่เดา)
+    const chTanks = q => { const m = /([\d.]+)\s*ถัง/.exec(String(q || '')); return m ? num(m[1]) : 0; };
+    function chSpray(it) {
+      if (!it || it.type !== 'activity' || it.group !== 'ฉีดยา') return;
+      const t = chTanks(it.quantity), byName = n => invItem(n) || chemInv({ match: [String(n).replace(/\s*\d+\s*เอสแอล.*$/, '').trim() || n] });
+      let src = '', ft = '', list = [];
+      it.unsure = (it.unsure || []).filter(k => k !== 'chems');
+      const said = (Array.isArray(it.chems) ? it.chems : []).map(n => String(n || '').trim()).filter(Boolean);
+      if (said.length) { src = 'user'; list = said.map(n => byName(n) || { name: n }); }
+      else if (/รอบไร่|ขอบแปลง/.test(String(it.detail || '') + String(it.remark || ''))) { src = 'edge'; ft = 'หญ้ารอบไร่'; list = EDGE_MIX.map(n => invItem(n) || { name: n }); }
+      else {
+        const p = chPlot((it.plots || [])[0]) || {}, d = String(it.detail || '') + ' ' + String(it.remark || '');
+        const id = /ตอ/.test(p.cane_type || '') ? 'ratoon' : /รอบ\s*2|คุม\s*\+?\s*ฆ่า/.test(d) ? 'new2' : 'new1';
+        const f = chemFmList().find(x => x.id === id);
+        if (f) { src = 'formula'; ft = f.t; list = chemFmItems(f).map(c => chemInv(c) || { name: c.name }); it.unsure.push('chems'); }
+      }
+      if (it.dropChem) list = list.filter(x => !it.dropChem.includes(x.name));
+      it.chemSrc = src; it.chemFt = ft;
+      it.chemMiss = list.filter(x => !(num(x.per_tank) > 0)).map(x => x.name);
+      it.usage = t ? list.filter(x => num(x.per_tank) > 0).map(x => ({ name: x.name, qty: r3(num(x.per_tank) * t) })) : [];
+    }
+    function chatDropChem(mi, i, k) { const it = chat.msgs[mi].items[i], u = (it.usage || [])[k]; if (!u) return; it.dropChem = (it.dropChem || []).concat(u.name); chSpray(it); chatSave(); chatRender(); }
     function chatNorm(it, ph) {
       if (!it || !it.type) return null;
       ph = ph || [];
@@ -4683,13 +4714,14 @@
           const base = { plotIds: a.plots, activity_group: a.group, activity_detail: a.detail || (rain ? 'น้ำฝนธรรมชาติ' : '-'),
             equipment: (a.equipment || []).join(', ') || '-', quantity: a.quantity || '-',
             operator: rain ? 'ธรรมชาติ' : ((a.workers || []).join(' + ') || 'ไม่ระบุ'), remark: a.remark || '', is_ongoing: !!a.ongoing };
+          if ((a.usage || []).length) base.usage = a.usage.map(u => ({ name: u.name, qty: u.qty }));
           const hr = chHire(a); if (hr) { base.hire = hr; if (a.group === 'รถไถเตรียมดิน/บำรุง' && base.equipment === '-') base.equipment = 'รถจ้าง' + (hr.by ? ' ' + hr.by : ''); }
           const d1 = a.date || todayISO(), d2 = a.date_to && a.date_to > d1 ? a.date_to : '';
           if (!d2) return ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d1) } });
           const days = chatDays(d1, d2), rng = `${thDate(d1)}–${thDate(d2)}`;
           days.forEach((d, k) => {
             const last = k === days.length - 1;
-            ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d), is_ongoing: last ? base.is_ongoing : false, quantity: k ? '-' : base.quantity, hire: k ? undefined : base.hire,
+            ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d), is_ongoing: last ? base.is_ongoing : false, quantity: k ? '-' : base.quantity, hire: k ? undefined : base.hire, usage: k ? undefined : base.usage,
               remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${k + 1}/${days.length})`)(dayRmk(base.remark, last)) } });
           });
         } else if (a.type === 'finish') {
@@ -4727,6 +4759,16 @@
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message + '\nถ้าเน็ตหลุดระหว่างรอ อาจบันทึกไปแล้ว — กดบันทึกอีกครั้งได้เลย ระบบกันไม่ให้ลงซ้ำ'))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }
+    function chChemHtml(it, i, mi, live) {
+      if (it.group !== 'ฉีดยา' || !it.chemSrc) return '';
+      const t = chTanks(it.quantity), g = it.unsure.includes('chems'), sum = {};
+      const rows = (it.usage || []).map((u, k) => { const iv = invItem(u.name) || {}, left = num(iv.stock) - u.qty;
+        return `<div class="ch-chem"><span class="${g ? 'ch-guess' : ''}">${esc(u.name)}</span><b>${esc(qtyTxt(u.qty, iv.unit))}</b>${live ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropChem(${mi},${i},${k})">✕</button>` : ''}</div>`
+          + (iv.name && left < 0 ? `<div class="ch-warn">สต็อก${esc(u.name)}เหลือ ${esc(qtyTxt(Math.max(0, num(iv.stock)), iv.unit))} จะติดลบ (ยังบันทึกได้)</div>` : ''); }).join('');
+      const note = !t ? 'ใส่จำนวนถังก่อน แล้วจะคิดยาให้' : it.chemSrc === 'user' ? '' : `ตามสูตร${esc(it.chemFt)} · ${r1(t)} ถัง${g ? ' · เดาจากชนิดอ้อย ตรวจก่อนบันทึก' : ''}`;
+      const miss = (it.chemMiss || []).length ? `<div class="ch-warn">ยังไม่รู้อัตราต่อถังของ ${it.chemMiss.map(esc).join(', ')} — ไม่ตัดสต็อกตัวนี้</div>` : '';
+      return `<div class="ch-row"><span>ยา</span><b style="font-weight:400;color:#5D6B62;font-size:13px">${t && (it.usage || []).length ? 'ตัดสต็อกเมื่อบันทึก' : ''}</b></div><div class="ch-chems">${rows}${note ? `<div class="ch-cn">${note}</div>` : ''}${miss}</div>`;
+    }
     function chItemHtml(it, i, mi, live) {
       const pn = ids => (ids || []).map(id => (chPlot(id) || { plot_name: id }).plot_name).join(', ');
       const un = k => it.unsure.includes(k);
@@ -4737,7 +4779,7 @@
         const g = it.group === 'รถไถเตรียมดิน/บำรุง' ? 'รถไถ' : it.group;
         h = `<div class="ch-t">${CH_ICON[it.group] || '📝'} ${esc(g)}${it.detail && it.detail !== '-' && it.group !== 'ฝนตก' ? ' · ' + esc(it.detail) : ''}${it.ongoing ? ' <span class="pill pill-doing">กำลังทำ</span>' : ''}</div>`
           + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', eqS((it.equipment || []).join(', ')), 'equipment')
-          + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity')
+          + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
       } else if (it.type === 'finish') {

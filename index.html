@@ -946,8 +946,7 @@
       <div class="hd-btns">
         <button type="button" class="ibtn ibtn-rain" onclick="openRain()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
-        <button type="button" class="ibtn ibtn-ghost ibtn-ico" onclick="openPlan()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s-6 6.5-6 11a6 6 0 0 0 12 0c0-4.5-6-11-6-11Z"/></svg><span>แผนน้ำ</span></button>
-        <button type="button" class="ibtn ibtn-ghost ibtn-ico" onclick="openBatModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="16" height="11" rx="2"/><path d="M21 11v3M7 11v3M11 11v3"/></svg><span>แบตรถ</span></button>
+        <button type="button" class="ibtn ibtn-ghost" aria-label="บันทึกงาน" style="font-size:24px;font-weight:600;min-width:48px" onclick="openPick()">+</button><!-- F แบบ A (16 พ.ย. 69): แผนน้ำ/แบตรถ ย้ายไป ⚙ -->
         <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="$('set_build').innerText=buildTxt(APP_BUILD);showM('setModal')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
       </div>
@@ -1521,6 +1520,10 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody">
+          <div class="d-flex gap-2 mb-3">
+            <button type="button" class="btn btn-outline-success fw-bold flex-fill py-2" onclick="hideModal('setModal');setTimeout(openPlan,300)">💧 แผนน้ำ</button>
+            <button type="button" class="btn btn-outline-success fw-bold flex-fill py-2" onclick="hideModal('setModal');setTimeout(openBatModal,300)">🔋 แบตรถ</button>
+          </div>
           <div class="card-sec" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
             <div><h6 class="mb-1">เวอร์ชันแอป</h6><div class="msub mb-0">อัปเดตล่าสุด <b id="set_build"></b></div></div>
             <button type="button" class="btn btn-outline-success fw-bold" onclick="updLast=0;this.innerText='กำลังเช็ก…';checkUpdate();setTimeout(()=>{this.innerText=updNew?'มีใหม่ กำลังโหลด…':'ล่าสุดแล้ว ✓'},2500)">เช็กอัปเดต</button>
@@ -2897,7 +2900,7 @@
         + (nT ? `<div class="srow-box">${urRows.join('') + doRows.join('') + wsRows.join('')}</div>` : none('วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง ไม่มีฝากดู'));
       return top + todo + recentHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h;
     }
-    let HOME_V = '';
+    let HOME_V = 'A'; // F แบบ A (ผู้ใช้เลือก 16 พ.ย. 69 06:34) · '' = แบบเดิม
     function nearCutMini(head) {
       const L = nearCutList(); if (!L.length) return '';
       if (cutAll) return nearCutHtml(head);
@@ -3012,7 +3015,7 @@
       $('hd-date').innerText = `${gData.plots.length} แปลง · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
       let nSec = list.length;
       if (curTab === 'urgent') { const ids = new Set(list.map(r => r.p.plot_id)); try { nearCutList().forEach(r => ids.add(r.p.plot_id)); } catch (e) {} nSec = ids.size; }
-      $('sec-sub').innerText = `${nSec} แปลง`;
+      $('sec-sub').innerText = curTab === 'urgent' && HOME_V ? '' : `${nSec} แปลง`;
       $('notice-box').innerHTML = (curTab === 'urgent' && nNoWater)
         ? `<div class="notice">มี <b>${nNoWater} แปลง</b> ที่ยังไม่มีวันให้น้ำล่าสุด ระบบจึงยังเตือนคิวน้ำ/คิวฉีดยาของแปลงเหล่านี้ไม่ได้ <button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab('all')">ไปดูแปลงทั้งหมด</button></div>`
         : '';
@@ -3044,7 +3047,7 @@
       $('table-view').style.display = t === 'table' ? 'block' : 'none';
       $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
       const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย', log: 'บันทึกงาน', table: 'ตารางสรุปทุกแปลง' };
-      $('sec-title').innerText = titles[t] || '';
+      $('sec-title').innerText = t === 'urgent' && HOME_V ? (d => `วันนี้ ${['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'][d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`)(new Date()) : titles[t] || '';
       document.querySelector('.sec-hd').style.display = t === 'log' && logMode === 'chat' ? 'none' : '';
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();

@@ -178,3 +178,32 @@ function deleteDamage(id) {
     return { damages: readSheet_(ss, 'Damages') };
   });
 }
+
+// ===== เฝ้าไร่ (15 พ.ย. 69 หลังไฟไหม้หนองบวบหอม): คนงานไปนอนเฝ้าต่อเนื่อง ไม่ใช่ "งาน" ของแปลง (ไม่ทำให้แปลงขึ้นกำลังทำ) =====
+// start/end = วันที่ พ.ศ. · start_part = เช้า/เย็น (ออกเย็น = คืนนั้นเป็นคืนแรก) · status open/done · หน้าเว็บนับคืน/วันเอง
+const GUARD_H_ = ['guard_id', 'created', 'start', 'start_part', 'end', 'workers', 'plot_ids', 'area', 'note', 'status'];
+function guardAdd_(ss, p, id) {
+  const sh = getOrCreate_(ss, 'Guards', GUARD_H_);
+  if (sh.getDataRange().getDisplayValues().some(r => r[0] === id)) return false;
+  appendRows_(sh, [[id, getTodayStr(), String(p.start || getTodayStr()), p.part === 'เช้า' ? 'เช้า' : 'เย็น', '', String(p.workers || '').slice(0, 120),
+    String(p.plot_ids || ''), String(p.area || '').slice(0, 80), String(p.note || '').slice(0, 200), 'open']]);
+  return true;
+}
+function guardEnd_(ss, id, end) {
+  const sh = ss.getSheetByName('Guards'); if (!sh) return false;
+  const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((row, i) => i > 0 && row[0] === id);
+  if (r < 1) return false;
+  sh.getRange(r + 1, 5).setNumberFormat('@').setValue(String(end || getTodayStr()));
+  sh.getRange(r + 1, 10).setValue('done');
+  return true;
+}
+function endGuard(id, end) {
+  return withLock_(() => { const ss = SpreadsheetApp.getActiveSpreadsheet(); guardEnd_(ss, id, end); return { guards: readSheet_(ss, 'Guards') }; });
+}
+function deleteGuard(id) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName('Guards');
+    if (sh) { const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((row, i) => i > 0 && row[0] === id); if (r > 0) sh.deleteRow(r + 1); }
+    return { guards: readSheet_(ss, 'Guards') };
+  });
+}

@@ -283,6 +283,7 @@ function readAll_(ss) {
     ...readRock_(ss),
     lands: readSheet_(ss, 'Lands'),
     damages: readSheet_(ss, 'Damages'),
+    guards: readSheet_(ss, 'Guards'),
     waterPlans: readSheet_(ss, 'WaterPlans'),
     flows: readSheet_(ss, 'Flow'),
     flowDef: FLOW_DEF_,

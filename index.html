@@ -1901,7 +1901,7 @@
       } catch (e) {}
     }
     function init(d, fromCache) {
-      gData = d; if (!gData.lands) gData.lands = []; if (!gData.damages) gData.damages = []; if (!gData.rainLog) gData.rainLog = []; if (!gData.watches) gData.watches = []; if (!gData.yields) gData.yields = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
+      gData = d; if (!gData.lands) gData.lands = []; if (!gData.damages) gData.damages = []; if (!gData.guards) gData.guards = []; if (!gData.rainLog) gData.rainLog = []; if (!gData.watches) gData.watches = []; if (!gData.yields) gData.yields = []; if (!gData.rockPoints) gData.rockPoints = []; if (!gData.rockLogs) gData.rockLogs = [];
       if (!uiRestored) { uiRestored = true; uiRestore(); }
       if (!fromCache) saveCache(d); popOpts(); switchTab(curTab, true); renderFleet(); renderStock(); setDateMax(); uiSave();
       if (!fromCache) setTimeout(() => { try { flSeedLeaf(); } catch (e) {} }, 1500);
@@ -1964,6 +1964,7 @@
       if (pDays !== null) badges.push(`<span class="badge-smart bg-secondary text-white">🌱 อายุ ${Math.floor(pDays / 30)}ด. ${pDays % 30}ว.</span>`);
       if (p.cane_variety && p.cane_variety !== '-' && p.cane_variety !== 'nan') badges.push(`<span class="badge-smart bg-light text-dark border">🌾 พันธุ์: ${p.cane_variety}</span>`);
 
+      if (guardOf(p.plot_id)) badges.push(`<span class="badge-smart bg-light text-dark border">🛡️ มีคนเฝ้า</span>`);
       if (isOngoing) {
         badges.push(`<span class="badge-smart bg-primary text-white">🔄 กำลังทำงานค้างอยู่</span>`);
         next = '⏳ ลุยงานที่ค้างให้จบ (เสร็จแล้วกดปุ่ม "งานเสร็จ")'; nextCls = 'ongoing';
@@ -2635,6 +2636,57 @@
       return head('เมื่อวาน–วันนี้ บันทึกอะไรแล้ว') + `<div class="srow-box">${body}</div>`;
     }
 
+
+    // ===== 🛡️ เฝ้าไร่ (15 พ.ย. 69): คนงานนอนเฝ้าต่อเนื่อง · ไม่ใช่งานของแปลง (ไม่ขึ้นกำลังทำ ไม่บังถึงคิว) =====
+    // นับ: คืน = จำนวนคืนที่ค้างแล้ว (วันนี้/วันเลิก − วันเริ่ม) · วัน = ออกเช้านับวันแรกด้วย ออกเย็นไม่นับวันแรก
+    const dayDiff = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
+    function guardStat(g, upto) {
+      const s = beToISO(g.start) || todayISO(), e = g.status === 'done' ? (beToISO(g.end) || s) : (upto || todayISO());
+      const n = Math.max(0, dayDiff(s, e)), am = g.start_part === 'เช้า';
+      return { s, e, nights: n, days: n + (am ? 1 : 0), am, open: g.status !== 'done', future: s > todayISO() };
+    }
+    const guardPlots = g => String(g.plot_ids || '').split(',').map(x => x.trim()).filter(Boolean);
+    const guardWhere = g => g.area || guardPlots(g).map(id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id).join(', ');
+    function guardLine(g) { // ประโยคสรุปเดียว ใช้ทั้งการ์ดวันนี้และการ์ดแชต
+      const st = guardStat(g), from = `เริ่ม ${thDate(st.s)} ${st.am ? 'เช้า' : 'เย็น'}`;
+      if (!st.open) return `${from} · เลิก ${thDate(st.e)} · รวมค้าง ${st.nights} คืน (${st.days} วัน)`;
+      if (st.future) return `${from} (ยังไม่ถึงวัน)`;
+      if (!st.nights) return `${from} · ${st.am ? 'วันนี้วันแรก · ' : ''}คืนนี้ค้างคืนแรก`;
+      return `${from} · ค้างแล้ว ${st.nights} คืน · คืนนี้คืนที่ ${st.nights + 1}`;
+    }
+    const guardOpen = () => (gData.guards || []).filter(g => g.status !== 'done');
+    const guardOf = pid => guardOpen().find(g => guardPlots(g).includes(pid));
+    function guardHtml(head) {
+      const G = guardOpen(); if (!G.length) return '';
+      return head('เฝ้าไร่', G.length) + `<div class="srow-box">${G.map(g => {
+        const key = 'g:' + g.guard_id, open = todayOpen === key, ids = guardPlots(g), st = guardStat(g);
+        const P = ids.map(id => (gData.plots || []).find(p => p.plot_id === id)).filter(Boolean);
+        const cut = P.length && P.every(p => String(p.status_note || '').includes('✅ ตัดอ้อย'));
+        return `<div class="srow ${open ? 'open' : ''}"><button type="button" class="srow-main" onclick="tglToday('${qa(key)}')">
+          <span class="srow-l"><span class="srow-n">🛡️ ${esc(guardWhere(g))} · ${esc(g.workers || 'ไม่ระบุคน')}</span>
+          <span class="srow-s">${esc(guardLine(g))}</span>
+          <span class="srow-s"${cut ? ' style="color:#8A5A0B;font-weight:600"' : ''}>${cut ? 'แปลงตัดครบแล้ว — กดเลิกเฝ้าได้' : 'เฝ้าจนกว่าจะตัด หรือกดเลิกเฝ้า'}</span></span>
+          <span class="pill pill-watch">เฝ้าอยู่</span></button>
+          ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px">${ids.length} แปลง: ${P.map(p => esc(p.plot_name)).join(', ')}${g.note ? ' · ' + esc(g.note) : ''}</div><div class="pq-btns">
+            <button type="button" class="bigbtn bigbtn-main" onclick="guardEnd('${qa(g.guard_id)}')">เลิกเฝ้าวันนี้</button>
+            <button type="button" class="bigbtn bigbtn-out" style="color:#B3261E" onclick="guardDel('${qa(g.guard_id)}')">ลบ (ลงผิด)</button></div></div>` : ''}</div>`;
+      }).join('')}</div>`;
+    }
+    function guardEnd(id) {
+      const g = (gData.guards || []).find(x => x.guard_id === id); if (!g) return;
+      const st = guardStat(g);
+      if (!confirm(`เลิกเฝ้า ${guardWhere(g)} วันนี้?\n${g.workers || ''}\nรวมค้าง ${st.nights} คืน (${st.days} วัน)`)) return;
+      call('endGuard', [id, isoToBE(todayISO())], d => { gData.guards = d.guards; saveCache(gData); todayOpen = ''; render(); });
+    }
+    function guardDel(id) {
+      if (!confirm('ลบรายการเฝ้าไร่นี้? (ลงผิด · ไม่เก็บเป็นประวัติ)')) return;
+      call('deleteGuard', [id], d => { gData.guards = d.guards; saveCache(gData); todayOpen = ''; render(); });
+    }
+    // เลิกเฝ้าจากแชต: หารายการที่ยังเฝ้าอยู่ ตรงพื้นที่หรือมีแปลงร่วมกัน
+    function chGuards(it) {
+      const ids = it.plots || [];
+      return guardOpen().filter(g => (it.area && g.area === it.area) || guardPlots(g).some(id => ids.includes(id)));
+    }
     function todayHtml(rows, logsBy) {
       const byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
       const ws = (gData.watches || []).filter(w => byId[w.plot_id]);
@@ -2655,7 +2707,7 @@
       try { h += flAskHtml(); } catch (e) {}
       const rd = regDue();
       if (rd.length) h += `<button type="button" class="srow-main" style="background:#FFF4E0;border-radius:12px;margin-bottom:8px;width:100%" onclick="fleetPane='reg';switchTab('fleet');renderFleet();uiSave()"><span class="srow-l"><span class="srow-n">🪪 ใกล้หมดทะเบียน ${rd.length} คัน</span><span class="srow-s">${rd.slice(0, 3).map(i => esc(i.label) + ' ' + regInfo(i.exp).txt).join(' · ')}</span></span></button>`;
-      h += recentHtml(head) + nearCutHtml(head);
+      h += recentHtml(head) + guardHtml(head) + nearCutHtml(head);
       h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
       h += ws.length ? `<div class="srow-box">${ws.map(w => {
         const p = byId[w.plot_id].p, ago = calcDays(w.created);
@@ -4268,6 +4320,7 @@
         chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
         flow: chatFlow(),
+        guards: (gData.guards || []).slice(-12).map(g => { const st = guardStat(g); return { area: g.area, plots: guardPlots(g), workers: g.workers, start: st.s, part: g.start_part, end: st.open ? '' : st.e, nights: st.nights, days: st.days, open: st.open }; }),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
       };
@@ -4477,6 +4530,13 @@
       }
       if (it.type === 'rain_pick') { it.date = it.date || todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
       if (it.type === 'add') return it.name && CH_CAT[it.category] ? it : null;
+      if (it.type === 'guard') {
+        it.action = it.action === 'stop' ? 'stop' : 'start'; it.date = it.date || todayISO(); it.part = it.part === 'เช้า' ? 'เช้า' : 'เย็น';
+        it.workers = (Array.isArray(it.workers) ? it.workers : []).map(x => String(x).trim()).filter(Boolean); it.area = String(it.area || '').trim();
+        if (it.area && it.action === 'start') { const all = (gData.plots || []).filter(p => plotLoc(p.plot_name) === it.area).map(p => p.plot_id); if (all.length) it.plots = all; } // บอกชื่อพื้นที่ = ทุกแปลงของพื้นที่ (ไม่เชื่อ AI อย่างเดียว)
+        it.gid = it.gid || 'G' + Date.now();
+        if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
+      }
       if (it.type === 'cancel') it.which = ['last', 'watch'].includes(it.which) ? it.which : 'ongoing';
       if (!(it.plots || []).length) return null;
       return it;
@@ -4542,6 +4602,10 @@
           if (a.which === 'watch') a.plots.forEach(pid => chCancelWatch(pid, a.reason).forEach(w => ops.push({ fn: 'unwatch', watch_id: w.watch_id })));
           else a.plots.forEach(pid => chCancelLogs(pid, a.which).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));
         } else if (a.type === 'damage') (a.plots || []).forEach(pid => ops.push({ fn: 'dmg', p: { plot_id: pid, type: dmgT(a.kind)[0], date: isoToBE(a.date || todayISO()), rai: num(a.rai), note: a.note || '' } }));
+        else if (a.type === 'guard') {
+          if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
+          else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
+        }
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
@@ -4596,6 +4660,17 @@
         h = `<div class="ch-t">${t[1]} พื้นที่เสียหาย · ${esc(t[0])}</div>` + row('แปลง', pn(it.plots), 'plots') + row('วันที่เกิด', dt(it.date), 'date')
           + row('ประมาณ', num(it.rai) ? baht(it.rai) + ' ไร่' : 'ยังไม่รู้', 'rai') + row('หมายเหตุ', it.note)
           + `<div class="ch-warn" style="background:#EEF5EF;color:#1F5E3B">บันทึกแล้ววาดแนวจริงได้ที่ หน้าดูแปลง → 📍 วาดแนวบนแผนที่</div>`;
+      } else if (it.type === 'guard') {
+        if (it.action === 'stop') { const G = chGuards(it);
+          h = `<div class="ch-t">🛡️ เลิกเฝ้าไร่</div>` + (G.length ? G.map(g => { const st = guardStat({ ...g, status: 'done', end: isoToBE(it.date || todayISO()) });
+            return row(esc(guardWhere(g)), `${g.workers || ''} · เริ่ม ${thDate(st.s)} ${st.am ? 'เช้า' : 'เย็น'} · รวมค้าง ${st.nights} คืน (${st.days} วัน)`); }).join('') : `<div class="ch-warn">ไม่มีรายการเฝ้าไร่ที่ยังเฝ้าอยู่ตรงนี้</div>`) + row('วันที่เลิก', dt(it.date));
+        } else { const g = { start: isoToBE(it.date || todayISO()), start_part: it.part, status: 'open' }, dup = chGuards(it);
+          h = `<div class="ch-t">🛡️ เฝ้าไร่</div>` + row('คนเฝ้า', (it.workers || []).join(', ') || 'ไม่ระบุ', 'workers') + row('ที่', (it.area ? it.area + ' · ' : '') + it.plots.length + ' แปลง', 'plots')
+            + `<div class="srow-s" style="padding:0 0 4px">${esc(pn(it.plots))}</div>`
+            + row('เริ่ม', `${dt(it.date)} · ออก${it.part}`, 'part') + row('ถึง', 'จนกว่าจะตัด หรือสั่งเลิกเฝ้า') + row('หมายเหตุ', it.note)
+            + `<div class="ch-warn" style="background:#EEF5EF;color:#1F5E3B">${esc(guardLine(g))} · หน้าวันนี้จะนับคืนให้ทุกวัน</div>`
+            + (dup.length ? `<div class="ch-warn">มีคนเฝ้าที่นี่อยู่แล้ว: ${esc(dup.map(x => x.workers).join(' / '))} — บันทึกแล้วจะเป็น 2 รายการ</div>` : '');
+        }
       } else if (it.type === 'watch') {
         h = `<div class="ch-t">📌 ฝากดู · ${esc(it.reason || 'ไปดูอาการ')}</div>` + row('แปลง', pn(it.plots), 'plots') + row('หมายเหตุ', it.note);
       } else if (it.type === 'add') {

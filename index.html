@@ -6913,10 +6913,13 @@ Export.table.toDrive({
         const satLine = sx && sx.last ? `<button type="button" class="sat-it mb-2" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)" style="padding:8px 12px">
             <span class="t"><b>${sx.st === 'bad' ? '⚠️' : '✅'} เขียว <span style="color:${satColor(sx.last.ndvi)};display:inline;font-size:15px">${sx.last.ndvi.toFixed(2)}</span> · ${satLevel(sx.last.ndvi)}</b><span>${sx.flags.length ? esc(sx.flags.join(' · ')) : 'ภาพ ' + satDs(sx.last.d) + ' · ใกล้เคียงแปลงอื่น'}</span></span><span class="st" style="font-size:15px;color:var(--green);font-weight:700">ดูภาพ ›</span></button>` : '';
         P.innerHTML = `<div class="fw-bold">${esc(p.plot_name)}</div>
-          <div class="srow-s mb-2">วัดจากแผนที่ ${fmtRai(num(p.map_rai) * 1600)}${diff} · ${esc(p.cane_type)}</div>${satLine}
+          <div class="srow-s mb-2">วัดจากแผนที่ ${fmtRai(num(p.map_rai) * 1600)}${diff} · ${esc(p.cane_type)}</div>${satLine}${(gData.damages || []).filter(x => x.plot_id === p.plot_id).sort((a, b) => beToISO(b.date).localeCompare(beToISO(a.date))).map(x => { const t = dmgT(x.type), drawn = pPath(x.boundary).length >= 3;
+            return `<button type="button" class="sat-it mb-2" style="padding:8px 12px;border-color:#E9B4AE;background:#FFF6F4" onclick="${drawn ? `fmSel={kind:'dmg',id:'${qa(x.dmg_id)}'};fmRender()` : `fmStartDmg('','${qa(x.dmg_id)}')`}">
+              <span class="t"><b>${t[1]} ${esc(x.type)} · ${esc(thDate(beToISO(x.date)) || x.date)}</b><span>${num(x.map_rai) ? '≈ ' + fmtRai(num(x.map_rai) * 1600) + (num(p.area_rai) ? ` (${Math.round(num(x.map_rai) / num(p.area_rai) * 100)}% ของแปลง)` : '') : 'ยังไม่รู้พื้นที่'}${drawn ? '' : ' · ยังไม่ได้วาดแนว'}${x.note ? ' · ' + esc(x.note) : ''}</span></span>
+              <span class="st" style="font-size:15px;color:#B3261E;font-weight:700">${drawn ? 'ดู ›' : 'วาดแนว ›'}</span></button>`; }).join('')}
           <div class="d-flex gap-2 mb-2">
             <button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartEdit('plot','${p.plot_id}')">แก้ขอบ</button>
-            <button type="button" class="btn btn-outline-danger fw-bold flex-fill" onclick="fmStartDmg('${p.plot_id}')">🔥 พื้นที่เสียหาย</button>
+            <button type="button" class="btn btn-outline-danger fw-bold flex-fill" onclick="fmStartDmg('${p.plot_id}')">+ จุดเสียหาย</button>
             ${nav(p.center_lat, p.center_lng)}
             <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>
           </div>${wpBtnHtml('plot', p.plot_id)}${fmPickHtml()}`;

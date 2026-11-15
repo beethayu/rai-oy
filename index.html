@@ -6748,6 +6748,7 @@ Export.table.toDrive({
         const c = dmgT(x.type)[2], on = sel('dmg', x.dmg_id);
         L.polygon(pts, { color: c, weight: on ? 4 : 2.5, dashArray: '6 4', fillColor: c, fillOpacity: on ? .45 : .3 })
           .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'dmg', id: x.dmg_id }; fmRender(); })
+          .bindTooltip(`${dmgT(x.type)[1]} ${num(x.map_rai) ? fmtRai(num(x.map_rai) * 1600) : ''}`, { permanent: true, direction: 'top', opacity: on ? 1 : .85 })
           .addTo(fmLayer);
       });
       (gData.lands || []).forEach(l => {
@@ -6914,7 +6915,7 @@ Export.table.toDrive({
             <span class="t"><b>${sx.st === 'bad' ? '⚠️' : '✅'} เขียว <span style="color:${satColor(sx.last.ndvi)};display:inline;font-size:15px">${sx.last.ndvi.toFixed(2)}</span> · ${satLevel(sx.last.ndvi)}</b><span>${sx.flags.length ? esc(sx.flags.join(' · ')) : 'ภาพ ' + satDs(sx.last.d) + ' · ใกล้เคียงแปลงอื่น'}</span></span><span class="st" style="font-size:15px;color:var(--green);font-weight:700">ดูภาพ ›</span></button>` : '';
         P.innerHTML = `<div class="fw-bold">${esc(p.plot_name)}</div>
           <div class="srow-s mb-2">วัดจากแผนที่ ${fmtRai(num(p.map_rai) * 1600)}${diff} · ${esc(p.cane_type)}</div>${satLine}${(gData.damages || []).filter(x => x.plot_id === p.plot_id).sort((a, b) => beToISO(b.date).localeCompare(beToISO(a.date))).map(x => { const t = dmgT(x.type), drawn = pPath(x.boundary).length >= 3;
-            return `<button type="button" class="sat-it mb-2" style="padding:8px 12px;border-color:#E9B4AE;background:#FFF6F4" onclick="${drawn ? `fmSel={kind:'dmg',id:'${qa(x.dmg_id)}'};fmRender()` : `fmStartDmg('','${qa(x.dmg_id)}')`}">
+            return `<button type="button" class="sat-it mb-2" style="padding:8px 12px;border-color:#E9B4AE;background:#FFF6F4" onclick="${drawn ? `fmSel={kind:'dmg',id:'${qa(x.dmg_id)}'};fmRender();fmFit(pPath(gData.plots.find(q=>q.plot_id==='${p.plot_id}').boundary))` : `fmStartDmg('','${qa(x.dmg_id)}')`}">
               <span class="t"><b>${t[1]} ${esc(x.type)} · ${esc(thDate(beToISO(x.date)) || x.date)}</b><span>${num(x.map_rai) ? '≈ ' + fmtRai(num(x.map_rai) * 1600) + (num(p.area_rai) ? ` (${Math.round(num(x.map_rai) / num(p.area_rai) * 100)}% ของแปลง)` : '') : 'ยังไม่รู้พื้นที่'}${drawn ? '' : ' · ยังไม่ได้วาดแนว'}${x.note ? ' · ' + esc(x.note) : ''}</span></span>
               <span class="st" style="font-size:15px;color:#B3261E;font-weight:700">${drawn ? 'ดู ›' : 'วาดแนว ›'}</span></button>`; }).join('')}
           <div class="d-flex gap-2 mb-2">
@@ -6928,10 +6929,18 @@ Export.table.toDrive({
       if (fmSel && fmSel.kind === 'dmg') {
         const x = (gData.damages || []).find(o => o.dmg_id === fmSel.id); if (!x) { fmSel = null; return fmPanel(still); }
         const p = gData.plots.find(o => o.plot_id === x.plot_id), t = dmgT(x.type);
-        P.innerHTML = `<div class="fw-bold">${t[1]} ${esc(x.type)}${p ? ' · ' + esc(p.plot_name) : ''}</div>
-          <div class="srow-s mb-2">${esc(x.date)} · ≈ <b>${fmtRai(num(x.map_rai) * 1600)}</b>${p && num(p.area_rai) ? ` (${Math.round(num(x.map_rai) / num(p.area_rai) * 100)}% ของแปลง)` : ''}${x.note ? ' · ' + esc(x.note) : ''}</div>
-          <div class="d-flex gap-2"><button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartDmg('','${qa(x.dmg_id)}')">แก้แนว</button>
-          <button type="button" class="btn btn-outline-danger" onclick="fmDelDmg('${qa(x.dmg_id)}')">ลบ</button></div>${fmPickHtml()}`;
+        const pct = p && num(p.area_rai) && num(x.map_rai) ? Math.round(num(x.map_rai) / num(p.area_rai) * 100) : 0;
+        const old = (gData.damages || []).filter(o => o.plot_id === x.plot_id && o.dmg_id !== x.dmg_id && pPath(o.boundary).length < 3);
+        const dr = (l, v) => v ? `<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #F0E3E0"><span style="color:#6B736E;flex:none">${l}</span><b style="text-align:right;font-size:16px">${v}</b></div>` : '';
+        P.innerHTML = `<div style="border:1.5px solid #E9B4AE;border-radius:14px;padding:10px 14px 4px;background:#FFF9F7;margin-bottom:10px">
+            <div class="fw-bold" style="font-size:18px;color:#B3261E;padding-bottom:6px">${t[1]} ${esc(x.type)}${p ? ' · ' + esc(p.plot_name) : ''}</div>
+            ${dr('วันที่เกิด', esc(thDate(beToISO(x.date)) || x.date))}${dr('พื้นที่เสียหาย', num(x.map_rai) ? '≈ ' + fmtRai(num(x.map_rai) * 1600) : '')}
+            ${dr('คิดเป็น', pct ? `${pct}% ของแปลง (${r1(num(p.area_rai))} ไร่)` : '')}${dr('หมายเหตุ', esc(x.note))}
+            <div class="srow-s" style="padding:6px 0;border-top:1px solid #F0E3E0">พื้นที่วัดจากแนวที่วาดบนแผนที่ · เป็นค่าประมาณ</div></div>
+          ${old.map(o => `<button type="button" class="btn btn-outline-danger fw-bold w-100 mb-2" onclick="fmMergeDmg('${qa(x.dmg_id)}','${qa(o.dmg_id)}')">รวมกับ "${esc(o.type)} ${esc(thDate(beToISO(o.date)) || o.date)}" ที่ยังไม่ได้วาด (ใช้วันที่ ${esc(thDate(beToISO(o.date)) || o.date)})</button>`).join('')}
+          <div class="d-flex gap-2"><button type="button" class="btn btn-outline-secondary" onclick="fmSel={kind:'plot',id:'${p ? p.plot_id : ''}'};fmRender()">← กลับ</button>
+          <button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartDmg('','${qa(x.dmg_id)}')">แก้ไข</button>
+          <button type="button" class="btn btn-outline-danger" onclick="fmDelDmg('${qa(x.dmg_id)}')">ลบ</button></div>`;
         return;
       }
       if (fmSel && fmSel.kind === 'land') {
@@ -7058,6 +7067,13 @@ Export.table.toDrive({
           fmEdit = null; fmEditLayer.clearLayers(); fmSel = { kind: 'land', id: d.savedLand }; fmRender();
         }, $('btnFmSave'));
       }
+    }
+    // วาดแนวเป็นรายการใหม่ไปแล้ว ทั้งที่มีรายการเดิม (ลงจากแชต ยังไม่ได้วาด) → รวม: ใช้วันที่/ชนิดของเดิม + แนวที่วาด แล้วลบรายการเดิม
+    function fmMergeDmg(id, oldId) {
+      const x = (gData.damages || []).find(o => o.dmg_id === id), o = (gData.damages || []).find(q => q.dmg_id === oldId); if (!x || !o) return;
+      if (!confirm(`รวมเป็นรายการเดียว?\nวันที่เกิด = ${thDate(beToISO(o.date)) || o.date}\nแนวและพื้นที่ = ที่วาดไว้`)) return;
+      const note = [...new Set((o.note + ' · ' + x.note).split('·').map(t => t.trim()).filter(t => t && !/ยังไม่ได้วัด/.test(t)))].join(' · ');
+      call('saveDamage', [{ dmg_id: id, date: o.date, type: o.type, note }], () => call('deleteDamage', [oldId], d => { gData.damages = d.damages; saveCache(gData); render(); fmSel = { kind: 'dmg', id }; fmRender(); }));
     }
     function fmDelDmg(id) {
       if (!confirm('ลบพื้นที่เสียหายนี้?')) return;

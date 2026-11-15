@@ -1818,8 +1818,8 @@
     const S = k => (gData.settings || {})[k];
     const num = v => { const n = parseFloat(String(v === undefined ? '' : v).replace(/,/g, '')); return isNaN(n) ? 0 : n; };
     const r1 = n => Math.round(n * 10) / 10;
-    // ชื่อรถแบบสั้นที่ไร่เรียก (ผู้ใช้ 15 พ.ย. 69: ชื่อรุ่นเต็มยาว งง) — ใช้ตอน "แสดง" เท่านั้น ข้อมูลในชีตยังเป็นชื่อเต็ม
-    const eqS = t => String(t == null ? '' : t).replace(/New Holland TS6020(\s*110\s*แรงม้า)?|TS6020/g, 'รถไถใหญ่').replace(/Kubota B2420|B2420/g, 'รถไถเล็ก');
+    // ชื่อรถแบบสั้น = รุ่นอย่างเดียว ตัดยี่ห้อ/แรงม้า (ผู้ใช้ 15 พ.ย. 69: ชื่อเต็มยาว งง · เลือก TS6020 ไม่เอา "รถไถใหญ่" เผื่อเพิ่มรถ) — ใช้ตอน "แสดง" เท่านั้น ข้อมูลในชีตยังเป็นชื่อเต็ม
+    const eqS = t => String(t == null ? '' : t).replace(/(New Holland|Kubota|John Deere|Yanmar|Massey Ferguson|Ford|Iseki)\s+(?=[A-Za-z]*\d)/gi, '').replace(/\s*\d+\s*แรงม้า/g, ''); // เหลือแค่รุ่น เช่น TS6020, B2420 (รถใหม่ก็ใช้กติกาเดียวกัน)
     const r3 = n => Math.round(n * 1000) / 1000;
     const qa = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const escRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

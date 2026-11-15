@@ -2210,7 +2210,7 @@
           <small>${sIt ? esc(sIt.unit) : ''}</small></div>
         ${it._new ? billNewHtml(it, i) : !it.stock_item ? `<button type="button" class="bl-new" onclick="billNewOpen(${i})">📥 + สร้างเป็นรายการสต็อกใหม่ แล้วรับเข้า</button>` : ''}` : ''}
         ${it.category === 'อะไหล่' ? `
-        <div class="bl-s bl-a"><span title="ของรถ/เครื่อง">🚜</span><select class="form-select form-select-sm" aria-label="ของรถหรือเครื่องคันไหน" onchange="billSet(${i},'asset',this.value)">${opt('', 'ของรถ/เครื่องคันไหน (ไม่ระบุ)', !it.asset)}${assets.map(a => opt(a.name, a.name, a.name === it.asset)).join('')}</select></div>` : ''}
+        <div class="bl-s bl-a"><span title="ของรถ/เครื่อง">🚜</span><select class="form-select form-select-sm" aria-label="ของรถหรือเครื่องคันไหน" onchange="billSet(${i},'asset',this.value)">${opt('', 'ของรถ/เครื่องคันไหน (ไม่ระบุ)', !it.asset)}${assets.map(a => opt(a.name, eqS(a.name), a.name === it.asset)).join('')}</select></div>` : ''}
         <div class="bl-inf" id="bl_inf_${i}">${billInfoHtml(it)}</div></div>`;
     }
 
@@ -2386,7 +2386,7 @@
         </div>` : ''}
         <div class="border-top mt-3 pt-3">
           <div class="bill-lbl">บิลซ่อมรถ: ทุกรายการเป็นของรถ/เครื่องคันนี้ (ไม่เข้าสต็อก)</div>
-          <div class="d-flex gap-2"><select class="form-select form-select-sm" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home').map(a => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('')}</select>
+          <div class="d-flex gap-2"><select class="form-select form-select-sm" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home').map(a => `<option value="${esc(a.name)}">${esc(eqS(a.name))}</option>`).join('')}</select>
           <button type="button" class="btn btn-sm btn-outline-success text-nowrap" id="btnBillAsset" onclick="billAsset('${qa(b.id)}')">ใช้ทั้งบิล</button></div>
         </div>
         ${billsGrouped().length > 1 ? `<div class="border-top mt-3 pt-3">
@@ -3184,13 +3184,13 @@
       chLogs.forEach(l => {
         let g = l.activity_group || '', d = l.activity_detail || '', q = l.quantity || '', dt = l.timestamp;
         if (g === 'รถไถเตรียมดิน/บำรุง') {
-          const k = tracKind(d, p.cane_type), v = `${dt}${l.equipment && l.equipment !== '-' ? ` (${l.equipment})` : ''}`;
+          const k = tracKind(d, p.cane_type), v = `${dt}${l.equipment && l.equipment !== '-' ? ` (${eqS(l.equipment)})` : ''}`;
           if (k === 'ชักร่อง' || k === 'ปลูก') plant.push(v);
           else if (k && k !== 'ฝังปุ๋ย') tAdd(k, v);
-          else if (k === 'ฝังปุ๋ย') { subFert.push(`${dt} (${q !== '-' ? q : l.equipment})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
+          else if (k === 'ฝังปุ๋ย') { subFert.push(`${dt} (${q !== '-' ? q : eqS(l.equipment)})`); let m = q.match(/(\d+(\.\d+)?)\s*กระสอบ/); if (m) totalFertBags += parseFloat(m[1]); }
           else weed.push(`${dt}: ${d}`);
         } else if (g === 'ขึ้นน้ำ' || g === 'ฝนตก') {
-          waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment && l.equipment !== '-' ? l.equipment : 'ขึ้นน้ำ')})`);
+          waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment && l.equipment !== '-' ? eqS(l.equipment) : 'ขึ้นน้ำ')})`);
         } else if (g === 'ฉีดยา') {
           sprayList.push(`<b>${dt}</b>: ${d} [${q}] โดย ${l.operator}`);
           let m = q.match(/(\d+(\.\d+)?)/); if (m) totalSprayTanks += parseFloat(m[1]);
@@ -3204,7 +3204,7 @@
             let m = q.match(/(\d+(\.\d+)?)/); if (m) totalFertBags += parseFloat(m[1]);
           }
         } else if (g === 'ตัดอ้อย') {
-          harvList.push(`<b>${dt}</b>: ${d} | 🚛 ${l.equipment} | จำนวน: <b>${q}</b>`);
+          harvList.push(`<b>${dt}</b>: ${d} | 🚛 ${eqS(l.equipment)} | จำนวน: <b>${q}</b>`);
           let mTon = q.match(/(\d+(\.\d+)?)\s*ตัน/), mTrip = q.match(/(\d+)\s*เที่ยว/);
           if (mTon) totalTons += parseFloat(mTon[1]);
           if (mTrip) totalTrips += parseInt(mTrip[1], 10);
@@ -3327,7 +3327,7 @@
         const dt = r.a === r.b ? dsD(r.b) : new Date(r.a).getMonth() === new Date(r.b).getMonth() ? `${new Date(r.a).getDate()}–${dsD(r.b)}` : `${dsD(r.a)} – ${dsD(r.b)}`;
         const qs = r.items.map(x => String(x.l.quantity || '').match(/^([\d.]+)\s*(\S+)$/)).filter(Boolean), qu = qs.length && qs.every(m => m[2] === qs[0][2]) ? `${r1(qs.reduce((a, m) => a + parseFloat(m[1]), 0))} ${qs[0][2]}` : '';
         const key = r.k + r.b, op = dsOpen[key], rain = l.activity_group === 'ฝนตก', mmS = rain ? r.items.reduce((t, x) => t + (parseFloat((String(x.l.remark).match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0) : 0, mm = mmS ? (r.items.length > 1 ? 'รวม ' : '') + r1(mmS) : '';
-        const who = [l.operator, l.equipment].filter(v => v && v !== '-' && v !== 'ธรรมชาติ').map(esc).join(' · ');
+        const who = [l.operator, eqS(l.equipment)].filter(v => v && v !== '-' && v !== 'ธรรมชาติ').map(esc).join(' · ');
         const chs = l.activity_group === 'ฉีดยา' ? logChems(r.items.map(x => x.l)) : ''; // E4: แถวฉีดยาโชว์ยาด้วย (ถังอยู่ช่องขวา)
         h += `<div class="ds-r${rain ? ' rain' : ''}${op ? ' op' : ''}" onclick="dsOpen[this.dataset.k]=!dsOpen[this.dataset.k];dsHist('${pid}')" data-k="${esc(key)}">
           <div class="ds-d">${dt}${r.items.length > 1 ? `<small>${r.items.length} วัน</small>` : ''}</div>
@@ -3367,7 +3367,7 @@
             <span class="badge" style="background:${DS_COL[grpLabel(l)] || '#1F7A45'}">${grpLabel(l)}</span> <b>${l.activity_detail}</b>
             <div class="small mt-1">📅 <b>วันที่:</b> ${l.timestamp} | 📦 <b>ปริมาณ:</b> ${l.quantity}</div>
             <div class="small">👤 <b>ผู้ปฏิบัติงาน:</b> <span class="text-primary fw-bold">${l.operator}</span></div>
-            <div class="small">🚜/🐍 <b>เครื่องจักรที่ใช้:</b> <span class="text-danger fw-bold">${l.equipment}</span></div>
+            <div class="small">🚜/🐍 <b>เครื่องจักรที่ใช้:</b> <span class="text-danger fw-bold">${esc(eqS(l.equipment))}</span></div>
             <div class="small text-muted">💬 <b>หมายเหตุ:</b> ${esc(rmkClean(l.remark)) || '–'}${String(l.remark).includes('ย้อนหลังจากไฟล์จดมือ') ? ' <i>(ลงย้อนหลังจากสมุดจด)</i>' : ''}</div>
           </div>
           <button class="btn btn-sm btn-warning fw-bold py-0" onclick="hideModal('logInspModal');openEditLog('${l.log_id}','${qa(p.plot_name)}')">✏️ แก้ไข</button>
@@ -3476,7 +3476,7 @@
       const all = regItems(), farm = all.filter(i => i.a.category !== 'Home'), home = all.filter(i => i.a.category === 'Home');
       const box = its => `<div class="srow-box">${its.map(i => {
         const r = regInfo(i.exp), c = i.a.category;
-        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${c === 'Home' ? '🚗' : c === 'Car' ? '🚙' : c === 'Tractor' ? '🚜' : '🚛'} ${esc(i.label)}</span>
+        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${c === 'Home' ? '🚗' : c === 'Car' ? '🚙' : c === 'Tractor' ? '🚜' : '🚛'} ${esc(eqS(i.label))}</span>
           <span class="srow-s">${esc(i.plate || 'ยังไม่ระบุทะเบียน')}${r ? ' · หมด ' + esc(i.exp) : ''}</span></span>
           ${r ? `<span class="pill ${r.cls}">${r.txt}</span>` : '<span class="pill" style="background:#eee;color:#666">แตะเพิ่ม</span>'}</button>`;
       }).join('')}</div>`;
@@ -3491,7 +3491,7 @@
       const a = name ? (gData.assets || []).find(x => x.name === name) : null;
       if (name && !a) return;
       regNewCat = cat === 'Home' ? 'Home' : 'Car';
-      $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + a.name : regNewCat === 'Home' ? '🚗 เพิ่มรถส่วนตัว' : '🪪 เพิ่มรถที่ใช้ในไร่';
+      $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + eqS(a.name) : regNewCat === 'Home' ? '🚗 เพิ่มรถส่วนตัว' : '🪪 เพิ่มรถที่ใช้ในไร่';
       $('rg_name').value = a ? a.name : ''; $('rg_newname').value = a ? a.name : '';
       $('rg_plate').value = a ? a.plate || '' : ''; $('rg_exp').value = a ? beToISO(a.reg_expire) || '' : '';
       $('rg_tplate').value = a ? a.trailer_plate || '' : ''; $('rg_texp').value = a ? beToISO(a.trailer_reg_expire) || '' : '';
@@ -3546,11 +3546,11 @@
     function logRow(l, showName) {
       if (l.bill) return `<button type="button" class="hrow" onclick="openBillView('${qa(l.bill)}')">
           <span class="hrow-d">${esc(l.timestamp)}</span>
-          <span class="hrow-b">${showName ? `<b>${esc(l.asset_name)}</b> · ` : ''}🧾 ซ่อม/อะไหล่ ${esc(l.shop || '')}
+          <span class="hrow-b">${showName ? `<b>${esc(eqS(l.asset_name))}</b> · ` : ''}🧾 ซ่อม/อะไหล่ ${esc(l.shop || '')}
             <span class="hrow-s">${l.n} รายการ · ${baht(l.total)} บาท · แตะดูบิล</span></span></button>`;
       return `<div class="hrow">
           <span class="hrow-d">${esc(l.timestamp)}</span>
-          <span class="hrow-b">${showName ? `<b>${esc(l.asset_name)}</b> · ` : ''}${esc(l.event_type)}
+          <span class="hrow-b">${showName ? `<b>${esc(eqS(l.asset_name))}</b> · ` : ''}${esc(l.event_type)}
             <span class="hrow-s">${esc(l.detail || '')}${l.parts_or_battery && l.parts_or_battery !== '-' ? ' · ' + esc(l.parts_or_battery) : ''}${l.ref_plot && l.ref_plot !== '-' ? ' · 📍 ' + esc(l.ref_plot) : ''}</span>
             <span class="hrow-t">${l.photo_id ? `<button type="button" class="linkbtn" onclick="viewPhotos('${qa(l.asset_name)}','${qa(l.photo_id)}')">📷 ดูรูป (${String(l.photo_id).split(',').filter(Boolean).length})</button>` : ''}
               <button type="button" class="linkbtn muted" onclick="delAssetLog('${qa(l.log_id)}','${qa(l.asset_name)}')">ลบรายการนี้</button></span></span></div>`;
@@ -3781,7 +3781,7 @@
     function openAssetEdit(name) {
       let a = (gData.assets || []).find(x => x.name === name);
       if (!a) return;
-      $('aeTitle').innerText = `🔧 ตั้งค่า/แจ้งซ่อม: ${a.name}`;
+      $('aeTitle').innerText = `🔧 ตั้งค่า/แจ้งซ่อม: ${eqS(a.name)}`;
       $('ae_name').value = a.name; $('ae_cat').value = a.category; $('ae_status').value = a.status;
       $('ae_issue').value = a.issue_detail !== '-' ? a.issue_detail : '';
       $('ae_parts').value = a.parts_needed !== '-' ? a.parts_needed : '';
@@ -3829,7 +3829,7 @@
     
     function openBatModal() {
       let vehicles = (gData.assets || []).filter(a => a.category === 'Tractor' || a.category === 'Truck');
-      let opts = vehicles.map(v => `<option value="${esc(v.name)}">${esc(v.name)}${v.battery_info ? ' · แบต: ' + esc(v.battery_info) : ''}</option>`).join('');
+      let opts = vehicles.map(v => `<option value="${esc(v.name)}">${esc(eqS(v.name))}${v.battery_info ? ' · แบต: ' + esc(eqS(String(v.battery_info).replace('(' + v.name + ')', '').trim()) || '-') : ''}</option>`).join('');
       $('bat_from').innerHTML = opts; $('bat_to').innerHTML = opts;
       if (vehicles.length > 1) $('bat_to').selectedIndex = 1;
       $('bat_label').value = ''; $('bat_date').value = todayISO(); $('bat_rmk').value = '';
@@ -4125,7 +4125,7 @@
       const assetMap = {};
       (gData.assets || []).forEach(a => assetMap[a.name] = a.status);
 
-      $('act_eq').innerHTML = tractors.map(t => `<option value="${t}">${t} ${assetMap[t] && assetMap[t] !== 'พร้อมใช้' ? '(⚠️ ' + assetMap[t] + ')' : ''}</option>`).join('');
+      $('act_eq').innerHTML = tractors.map(t => `<option value="${t}">${eqS(t)} ${assetMap[t] && assetMap[t] !== 'พร้อมใช้' ? '(⚠️ ' + assetMap[t] + ')' : ''}</option>`).join('');
       $('pump_chks').innerHTML = pumps.map((pm, i) => {
         let st = assetMap[pm] || 'พร้อมใช้';
         return `<div class="form-check form-check-inline"><input class="form-check-input pm-chk" type="checkbox" value="${pm}" id="pm_${i}"><label class="form-check-label" for="pm_${i}">${pm} ${st === 'พร้อมใช้' ? '<span class="text-success">(ว่าง)</span>' : `<span class="text-danger fw-bold">(${st})</span>`}</label></div>`;
@@ -4133,7 +4133,7 @@
       $('worker_chks').innerHTML = ['ตัวเอง/แฟน', ...workers].map((w, i) => `<div class="form-check form-check-inline"><input class="form-check-input w-chk" type="checkbox" value="${w}" id="wk_${i}"><label class="form-check-label" for="wk_${i}">${w}</label></div>`).join('');
       $('truck_chks').innerHTML = trucks.map((tr, i) => {
         let st = assetMap[tr] || 'พร้อมใช้';
-        return `<div class="form-check form-check-inline"><input class="form-check-input tr-chk" type="checkbox" value="${tr}" id="tr_${i}"><label class="form-check-label" for="tr_${i}">${tr} ${st === 'พร้อมใช้' ? '' : `<span class="text-danger">(${st})</span>`}</label></div>`;
+        return `<div class="form-check form-check-inline"><input class="form-check-input tr-chk" type="checkbox" value="${tr}" id="tr_${i}"><label class="form-check-label" for="tr_${i}">${eqS(tr)} ${st === 'พร้อมใช้' ? '' : `<span class="text-danger">(${st})</span>`}</label></div>`;
       }).join('');
 
       // ยา: ดึงจากชีต Inventory

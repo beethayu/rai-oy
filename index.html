@@ -4384,8 +4384,10 @@
     const chOg = pid => (gData.activities || []).find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
     // รายการที่ "ยกเลิก" จะลบ: ongoing = งานที่กำลังทำทั้งหมดของแปลง · last = งานล่าสุดของแปลง (ไม่นับฝนตก)
     const chCancelWatch = (pid, reason) => (gData.watches || []).filter(w => w.plot_id === pid && (!reason || w.reason === reason));
-    const chCancelLogs = (pid, which) => which === 'last'
-      ? (gData.activities || []).filter(a => a.plot_id === pid && a.activity_group !== 'ฝนตก').slice(0, 1)
+    // it (ไม่บังคับ) = {group, detail, date} จากแชต → เลือกเฉพาะงานที่ตรง (15 พ.ย. 69: "ยกเลิกฉีดรอบไร่กระถินแดงวันนี้" เคยไม่เจอเพราะ AI ใส่ ongoing)
+    const chCancelLogs = (pid, which, it) => which === 'last'
+      ? (gData.activities || []).filter(a => a.plot_id === pid && a.activity_group !== 'ฝนตก' && (!it || ((!it.group || a.activity_group === it.group)
+          && (!it.detail || String(a.activity_detail || '').includes(it.detail)) && (!it.date || beToISO(String(a.timestamp || '').split(' ')[0]) === it.date)))).slice(0, 1)
       : (gData.activities || []).filter(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
     // ขั้นตอน 📋 แบบย่อให้แชต: ชื่อ + ช่วงวัน และงานถึงคิว/ทำแล้วรายแปลง (คำนวณในเครื่อง ไม่อ่านชีตใหม่)
     function chatFlow() {
@@ -4675,7 +4677,10 @@
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
-      if (it.type === 'cancel') it.which = ['last', 'watch'].includes(it.which) ? it.which : 'ongoing';
+      if (it.type === 'cancel') {
+        it.which = ['last', 'watch'].includes(it.which) ? it.which : 'ongoing';
+        if (it.which === 'ongoing' && !(it.plots || []).some(pid => chCancelLogs(pid, 'ongoing').length)) it.which = 'last'; // ไม่มีงานกำลังทำ = ลบงานล่าสุดที่ตรง
+      }
       if (!(it.plots || []).length) return null;
       return it;
     }
@@ -4739,7 +4744,7 @@
           a.plots.forEach(pid => { const og = chOg(pid); if (og) ops.push({ fn: 'finish', log_id: og.log_id, date: isoToBE(a.date || todayISO()) }); });
         } else if (a.type === 'cancel') {
           if (a.which === 'watch') a.plots.forEach(pid => chCancelWatch(pid, a.reason).forEach(w => ops.push({ fn: 'unwatch', watch_id: w.watch_id })));
-          else a.plots.forEach(pid => chCancelLogs(pid, a.which).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));
+          else a.plots.forEach(pid => chCancelLogs(pid, a.which, a).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));
         } else if (a.type === 'damage') (a.plots || []).forEach(pid => ops.push({ fn: 'dmg', p: { plot_id: pid, type: dmgT(a.kind)[0], date: isoToBE(a.date || todayISO()), rai: num(a.rai), note: a.note || '' } }));
         else if (a.type === 'guard') {
           if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
@@ -4802,7 +4807,7 @@
       } else if (it.type === 'cancel') {
         if (it.which === 'watch') h = `<div class="ch-t">🗑️ ยกเลิกฝากดู</div>` + it.plots.map(pid => { const ws = chCancelWatch(pid, it.reason);
           return ws.length ? ws.map(w => row(esc(chPlot(pid).plot_name), esc(w.reason) + (w.note ? ' · ' + esc(w.note) : ''))).join('') : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีฝากดู${it.reason ? 'เรื่อง' + esc(it.reason) : ''}</div>`; }).join('');
-        else h = `<div class="ch-t">🗑️ ยกเลิก (ลบออกจากประวัติ)</div>` + it.plots.map(pid => { const ls = chCancelLogs(pid, it.which);
+        else h = `<div class="ch-t">🗑️ ยกเลิก (ลบออกจากประวัติ)</div>` + it.plots.map(pid => { const ls = chCancelLogs(pid, it.which, it);
           return ls.length ? ls.map(l => row(esc(chPlot(pid).plot_name), `${esc(l.activity_group)} · ${esc(l.activity_detail)} (${esc(l.timestamp)})`)).join('')
             : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มี${it.which === 'last' ? 'รายการ' : 'งานที่กำลังทำ'}ให้ยกเลิก</div>`; }).join('')
           + `<div class="ch-warn" style="background:#FDECEC;color:#8A1C1C">ลบแล้วกู้คืนไม่ได้ · ยาที่ตัดสต็อกไปจะคืนให้</div>`;

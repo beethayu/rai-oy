@@ -5396,16 +5396,17 @@ Export.table.toDrive({
       if (ctx._q) return ctx._q;
       const R = ctx._q = {}, Q = steps.filter(s => s.sq && s.k !== 'note'), live = ctx.pre || ctx.age < 0, end = ctx.pre ? ctx.age : 0;
       let from = ctx.p0 == null ? -150 : ctx.p0, last = -1;
+  const used = new Set();
       Q.forEach((s, i) => {
         const ov = ctx.ans['h:' + s.id];
         const own = String(s.m || '').split(','), uq = Q.slice(i + 1).flatMap(t => String(t.m || '').split(',')).map(w => w.trim()).filter(w => w && !own.includes(w)); // คำเฉพาะของขั้นถัดไป (เช่น ไถแปร) ไม่นับเป็นขั้นนี้
-    let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x).filter(a => !uq.some(w => a.d.includes(w))), at = null;
+    let h = flowHit_(ctx.acts, s.g, s.m, from, end, s.x).filter(a => !used.has(a) && !uq.some(w => a.d.includes(w))), at = null;
         if (ov && ov.v === 'not') h = h.filter(a => a.age > ov.age);
         if (ov && ov.v === 'done') at = ov.age;
-        else if (h.length) { at = h[0].age; h.forEach(a => { if (a.age <= at + 2) at = a.age; }); }
+        else if (h.length) { at = h[0].age; h.forEach(a => { if (a.age <= at + 2) { at = a.age; used.add(a); } }); }
         else if (+s.sq === 2 && !ctx.pre && ctx.age >= 0) at = 0;
         if (at === null) return;
-        R[s.id] = { st: 'done', at }; from = at + 1; last = i;
+        R[s.id] = { st: 'done', at }; from = at; last = i; // ขั้นถัดไปทำวันเดียวกันได้ (ล็อกเล็ก: ไถแปร + ชักร่อง วันเดียว) · บันทึกที่นับแล้วไม่นับซ้ำ
       });
       Q.forEach((s, i) => {
         if (R[s.id]) return;

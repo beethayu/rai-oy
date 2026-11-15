@@ -1002,13 +1002,13 @@ function billFolder_() {
 }
 
 var geminiUsed_ = '';
-function geminiCall_(parts, what) {
+function geminiCall_(parts, what, level) { // level = thinkingLevel ของรุ่นหลัก (แชตใช้ medium ให้เข้าใจคำพูด · อ่านบิลใช้ minimal ให้เร็ว)
   const props = PropertiesService.getScriptProperties();
   // อ่านบิลไม่ต้องคิดนาน: ปิด thinking ให้เร็ว (รุ่น 2.5 ใช้ thinkingBudget, รุ่น 3 ขึ้นไปใช้ thinkingLevel)
   // ทดสอบ 1 พ.ย. 69: 2.5 เลิกให้บัญชีใหม่ใช้แล้ว, flash-latest ช้ามาก (นาทีกว่า), 3.5-flash + minimal ~1 วิ
   const models = [props.getProperty('GEMINI_MODEL') || 'gemini-3.5-flash', 'gemini-3.5-flash-lite']
     .filter((m, i, a) => m && a.indexOf(m) === i);
-  const think = m => /2\.5/.test(m) ? { thinkingBudget: 0 } : { thinkingLevel: 'minimal' };
+  const think = m => /2\.5/.test(m) ? { thinkingBudget: 0 } : { thinkingLevel: level && !/lite/.test(m) ? level : 'minimal' };
   let last = '';
   // รุ่นหลักลอง 2 ครั้ง (ถ้าติดโควตา/คนใช้เยอะ) แล้วค่อยใช้รุ่นสำรอง
   const tries = [];

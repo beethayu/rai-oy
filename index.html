@@ -4580,6 +4580,8 @@
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
+          if (!chForxa() && items.some(it => it.chemSrc === 'user' && (it.chemList || []).includes(EDGE_MIX[0]) && !(it.chemList || []).includes(EDGE_MIX[1])) && !ask.some(q => /ฟอร์ซาซิน/.test(q.q || '')))
+            ask.push({ q: 'ผสมฟอร์ซาซินด้วยไหม?', options: ['ผสมฟอร์ซาซินด้วย', 'กลูโฟอย่างเดียว'] }); // ไม่เติมเอง
           const m = { ai: true, t: r.reply || '', items, ask, state: items.length ? 'draft' : 'info' };
           // เก็บรูปชุดนี้ไว้ใช้ต่อเมื่อยังรอตอบ/แก้ (มีรายการที่แนบรูป หรือมีคำถามค้าง) ไม่งั้นปล่อย
           if (ph.length && (items.some(it => (it.photo_ids || []).length) || (m.ask.length && !items.length))) { chat.pics = { ids: ph, th }; m.th = th; } else chat.pics = null;
@@ -4611,7 +4613,11 @@
       let src = '', ft = '', list = [];
       it.unsure = (it.unsure || []).filter(k => k !== 'chems');
       const said = (Array.isArray(it.chems) ? it.chems : []).map(n => String(n || '').trim()).filter(Boolean);
-      if (said.length) { src = 'user'; list = said.map(n => byName(n) || { name: n }); }
+      if (said.length) { src = 'user'; list = said.map(n => byName(n) || { name: n });
+        // กลูโฟ = ยาฆ่าไม่เลือกพืช ใช้รอบไร่เท่านั้น → ลงเป็นฉีดหญ้ารอบไร่ · ตอบชิปว่าผสมฟอร์ซาซิน → เติมให้
+        if (list.some(x => x.name === EDGE_MIX[0]) && !/รอบไร่|ขอบแปลง/.test(String(it.detail || ''))) it.detail = 'ฉีดหญ้ารอบไร่';
+        if (list.some(x => x.name === EDGE_MIX[0]) && !list.some(x => x.name === EDGE_MIX[1]) && chForxa() === 'yes') list.push(invItem(EDGE_MIX[1]) || { name: EDGE_MIX[1] });
+      }
       else if (/รอบไร่|ขอบแปลง/.test(String(it.detail || '') + String(it.remark || ''))) { src = 'edge'; ft = 'หญ้ารอบไร่'; list = EDGE_MIX.map(n => invItem(n) || { name: n }); }
       else {
         const p = chPlot((it.plots || [])[0]) || {}, d = String(it.detail || '') + ' ' + String(it.remark || '');
@@ -4623,6 +4629,11 @@
       it.chemSrc = src; it.chemFt = ft; it.chemList = list.map(x => x.name);
       it.chemMiss = list.filter(x => !(num(x.per_tank) > 0)).map(x => x.name);
       it.usage = t ? list.filter(x => num(x.per_tank) > 0).map(x => ({ name: x.name, qty: r3(num(x.per_tank) * t) })) : [];
+    }
+    // คำตอบชิป "ผสมฟอร์ซาซินด้วยไหม?" ในข้อความล่าสุด 6 ข้อความ: 'yes' / 'no' / ''
+    function chForxa() {
+      const t = chat.msgs.slice(-6).filter(m => m.me).map(m => m.t || '').join('\n');
+      return /→\s*กลูโฟอย่างเดียว/.test(t) ? 'no' : /→\s*ผสมฟอร์ซาซินด้วย/.test(t) ? 'yes' : '';
     }
     function chatDropChem(mi, i, k) { const it = chat.msgs[mi].items[i], u = { name: (it.chemList || [])[k] }; if (!u) return; it.dropChem = (it.dropChem || []).concat(u.name); chSpray(it); chatSave(); chatRender(); }
     function chatNorm(it, ph) {

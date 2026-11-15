@@ -2687,13 +2687,15 @@
     const EDGE_MIX = ['กลูโฟสิเนต 15 เอสแอล', 'ฟอร์ซาซิน'];
     const isEdgeSpray = l => l.activity_group === 'ฉีดยา' && /รอบไร่|ขอบแปลง/.test(String(l.activity_detail || '') + String(l.remark || ''));
     const qtyTxt = (q, u) => u === 'ml' && q >= 1000 ? `${r1(q / 1000)} ลิตร` : u === 'g' && q >= 1000 ? `${r1(q / 1000)} กก.` : `${r1(q)} ${u === 'ml' ? 'มล.' : u === 'g' ? 'กรัม' : u}`;
+    // ยาโชว์ทั้งภาชนะที่เห็นจริง + ปริมาณ (ผู้ใช้ 15 พ.ย. 69: กลูโฟนับเป็นแกลลอนจริง) เช่น "8 ลิตร (2 แกลลอน)" · ชื่อภาชนะตาม pack_name ในสต็อก
+    const qtyPk = (q, n) => { const it = invItem(n) || {}, pk = num(it.pack_size); return qtyTxt(q, it.unit) + (pk > 1 && it.pack_name ? ` (${r1(q / pk)} ${it.pack_name})` : ''); };
     function logChems(logs) {
       const ids = new Set((logs || []).map(l => l.log_id)), sum = {};
       (gData.stockLogs || []).forEach(x => { if (!ids.has(x.ref_log_id)) return; const q = -num(String(x.change_qty).replace(/,/g, '')); if (q <= 0) return; const o = sum[x.item_name] = sum[x.item_name] || { q: 0, u: x.unit }; o.q += q; });
-      if (Object.keys(sum).length) return 'ยา: ' + Object.keys(sum).map(n => `${n} ${qtyTxt(sum[n].q, sum[n].u)}`).join(' · ');
+      if (Object.keys(sum).length) return 'ยา: ' + Object.keys(sum).map(n => `${n} ${qtyPk(sum[n].q, n)}`).join(' · ');
       const t = tankOf((logs || []).filter(isEdgeSpray)); if (!t) return '';
       const mix = EDGE_MIX.map(n => (gData.inventory || []).find(i => i.name === n)).filter(i => i && num(i.per_tank));
-      return mix.length ? `ยาตามสูตรรอบไร่ ${r1(t)} ถัง: ` + mix.map(i => `${i.name} ${qtyTxt(num(i.per_tank) * t, i.unit)}`).join(' · ') : '';
+      return mix.length ? `ยาตามสูตรรอบไร่ ${r1(t)} ถัง: ` + mix.map(i => `${i.name} ${qtyPk(num(i.per_tank) * t, i.name)}`).join(' · ') : '';
     }
     function recentHtml(head) {
       const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
@@ -4845,8 +4847,8 @@
       const t = chTanks(it.quantity), g = it.unsure.includes('chems'), sum = {};
       const low = [];
       const rows = (it.chemList || []).map((n, k) => { const iv = invItem(n) || {}, u = (it.usage || []).find(x => x.name === n);
-        if (u && iv.name && num(iv.stock) - u.qty < 0) low.push(`${esc(n)} เหลือ ${esc(qtyTxt(Math.max(0, num(iv.stock)), iv.unit))}`);
-        return `<div class="ch-chem"><span class="${g ? 'ch-guess' : ''}">${esc(n)}</span><b>${u ? esc(qtyTxt(u.qty, iv.unit)) : ''}</b>${live ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropChem(${mi},${i},${k})">✕</button>` : ''}</div>`; }).join('')
+        if (u && iv.name && num(iv.stock) - u.qty < 0) low.push(`${esc(n)} เหลือ ${esc(qtyPk(Math.max(0, num(iv.stock)), n))}`);
+        return `<div class="ch-chem"><span class="${g ? 'ch-guess' : ''}">${esc(n)}</span><b>${u ? esc(qtyPk(u.qty, n)) : ''}</b>${live ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropChem(${mi},${i},${k})">✕</button>` : ''}</div>`; }).join('')
         + (low.length ? `<div class="ch-warn">สต็อกไม่พอ: ${low.join(' · ')} — บันทึกแล้วจะติดลบ (ยังบันทึกได้)</div>` : '');
       const note = !t ? 'ใส่จำนวนถังก่อน แล้วจะคิดยาให้' : it.chemSrc === 'user' ? '' : `ตามสูตร${esc(it.chemFt)} · ${r1(t)} ถัง${g ? ' · เดาจากชนิดอ้อย ตรวจก่อนบันทึก' : ''}`;
       const miss = (it.chemMiss || []).length ? `<div class="ch-warn">ยังไม่รู้อัตราต่อถังของ ${it.chemMiss.map(esc).join(', ')} — ไม่ตัดสต็อกตัวนี้</div>` : '';

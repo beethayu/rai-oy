@@ -584,6 +584,13 @@
     .card-sec { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
     .card-sec h6 { font-weight: 700; font-size: 16px; color: #1F5E3B; margin: 0 0 8px; }
     .fm-back { border: 0; background: transparent; color: #fff; font-size: 16px; font-weight: 600; padding: 4px 10px 4px 0; min-height: 40px; }
+    .fm-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    .fm-chip { flex: none; border: 1px solid #CFE0D5; background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 14px; color: inherit; white-space: nowrap; }
+    .fm-chip.on { border-color: #1F5E3B; color: #1F5E3B; font-weight: 600; }
+    .fm-leg { background: rgba(255,255,255,.94); border-radius: 10px; padding: 5px 8px; font-size: 12px; color: #1F2A23; display: flex; flex-wrap: wrap; gap: 4px 10px; max-width: 240px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+    .fm-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } .fm-leg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+    .fm-tag-dmg { background: #FFF1EC !important; color: #B42318 !important; }
+    .fm-tag-guard { background: #EDE3FA !important; color: #5B2A9E !important; }
     .grp-all { border: 0; background: transparent; color: #1F5E3B; font-size: 14px; font-weight: 600; padding: 0; }
     .opt-chip { display: inline-flex; align-items: center; gap: 6px; background: #EEF1EF; color: inherit; border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 15px; font-weight: 600; }
     .rk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -6922,7 +6929,7 @@ Export.table.toDrive({
     }
 
     function openFarmMap(pid, edit) {
-      fmSel = null; fmEdit = null; $('fmRes').style.display = 'none'; $('fmQ').value = ''; if (lyOpen) lyToggle(lyOpen);
+      fmSel = null; fmEdit = null; fmTools = false; $('fmRes').style.display = 'none'; $('fmQ').value = ''; if (lyOpen) lyToggle(lyOpen);
       showM('farmMapModal');
       loadLeaflet().then(() => {
         if (!fmMap) {
@@ -6940,14 +6947,14 @@ Export.table.toDrive({
             if (fmEdit) { fmEdit.pts.push(fmSnap(e.latlng)); fmDrawEdit(); }
             else if (fmSel) { fmSel = null; fmRender(); }
           });
-          $('farmMapModal').addEventListener('shown.bs.modal', () => fmMap.invalidateSize());
+          $('farmMapModal').addEventListener('shown.bs.modal', () => { fmMap.invalidateSize(); if (fmNeedFit && !fmSel && !fmEdit) fmFitAll(); fmNeedFit = false; }); // I-2: ฟิตใหม่หลังหน้าต่างเปิดเต็ม (ก่อนหน้านี้ขนาด 0 → ซูมสุด ป้ายตกขอบ)
           $('farmMapModal').addEventListener('hidden.bs.modal', () => { if (fmWatch !== null) navigator.geolocation.clearWatch(fmWatch); fmWatch = null; if (fmAcc) { fmAcc.remove(); fmAcc = null; } });
         }
         setTimeout(() => {
           fmMap.invalidateSize();
           const p = pid && gData.plots.find(x => x.plot_id === pid);
           if (p && pPath(p.boundary).length) { fmSel = { kind: 'plot', id: pid }; fmFit(pPath(p.boundary)); }
-          else fmFitAll();
+          else { fmFitAll(); fmNeedFit = true; setTimeout(() => { if (fmNeedFit && !fmSel && !fmEdit) fmFitAll(); fmNeedFit = false; }, 600); }
           fmRender();
           if (p && edit) fmStartEdit('plot', pid);
           if (fmSatWant) { fmSatWant = false; fmSatToggle(true); }
@@ -6962,7 +6969,7 @@ Export.table.toDrive({
     function fmFit(pts) { if (pts.length) fmMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 18 }); }
     function fmFitAll() {
       const all = gData.plots.flatMap(p => pPath(p.boundary)).concat((gData.lands || []).filter(fmLandVisible).flatMap(l => pPath(l.boundary)));
-      if (all.length) fmFit(all);
+      if (all.length) { const pb = ($('fmPanel') || {}).offsetHeight || 0; fmMap.fitBounds(L.latLngBounds(all), { paddingTopLeft: [50, 120], paddingBottomRight: [80, 60 + Math.min(pb, 260)], maxZoom: 17 }); } // I-2: เผื่อหัว/แผงล่าง ป้ายไม่ตกขอบ
       else if (rkLastPos) fmMap.setView([rkLastPos.lat, rkLastPos.lng], 15);
       else fmMap.setView([15.3, 100.3], 8);
     }
@@ -7043,9 +7050,10 @@ Export.table.toDrive({
       if (!fmLayer) return;
       fmLayer.clearLayers();
       const sel = (k, id) => fmSel && fmSel.kind === k && fmSel.id === id;
+      const ripe = new Set(nearCutList().filter(r => r.ripe).map(r => r.p.plot_id));
       gData.plots.forEach(p => {
         const pts = pPath(p.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'plot' && fmEdit.id === p.plot_id)) return;
-        const col = p.cane_type === 'อ้อยใหม่' ? '#7BD389' : '#E2B66B', on = sel('plot', p.plot_id);
+        const col = FM_ST[fmStOf(p, ripe)][0], on = sel('plot', p.plot_id);
         L.polygon(pts, fmSatOn ? { color: '#FFFFFF', weight: on ? 4 : 1.5, fillOpacity: 0 } : { color: on ? '#FFFFFF' : col, weight: on ? 4 : 2.5, fillColor: col, fillOpacity: on ? .45 : .25 })
                     .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'plot', id: p.plot_id }; fmRender(); })
           .addTo(fmLayer);
@@ -7055,7 +7063,6 @@ Export.table.toDrive({
         const c = dmgT(x.type)[2], on = sel('dmg', x.dmg_id);
         L.polygon(pts, { color: c, weight: on ? 4 : 2.5, dashArray: '6 4', fillColor: c, fillOpacity: on ? .45 : .3 })
           .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'dmg', id: x.dmg_id }; fmRender(); })
-          .bindTooltip(`${dmgT(x.type)[1]} ${num(x.map_rai) ? fmtRai(num(x.map_rai) * 1600) : ''}`, { permanent: true, direction: 'top', opacity: on ? 1 : .85 })
           .addTo(fmLayer);
       });
       (gData.lands || []).forEach(l => {
@@ -7065,8 +7072,20 @@ Export.table.toDrive({
                     .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'land', id: l.land_id }; fmRender(); })
           .addTo(fmLayer);
       });
-      fmLabels(); fmLandBtn();
+      fmLabels(); fmLandBtn(); fmLegend();
       fmPanel();
+    }
+    // I-3 (16 พ.ย. 69): สีแปลงตามสถานะ (เดิมสีตามชนิดอ้อย) + คำอธิบายสีมุมซ้ายล่าง
+    const FM_ST = { urg: ['#E5484D', 'ถึงคิว'], doing: ['#2F7FD8', 'กำลังทำ'], ripe: ['#F59E0B', 'ครบตัด'], ok: ['#46A758', 'ปกติ'] };
+    function fmStOf(p, ripe) { const st = analyze(p); return st.isOngoing ? 'doing' : st.isUrg ? 'urg' : ripe.has(p.plot_id) ? 'ripe' : 'ok'; }
+    let fmLegCtl = null;
+    function fmLegend() {
+      if (!fmMap) return;
+      if (!fmLegCtl) { fmLegCtl = L.control({ position: 'bottomleft' }); fmLegCtl.onAdd = () => { const d = L.DomUtil.create('div', 'fm-leg'); d.id = 'fmLeg'; L.DomEvent.disableClickPropagation(d); return d; }; fmLegCtl.addTo(fmMap); }
+      const d = $('fmLeg'); if (!d) return;
+      d.style.display = fmSatOn || fmRain || fmEdit ? 'none' : '';
+      d.innerHTML = Object.values(FM_ST).map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('')
+        + ((gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? '<span>🔥 เสียหาย</span>' : '') + (guardOpen().length ? '<span>🛡️ เฝ้า</span>' : '');
     }
 
     // ป้ายชื่อ: ซูมใกล้ (≥ 15) = ชื่อแปลงทีละแปลง · ซูมออก = ป้ายเดียวต่อพื้นที่ "หนองบวบหอม · 4 แปลง" แตะแล้วซูมเข้า
@@ -7077,9 +7096,25 @@ Export.table.toDrive({
       if (!fmMap) return;
       if (!fmLblLayer) { fmLblLayer = L.layerGroup().addTo(fmMap); fmMap.on('zoomend', fmLabels); }
       fmLblLayer.clearLayers();
-      if (!fmShowLbl) return;
+      // I-1 (16 พ.ย. 69): ป้ายไม่ทับกัน — วางตามลำดับสำคัญ ทับป้ายที่วางแล้ว = ข้าม (ซูมเข้าแล้วจะขึ้นเอง)
+      const placed = [], fits = (ll, html) => {
+        const t = String(html).replace(/<[^>]+>/g, ''), w = t.length * 8.5 + 22, h = 30, c = fmMap.latLngToContainerPoint(ll);
+        const W = fmMap.getSize().x, cx = Math.min(Math.max(c.x, w / 2 + 4), W - w / 2 - 4); // ไม่ให้ตกขอบซ้าย/ขวา
+        for (const [ox, dy] of [[0, 0], [0, 32], [0, -32], [70, 0], [-70, 0], [0, 64], [0, -64], [70, 32], [-70, -32]]) { // ทับ = ขยับก่อน ไม่ได้จริง ๆ ค่อยข้าม
+          const x = Math.min(Math.max(cx + ox, w / 2 + 4), W - w / 2 - 4), r = [x - w / 2, c.y - h / 2 + dy, x + w / 2, c.y + h / 2 + dy];
+          if (!placed.some(q => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1])) { placed.push(r); return { dx: Math.round(x - c.x), dy }; }
+        }
+        return null;
+      };
+      const shift = (f, html) => f.dy || f.dx ? `<div style="position:relative;top:${f.dy}px;left:${f.dx}px">${html}</div>` : html;
+      // I-4: 🛡️ จุดที่มีคนเฝ้า (โชว์แม้ปิดป้ายชื่อ)
+      const guardLbl = () => guardOpen().forEach(g => { const pts = String(g.plot_ids || '').split(',').flatMap(id => pPath((gData.plots.find(p => p.plot_id === id.trim()) || {}).boundary));
+        if (pts.length < 3) return; const b = L.latLngBounds(pts).getCenter(), ll = [b.lat, b.lng], html = `🛡️ ${esc(String(g.workers || '').replace(/\s*,\s*/g, ' + '))}`;
+        const f = fits(ll, html); if (f) L.marker(ll, { interactive: false, keyboard: false, zIndexOffset: 500, icon: L.divIcon({ className: '', iconSize: [0, 0], html: shift(f, `<div class="fm-tag fm-tag-guard">${html}</div>`) }) }).addTo(fmLblLayer); });
+      if (!fmShowLbl) return guardLbl();
       const z = fmMap.getZoom(), lbl = (ll, html, cls, onTap) => {
-        const m = L.marker(ll, { interactive: !!onTap, keyboard: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<div class="${cls}">${html}</div>` }) }).addTo(fmLblLayer);
+        const f = fits(ll, html); if (!f) return;
+        const m = L.marker(ll, { interactive: !!onTap, keyboard: false, icon: L.divIcon({ className: '', iconSize: [0, 0], html: shift(f, `<div class="${cls}">${html}</div>`) }) }).addTo(fmLblLayer);
         if (onTap) m.on('click', e => { L.DomEvent.stopPropagation(e); onTap(); });
       };
       const center = pts => { const b = L.latLngBounds(pts).getCenter(); return [b.lat, b.lng]; };
@@ -7087,20 +7122,25 @@ Export.table.toDrive({
         return { st: `background:${bg};color:${fg}`, txt: v.mm < 0.05 ? (fmRainM === 'h' ? 'ไม่มีฝน' : 'แห้ง') : r1x(v.mm) + (fmRainM === 'h' ? ' มม./ชม.' : ' มม.') }; };
       if (num(S('HOME_LAT')) && num(S('HOME_LNG'))) { const t = rtag('บ้าน'); lbl([num(S('HOME_LAT')), num(S('HOME_LNG'))], t ? `🏠 บ้าน <span>· ${t.txt}</span>` : '🏠 บ้าน', t ? 'fm-tag fm-tag-grp fm-tag-rain" style="' + t.st : 'fm-tag fm-tag-home'); }
       const editing = id => fmEdit && fmEdit.id === id;
+      // ป้ายพื้นที่เสียหาย (เดิมเป็น tooltip ทับป้ายอื่น) → อยู่ในระบบกันทับ · ซูมออกมากไม่โชว์ (มีใน คำอธิบายสี)
+      if (z >= 14) (gData.damages || []).forEach(x => { const pts = pPath(x.boundary); if (pts.length < 3 || editing(x.dmg_id)) return;
+        const b = L.latLngBounds(pts), ll = [b.getNorth(), b.getCenter().lng];
+        lbl(ll, `${dmgT(x.type)[1]} ${num(x.map_rai) ? fmtRai(num(x.map_rai) * 1600) : esc(x.type)}`, 'fm-tag fm-tag-dmg'); });
       if (z >= 15) {
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3 || editing(p.plot_id)) return;
           const sx = fmSatOn && fmSatItem('plot', p.plot_id);
           const sq = sx && sx.last && fmSatCur(sx), old = sq && sq.d !== sx.last.d;
-          lbl(center(pts), sq ? `${sx.st === 'bad' && !old ? '⚠️ ' : ''}${esc(p.plot_name)} <span style="color:${satColor(sq.ndvi)}">${sq.ndvi.toFixed(2)}</span>${old ? ` <span>· ${satDs(sq.d)}</span>` : ''}` : esc(p.plot_name), 'fm-tag'); });
+          lbl(center(pts), sq ? `${sx.st === 'bad' && !old ? '⚠️ ' : ''}${esc(p.plot_name)} <span style="color:${satColor(sq.ndvi)}">${sq.ndvi.toFixed(2)}</span>${old ? ` <span>· ${satDs(sq.d)}</span>` : ''}` : `${esc(p.plot_name)} <span>· ${r1(num(p.area_rai))} ไร่</span>`, 'fm-tag'); });
         (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && !editing(l.land_id) && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
-        return;
+        return guardLbl(); // ป้ายเฝ้าวางหลังป้ายแปลง (ขยับหลบเอง)
       }
       const g = {};
       gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3) return; const k = plotLoc(p.plot_name); (g[k] = g[k] || { pts: [], n: 0, rai: 0, bad: 0 }); g[k].pts.push(...pts); g[k].n++; g[k].rai += num(p.area_rai);
         const sx = fmSatOn && fmSatItem('plot', p.plot_id); if (sx && sx.st === 'bad') g[k].bad++; });
       Object.entries(g).forEach(([k, v]) => { const t = rtag(k);
-        lbl(center(v.pts), t ? `${esc(k)} <span>· ${t.txt}</span>` : fmSatOn && satInfo ? `${esc(k)} <span>· ${v.bad ? '⚠️ ' + v.bad + ' แปลงควรดู' : '✅ ปกติ'}</span>` : `${esc(k)} <span>· ${v.n} แปลง ${Math.round(v.rai)} ไร่</span>`, t ? 'fm-tag fm-tag-grp fm-tag-rain" style="' + t.st : 'fm-tag fm-tag-grp', () => fmFit(v.pts)); });
+        lbl(center(v.pts), t ? `${esc(k)} <span>· ${t.txt}</span>` : fmSatOn && satInfo ? `${esc(k)} <span>· ${v.bad ? '⚠️ ' + v.bad + ' แปลงควรดู' : '✅ ปกติ'}</span>` : `${esc(k)} <span>${Math.round(v.rai)} ไร่</span>`, t ? 'fm-tag fm-tag-grp fm-tag-rain" style="' + t.st : 'fm-tag fm-tag-grp', () => fmFit(v.pts)); });
       if (z >= 13) (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
+      guardLbl();
     }
 
     // ===== ชั้นฝนบนแผนที่ไร่ (8 พ.ย. 69) =====
@@ -7189,8 +7229,16 @@ Export.table.toDrive({
       const left = gData.plots.filter(p => !p.boundary);
       return left.find(p => fmLastLoc && plotLoc(p.plot_name) === fmLastLoc) || left[0];
     }
+    // I-5 (16 พ.ย. 69): แถบล่างเหลือปุ่ม "เครื่องมือ" อันเดียว แตะแล้วกาง (ไม่มีดรอปดาวน์)
+    let fmTools = false, fmNeedFit = false;
     function fmPickHtml() {
       const nx = fmNextPlot(), left = gData.plots.filter(p => !p.boundary).length;
+      if (!fmTools) return `<button type="button" class="btn btn-outline-success fw-bold w-100" onclick="fmTools=true;fmPanel()">🛠 เครื่องมือ · วาดขอบแปลง / วัดที่ดิน / นำเข้า${left ? ` <span class="text-muted fw-normal">(ยังไม่วาด ${left})</span>` : ''}</button>`;
+      return `<div class="d-flex justify-content-between align-items-center mb-2"><b>เครื่องมือ</b><button type="button" class="grp-all" onclick="fmTools=false;fmPanel()">ย่อ</button></div>
+        <div class="d-flex gap-2 mb-2"><button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartEdit('land','')">+ วัดที่ดิน</button>
+        <button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="$('kmlFile').value='';$('kmlFile').click()">นำเข้า Ling (.kml)</button></div>
+        <div class="srow-s mb-1">วาดขอบแปลง${left ? ` · ยังไม่วาด ${left}` : ''}</div>
+        <div class="fm-chips">${gData.plots.slice().sort((a, b) => !!a.boundary - !!b.boundary).map(p => `<button type="button" class="fm-chip${p.boundary ? '' : ' on'}" onclick="fmStartEdit('plot','${p.plot_id}')">${p.boundary ? '✓ ' : ''}${esc(p.plot_name)}</button>`).join('')}</div>`;
       return `${nx ? `<button type="button" class="btn btn-success fw-bold w-100 mb-2" onclick="fmStartEdit('plot','${nx.plot_id}')">วาดต่อ: ${esc(nx.plot_name)}</button>` : ''}
         <div class="d-flex gap-2">
           <select class="form-select flex-fill" id="fmPick" onchange="if(this.value)fmStartEdit('plot',this.value)">
@@ -7267,8 +7315,7 @@ Export.table.toDrive({
           </div><div class="mt-2">${wpBtnHtml('land', l.land_id)}</div>`;
         return;
       }
-      P.innerHTML = `${fmPickHtml()}
-        <div class="srow-s mt-1">แตะแปลงบนแผนที่เพื่อดู/แก้ · "วัดที่ดิน" = ที่ที่ยังไม่ใช่แปลงเรา เช่น จะไปเช่า</div>`;
+      P.innerHTML = `${fmTools ? '' : '<div class="srow-s mb-2">แตะแปลงบนแผนที่เพื่อดู/แก้</div>'}${fmPickHtml()}`;
     }
 
     // ===== พื้นที่เสียหาย (ไฟไหม้/น้ำท่วม) =====
@@ -7598,10 +7645,12 @@ Export.table.toDrive({
       const E = $(m + 'Ly'); if (!E || lyOpen !== m) return;
       let base, items;
       if (m === 'fm') {
-        base = [{ on: fmUseSat, l: 'ดาวเทียม', th: LY_TH.sat, a: 'if(!fmUseSat)fmToggleLayer()' }, { on: !fmUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'if(fmUseSat)fmToggleLayer()' }];
+        base = [{ on: fmUseSat, l: 'ภาพคมชัด', s: 'Esri · ไม่บอกวันถ่าย อาจเก่าหลายปี', th: LY_TH.sat, a: 'if(!fmUseSat)fmToggleLayer()' }, { on: !fmUseSat, l: 'แผนที่ถนน', th: LY_TH.street, a: 'if(fmUseSat)fmToggleLayer()' }];
+        // I-6 (16 พ.ย. 69): บอกให้ชัดว่าภาพไหนเก่า/ใหม่ · ภาพล่าสุด = Sentinel-2 วันที่ล่าสุดที่มี
+        const sLast = satInfo && satInfo.items ? satInfo.items.map(i => i.last && i.last.d).filter(Boolean).sort().pop() : '';
         const nl = (gData.lands || []).length;
         items = [{ on: fmShowLbl, l: 'ชื่อแปลง', ic: '<span style="background:#fff;border-radius:5px;padding:0 4px;font:700 11px sans-serif;color:#1F2A24;box-shadow:0 1px 3px rgba(0,0,0,.3)">ไร่ 3</span>', a: 'fmToggleLbl()' }, { on: poiOn, l: 'ชื่อสถานที่', ic: '📍', a: 'poiToggle()' }].concat(nl ? [{ on: fmShowLands, l: 'ที่ดินดูไว้', s: nl + ' แปลง', ic: '<span style="width:30px;height:24px;border:3px dashed #B48CE8;border-radius:4px"></span>', a: 'fmToggleLands()' }] : [],
-          [{ on: fmRain, l: 'ฝน', s: 'พยากรณ์', ic: '🌧️', a: 'fmRainToggle();if(fmRain)lyToggle(\'fm\')' }, { on: fmSatOn, l: 'ภาพดาวเทียม', s: 'ความเขียว/น้ำขัง', ic: '🛰️', a: 'fmSatToggle();if(fmSatOn)lyToggle(\'fm\')' }]);
+          [{ on: fmRain, l: 'ฝน', s: 'พยากรณ์', ic: '🌧️', a: 'fmRainToggle();if(fmRain)lyToggle(\'fm\')' }, { on: fmSatOn, l: 'ภาพล่าสุด', s: sLast ? `Sentinel · ภาพ ${satDs(sLast)}` : 'Sentinel · ความเขียว/น้ำขัง', ic: '🛰️', a: 'fmSatToggle();if(fmSatOn)lyToggle(\'fm\')' }]);
       } else {
         if (!wp) return;
         const st = (on, s, ok) => !on ? '' : s === 'load' ? 'กำลังโหลด…' : s === 'err' ? 'โหลดไม่ได้' : ok || '';

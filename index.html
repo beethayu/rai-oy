@@ -2768,6 +2768,63 @@
       const ids = it.plots || [];
       return guardOpen().filter(g => (it.area && g.area === it.area) || guardPlots(g).some(id => ids.includes(id)));
     }
+    // ===== ⛽ น้ำมันเครื่องพ่นยา (E3 15 พ.ย. 69) — สูตรเดียวกับ GAS fuelBal_ (gas/Code.gs) แก้ต้องแก้คู่กัน =====
+    // ให้น้ำมัน = StockLogs ref ขึ้นต้น F note "⛽ให้น้ำมัน|ทีม" · เหลือ = ให้รวม − ถังที่ทีมฉีดตั้งแต่ให้ครั้งแรก × ลิตร/ถัง · ใช้ต่อวัน = เฉลี่ยถัง 3 วันที่ฉีดล่าสุด × ลิตร/ถัง (ไม่มี = 2)
+    const FUEL_ITEM = 'น้ำมันเบนซิน', fuelL = () => num(S('SPRAY_FUEL_L_PER_TANK')) || 0.5, fuelCap = () => num(S('SPRAY_2T_CAP_PER_L')) || 1;
+    const dShort = iso => { const [, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]}`; };
+    function fuelTeams() {
+      const T = {};
+      (gData.stockLogs || []).forEach(x => {
+        const note = String(x.note || '');
+        if (!String(x.ref_log_id || '').startsWith('F') || !note.startsWith('⛽ให้น้ำมัน|')) return;
+        const team = note.split('|')[1].split(/\s*\+\s*/).map(v => v.trim()).filter(Boolean), k = team.slice().sort().join('|');
+        (T[k] = T[k] || { team, gives: [] }).gives.push({ iso: beToISO(String(x.timestamp || '').split(' ')[0]), qty: -num(String(x.change_qty).replace(/,/g, '')), ref: x.ref_log_id });
+      });
+      return Object.values(T);
+    }
+    function fuelBal(t, upto) {
+      upto = upto || todayISO(); const L = fuelL();
+      const gives = t.gives.filter(g => g.iso && g.iso <= upto).sort((a, b) => a.iso < b.iso ? -1 : 1); if (!gives.length) return null;
+      const first = gives[0].iso, given = gives.reduce((s, g) => s + g.qty, 0);
+      const mine = (gData.activities || []).filter(a => a.activity_group === 'ฉีดยา').map(a => ({ a, iso: beToISO(String(a.timestamp || '').split(' ')[0]) }))
+        .filter(x => x.iso && x.iso <= upto && (w => w.length && w.every(n => t.team.includes(n)))(logWho(x.a)));
+      const tanks = tankOf(mine.filter(x => x.iso >= first).map(x => x.a)), left = Math.max(0, Math.round((given - tanks * L) * 10) / 10);
+      const byDay = {}; mine.forEach(x => { (byDay[x.iso] = byDay[x.iso] || []).push(x.a); });
+      const days = Object.keys(byDay).filter(d => tankOf(byDay[d]) > 0).sort().reverse(), last3 = days.slice(0, 3);
+      const perDay = last3.length ? last3.reduce((s, d) => s + tankOf(byDay[d]), 0) / last3.length * L : 2;
+      const lastSpray = days[0] || null;
+      return { team: t.team, gives, given, tanks, used: tanks * L, left, perDay, enough: Math.floor(left / perDay + 1e-9),
+        st: left < perDay ? 'now' : left < 2 * perDay ? 'soon' : 'ok', lastSpray, active: !!lastSpray && dayDiff(lastSpray, upto) <= 2, lastGive: gives[gives.length - 1] };
+    }
+    function fuelLine(b) {
+      const lg = b.lastGive;
+      return `ให้ล่าสุด ${dShort(lg.iso)} ${r1(lg.qty)} ลิตร${b.gives.length > 1 ? ` (รวม ${r1(b.given)} ลิตร)` : ''} · ฉีดไป ${r1(b.tanks)} ถัง ≈ ใช้ ${r1(b.used)} ลิตร · เหลือ ≈ ${r1(b.left)} ลิตร ${b.left <= 0 ? '(หมดแล้ว)' : `(พออีก ${b.enough} วัน)`}`;
+    }
+    // โชว์ทีมที่ยังฉีดอยู่ (3 วัน) หรือเพิ่งให้น้ำมันภายใน 7 วัน
+    const fuelShown = () => fuelTeams().map(t => fuelBal(t)).filter(b => b && (b.active || dayDiff(b.lastGive.iso, todayISO()) <= 7));
+    function fuelHtml(head) {
+      const B = fuelShown(); if (!B.length) return '';
+      return head('น้ำมันเครื่องพ่นยา', 'ค่าประมาณ') + `<div class="srow-box">${B.map(b => {
+        const key = 'f:' + b.team.join('|'), open = todayOpen === key, warn = b.st === 'now' ? 'ต้องให้น้ำมันก่อนฉีดรอบถัดไป' : b.st === 'soon' ? 'พรุ่งนี้ต้องเตรียมน้ำมัน' : '';
+        return `<div class="srow ${open ? 'open' : ''}"${warn ? ' style="background:#FFF4E0"' : ''}><button type="button" class="srow-main" onclick="tglToday('${qa(key)}')">
+          <span class="srow-l"><span class="srow-n">⛽ ${esc(b.team.join(' + '))}</span><span class="srow-s">${esc(fuelLine(b))}</span>
+          ${warn ? `<span class="srow-s" style="color:#8A5A0B;font-weight:600">${warn}</span>` : ''}</span></button>
+          ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px">เบนซิน ${r1(fuelL())} ลิตร/ถัง · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร (เฉลี่ยวันที่ฉีดล่าสุด) · ให้เพิ่ม: พิมพ์ในแชต "ให้น้ำมัน${esc(b.team[0])} 4 ลิตร"</div><div class="pq-btns">
+            <button type="button" class="bigbtn bigbtn-out" style="color:#B3261E" onclick="fuelUndo('${qa(b.lastGive.ref)}','${qa(dShort(b.lastGive.iso) + ' ' + r1(b.lastGive.qty) + ' ลิตร')}')">ลบการให้ล่าสุด (ลงผิด)</button></div></div>` : ''}</div>`;
+      }).join('')}</div>`;
+    }
+    function fuelUndo(ref, lb) {
+      if (!confirm(`ลบการให้น้ำมัน ${lb}? (คืนสต็อกเบนซิน)`)) return;
+      call('chatApply', [[{ fn: 'unfuel', ref }], 'u' + ref], d => { init(d); todayOpen = ''; render(); });
+    }
+    // ทีมที่จะได้น้ำมัน: บอกคนเดียว และคนนี้เคยฉีดกับคนอื่น = ทีมที่ฉีดด้วยกันล่าสุด
+    function fuelForTeam(team) { const k = team.slice().sort().join('|'), t = fuelTeams().find(x => x.team.slice().sort().join('|') === k); return t ? fuelBal(t) : null; }
+    function fuelTeamOf(names) {
+      if (names.length !== 1) return { team: names, auto: false };
+      const last = (gData.activities || []).filter(a => a.activity_group === 'ฉีดยา' && logWho(a).includes(names[0]))
+        .sort((a, b) => (beToISO(String(b.timestamp).split(' ')[0]) || '').localeCompare(beToISO(String(a.timestamp).split(' ')[0]) || ''))[0];
+      const t = last ? logWho(last) : names; return { team: t, auto: t.length > 1 };
+    }
     function todayHtml(rows, logsBy) {
       const byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
       const ws = (gData.watches || []).filter(w => byId[w.plot_id]);
@@ -2788,7 +2845,7 @@
       try { h += flAskHtml(); } catch (e) {}
       const rd = regDue();
       if (rd.length) h += `<button type="button" class="srow-main" style="background:#FFF4E0;border-radius:12px;margin-bottom:8px;width:100%" onclick="fleetPane='reg';switchTab('fleet');renderFleet();uiSave()"><span class="srow-l"><span class="srow-n">🪪 ใกล้หมดทะเบียน ${rd.length} คัน</span><span class="srow-s">${rd.slice(0, 3).map(i => esc(i.label) + ' ' + regInfo(i.exp).txt).join(' · ')}</span></span></button>`;
-      h += recentHtml(head) + guardHtml(head) + nearCutHtml(head);
+      h += recentHtml(head) + fuelHtml(head) + guardHtml(head) + nearCutHtml(head);
       h += head('ฝากดู', ws.length, `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`);
       h += ws.length ? `<div class="srow-box">${ws.map(w => {
         const p = byId[w.plot_id].p, ago = calcDays(w.created);
@@ -3634,6 +3691,7 @@
             <div${!r.days.length && r.gAt.length ? ' style="display:none"' : ''}>ทำงาน <b>${r.days.length}</b> วัน${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}${r.half ? ` · ครึ่งวัน <b>${r.half}</b>` : ''}</div>
             ${r.tank ? `<div>ฉีดยา <b style="color:#B42318">${r1(r.tank)} ถัง</b>${r.mates.length ? ` <span class="text-muted small">(ทำกับ ${esc(r.mates.join(', '))} · ถังนับรวมทีม ไม่ใช่คนละ ${r1(r.tank)})</span>` : r.team.length > 1 ? ' <span class="text-muted small">(รวมทั้งทีม)</span>' : ''}</div>
             ${(c => c ? `<div class="text-muted small">${esc(c)}</div>` : '')(logChems(r.days.flatMap(d => r.by[d]).filter(l => l.activity_group === 'ฉีดยา')))}` : ''}
+            ${(b => b ? `<div class="small">⛽ ${esc(fuelLine(b))} <span class="text-muted">(ค่าประมาณ)</span></div>` : '')(fuelForTeam(r.team))}
             ${r.gAt.length ? `<div>🛡️ เฝ้าไร่ ${esc(r.gAt.join(', '))} <b>${r.gNight}</b> คืน <span class="text-muted small">(นับถึงคืนนี้)</span></div>` : ''}${detail}</div>`;
       }).join('') || '<div class="text-muted py-2">ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน</div>';
       return `
@@ -4423,6 +4481,7 @@
         chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
         flow: chatFlow(),
+        fuel: fuelTeams().map(t => fuelBal(t)).filter(Boolean).map(b => ({ team: b.team.join(' + '), text: fuelLine(b), per_day_l: r1(b.perDay), warn: b.st })),
         guards: (gData.guards || []).slice(-12).map(g => { const st = guardStat(g); return { area: g.area, plots: guardPlots(g), workers: g.workers, start: st.s, part: g.start_part, end: st.open ? '' : st.e, nights: st.nights, days: st.days, open: st.open }; }),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
@@ -4677,6 +4736,11 @@
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
+      if (it.type === 'fuel_give') {
+        const to = (Array.isArray(it.to) ? it.to : [it.to]).map(x => String(x || '').trim()).filter(Boolean), r = fuelTeamOf(to);
+        it.team = r.team; it.teamAuto = r.auto; it.item = FUEL_ITEM; it.qty = num(it.qty); it.date = it.date || todayISO(); it.fid = it.fid || 'F' + Date.now() + Math.random().toString(36).slice(2, 5);
+        return it.team.length && it.qty > 0 ? it : null;
+      }
       if (it.type === 'cancel') {
         it.which = ['last', 'watch'].includes(it.which) ? it.which : 'ongoing';
         if (it.which === 'ongoing' && !(it.plots || []).some(pid => chCancelLogs(pid, 'ongoing').length)) it.which = 'last'; // ไม่มีงานกำลังทำ = ลบงานล่าสุดที่ตรง
@@ -4750,6 +4814,7 @@
           if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
+        else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
@@ -4800,6 +4865,12 @@
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+      } else if (it.type === 'fuel_give') {
+        const iv = invItem(it.item) || {}, after = num(iv.stock) - it.qty;
+        h = `<div class="ch-t">⛽ ให้น้ำมันเครื่องพ่นยา</div>` + row('ให้ใคร', it.team.join(' + ') + (it.teamAuto ? ' (ทีมที่ฉีดด้วยกันล่าสุด)' : ''))
+          + row('เบนซิน', `${r1(it.qty)} ลิตร`) + row('2T', `${r1(it.qty * fuelCap())} ฝา (ผสมไปแล้ว ไม่ตัดสต็อก)`)
+          + (iv.name ? row('สต็อกเบนซินหลังให้', `${r1(Math.max(0, after))} ลิตร`) + (after < 0 ? `<div class="ch-warn">สต็อกเบนซินเหลือ ${r1(num(iv.stock))} ลิตร จะติดลบ (ยังบันทึกได้)</div>` : '') : '')
+          + row('วันที่', dt(it.date)) + `<div class="ch-cn" style="margin-top:4px">ใช้ ${r1(fuelL())} ลิตร/ถัง → พอฉีด ≈ ${r1(it.qty / fuelL())} ถัง (ค่าประมาณ)</div>`;
       } else if (it.type === 'finish') {
         h = `<div class="ch-t">✅ งานเสร็จ</div>` + it.plots.map(pid => { const og = chOg(pid);
           return og ? row(esc(chPlot(pid).plot_name), `${og.activity_group} · ${og.activity_detail} (เริ่ม ${og.timestamp})`) : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีงานที่กำลังทำ</div>`; }).join('')

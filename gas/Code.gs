@@ -35,6 +35,8 @@ const DEFAULT_SETTINGS = [
   ['CHEM_PRESET_GROW', 'Becano,Zytron Mix,Bakapost', 'สูตรยาอ้อยโต'],
   ['FERT_PRESET_BASE', '16-8-8:1', 'สูตรปุ๋ยรองพื้น (สูตร:สัดส่วน)'],
   ['FERT_PRESET_RATOON', '21-0-0:3,16-8-8:1', 'สูตรปุ๋ยอ้อยตอ (สูตร:สัดส่วน คั่นด้วย ,)'],
+  ['SPRAY_FUEL_L_PER_TANK', '0.5', 'น้ำมันเบนซินเครื่องพ่นยา ลิตรต่อถัง (ใช้คิดน้ำมันเหลือ)'],
+  ['SPRAY_2T_CAP_PER_L', '1', 'ผสม 2T กี่ฝาต่อเบนซิน 1 ลิตร (แสดงอย่างเดียว ไม่ตัดสต็อก)'],
   ['LAST_NOTIFY', '', '(ระบบใช้) วันที่ส่ง LINE ล่าสุด']
 ];
 
@@ -938,6 +940,7 @@ function buildBrief_(ss, s) {
   let msg = `🌾 สรุปไร่อ้อย ${thaiDate_(new Date())}\n`;
   msg += sec('💧 ถึงคิวขึ้นน้ำ', water);
   msg += sec('📋 ถึงคิวตามขั้นตอน', flow);
+  try { msg += sec('⛽ น้ำมันเครื่องพ่นยา (ค่าประมาณ)', fuelBrief_(ss, s, acts, inv)); } catch (e) {}
   msg += sec('🔫 ดินหมาด ฉีดยาคุมได้', spray);
   msg += sec('📅 ใกล้ถึงรอบน้ำ', soon);
   msg += sec('⏳ งานค้าง', ongoing);
@@ -953,6 +956,58 @@ function buildBrief_(ss, s) {
   return msg.trim();
 }
 
+
+// ======================= ⛽ น้ำมันเครื่องพ่นยา (E3 15 พ.ย. 69) =======================
+// สูตรเดียวกับเว็บ fuelBal() — แก้ต้องแก้คู่กัน
+// ทีม = ชื่อใน note ของ StockLogs ที่ ref ขึ้นต้น F · ให้รวม − (ถังที่ทีมฉีดตั้งแต่วันที่ให้ครั้งแรก × ลิตร/ถัง) = เหลือ (ต่ำสุด 0)
+// ใช้ต่อวัน = เฉลี่ยถังของวันที่ฉีด 3 วันล่าสุด × ลิตร/ถัง (ไม่มีข้อมูล = 2 ลิตร) · งานฉีดของทีม = ทุกชื่อในงานอยู่ในทีม
+const FUEL_ITEM_ = 'น้ำมันเบนซิน';
+function fuelWho_(op) { return String(op || '').split(/\s*[+,]\s*/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ'); }
+function fuelTankOf_(acts) {
+  const seen = {}; let t = 0;
+  acts.forEach(l => { const m = /([\d.]+)\s*ถัง/.exec(l.quantity || ''); if (!m) return; const k = String(l.log_id || '').split('_')[0] + '|' + String(l.timestamp || '').split(' ')[0]; if (seen[k]) return; seen[k] = 1; t += Number(m[1]) || 0; });
+  return t;
+}
+function fuelBal_(team, gives, acts, upto, L) {
+  gives = gives.filter(g => g.day <= upto).sort((a, b) => a.day - b.day);
+  if (!gives.length) return null;
+  const first = gives[0].day, given = gives.reduce((t, g) => t + g.qty, 0);
+  const mine = acts.filter(a => a.activity_group === 'ฉีดยา' && a.day <= upto && (w => w.length && w.every(x => team.includes(x)))(fuelWho_(a.operator)));
+  const tanks = fuelTankOf_(mine.filter(a => a.day >= first)), left = Math.max(0, Math.round((given - tanks * L) * 10) / 10);
+  const byDay = {}; mine.forEach(a => { (byDay[a.day] = byDay[a.day] || []).push(a); });
+  const days = Object.keys(byDay).map(Number).filter(d => fuelTankOf_(byDay[d]) > 0).sort((a, b) => b - a);
+  const last3 = days.slice(0, 3), perDay = last3.length ? last3.reduce((t, d) => t + fuelTankOf_(byDay[d]), 0) / last3.length * L : 2;
+  const lastSpray = days.length ? days[0] : null, lg = gives[gives.length - 1];
+  return { team, given, n: gives.length, tanks, used: tanks * L, left, perDay, enough: perDay ? Math.floor(left / perDay + 1e-9) : 0,
+    st: left < perDay ? 'now' : left < 2 * perDay ? 'soon' : 'ok', lastSpray, active: lastSpray !== null && upto - lastSpray <= 2, lastGive: lg };
+}
+function fuelGives_(slogs) {
+  const T = {};
+  slogs.forEach(x => {
+    const note = String(x.note || '');
+    if (String(x.ref_log_id || '').charAt(0) !== 'F' || note.indexOf('⛽ให้น้ำมัน|') !== 0) return;
+    const team = note.split('|')[1].split(/\s*\+\s*/).map(v => v.trim()).filter(Boolean), k = team.slice().sort().join('|');
+    (T[k] = T[k] || { team, gives: [] }).gives.push({ day: flowDay_(x.timestamp), qty: -(parseFloat(String(x.change_qty).replace(/,/g, '')) || 0), ref: x.ref_log_id });
+  });
+  return Object.keys(T).map(k => T[k]);
+}
+function fuelBrief_(ss, s, acts, inv) {
+  const L = +s.SPRAY_FUEL_L_PER_TANK || 0.5, today = flowDay_(Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy'));
+  const A = acts.map(a => Object.assign({}, a, { day: flowDay_(a.timestamp) }));
+  const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  const dt = d => { const x = new Date(d * 864e5); return x.getUTCDate() + ' ' + M[x.getUTCMonth()]; };
+  const r1 = v => Math.round(v * 10) / 10, out = [];
+  fuelGives_(readSheet_(ss, SH.SLOG, true)).forEach(t => {
+    const b = fuelBal_(t.team, t.gives, A, today, L);
+    if (!b || !b.active || b.st === 'ok') return;
+    const who = t.team.join(' + ');
+    out.push(b.st === 'now' ? `• วันนี้ต้องให้น้ำมันเบนซิน ${who} (เหลือ ≈ ${r1(b.left)} ลิตร · ให้ล่าสุด ${dt(b.lastGive.day)})`
+      : `• พรุ่งนี้ต้องเตรียมน้ำมันให้ ${who} (เหลือ ≈ ${r1(b.left)} ลิตร ${b.enough <= 1 ? 'พอวันนี้วันเดียว' : 'พออีก ' + b.enough + ' วัน'})`);
+  });
+  const it = inv.find(i => i.name === FUEL_ITEM_), st = it ? Number(String(it.stock).replace(/,/g, '')) || 0 : null;
+  if (out.length && st !== null && st < 4) out.push(`• สต็อกเบนซินเหลือ ${r1(st)} ลิตร`);
+  return out;
+}
 
 function authorizeFetch() {
   UrlFetchApp.fetch('https://www.google.com');

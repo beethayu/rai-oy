@@ -48,6 +48,9 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
    · ถามว่าเฝ้ามากี่วัน/กี่คืน ตอบจาก ctx.guards (nights = คืนที่ค้างแล้ว) ห้ามคิดเลขเอง
    reply ของ guard start: บอกสั้น ๆ ว่าใคร เฝ้าที่ไหน เริ่มเมื่อไร (ตัวเลขคืน/วัน หน้าเว็บคิดให้เอง)
 
+14) {"type":"fuel_give","to":["หำ","ผัน"],"item":"น้ำมันเบนซิน","qty":4,"date":"YYYY-MM-DD"} = ให้น้ำมันเบนซิน (ผสม 2T แล้ว) ไปใช้กับเครื่องพ่นยา เช่น "ให้น้ำมันหำ 4 ลิตร" "เอาเบนซินให้หำผัน 4 ลิตร"
+   · to = ชื่อคนตามที่พิมพ์ (ตาม ctx.workers) · qty = ลิตร ไม่บอกลิตร ให้ถามใน ask "ให้กี่ลิตร?" options ["2 ลิตร","4 ลิตร","6 ลิตร"] ห้ามเดา · ห้ามใช้ activity กับการให้น้ำมัน
+   · ถามว่าน้ำมันเหลือเท่าไร/ต้องให้เมื่อไร ตอบจาก ctx.fuel (ค่าประมาณ) ห้ามคิดเลขเอง
 รูปภาพ (ถ้ามี จะแนบท้ายข้อความ เรียงตามลำดับ เลข 0,1,2…) ส่วนใหญ่เป็นรูปหน้างาน ไม่ใช่บิล:
 - รูปรถ/เครื่องจักร (สิบล้อ รถพ่วง รถไถ ที่ไปต่อกล่อง/ซ่อม/ดัดแปลง): ใช้ item asset_note
   • อ่านป้ายทะเบียนจากรูปเท่านั้น (แบบไทย เช่น "70-1234" หรือ "กข 1234" + จังหวัดถ้าเห็น) อ่านไม่ชัดใส่ "" และใส่ "plates" ใน unsure ห้ามเดาตัวอักษร/ตัวเลข
@@ -176,7 +179,7 @@ function chatParse(text, ctx, images, reuse) {
   const hist = (ctx.history || []).slice(-8).map(h => (h.me ? 'ผู้ใช้: ' : 'ผู้ช่วย: ') + h.t).join('\n');
   const prompt = CHAT_RULES_ +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
-      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], flow: ctx.flow || undefined, stats: ctx.stats || undefined, draft: ctx.draft || null }) +
+      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
@@ -276,6 +279,14 @@ function chatApply(ops, rid) {
         ids.forEach(id => touched.add(id));
         try { closeWatchesFor_(ss, ids, p.activity_group, p.activity_detail || '', rows[0][0]); } catch (e) {}
         done++;
+      } else if (op.fn === 'fuel') {
+        // E3: ให้น้ำมันเครื่องพ่น = ตัดสต็อกเบนซิน · ref ขึ้นต้น F · note "⛽ให้น้ำมัน|ทีม" (ตัวคิด fuelBal_/fuelBal อ่านจากตรงนี้)
+        const p = op.p || {};
+        if (!(Number(p.qty) > 0) || !p.team) return;
+        applyUsage_(ss, [{ name: p.item || FUEL_ITEM_, qty: Number(p.qty) }], String(op.id || ('F' + (base++))), '-', p.date || getTodayStr(), '⛽ให้น้ำมัน|' + p.team);
+        done++;
+      } else if (op.fn === 'unfuel') {
+        if (String(op.ref || '').charAt(0) === 'F') { reverseUsage_(ss, String(op.ref)); done++; }
       } else if (op.fn === 'finish') {
         const d = sh.getDataRange().getDisplayValues();
         for (let i = d.length - 1; i >= 1; i--) {

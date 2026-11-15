@@ -4729,9 +4729,11 @@
           if (sub.some(x => T.includes(x))) return; // ระบุแปลงย่อย = ตามที่พิมพ์
           it.plots = [...new Set((it.plots || []).concat(ps.map(p => p.plot_id)))];
           it.areaAll = (it.areaAll || []).concat(l);
+          if (!(it.unsure || []).includes('plots')) it.unsure = (it.unsure || []).concat('plots'); // ผู้ใช้ 16 พ.ย.: 4 ถังอาจไม่ครบทุกแปลง → ส้ม + ✕ รายแปลง
         });
       });
     }
+    function chatDropPlot(mi, i, k) { const it = chat.msgs[mi].items[i]; if ((it.plots || []).length < 2) return; it.plots.splice(k, 1); chSpray(it); chatSave(); chatRender(); }
     function chatDropChem(mi, i, k) { const it = chat.msgs[mi].items[i], u = { name: (it.chemList || [])[k] }; if (!u) return; it.dropChem = (it.dropChem || []).concat(u.name); chSpray(it); chatSave(); chatRender(); }
     function chatNorm(it, ph) {
       if (!it || !it.type) return null;
@@ -4884,10 +4886,12 @@
         if (u && iv.name && num(iv.stock) - u.qty < 0) low.push(`${esc(n)} เหลือ ${esc(qtyPk(Math.max(0, num(iv.stock)), n))}`);
         return `<div class="ch-chem"><span class="${g ? 'ch-guess' : ''}">${esc(n)}</span><b>${u ? esc(qtyPk(u.qty, n)) : ''}</b>${live ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropChem(${mi},${i},${k})">✕</button>` : ''}</div>`; }).join('')
         + (low.length ? `<div class="ch-warn">สต็อกไม่พอ: ${low.join(' · ')} — บันทึกแล้วจะติดลบ (ยังบันทึกได้)</div>` : '');
-      const area = (it.areaAll || []).length ? `<div class="ch-cn">ฉีดรอบทั้งพื้นที่ ${esc(it.areaAll.join(', '))} (${(it.plots || []).length} แปลง) · ถังและยานับครั้งเดียว</div>` : '';
+      const area = (it.areaAll || []).length ? `<div class="ch-cn" style="color:#8A5A0B">ใส่ทุกแปลงใน${esc(it.areaAll.join(', '))}ไว้ก่อน — แปลงไหนไม่ได้ฉีดรอบ แตะ ✕ ออก · ถังและยานับครั้งเดียว</div>` : '';
+      const pl = (it.areaAll || []).length && live ? `<div class="ch-row"><span>แปลงที่ฉีดรอบ</span><b></b></div><div class="ch-chems">${area}${(it.plots || []).map((id, k) =>
+        `<div class="ch-chem"><span class="ch-guess">${esc((chPlot(id) || {}).plot_name || id)}</span>${it.plots.length > 1 ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropPlot(${mi},${i},${k})">✕</button>` : ''}</div>`).join('')}</div>` : '';
       const note = !t ? 'ใส่จำนวนถังก่อน แล้วจะคิดยาให้' : it.chemSrc === 'user' ? '' : `ตามสูตร${esc(it.chemFt)} · ${r1(t)} ถัง${g ? ' · เดาจากชนิดอ้อย ตรวจก่อนบันทึก' : ''}`;
       const miss = (it.chemMiss || []).length ? `<div class="ch-warn">ยังไม่รู้อัตราต่อถังของ ${it.chemMiss.map(esc).join(', ')} — ไม่ตัดสต็อกตัวนี้</div>` : '';
-      return `<div class="ch-row"><span>ยา</span><b style="font-weight:400;color:#5D6B62;font-size:13px">${t && (it.usage || []).length ? 'ตัดสต็อกเมื่อบันทึก' : ''}</b></div><div class="ch-chems">${area}${rows}${note ? `<div class="ch-cn">${note}</div>` : ''}${miss}</div>`;
+      return pl + `<div class="ch-row"><span>ยา</span><b style="font-weight:400;color:#5D6B62;font-size:13px">${t && (it.usage || []).length ? 'ตัดสต็อกเมื่อบันทึก' : ''}</b></div><div class="ch-chems">${live ? '' : area}${rows}${note ? `<div class="ch-cn">${note}</div>` : ''}${miss}</div>`;
     }
     function chItemHtml(it, i, mi, live) {
       const pn = ids => (ids || []).map(id => (chPlot(id) || { plot_name: id }).plot_name).join(', ');

@@ -5708,6 +5708,8 @@ Export.table.toDrive({
       const kw = String(m || '').split(',').map(x => x.trim()).filter(Boolean), gs = (g || []).includes('ขึ้นน้ำ') ? g.concat('ฝนตก') : (g || []);
       if (!gs.length && !kw.length) return [];
       const xw = String(x || '').split(',').map(w => w.trim()).filter(Boolean); // x = คำที่ถ้ามีในบันทึก ไม่นับเป็นขั้นนี้
+      // E2 (15 พ.ย. 69): ฉีดหญ้ารอบไร่/ขอบแปลง ไม่ใช่รอบยาคุม → ขั้นที่นับ 'ฉีดยา' ไม่นับงานนี้ เว้นแต่คำของขั้นระบุเอง (ผังที่ผู้ใช้แก้อยู่ในชีต จึงตั้งกติกากลางที่นี่)
+      if (gs.includes('ฉีดยา')) ['รอบไร่', 'ขอบแปลง'].forEach(w => { if (!kw.some(k => k.includes(w)) && !xw.includes(w)) xw.push(w); });
       return acts.filter(a => (!gs.length || gs.includes(a.g)) && (!kw.length || kw.some(w => a.d.includes(w))) && !xw.some(w => a.d.includes(w)) && a.age >= from && a.age <= to).sort((a, b) => a.age - b.age);
     }
     // คำตอบของขั้นถาม: ผู้ใช้ตอบในฤดูนี้ก่อน · ไม่มี = เดาจากบันทึก (คำของแต่ละตัวเลือก)

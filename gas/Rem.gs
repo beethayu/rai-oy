@@ -77,3 +77,12 @@ function noteOp(op) {
     return { notes: readSheet_(ss, 'Notes') };
   });
 }
+
+// ===== 🟫 ผลดูดินหน้างาน (16 พ.ย. 69 ผู้ใช้: แอปบอก "พอเข้าได้" แต่หน้างาน "ชื้นมาก เข้าไม่ได้") — ใช้เทียบ/ปรับตัวคิดน้ำในดิน + แชตเชื่อผลหน้างานก่อน =====
+const SOILCHK_H_ = ['chk_id', 'created', 'date', 'area', 'plot_ids', 'state', 'model_pct', 'note'];
+function soilChkAdd_(ss, p, id) {
+  const sh = getOrCreate_(ss, 'SoilChecks', SOILCHK_H_);
+  if (sh.getDataRange().getDisplayValues().some(r => r[0] === String(id))) return false;
+  appendRows_(sh, [[String(id), getTodayStr(), remBE_(p.date), String(p.area || '').slice(0, 60), (p.plot_ids || []).join(','), String(p.state || '').slice(0, 40), p.model_pct === undefined ? '' : p.model_pct, String(p.note || '').slice(0, 200)]]);
+  return true;
+}

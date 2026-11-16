@@ -288,6 +288,7 @@ function readAll_(ss) {
     guards: readSheet_(ss, 'Guards'),
     reminders: readRem_(ss),
     notes: readSheet_(ss, 'Notes'),
+    soilChecks: readSheet_(ss, 'SoilChecks').slice(-60),
     waterPlans: readSheet_(ss, 'WaterPlans'),
     flows: readSheet_(ss, 'Flow'),
     flowDef: FLOW_DEF_,

@@ -58,7 +58,8 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
    · lead_days = เตือนล่วงหน้ากี่วัน ("ล่วงหน้า 3 วัน" = 3, "1 อาทิตย์" = 7, "2 สัปดาห์" = 14, "1 เดือน" = 30) · "วันจริงพอ" = 0 · ถ้าวันนัดไกลเกิน 7 วันและไม่บอก ให้ถามใน ask "เตือนล่วงหน้าไหม?" options ["วันจริงพอ","3 วัน","1 สัปดาห์","2 สัปดาห์","1 เดือน"] (ใส่ lead_days 0 ไว้ก่อน)
    · ไม่บอกวัน = ถามใน ask "วันไหน?" ห้ามเดา · วันในอดีต/วันนี้ที่ทำไปแล้ว = งานจริง (activity) ไม่ใช่ reminder · เรื่องวันข้างหน้าห้ามลงเป็น activity
 ถามจำนวนแปลง/แปลงไหนอยู่พื้นที่ไหน: ใช้ ctx.areas (นับมาให้แล้ว) ห้ามนับเอง
-ถามดินแห้งหรือยัง / รถ (ไถ) เข้าได้ไหม / น้ำขังไหม: ตอบจาก ctx.soil เท่านั้น (ค่าประมาณจากฝน Open-Meteo + งานน้ำที่จด) รายแปลงสั้น ๆ: ฝนหนักล่าสุดกี่วันก่อน กี่ มม. · ฝน 7 วัน · สถานะดินโดยประมาณ · ดินทราย (ระบายเร็ว) / น้ำขังง่าย (แห้งช้า) · ฝนพยากรณ์ 3 วัน แล้วสรุปแปลงที่น่าจะเข้าได้ก่อน/ควรรอ · ปิดท้ายว่าเป็นค่าประมาณ ให้ลองเดินดูหน้างานก่อนเอารถเข้า · ctx.soil ไม่มี = บอกว่ายังโหลดข้อมูลฝนไม่ได้ ห้ามเดา · ห้ามพูดถึงงานในผังถ้าไม่ได้ถาม
+ถามดินแห้งหรือยัง / รถ (ไถ) เข้าได้ไหม / น้ำขังไหม: ถ้า ctx.soil_checks มีผลดูหน้างานของพื้นที่นั้นภายใน 3 วัน และหลังจากนั้นไม่มีฝน ≥5 มม. ให้เชื่อผลหน้างานก่อน (บอกว่าดูเมื่อไร) · ไม่งั้นตอบจาก ctx.soil เท่านั้น ใช้ช่อง tractor (ห้ามบอกว่าเข้าได้ถ้า tractor ไม่ใช่ 'น่าจะเข้าได้') (ค่าประมาณจากฝน Open-Meteo + งานน้ำที่จด) รายแปลงสั้น ๆ: ฝนหนักล่าสุดกี่วันก่อน กี่ มม. · ฝน 7 วัน · สถานะดินโดยประมาณ · ดินทราย (ระบายเร็ว) / น้ำขังง่าย (แห้งช้า) · ฝนพยากรณ์ 3 วัน แล้วสรุปแปลงที่น่าจะเข้าได้ก่อน/ควรรอ · ปิดท้ายว่าเป็นค่าประมาณ ให้ลองเดินดูหน้างานก่อนเอารถเข้า · ctx.soil ไม่มี = บอกว่ายังโหลดข้อมูลฝนไม่ได้ ห้ามเดา · ห้ามพูดถึงงานในผังถ้าไม่ได้ถาม
+18) {"type":"soil_check","area":"หนองทิ้งสุ่ม","plots":["P05"],"state":"แฉะ เข้าไม่ได้","date":"YYYY-MM-DD","note":""} = ผู้ใช้บอกสภาพดินที่เห็นหน้างาน เช่น "หน้างานตอนนี้ชื้นมากเข้าไม่ได้" "หนองจิกดินหมาดแล้ว รถเข้าได้" · state เลือก: "น้ำขัง" / "แฉะ เข้าไม่ได้" / "ชื้น ก้ำกึ่ง" / "หมาด เข้าได้" / "แห้ง" · ไม่บอกพื้นที่ = ใช้พื้นที่ที่คุยกันล่าสุดในบทสนทนา ถ้าไม่มีให้ถาม · plots = ทุกแปลงของพื้นที่นั้น (ctx.areas) ถ้าไม่ระบุแปลง
 16) {"type":"rem_done","id":"R..."} = ปิดนัด/เตือนที่ทำแล้ว (id ตาม ctx.reminders) เช่น ctx.reminders มี "ไปเอาลำโพงที่ซ่อมเสร็จ" แล้วผู้ใช้บอก "ไปเอาลำโพงมาแล้ว"
 17) {"type":"note","text":"ไปเอาลำโพงที่ซ่อมเสร็จ","amount":2420,"shop":"อู่ทอง","date":"YYYY-MM-DD","photos":[0]} = เรื่องนอกไร่ที่ทำไปแล้ว (ของใช้ส่วนตัว/ในบ้าน เช่น ลำโพง ทีวี มือถือ แอร์ รถส่วนตัวที่ไม่อยู่ใน ctx.vehicles) จดไว้ดูในปฏิทิน ไม่ลงบัญชีไร่ · amount = บาท ไม่บอก = 0 · ถ้าตรงกับนัดใน ctx.reminders ใส่ rem_done คู่ด้วย · ห้ามใช้ asset_note/activity กับเรื่องนอกไร่
 asset_note / asset_status / asset_reg: ใช้เมื่อผู้ใช้พูดถึงรถ/เครื่องคันนั้นจริง (ชื่อ รุ่น ยี่ห้อ ชนิด เช่น "รถไถเล็ก" "คูโบต้า" "สิบล้อ") หรือรูปเป็นรถคันนั้น · ห้ามจับจากตัวเลขอย่างเดียว เช่น "2420 บาท" เป็นเงิน ไม่ใช่ Kubota B2420 · ซ่อมของที่ไม่ใช่รถ/เครื่องของไร่ = ไม่ใช่ asset_note
@@ -192,7 +193,7 @@ function chatParse(text, ctx, images, reuse) {
   const prompt = CHAT_RULES_ +
     (ctx.date_default ? '\n\nผู้ใช้เลือกวันในปฏิทิน: ctx.date_default = ' + ctx.date_default + ' → ข้อความที่ไม่บอกวัน ให้ทุกรายการใช้ date = ctx.date_default แทน today · ถ้า date_default หลัง today = เรื่องที่วางแผน/นัดไว้ ใช้ type reminder เท่านั้น (ห้าม activity)' : '') +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
-      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], reminders: ctx.reminders || undefined, areas: ctx.areas || undefined, soil: ctx.soil || undefined, chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
+      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], reminders: ctx.reminders || undefined, areas: ctx.areas || undefined, soil: ctx.soil || undefined, soil_checks: ctx.soil_checks || undefined, chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
@@ -329,6 +330,8 @@ function chatApply(ops, rid) {
           done++;
           break;
         }
+      } else if (op.fn === 'soilchk') {
+        if (soilChkAdd_(ss, op.p || {}, op.id)) done++;
       } else if (op.fn === 'note') {
         if (noteAdd_(ss, op.p || {}, op.id)) done++;
       } else if (op.fn === 'remdone') {

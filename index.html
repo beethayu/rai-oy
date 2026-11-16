@@ -502,7 +502,7 @@
     .cal-hint { font-size: 13px; color: #6B736E; margin-top: 10px; }
     .cal-mv { margin-top: 10px; background: #F4F8F5; border: 1px solid #CFE0D5; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #1F2A23; }
     .cal-mvb { display: flex; gap: 8px; margin-top: 8px; } .cal-mvb button { flex: 1; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-weight: 600; font-size: 15.5px; padding: 8px; } .cal-mvb button.go { background: #1F5E3B; color: #fff; }
-    .rem-r, .rc-j[data-ids] { cursor: pointer; } .cal-box { touch-action: pan-y; } .srow.rem-today { padding: 10px 14px; } .rem-r .cal-mvb { margin-top: 8px; } .rem-r .cal-mvb button { font-size: 14.5px; padding: 7px 4px; }
+    .rem-r, .rc-j[data-ids] { cursor: pointer; } .cal-box, .cal-day { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; } .cal-box { touch-action: pan-y; } .srow.rem-today { padding: 10px 14px; } .rem-r .cal-mvb { margin-top: 8px; } .rem-r .cal-mvb button { font-size: 14.5px; padding: 7px 4px; }
     .cal-ed, .cal-ed input { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
     .cal-ed { margin: 8px 0 2px; background: #fff; border: 1px solid #CFE0D5; border-radius: 12px; padding: 4px 12px 12px; cursor: default; color: #1F2A23; }
     .ce-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #EEF1EF; } .ce-row > span { flex: 0 0 76px; font-size: 14px; color: #6B736E; padding-top: 6px; } .ce-row > div { flex: 1; min-width: 0; font-size: 15px; }
@@ -2802,7 +2802,7 @@
         if (r.repeat === 'สัปดาห์') for (let k = 1; k <= 10; k++) at(isoAdd(iso, 7 * k)).rem.push(r); }); // ทุกวันไม่ใส่จุด (รก) แต่ขึ้นแถวทุกวัน
       (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
         (/^ฝนตก/.test(a.activity_group) ? at(iso).rain : at(iso).logs).push(a); });
-      try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty }); })); } catch (e) {}
+      try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty, ref: g.ref }); })); } catch (e) {}
       (gData.guards || []).forEach(g => { const st = guardStat(g); if (st.future) { at(st.s).guards.push(g); return; }
         for (let d = st.s, k = 0; d <= st.e && k < 400; d = isoAdd(d, 1), k++) { if (d === st.e && !st.open && d !== st.s) break; at(d).guards.push(g); } });
       const t0 = todayISO();
@@ -2857,9 +2857,9 @@
       if ((o.rain || []).length) {
         const mm = o.rain.reduce((m, x) => Math.max(m, parseFloat((String(x.remark || '').match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0);
         const ps = [...new Set(o.rain.map(x => x.plot_id))];
-        out.push(`<div class="rc-j"><b>🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}</b><br><span>${ps.slice(0, 6).map(id => esc(pname(id))).join(', ')}${ps.length > 6 ? ` และอีก ${ps.length - 6} แปลง` : ''}</span></div>`);
+        out.push(`<div class="rc-j" data-ids="${o.rain.map(x => esc(x.log_id)).join(',')}" data-lb="🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}"><b>🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}</b><br><span>${ps.slice(0, 6).map(id => esc(pname(id))).join(', ')}${ps.length > 6 ? ` และอีก ${ps.length - 6} แปลง` : ''}</span></div>`);
       }
-      (o.fuel || []).forEach(f => out.push(`<div class="rc-j"><b>⛽ ให้น้ำมัน</b> ${esc(f.team.join(' + '))} · <b>${r1(f.qty)} ลิตร</b></div>`));
+      (o.fuel || []).forEach(f => out.push(`<div class="rc-j"${f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ให้น้ำมัน ${esc(f.team.join(' + '))}"` : ''}><b>⛽ ให้น้ำมัน</b> ${esc(f.team.join(' + '))} · <b>${r1(f.qty)} ลิตร</b></div>`));
       (o.guards || []).forEach(g => out.push(`<div class="rc-j"><b>🛡️ เฝ้าไร่</b> ${esc(String(g.workers || '').split(/\s*[,+]\s*/).filter(Boolean).join(' + ') || 'ไม่ระบุคน')}<br><span>${esc(guardWhere(g))}</span></div>`));
       (o.ripe || []).forEach(r => out.push(`<div class="rc-j"><b>🌾 ครบตัด</b> ${esc(r.p.plot_name)}<br><span>${esc(r.type)} · อายุครบ ${r.type === 'อ้อยใหม่' ? '10' : '11'} เดือน</span></div>`));
       (o.reg || []).forEach(i => out.push(`<div class="rc-j"><b style="color:#B54708">🪪 ทะเบียนหมด</b> ${esc(i.label)}${i.plate ? `<br><span>${esc(i.plate)}</span>` : ''}</div>`));
@@ -2901,7 +2901,8 @@
       const dd = iso => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${TH_MON[d.getMonth()]}`; };
       const mv = !calMv ? '' : calMv.err ? `<div class="cal-mv"><b style="color:#B42318">${esc(calMv.err)}</b><div class="cal-mvb"><button type="button" onclick="calMv=null;render()">ตกลง</button></div></div>`
         : `<div class="cal-mv">ย้าย <b>${esc(calMv.lb)}</b><br>จาก ${dd(calMv.from)} → <b>${dd(calMv.to)}</b> ?<div class="cal-mvb"><button type="button" class="go" onclick="calMoveGo(this)">ย้าย</button><button type="button" onclick="calMv=null;render()">ยกเลิก</button></div></div>`;
-      const hint = (X[calSel] || { logs: [] }).logs.some(l => grpLabel(l) !== 'ตัดอ้อย') || ((X[calSel] || {}).rem || []).length ? `<div class="cal-hint">กดค้างที่งานแล้วลากไปวางบนวันอื่น = เปลี่ยนวันที่</div>` : '';
+      const o0 = X[calSel] || {}, hint = (o0.logs || []).some(l => grpLabel(l) !== 'ตัดอ้อย') || (o0.rem || []).length || (o0.rain || []).length || (o0.fuel || []).length
+        ? `<div class="cal-hint">กดค้างที่งานแล้วลากไปวางบนวันอื่น = เปลี่ยนวันที่ · แตะงาน = แก้ไข${(o0.guards || []).length ? ' · เฝ้าไร่แก้ที่การ์ดเฝ้าไร่' : ''}</div>` : '';
       calDragInit();
       const btn = mv + hint + (fut ? `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ นัด/เตือน${calSel === isoAdd(t0, 1) ? 'พรุ่งนี้' : 'วันที่ ' + dm}</button>` : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
       return head('ปฏิทินงาน', '', calSel !== t0 || calYM !== t0.slice(0, 7) ? `<button type="button" class="grp-all" onclick="calSel='';calYM='';render()">วันนี้</button>` : '')

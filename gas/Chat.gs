@@ -490,15 +490,16 @@ function moveActivities(logIds, iso) {
       if (d[i][gi] === 'ตัดอ้อย') throw new Error('งานตัดอ้อยย้ายวันในปฏิทินไม่ได้ (แก้ในหน้าแปลง)');
       rows.push(i);
     }
-    if (!rows.length) throw new Error('ไม่พบงานนี้ในชีต (อาจถูกลบไปแล้ว)');
+    const sl = ss.getSheetByName(SH.SLOG), s = sl.getDataRange().getDisplayValues(), sti = s[0].indexOf('timestamp'), sri = s[0].indexOf('ref_log_id');
+    const sRows = []; for (let i = 1; i < s.length; i++) if (ids.has(s[i][sri])) sRows.push(i);
+    if (!rows.length && !sRows.length) throw new Error('ไม่พบงานนี้ในชีต (อาจถูกลบไปแล้ว)'); // ให้น้ำมัน (ref F) มีแค่ในประวัติสต็อก
     rows.forEach(i => {
       const rest = String(d[i][ti]).trim().split(' ').slice(1).join(' ');
       sh.getRange(i + 1, ti + 1).setNumberFormat('@').setValue(be + (rest ? ' ' + rest : ''));
       if (plots.indexOf(d[i][pi]) === -1) plots.push(d[i][pi]);
     });
-    const sl = ss.getSheetByName(SH.SLOG), s = sl.getDataRange().getDisplayValues(), sti = s[0].indexOf('timestamp'), sri = s[0].indexOf('ref_log_id');
-    for (let i = 1; i < s.length; i++) if (ids.has(s[i][sri])) sl.getRange(i + 1, sti + 1).setNumberFormat('@').setValue(be);
-    syncPlots_(ss, plots);
+    sRows.forEach(i => sl.getRange(i + 1, sti + 1).setNumberFormat('@').setValue(be));
+    if (plots.length) syncPlots_(ss, plots);
     return readAll_(ss);
   });
 }

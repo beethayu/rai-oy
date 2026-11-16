@@ -502,7 +502,7 @@
     .cal-hint { font-size: 13px; color: #6B736E; margin-top: 10px; }
     .cal-mv { margin-top: 10px; background: #F4F8F5; border: 1px solid #CFE0D5; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #1F2A23; }
     .cal-mvb { display: flex; gap: 8px; margin-top: 8px; } .cal-mvb button { flex: 1; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-weight: 600; font-size: 15.5px; padding: 8px; } .cal-mvb button.go { background: #1F5E3B; color: #fff; }
-    .rem-r { cursor: pointer; } .srow.rem-today { padding: 10px 14px; } .rem-r .cal-mvb { margin-top: 8px; } .rem-r .cal-mvb button { font-size: 14.5px; padding: 7px 4px; }
+    .rem-r, .rc-j[data-ids] { cursor: pointer; } .cal-box { touch-action: pan-y; } .srow.rem-today { padding: 10px 14px; } .rem-r .cal-mvb { margin-top: 8px; } .rem-r .cal-mvb button { font-size: 14.5px; padding: 7px 4px; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
     .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
     .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
@@ -2763,7 +2763,8 @@
     const CAL_GUARD = '#6D28D9', CAL_FUEL = '#9A3412';
     function calIndex() {
       const X = {}, at = iso => X[iso] = X[iso] || { logs: [], rain: [], fuel: [], guards: [], ripe: [], reg: [], rem: [], wx: null };
-      (gData.reminders || []).forEach(r => { const iso = beToISO(r.date); if (iso) at(iso).rem.push(r); });
+      (gData.reminders || []).forEach(r => { const iso = beToISO(r.date); if (!iso) return; at(iso).rem.push(r);
+        if (r.repeat === 'สัปดาห์') for (let k = 1; k <= 10; k++) at(isoAdd(iso, 7 * k)).rem.push(r); }); // ทุกวันไม่ใส่จุด (รก) แต่ขึ้นแถวทุกวัน
       (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
         (/^ฝนตก/.test(a.activity_group) ? at(iso).rain : at(iso).logs).push(a); });
       try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty }); })); } catch (e) {}
@@ -2798,6 +2799,7 @@
       const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
       const out = [];
       (o.rem || []).forEach(r => out.push(remRowHtml(r, iso)));
+      if (iso >= t0) (gData.reminders || []).forEach(r => { if (r.repeat === 'วัน' && beToISO(r.date) && beToISO(r.date) < iso) out.push(remRowHtml(r, iso)); });
       (gData.reminders || []).forEach(r => { const d = beToISO(r.date), n = d ? dayDiff(iso, d) : 0;
         if (iso >= t0 && n > 0 && n <= num(r.lead_days)) out.push(`<div class="rc-j" style="color:#6B736E">🔔 อีก ${n} วัน · ${esc(r.text)} <span>(${esc(calLbl(d))})</span></div>`); });
       const acts = o.logs || [];
@@ -2812,8 +2814,10 @@
         const dayT = tankOf(acts.filter(a => a.activity_group === 'ฉีดยา'));
         if (dayT) out.push(`<div class="rc-dl">ฉีดรวม ${r1(dayT)} ถัง</div>`);
         Object.keys(G).forEach(k => { const g = G[k], t = tankOf(g.logs), ch = g.spray ? logChems(g.logs) : '';
- const drg = g.grp !== 'ตัดอ้อย' ? `${calDrag && calDrag.ids.join(',') === g.logs.map(l => l.log_id).join(',') ? ' data-lift="1"' : ''} data-ids="${g.logs.map(l => esc(l.log_id)).join(',')}" data-lb="${esc(g.lb + ' · ' + g.ps.map(id => pname(id)).join(', '))}"` : '';
-          out.push(`<div class="rc-j"${drg}><i class="cal-dot" style="background:${DS_COL[g.grp] || '#4A524D'}"></i><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>${esc(ch)}</span>` : ''}</div>`); });
+ const lk = g.logs.map(l => l.log_id).join(','), lop = calLogOpen === lk;
+          const edit = lop && g.logs.length > 1 ? `<div class="cal-mvb" style="flex-wrap:wrap" onclick="event.stopPropagation()">${g.logs.map(l => `<button type="button" style="flex:0 0 auto;padding:6px 12px" onclick="openLogInspect('${qa(l.log_id)}')">แก้ ${esc(pname(l.plot_id))}</button>`).join('')}</div>` : '';
+          const drg = ` onclick="calTapLog('${qa(lk)}')"` + (g.grp !== 'ตัดอ้อย' ? `${calDrag && calDrag.ids.join(',') === g.logs.map(l => l.log_id).join(',') ? ' data-lift="1"' : ''} data-ids="${g.logs.map(l => esc(l.log_id)).join(',')}" data-lb="${esc(g.lb + ' · ' + g.ps.map(id => pname(id)).join(', '))}"` : '');
+          out.push(`<div class="rc-j"${drg}><i class="cal-dot" style="background:${DS_COL[g.grp] || '#4A524D'}"></i><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>${esc(ch)}</span>` : ''}${edit}</div>`); });
       }
       if ((o.rain || []).length) {
         const mm = o.rain.reduce((m, x) => Math.max(m, parseFloat((String(x.remark || '').match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0);
@@ -2832,7 +2836,7 @@
     let remOpen = '', chatRemId = '';
     function remRowHtml(r, iso, inToday) {
       const t0 = todayISO(), d = beToISO(r.date), op = remOpen === r.rem_id + (inToday ? 't' : ''), due = d <= t0;
-      const sub = [r.time ? r.time + ' น.' : '', r.repeat ? 'ทุก' + r.repeat : '', inToday && d < t0 ? `เลยมา ${dayDiff(d, t0)} วัน` : ''].filter(Boolean).join(' · ');
+      const sub = [r.time ? r.time + ' น.' : '', r.repeat ? 'ทุก' + r.repeat : '', inToday && d < t0 && r.repeat !== 'วัน' ? `เลยมา ${dayDiff(d, t0)} วัน` : ''].filter(Boolean).join(' · ');
       return `<div class="rc-j rem-r"${inToday ? '' : ` data-rem="${esc(r.rem_id)}" data-lb="🔔 ${esc(r.text)}"`} onclick="remOpen=remOpen==='${qa(r.rem_id + (inToday ? 't' : ''))}'?'':'${qa(r.rem_id + (inToday ? 't' : ''))}';render()"><i class="cal-dot" style="background:transparent;border:2px solid #D97706"></i><b>🔔 ${esc(r.text)}</b>${sub ? `<br><span>${esc(sub)}</span>` : ''}
         ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${due ? `<button type="button" class="go" onclick="remToLog('${qa(r.rem_id)}')">ทำแล้ว → จดเป็นงาน</button><button type="button" onclick="remDo('done','${qa(r.rem_id)}',this)">ทำแล้ว</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="remDo('del','${qa(r.rem_id)}',this)">ลบ</button></div>` : ''}</div>`;
     }
@@ -2843,7 +2847,7 @@
     }
     function remToLog(id) {
       const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
-      chatRemId = id; const d = beToISO(r.date); chatDate = d < todayISO() ? d : '';
+      chatRemId = id; const d = beToISO(r.date); chatDate = d < todayISO() && r.repeat !== 'วัน' ? d : '';
       switchTab('log'); setLogMode('chat'); chatPvRender();
       const el = $('chatIn'); el.value = r.text + ' '; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px';
     }
@@ -2870,13 +2874,24 @@
         + `<div class="srow-box"><div class="cal-box">${grid}</div><div class="rc-day cal-day"><div class="cal-sl">${calLbl(calSel)}${calSel !== t0 && calSel.slice(0, 4) !== t0.slice(0, 4) ? ' ' + (+calSel.slice(0, 4) + 543) : ''}</div>${dayRowsHtml(calSel, X[calSel])}${btn}</div></div>`;
     }
     const TH_MON_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-    function calPick(iso) { calSel = iso; render(); }
+    function calPick(iso) { if (Date.now() - calDragAt < 400) return; calSel = iso; calLogOpen = ''; render(); }
     function calMove(k) { let [y, m] = calYM.split('-').map(Number); m += k; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } calYM = `${y}-${pad(m)}`; render(); }
     // ลากงานไปวันอื่น: กดค้าง 0.4 วิที่แถวงาน → ลากไปวางบนวันในปฏิทิน → ยืนยันในการ์ดเดิม → moveActivities (GAS) · ห้ามวันข้างหน้า / ตัดอ้อย
-    let calDrag = null;
+    let calDrag = null, calDragAt = 0, calLogOpen = '';
+    // แตะแถวงาน = แก้ไข (งานเดียวเปิดเลย · หลายแปลงกางปุ่ม "แก้ <แปลง>") · เพิ่งลากเสร็จไม่นับเป็นแตะ
+    function calTapLog(lk) {
+      if (Date.now() - calDragAt < 500) return;
+      const ids = lk.split(','); if (ids.length === 1) return openLogInspect(ids[0]);
+      calLogOpen = calLogOpen === lk ? '' : lk; render();
+    }
     function calDragInit() {
       if (window._calDragOn) return; window._calDragOn = 1;
-      let tm = null, sx = 0, sy = 0;
+      let tm = null, sx = 0, sy = 0, sw = null;
+      document.addEventListener('touchstart', e => { const t0 = e.touches[0]; sw = e.target.closest && e.target.closest('.cal-box') ? { x: t0.clientX, y: t0.clientY } : null; }, { passive: true });
+      document.addEventListener('touchend', e => { // ปัดซ้าย/ขวาบนปฏิทิน = เปลี่ยนเดือน
+        if (!sw || calDrag) return; const t = e.changedTouches[0], dx = t.clientX - sw.x, dy = t.clientY - sw.y; sw = null;
+        if (Math.abs(dx) > 60 && Math.abs(dy) < 50) { calDragAt = Date.now(); calMove(dx < 0 ? 1 : -1); }
+      });
       document.addEventListener('touchstart', e => {
         const r = e.target.closest && e.target.closest('.rc-j[data-ids],.rc-j[data-rem]'); if (!r || calDrag) return;
         const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
@@ -2906,7 +2921,7 @@
       D.to = c && iso !== D.from ? iso : '';
     }
     function calDragEnd() {
-      const D = calDrag; calDrag = null; D.gh.remove(); D.row.classList.remove('cal-lift');
+      const D = calDrag; calDrag = null; calDragAt = Date.now(); D.gh.remove(); D.row.classList.remove('cal-lift');
       if (document.querySelector('.rc-j[data-lift]')) render();
       document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
       if (!D.to) return;
@@ -5007,7 +5022,7 @@
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
       if (it.type === 'reminder') {
-        it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = ['เดือน', 'ปี'].includes(it.repeat) ? it.repeat : '';
+        it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'].includes(it.repeat) ? it.repeat : '';
         it.lead_days = Math.max(0, Math.round(num(it.lead_days))); it.rid = it.rid || 'R' + Date.now() + Math.random().toString(36).slice(2, 5);
         return it.text && /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') ? it : null;
       }

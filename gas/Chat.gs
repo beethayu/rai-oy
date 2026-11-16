@@ -497,3 +497,45 @@ function moveActivities(logIds, iso) {
     return readAll_(ss);
   });
 }
+
+// ✏️ แก้งานจากปฏิทิน (การ์ดกางในที่ 16 พ.ย. 69) — แก้ทั้งชุด (หลายแปลง) ทีเดียว · ไม่แตะกลุ่มงาน/แปลง/สต็อก (เปลี่ยนถังยา = ลบแล้วจดใหม่)
+// f = {detail, equipment, quantity, operator, remark, ongoing} · ช่องที่ไม่ส่ง (undefined) = คงเดิม
+function editActivities(logIds, f) {
+  const ids = new Set((logIds || []).map(String)); f = f || {};
+  if (!ids.size) throw new Error('ไม่มีงานที่จะแก้');
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ACT);
+    const d = sh.getDataRange().getDisplayValues(), h = d[0], c = n => h.indexOf(n), plots = [];
+    for (let i = 1; i < d.length; i++) {
+      if (!ids.has(d[i][0])) continue;
+      const set = (n, v) => { if (v !== undefined) sh.getRange(i + 1, c(n) + 1).setNumberFormat('@').setValue(String(v).trim() || '-'); };
+      set('activity_detail', f.detail); set('equipment', f.equipment); set('quantity', f.quantity); set('operator', f.operator);
+      if (f.remark !== undefined || f.ongoing !== undefined) {
+        const old = String(d[i][c('remark')] || ''), was = old.indexOf('[⏳กำลังทำ]') !== -1;
+        const body = f.remark !== undefined ? String(f.remark).trim() : old.replace(/\[(⏳กำลังทำ|✅เสร็จสิ้น)\]\s*/g, '').trim();
+        const on = f.ongoing !== undefined ? !!f.ongoing : was;
+        sh.getRange(i + 1, c('remark') + 1).setValue((on ? '[⏳กำลังทำ] ' : '[✅เสร็จสิ้น] ') + body);
+      }
+      if (plots.indexOf(d[i][c('plot_id')]) === -1) plots.push(d[i][c('plot_id')]);
+    }
+    if (!plots.length) throw new Error('ไม่พบงานนี้ในชีต (อาจถูกลบไปแล้ว)');
+    syncPlots_(ss, plots);
+    return readAll_(ss);
+  });
+}
+// 🗑️ ลบงานทั้งชุด หรือทีละแปลง (ส่ง id เดียว) + คืนสต็อก + คำนวณสถานะแปลงใหม่ · ส่งซ้ำได้ (ไม่เจอ = ข้าม)
+function deleteActivities(logIds) {
+  const ids = new Set((logIds || []).map(String));
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ACT);
+    const d = sh.getRange(1, 1, sh.getLastRow(), 3).getDisplayValues(), plots = [];
+    for (let i = d.length - 1; i >= 1; i--) {
+      if (!ids.has(d[i][0])) continue;
+      sh.deleteRow(i + 1);
+      try { reverseUsage_(ss, d[i][0]); } catch (e) {}
+      if (plots.indexOf(d[i][2]) === -1) plots.push(d[i][2]);
+    }
+    if (plots.length) syncPlots_(ss, plots);
+    return readAll_(ss);
+  });
+}

@@ -503,6 +503,16 @@
     .cal-mv { margin-top: 10px; background: #F4F8F5; border: 1px solid #CFE0D5; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #1F2A23; }
     .cal-mvb { display: flex; gap: 8px; margin-top: 8px; } .cal-mvb button { flex: 1; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-weight: 600; font-size: 15.5px; padding: 8px; } .cal-mvb button.go { background: #1F5E3B; color: #fff; }
     .rem-r, .rc-j[data-ids] { cursor: pointer; } .cal-box { touch-action: pan-y; } .srow.rem-today { padding: 10px 14px; } .rem-r .cal-mvb { margin-top: 8px; } .rem-r .cal-mvb button { font-size: 14.5px; padding: 7px 4px; }
+    .cal-ed, .cal-ed input { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+    .cal-ed { margin: 8px 0 2px; background: #fff; border: 1px solid #CFE0D5; border-radius: 12px; padding: 4px 12px 12px; cursor: default; color: #1F2A23; }
+    .ce-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #EEF1EF; } .ce-row > span { flex: 0 0 76px; font-size: 14px; color: #6B736E; padding-top: 6px; } .ce-row > div { flex: 1; min-width: 0; font-size: 15px; }
+    .ce-row:first-child > span { padding-top: 0; }
+    .ce-in { width: 100%; border: 1px solid #D5DDD8; border-radius: 8px; padding: 6px 10px; font-size: 16px; color: #1F2A23; background: #fff; } .ce-in:disabled { background: #F4F6F5; color: #6B736E; }
+    .ce-chips { display: flex; flex-wrap: wrap; gap: 6px; } .ce-chip { border: 1px solid #D5DDD8; background: #fff; color: #4A524D; border-radius: 999px; padding: 4px 12px; font-size: 14.5px; display: inline-flex; align-items: center; gap: 4px; }
+    .ce-chip.on { background: #1F5E3B; border-color: #1F5E3B; color: #fff; font-weight: 600; } .ce-chip button { border: 0; background: transparent; color: inherit; padding: 0 0 0 4px; font-size: 14px; }
+    .ce-seg { display: flex; border: 1px solid #1F5E3B; border-radius: 8px; overflow: hidden; } .ce-seg button { flex: 1; border: 0; background: #fff; color: #1F5E3B; font-size: 15px; padding: 6px; font-weight: 600; } .ce-seg button.on { background: #1F5E3B; color: #fff; }
+    .ce-s { font-size: 12.5px; color: #8A5A0B; margin-top: 4px; line-height: 1.4; }
+    .ce-del { display: block; margin: 12px auto 0; border: 0; background: transparent; color: #B42318; font-size: 15px; font-weight: 600; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
     .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
     .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
@@ -2815,7 +2825,7 @@
         if (dayT) out.push(`<div class="rc-dl">ฉีดรวม ${r1(dayT)} ถัง</div>`);
         Object.keys(G).forEach(k => { const g = G[k], t = tankOf(g.logs), ch = g.spray ? logChems(g.logs) : '';
  const lk = g.logs.map(l => l.log_id).join(','), lop = calLogOpen === lk;
-          const edit = lop && g.logs.length > 1 ? `<div class="cal-mvb" style="flex-wrap:wrap" onclick="event.stopPropagation()">${g.logs.map(l => `<button type="button" style="flex:0 0 auto;padding:6px 12px" onclick="openLogInspect('${qa(l.log_id)}')">แก้ ${esc(pname(l.plot_id))}</button>`).join('')}</div>` : '';
+          const edit = lop ? calEditHtml(g, pname) : '';
           const drg = ` onclick="calTapLog('${qa(lk)}')"` + (g.grp !== 'ตัดอ้อย' ? `${calDrag && calDrag.ids.join(',') === g.logs.map(l => l.log_id).join(',') ? ' data-lift="1"' : ''} data-ids="${g.logs.map(l => esc(l.log_id)).join(',')}" data-lb="${esc(g.lb + ' · ' + g.ps.map(id => pname(id)).join(', '))}"` : '');
           out.push(`<div class="rc-j"${drg}><i class="cal-dot" style="background:${DS_COL[g.grp] || '#4A524D'}"></i><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>${esc(ch)}</span>` : ''}${edit}</div>`); });
       }
@@ -2879,10 +2889,48 @@
     // ลากงานไปวันอื่น: กดค้าง 0.4 วิที่แถวงาน → ลากไปวางบนวันในปฏิทิน → ยืนยันในการ์ดเดิม → moveActivities (GAS) · ห้ามวันข้างหน้า / ตัดอ้อย
     let calDrag = null, calDragAt = 0, calLogOpen = '';
     // แตะแถวงาน = แก้ไข (งานเดียวเปิดเลย · หลายแปลงกางปุ่ม "แก้ <แปลง>") · เพิ่งลากเสร็จไม่นับเป็นแตะ
+    // แตะแถวงาน = การ์ดแก้ไขกางในที่ (ผู้ใช้ 16 พ.ย.: "ไม่เอาแบบเด้ง") · แก้ทั้งชุดทีเดียว (editActivities) · ลบทีละแปลง/ทั้งชุด (deleteActivities)
+    let calDel = '';
     function calTapLog(lk) {
       if (Date.now() - calDragAt < 500) return;
-      const ids = lk.split(','); if (ids.length === 1) return openLogInspect(ids[0]);
-      calLogOpen = calLogOpen === lk ? '' : lk; render();
+      calLogOpen = calLogOpen === lk ? '' : lk; calDel = ''; render();
+    }
+    const dash = v => (v = String(v || '').trim()) === '-' ? '' : v;
+    function calEditHtml(g, pname) {
+      const l = g.logs[0], spray = l.activity_group === 'ฉีดยา', on = String(l.remark || '').includes('[⏳กำลังทำ]');
+      const rmk = dash(String(l.remark || '').replace(/\[(⏳กำลังทำ|✅เสร็จสิ้น)\]\s*/g, ''));
+      const who = logWho(l), W = [...new Set([...((gData.options || {}).Worker || []), ...who])];
+      const inp = (id, v, ph, dis) => `<input id="${id}" class="ce-in" value="${esc(v)}" placeholder="${ph}"${dis ? ' disabled' : ''}>`;
+      const row = (lb, body) => `<div class="ce-row"><span>${lb}</span><div>${body}</div></div>`;
+      if (calDel) {
+        const one = calDel !== 'all', nm = one ? pname((g.logs.find(x => x.log_id === calDel) || {}).plot_id) : '';
+        return `<div class="cal-ed" onclick="event.stopPropagation()"><b style="color:#B42318">${one ? `ลบแปลง ${esc(nm)} ออกจากงานนี้?` : `ลบงานนี้ทั้งหมด (${g.logs.length} แปลง)?`}</b><div class="ce-s">${spray ? 'ยาที่ตัดสต็อกจะคืนให้ · ' : ''}ลบแล้วกู้คืนไม่ได้</div>
+          <div class="cal-mvb"><button type="button" class="go" style="background:#B42318;border-color:#B42318" onclick="calDelGo(this,'${qa(one ? calDel : g.logs.map(x => x.log_id).join(','))}')">ลบ</button><button type="button" onclick="calDel='';render()">ไม่ลบ</button></div></div>`;
+      }
+      return `<div class="cal-ed" onclick="event.stopPropagation()">
+        ${row('งาน', `<b>${esc(grpLabel(l))}</b>`)}
+        ${row('รายละเอียด', inp('ce_det', dash(l.activity_detail), 'เช่น ฉีดหญ้ารอบไร่'))}
+        ${row('คน', `<div class="ce-chips" id="ce_who">${W.map(n => `<button type="button" class="ce-chip${who.includes(n) ? ' on' : ''}" onclick="this.classList.toggle('on')">${esc(n)}</button>`).join('')}</div>`)}
+        ${row('รถ/เครื่อง', inp('ce_eq', dash(l.equipment), 'ไม่มีเว้นว่าง'))}
+        ${row('จำนวน', inp('ce_q', dash(l.quantity), 'เช่น 4 ถัง', spray) + (spray ? '<div class="ce-s">ฉีดยา: เปลี่ยนจำนวนถัง = ลบแล้วจดใหม่ในแชต (ยาจะคิดใหม่)</div>' : ''))}
+        ${row('หมายเหตุ', inp('ce_rm', rmk, ''))}
+        ${row('สถานะ', `<div class="ce-seg"><button type="button" id="ce_done" class="${on ? '' : 'on'}" onclick="this.classList.add('on');$('ce_on').classList.remove('on')">เสร็จแล้ว</button><button type="button" id="ce_on" class="${on ? 'on' : ''}" onclick="this.classList.add('on');$('ce_done').classList.remove('on')">กำลังทำ</button></div>`)}
+        ${row('แปลง', `<div class="ce-chips">${g.logs.map(x => `<span class="ce-chip on">${esc(pname(x.plot_id))}${g.logs.length > 1 ? `<button type="button" aria-label="เอาแปลงนี้ออก" onclick="calDel='${qa(x.log_id)}';render()">✕</button>` : ''}</span>`).join('')}</div>`)}
+        ${row('วันที่', '<span class="ce-s" style="margin:0">กดค้างที่งานแล้วลากไปวันอื่น</span>')}
+        <div class="cal-mvb"><button type="button" class="go" onclick="calEditGo(this,'${qa(g.logs.map(x => x.log_id).join(','))}',${spray})">บันทึก</button><button type="button" onclick="calLogOpen='';render()">ยกเลิก</button></div>
+        <button type="button" class="ce-del" onclick="calDel='all';render()">ลบงานนี้</button></div>`;
+    }
+    function calEditGo(btn, ids, spray) {
+      const box = btn.closest('.cal-ed'), f = { detail: $('ce_det').value, equipment: $('ce_eq').value, remark: $('ce_rm').value, ongoing: $('ce_on').classList.contains('on'),
+        operator: [...$('ce_who').querySelectorAll('.ce-chip.on')].map(b => b.textContent.trim()).join(' + ') };
+      if (!spray) f.quantity = $('ce_q').value;
+      btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+      callApi('editActivities', [ids.split(','), f]).then(d => { calLogOpen = ''; init(d); }).catch(e => { alert('❌ ' + e.message); btn.disabled = false; btn.textContent = 'บันทึก'; });
+    }
+    function calDelGo(btn, ids) {
+      btn.disabled = true; btn.textContent = 'กำลังลบ…';
+      callApi('deleteActivities', [ids.split(',')]).then(d => { calDel = ''; if (ids.split(',').length > 1 || !calLogOpen.includes(',')) calLogOpen = ''; else calLogOpen = calLogOpen.split(',').filter(x => x !== ids).join(','); init(d); })
+        .catch(e => { alert('❌ ' + e.message); render(); });
     }
     function calDragInit() {
       if (window._calDragOn) return; window._calDragOn = 1;
@@ -2893,7 +2941,7 @@
         if (Math.abs(dx) > 60 && Math.abs(dy) < 50) { calDragAt = Date.now(); calMove(dx < 0 ? 1 : -1); }
       });
       document.addEventListener('touchstart', e => {
-        const r = e.target.closest && e.target.closest('.rc-j[data-ids],.rc-j[data-rem]'); if (!r || calDrag) return;
+        const r = e.target.closest && !e.target.closest('.cal-ed,.cal-mvb') && e.target.closest('.rc-j[data-ids],.rc-j[data-rem]'); if (!r || calDrag) return;
         const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
         tm = setTimeout(() => { tm = null; calDragStart(r, sx, sy); }, 400);
       }, { passive: true });

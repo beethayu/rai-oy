@@ -2798,6 +2798,7 @@
     const CAL_GUARD = '#6D28D9', CAL_FUEL = '#9A3412';
     function calIndex() {
       const X = {}, at = iso => X[iso] = X[iso] || { logs: [], rain: [], fuel: [], guards: [], ripe: [], reg: [], rem: [], wx: null };
+      (gData.notes || []).forEach(n => { const iso = beToISO(n.date); if (iso) (at(iso).notes = at(iso).notes || []).push(n); });
       (gData.reminders || []).forEach(r => { const iso = beToISO(r.date); if (!iso) return; at(iso).rem.push(r);
         if (r.repeat === 'สัปดาห์') for (let k = 1; k <= 10; k++) at(isoAdd(iso, 7 * k)).rem.push(r); }); // ทุกวันไม่ใส่จุด (รก) แต่ขึ้นแถวทุกวัน
       (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
@@ -2821,6 +2822,7 @@
       if (o.rain.length) d.push(`<i style="background:${DS_COL['ฝนตก']}"></i>`);
       if (o.guards.length) d.push(`<i style="background:${CAL_GUARD}"></i>`);
       if (o.fuel.length) d.push(`<i style="background:${CAL_FUEL}"></i>`);
+      if ((o.notes || []).length) d.push(`<i style="background:#0E7490"></i>`);
       if (o.rem.length) d.push(`<i class="o" style="border-color:#D97706;border-width:2px"></i>`);
       if (o.ripe.length) d.push(`<i class="o" style="border-color:${DS_COL['ตัดอ้อย']}"></i>`);
       if (o.reg.length) d.push(`<i class="o" style="border-color:#B54708"></i>`);
@@ -2859,6 +2861,9 @@
         const ps = [...new Set(o.rain.map(x => x.plot_id))];
         out.push(`<div class="rc-j" data-ids="${o.rain.map(x => esc(x.log_id)).join(',')}" data-lb="🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}"><b>🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}</b><br><span>${ps.slice(0, 6).map(id => esc(pname(id))).join(', ')}${ps.length > 6 ? ` และอีก ${ps.length - 6} แปลง` : ''}</span></div>`);
       }
+      (o.notes || []).forEach(n => { const op = remOpen === 'n' + n.note_id;
+        out.push(`<div class="rc-j rem-r" data-note="${esc(n.note_id)}" data-lb="🏠 ${esc(n.text)}" onclick="remOpen=remOpen==='n${qa(n.note_id)}'?'':'n${qa(n.note_id)}';render()"><b>🏠 ${esc(n.text)}</b>${num(n.amount) ? ` · <b>${baht(num(n.amount))} บ.</b>` : ''}<br><span>นอกไร่${n.shop ? ' · ' + esc(n.shop) : ''}${n.photo_ids ? ' · 📷' : ''}</span>
+          ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${n.photo_ids ? `<button type="button" onclick="noteDo('photo','${qa(n.note_id)}')">ดูรูป</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="noteDo('del','${qa(n.note_id)}',this)">ลบ</button></div>` : ''}</div>`); });
       (o.fuel || []).forEach(f => out.push(`<div class="rc-j"${f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ให้น้ำมัน ${esc(f.team.join(' + '))}"` : ''}><b>⛽ ให้น้ำมัน</b> ${esc(f.team.join(' + '))} · <b>${r1(f.qty)} ลิตร</b></div>`));
       (o.guards || []).forEach(g => out.push(`<div class="rc-j"><b>🛡️ เฝ้าไร่</b> ${esc(String(g.workers || '').split(/\s*[,+]\s*/).filter(Boolean).join(' + ') || 'ไม่ระบุคน')}<br><span>${esc(guardWhere(g))}</span></div>`));
       (o.ripe || []).forEach(r => out.push(`<div class="rc-j"><b>🌾 ครบตัด</b> ${esc(r.p.plot_name)}<br><span>${esc(r.type)} · อายุครบ ${r.type === 'อ้อยใหม่' ? '10' : '11'} เดือน</span></div>`));
@@ -2879,6 +2884,12 @@
       if (btn) { btn.disabled = true; btn.textContent = '…'; }
       return callApi('remOp', [{ fn, id, date }]).then(d => { gData.reminders = d.reminders || []; remOpen = ''; render(); })
         .catch(e => { alert('❌ ' + e.message); render(); });
+    }
+    function noteDo(fn, id, btn, date) {
+      const n = (gData.notes || []).find(x => x.note_id === id);
+      if (fn === 'photo') { return viewPhotos('🏠 ' + n.text, String(n.photo_ids).split(',').filter(Boolean)); }
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      return callApi('noteOp', [{ fn, id, date }]).then(d => { gData.notes = d.notes || []; remOpen = ''; render(); }).catch(e => { alert('❌ ' + e.message); render(); });
     }
     function remToLog(id) {
       const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
@@ -2901,7 +2912,7 @@
       const dd = iso => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${TH_MON[d.getMonth()]}`; };
       const mv = !calMv ? '' : calMv.err ? `<div class="cal-mv"><b style="color:#B42318">${esc(calMv.err)}</b><div class="cal-mvb"><button type="button" onclick="calMv=null;render()">ตกลง</button></div></div>`
         : `<div class="cal-mv">ย้าย <b>${esc(calMv.lb)}</b><br>จาก ${dd(calMv.from)} → <b>${dd(calMv.to)}</b> ?<div class="cal-mvb"><button type="button" class="go" onclick="calMoveGo(this)">ย้าย</button><button type="button" onclick="calMv=null;render()">ยกเลิก</button></div></div>`;
-      const o0 = X[calSel] || {}, hint = (o0.logs || []).some(l => grpLabel(l) !== 'ตัดอ้อย') || (o0.rem || []).length || (o0.rain || []).length || (o0.fuel || []).length
+      const o0 = X[calSel] || {}, hint = (o0.logs || []).some(l => grpLabel(l) !== 'ตัดอ้อย') || (o0.rem || []).length || (o0.rain || []).length || (o0.fuel || []).length || (o0.notes || []).length
         ? `<div class="cal-hint">กดค้างที่งานแล้วลากไปวางบนวันอื่น = เปลี่ยนวันที่ · แตะงาน = แก้ไข${(o0.guards || []).length ? ' · เฝ้าไร่แก้ที่การ์ดเฝ้าไร่' : ''}</div>` : '';
       calDragInit();
       const btn = mv + hint + (fut ? `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ นัด/เตือน${calSel === isoAdd(t0, 1) ? 'พรุ่งนี้' : 'วันที่ ' + dm}</button>` : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
@@ -2971,7 +2982,7 @@
         if (Math.abs(dx) > 60 && Math.abs(dy) < 50) { calDragAt = Date.now(); calMove(dx < 0 ? 1 : -1); }
       });
       document.addEventListener('touchstart', e => {
-        const r = e.target.closest && !e.target.closest('.cal-ed,.cal-mvb') && e.target.closest('.rc-j[data-ids],.rc-j[data-rem]'); if (!r || calDrag) return;
+        const r = e.target.closest && !e.target.closest('.cal-ed,.cal-mvb') && e.target.closest('.rc-j[data-ids],.rc-j[data-rem],.rc-j[data-note]'); if (!r || calDrag) return;
         const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
         tm = setTimeout(() => { tm = null; calDragStart(r, sx, sy); }, 400);
       }, { passive: true });
@@ -2985,7 +2996,7 @@
     }
     function calDragStart(r, x, y) {
       const gh = document.createElement('div'); gh.className = 'cal-ghost'; gh.textContent = r.dataset.lb; document.body.appendChild(gh);
-      calDrag = { ids: r.dataset.ids ? r.dataset.ids.split(',') : [], rem: r.dataset.rem || '', lb: r.dataset.lb, from: calSel, gh, row: r, to: '' };
+      calDrag = { ids: r.dataset.ids ? r.dataset.ids.split(',') : [], rem: r.dataset.rem || '', note: r.dataset.note || '', lb: r.dataset.lb, from: calSel, gh, row: r, to: '' };
       r.classList.add('cal-lift'); try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
       calDragMove(x, y);
     }
@@ -3003,12 +3014,13 @@
       if (document.querySelector('.rc-j[data-lift]')) render();
       document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
       if (!D.to) return;
-      calMv = D.to > todayISO() && !D.rem ? { err: 'ย้ายไปวันข้างหน้าไม่ได้ (งานยังไม่เกิด) · ถ้าเป็นแผน รอปุ่มนัด/เตือน' } : { ids: D.ids, rem: D.rem, lb: D.lb, from: D.from, to: D.to };
+      calMv = D.to > todayISO() && !D.rem ? { err: 'ย้ายไปวันข้างหน้าไม่ได้ (งานยังไม่เกิด) · ถ้าเป็นแผน รอปุ่มนัด/เตือน' } : { ids: D.ids, rem: D.rem, note: D.note, lb: D.lb, from: D.from, to: D.to };
       render();
     }
     function calMoveGo(btn) {
       const M = calMv; if (!M || !M.ids) return;
       btn.disabled = true; btn.textContent = 'กำลังย้าย…';
+      if (M.note) return noteDo('move', M.note, null, M.to).then(() => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); render(); });
       if (M.rem) return remDo('move', M.rem, null, M.to).then(() => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); render(); });
       callApi('moveActivities', [M.ids, M.to]).then(d => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); init(d); })
         .catch(e => { calMv = { err: 'ย้ายไม่สำเร็จ: ' + e.message }; render(); });
@@ -5115,6 +5127,11 @@
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
+      if (it.type === 'note') {
+        let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]); if (!idx.length) idx = ph.map((_, k) => k);
+        it.photos = idx; it.photo_ids = idx.map(k => ph[k]); it.text = String(it.text || '').trim(); it.amount = num(it.amount); it.date = it.date || todayISO();
+        it.nid = it.nid || 'N' + Date.now() + Math.random().toString(36).slice(2, 5); return it.text ? it : null;
+      }
       if (it.type === 'rem_done') { const r = (gData.reminders || []).find(x => x.rem_id === it.id); if (!r) return null; it.text = r.text; return it; }
       if (it.type === 'reminder') {
         it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'].includes(it.repeat) ? it.repeat : '';
@@ -5199,6 +5216,7 @@
           if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
+        else if (a.type === 'note') ops.push({ fn: 'note', id: a.nid, p: { text: a.text, amount: a.amount, shop: a.shop || '', date: a.date, photo_ids: a.photo_ids || [] } });
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
         else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
@@ -5255,6 +5273,8 @@
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+      } else if (it.type === 'note') {
+        h = `<div class="ch-t">🏠 นอกไร่ (ไม่ลงบัญชีไร่)</div>` + row('เรื่อง', it.text) + row('เงิน', it.amount ? baht(it.amount) + ' บาท' : '') + row('ร้าน/ที่', it.shop) + row('วันที่', dt(it.date));
       } else if (it.type === 'rem_done') {
         h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
       } else if (it.type === 'reminder') {

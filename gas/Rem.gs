@@ -58,3 +58,22 @@ function remBrief_(ss) {
   const sec = (t, a) => a.length ? `\n${t} (${a.length})\n${a.join('\n')}\n` : '';
   return sec('🔔 นัด/เตือนวันนี้', today) + sec('🔔 พรุ่งนี้', tmr) + sec('🔔 ใกล้ถึง', soon) + sec('🔔 เลยกำหนด ยังไม่ได้ทำ', late);
 }
+
+// ===== 🏠 บันทึกนอกไร่ (16 พ.ย. 69 ผู้ใช้: เรื่องนอกไร่ "ควรขึ้นให้แก้ไข แล้วกดบันทึก") — ไม่ลงบัญชี/สต็อก/ผังของไร่ ขึ้นแค่ในปฏิทิน =====
+const NOTE_H_ = ['note_id', 'created', 'date', 'text', 'amount', 'shop', 'photo_ids'];
+function noteAdd_(ss, p, id) {
+  const sh = getOrCreate_(ss, 'Notes', NOTE_H_);
+  if (sh.getDataRange().getDisplayValues().some(r => r[0] === String(id))) return false;
+  const be = remBE_(p.date);
+  try { if ((p.photo_ids || []).length) nameChatPhotos_(p.photo_ids, 'นอกไร่_' + String(p.text || '').slice(0, 20), be); } catch (e) {}
+  appendRows_(sh, [[String(id), getTodayStr(), be, String(p.text || '').slice(0, 200), Number(p.amount) || '', String(p.shop || '').slice(0, 80), (p.photo_ids || []).join(',')]]);
+  return true;
+}
+function noteOp(op) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = getOrCreate_(ss, 'Notes', NOTE_H_);
+    if (op.fn === 'del') { const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((row, i) => i > 0 && row[0] === String(op.id)); if (r > 0) sh.deleteRow(r + 1); }
+    else if (op.fn === 'move') { const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((row, i) => i > 0 && row[0] === String(op.id)); if (r > 0) sh.getRange(r + 1, 3).setNumberFormat('@').setValue(remBE_(op.date)); }
+    return { notes: readSheet_(ss, 'Notes') };
+  });
+}

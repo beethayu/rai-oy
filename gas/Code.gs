@@ -287,6 +287,7 @@ function readAll_(ss) {
     damages: readSheet_(ss, 'Damages'),
     guards: readSheet_(ss, 'Guards'),
     reminders: readRem_(ss),
+    notes: readSheet_(ss, 'Notes'),
     waterPlans: readSheet_(ss, 'WaterPlans'),
     flows: readSheet_(ss, 'Flow'),
     flowDef: FLOW_DEF_,

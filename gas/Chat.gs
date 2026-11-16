@@ -192,7 +192,11 @@ function chatParse(text, ctx, images, reuse) {
     const folder = chatFolder_(), stamp = Date.now();
     pics.forEach((p, i) => photoIds.push(folder.createFile(Utilities.newBlob(Utilities.base64Decode(p), 'image/jpeg', 'tmp_' + stamp + '_' + (i + 1) + '.jpg')).getId()));
   }
-  const out = geminiCall_(parts, 'ตอบแชต', 'medium');
+  // ทดสอบความเร็ว (K0): ctx._model / ctx._level ใช้แทนค่าปกติ · หน้าเว็บไม่ส่งสองช่องนี้
+  const t0 = Date.now();
+  geminiForce_ = ctx._model || '';
+  const out = geminiCall_(parts, 'ตอบแชต', ctx._level || 'medium');
+  geminiForce_ = '';
   let j;
   try { j = JSON.parse(out); } catch (e) {
     const m = out.match(/\{[\s\S]*\}/); j = m ? JSON.parse(m[0]) : { reply: 'อ่านไม่ออก ลองพิมพ์ใหม่อีกครั้งครับ', items: [] };
@@ -201,6 +205,7 @@ function chatParse(text, ctx, images, reuse) {
   j.ask = Array.isArray(j.ask) ? j.ask : [];
   j.photos = photoIds;
   j.model = geminiUsed_;
+  j.ms = Date.now() - t0;
   return j;
 }
 

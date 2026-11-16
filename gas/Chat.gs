@@ -460,3 +460,33 @@ function deleteAssetLog(logId) {
     return readAll_(ss);
   });
 }
+
+// 📅 ลากงานในปฏิทินไปวันอื่น (16 พ.ย. 69): เปลี่ยนวันที่ของงานชุดนั้น + ประวัติตัดสต็อกของงาน แล้วคำนวณสถานะแปลงใหม่
+// iso = YYYY-MM-DD · ห้ามวันข้างหน้า · ห้ามงานตัดอ้อย (ผังเริ่มฤดูใหม่ตามวันตัด) · ส่งซ้ำได้ไม่เบิ้ล (ตั้งค่าวันเดิมซ้ำ)
+function moveActivities(logIds, iso) {
+  const ids = new Set((logIds || []).map(String));
+  if (!ids.size || !/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) throw new Error('ข้อมูลย้ายงานไม่ครบ');
+  const tz = Session.getScriptTimeZone(), today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  if (iso > today) throw new Error('ย้ายงานไปวันข้างหน้าไม่ได้');
+  const p = iso.split('-'), be = p[2] + '/' + p[1] + '/' + (Number(p[0]) + 543);
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ACT);
+    const d = sh.getDataRange().getDisplayValues(), h = d[0], ti = h.indexOf('timestamp'), gi = h.indexOf('activity_group'), pi = h.indexOf('plot_id');
+    const plots = [], rows = [];
+    for (let i = 1; i < d.length; i++) {
+      if (!ids.has(d[i][0])) continue;
+      if (d[i][gi] === 'ตัดอ้อย') throw new Error('งานตัดอ้อยย้ายวันในปฏิทินไม่ได้ (แก้ในหน้าแปลง)');
+      rows.push(i);
+    }
+    if (!rows.length) throw new Error('ไม่พบงานนี้ในชีต (อาจถูกลบไปแล้ว)');
+    rows.forEach(i => {
+      const rest = String(d[i][ti]).trim().split(' ').slice(1).join(' ');
+      sh.getRange(i + 1, ti + 1).setNumberFormat('@').setValue(be + (rest ? ' ' + rest : ''));
+      if (plots.indexOf(d[i][pi]) === -1) plots.push(d[i][pi]);
+    });
+    const sl = ss.getSheetByName(SH.SLOG), s = sl.getDataRange().getDisplayValues(), sti = s[0].indexOf('timestamp'), sri = s[0].indexOf('ref_log_id');
+    for (let i = 1; i < s.length; i++) if (ids.has(s[i][sri])) sl.getRange(i + 1, sti + 1).setNumberFormat('@').setValue(be);
+    syncPlots_(ss, plots);
+    return readAll_(ss);
+  });
+}

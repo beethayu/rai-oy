@@ -481,6 +481,29 @@
     .cut-age { text-align: right; flex-shrink: 0; font-weight: 700; font-size: 15px; color: #8A5A0B; white-space: nowrap; }
     .cut-age small { display: block; font-weight: 500; font-size: 13px; color: #6B736E; }
     .rc-day { padding: 10px 14px; }
+    .cal-box { padding: 8px 6px 6px; border-bottom: 1px solid #EEF1EF; }
+    .cal-s { display: flex; align-items: center; gap: 2px; } .cal-s .cal-g { flex: 1; min-width: 0; }
+    .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; }
+    .cal-w { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: #6B736E; padding: 2px 0 4px; }
+    .cal-m { display: flex; align-items: center; justify-content: space-between; padding: 0 2px 6px; } .cal-m b { font-size: 16px; color: #1F2A23; }
+    .cal-nav { border: 0; background: transparent; color: #1F5E3B; font-size: 24px; line-height: 1; width: 34px; height: 40px; padding: 0; } .cal-nav:disabled { color: #C9D0CB; }
+    .cal-c { border: 0; background: transparent; color: inherit; display: flex; flex-direction: column; align-items: center; padding: 2px 0 3px; min-width: 0; }
+    .cal-wd { font-size: 12px; color: #6B736E; margin-bottom: 2px; }
+    .cal-n { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15.5px; font-weight: 600; color: #1F2A23; border: 2px solid transparent; }
+    .cal-c.td .cal-n { background: #1F5E3B; color: #fff; } .cal-c.sel .cal-n { border-color: #1F5E3B; } .cal-c.td.sel .cal-n { box-shadow: 0 0 0 2px #fff inset; }
+    .cal-dots { display: flex; gap: 3px; height: 7px; margin-top: 3px; } .cal-dots i { width: 6px; height: 6px; border-radius: 50%; display: block; } .cal-dots i.o { background: transparent; border: 1.5px solid; }
+    .cal-sl { font-size: 15px; font-weight: 700; color: #1F2A23; margin-bottom: 4px; }
+    .cal-day .rc-dl { margin-bottom: 4px; }
+    .cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 2px; }
+    .cal-c.drop .cal-n { background: #1F5E3B; color: #fff; border-color: #1F5E3B; transform: scale(1.18); box-shadow: 0 0 0 4px #CDE8D6; } .cal-c.nodrop .cal-n { background: #FDECEC; border-color: #E9B8B8; color: #B42318; }
+    .rc-j[data-ids] { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; border-radius: 8px; transition: background .15s; }
+    .rc-j.cal-lift, .rc-j[data-lift] { background: #E8F2EC; opacity: .55; }
+    .cal-ghost { position: fixed; left: 0; top: 0; z-index: 2000; pointer-events: none; background: #fff; border: 1px solid #1F5E3B; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 8px 14px; font-size: 15px; font-weight: 600; color: #1F2A23; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-hint { font-size: 13px; color: #6B736E; margin-top: 10px; }
+    .cal-mv { margin-top: 10px; background: #F4F8F5; border: 1px solid #CFE0D5; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #1F2A23; }
+    .cal-mvb { display: flex; gap: 8px; margin-top: 8px; } .cal-mvb button { flex: 1; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-weight: 600; font-size: 15.5px; padding: 8px; } .cal-mvb button.go { background: #1F5E3B; color: #fff; }
+    .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
+    .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
     .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
     .rc-dl { font-size: 13px; font-weight: 600; color: #6B736E; margin-bottom: 2px; }
     .rc-j { font-size: 15px; color: #1F2A23; line-height: 1.45; }
@@ -2732,6 +2755,155 @@
       return head('งาน 7 วันล่าสุด', wk ? `ฉีดยารวม ${r1(wk)} ถัง` : '') + `<div class="srow-box">${body}</div>`;
     }
 
+    // ===== 📅 ปฏิทินงาน (K1 16 พ.ย. 69 แทนการ์ด "งาน 7 วันล่าสุด" ในหน้าวันนี้): แถบ 7 วัน / เต็มเดือน · แตะวัน = รายการวันนั้น + จดงานวันนั้น =====
+    // ทึบ = เกิดแล้ว (งานตามหมวด DS_COL · 🛡️ เฝ้าไร่ม่วง · ⛽ น้ำตาล) · กลวง = วันข้างหน้า (ครบตัด / ทะเบียนหมด / ฝนพยากรณ์) · ถึงคิวตามผังยังไม่ใส่ (ผังไม่มีวันคาดตรง ๆ ไม่เดา)
+    let calSel = '', calYM = '', calMv = null;
+    const isoAdd = (iso, k) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + k); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+    const CAL_GUARD = '#6D28D9', CAL_FUEL = '#9A3412';
+    function calIndex() {
+      const X = {}, at = iso => X[iso] = X[iso] || { logs: [], rain: [], fuel: [], guards: [], ripe: [], reg: [], wx: null };
+      (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
+        (/^ฝนตก/.test(a.activity_group) ? at(iso).rain : at(iso).logs).push(a); });
+      try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty }); })); } catch (e) {}
+      (gData.guards || []).forEach(g => { const st = guardStat(g); if (st.future) { at(st.s).guards.push(g); return; }
+        for (let d = st.s, k = 0; d <= st.e && k < 400; d = isoAdd(d, 1), k++) { if (d === st.e && !st.open && d !== st.s) break; at(d).guards.push(g); } });
+      const t0 = todayISO();
+      try { nearCutList().forEach(r => { const left = (r.type === 'อ้อยใหม่' ? 300 : 330) - r.age; if (left > 0) at(isoAdd(t0, left)).ripe.push(r); }); } catch (e) {}
+      try { regItems().forEach(i => { const iso = beToISO(i.exp); if (iso && iso >= t0) at(iso).reg.push(i); }); } catch (e) {}
+      try { const locs = wxLocs();
+        if (wxData && wxData.key === wxKey(locs)) locs.forEach((l, i) => { const r = wxData.res[i]; if (!r) return;
+          r.daily.time.forEach((iso, k) => { if (iso < t0) return; const mm = Math.round(num(r.daily.precipitation_sum[k]) * 10) / 10; if (mm < 5) return;
+            const w = at(iso); if (!w.wx || mm > w.wx.mm) w.wx = { mm, loc: l.loc }; }); }); } catch (e) {}
+      return X;
+    }
+    function calDots(o) {
+      if (!o) return '';
+      const d = [];
+      [...new Set(o.logs.map(grpLabel))].forEach(g => d.push(`<i style="background:${DS_COL[g] || '#4A524D'}"></i>`));
+      if (o.rain.length) d.push(`<i style="background:${DS_COL['ฝนตก']}"></i>`);
+      if (o.guards.length) d.push(`<i style="background:${CAL_GUARD}"></i>`);
+      if (o.fuel.length) d.push(`<i style="background:${CAL_FUEL}"></i>`);
+      if (o.ripe.length) d.push(`<i class="o" style="border-color:${DS_COL['ตัดอ้อย']}"></i>`);
+      if (o.reg.length) d.push(`<i class="o" style="border-color:#B54708"></i>`);
+      if (o.wx) d.push(`<i class="o" style="border-color:#1D6FB8"></i>`);
+      return d.slice(0, 4).join('');
+    }
+    const calLbl = iso => { const t = todayISO(); if (iso === t) return 'วันนี้'; if (iso === isoAdd(t, -1)) return 'เมื่อวาน'; if (iso === isoAdd(t, 1)) return 'พรุ่งนี้';
+      const d = new Date(iso + 'T00:00:00'); return `${TH_DAY[d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`; };
+    function dayRowsHtml(iso, o) {
+      o = o || {}; const t0 = todayISO();
+      const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
+      const out = [];
+      const acts = o.logs || [];
+      if (acts.length) {
+        const G = {};
+        acts.forEach(a => {
+          const det = a.activity_detail && a.activity_detail !== '-' ? a.activity_detail : '', who = logWho(a).join(' + '), k = grpLabel(a) + '|' + det + '|' + who;
+          const g = G[k] = G[k] || { lb: det || grpLabel(a), grp: grpLabel(a), who, ps: [], logs: [], doing: 0, spray: a.activity_group === 'ฉีดยา' };
+          if (!g.ps.includes(a.plot_id)) g.ps.push(a.plot_id);
+          g.logs.push(a); if (String(a.remark || '').includes('กำลังทำ')) g.doing++;
+        });
+        const dayT = tankOf(acts.filter(a => a.activity_group === 'ฉีดยา'));
+        if (dayT) out.push(`<div class="rc-dl">ฉีดรวม ${r1(dayT)} ถัง</div>`);
+        Object.keys(G).forEach(k => { const g = G[k], t = tankOf(g.logs), ch = g.spray ? logChems(g.logs) : '';
+ const drg = g.grp !== 'ตัดอ้อย' ? `${calDrag && calDrag.ids.join(',') === g.logs.map(l => l.log_id).join(',') ? ' data-lift="1"' : ''} data-ids="${g.logs.map(l => esc(l.log_id)).join(',')}" data-lb="${esc(g.lb + ' · ' + g.ps.map(id => pname(id)).join(', '))}"` : '';
+          out.push(`<div class="rc-j"${drg}><i class="cal-dot" style="background:${DS_COL[g.grp] || '#4A524D'}"></i><b>${esc(g.lb)}</b>${t ? ` · <b style="color:#B42318">${r1(t)} ถัง</b>` : ''}${g.doing ? ' (กำลังทำ)' : ''}<br><span><b style="font-weight:600;color:#1F5E3B">${esc(g.who || 'ไม่ระบุคน')}</b> · ${g.ps.map(id => esc(pname(id))).join(', ')}</span>${ch ? `<br><span>${esc(ch)}</span>` : ''}</div>`); });
+      }
+      if ((o.rain || []).length) {
+        const mm = o.rain.reduce((m, x) => Math.max(m, parseFloat((String(x.remark || '').match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0);
+        const ps = [...new Set(o.rain.map(x => x.plot_id))];
+        out.push(`<div class="rc-j"><b>🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}</b><br><span>${ps.slice(0, 6).map(id => esc(pname(id))).join(', ')}${ps.length > 6 ? ` และอีก ${ps.length - 6} แปลง` : ''}</span></div>`);
+      }
+      (o.fuel || []).forEach(f => out.push(`<div class="rc-j"><b>⛽ ให้น้ำมัน</b> ${esc(f.team.join(' + '))} · <b>${r1(f.qty)} ลิตร</b></div>`));
+      (o.guards || []).forEach(g => out.push(`<div class="rc-j"><b>🛡️ เฝ้าไร่</b> ${esc(String(g.workers || '').split(/\s*[,+]\s*/).filter(Boolean).join(' + ') || 'ไม่ระบุคน')}<br><span>${esc(guardWhere(g))}</span></div>`));
+      (o.ripe || []).forEach(r => out.push(`<div class="rc-j"><b>🌾 ครบตัด</b> ${esc(r.p.plot_name)}<br><span>${esc(r.type)} · อายุครบ ${r.type === 'อ้อยใหม่' ? '10' : '11'} เดือน</span></div>`));
+      (o.reg || []).forEach(i => out.push(`<div class="rc-j"><b style="color:#B54708">🪪 ทะเบียนหมด</b> ${esc(i.label)}${i.plate ? `<br><span>${esc(i.plate)}</span>` : ''}</div>`));
+      if (o.wx && iso >= t0) out.push(`<div class="rc-j"><b style="color:#1D6FB8">🌧 พยากรณ์ฝน ~${r1(o.wx.mm)} มม.</b><br><span>หนักสุดแถว ${esc(o.wx.loc)} · ค่าประมาณจากพยากรณ์</span></div>`);
+      if (!out.length) out.push(`<div class="rc-none"><span>${iso > t0 ? 'ยังไม่มีอะไรวันนี้' : 'ยังไม่มีบันทึก'}</span></div>`);
+      return out.join('');
+    }
+    function calHtml(head) {
+      const t0 = todayISO(); if (!calSel) calSel = t0; if (!calYM) calYM = calSel.slice(0, 7);
+      const X = calIndex();
+      let wk = 0; for (let k = 0; k < 7; k++) { const o = X[isoAdd(t0, -k)]; if (o) wk += tankOf(o.logs.filter(a => a.activity_group === 'ฉีดยา')); }
+      const cell = (iso, dim) => { const d = +iso.slice(8), cls = (iso === t0 ? ' td' : '') + (iso === calSel ? ' sel' : '') + (dim ? ' dim' : '') + (calDrag && calDrag.to === iso ? (iso > t0 ? ' nodrop' : ' drop') : '');
+        return `<button type="button" class="cal-c${cls}" data-iso="${iso}" onclick="calPick('${iso}')"><span class="cal-n">${d}</span><span class="cal-dots">${calDots(X[iso])}</span></button>`; };
+      const wdays = `<div class="cal-w">${TH_DAY.map(x => `<span>${x.replace('.', '')}</span>`).join('')}</div>`;
+      const [y, m] = calYM.split('-').map(Number), first = new Date(y, m - 1, 1), nd = new Date(y, m, 0).getDate();
+      let g = ''; for (let k = 0; k < first.getDay(); k++) g += '<span></span>';
+      for (let d = 1; d <= nd; d++) g += cell(`${y}-${pad(m)}-${pad(d)}`);
+      const grid = `<div class="cal-m"><button type="button" class="cal-nav" aria-label="เดือนก่อน" onclick="calMove(-1)">‹</button><b>${TH_MON_FULL[m - 1]} ${y + 543}</b><button type="button" class="cal-nav" aria-label="เดือนถัดไป" onclick="calMove(1)">›</button></div>${wdays}<div class="cal-g">${g}</div>`;
+      const fut = calSel > t0, dm = (iso => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${TH_MON[d.getMonth()]}`; })(calSel);
+      const dd = iso => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${TH_MON[d.getMonth()]}`; };
+      const mv = !calMv ? '' : calMv.err ? `<div class="cal-mv"><b style="color:#B42318">${esc(calMv.err)}</b><div class="cal-mvb"><button type="button" onclick="calMv=null;render()">ตกลง</button></div></div>`
+        : `<div class="cal-mv">ย้าย <b>${esc(calMv.lb)}</b><br>จาก ${dd(calMv.from)} → <b>${dd(calMv.to)}</b> ?<div class="cal-mvb"><button type="button" class="go" onclick="calMoveGo(this)">ย้าย</button><button type="button" onclick="calMv=null;render()">ยกเลิก</button></div></div>`;
+      const hint = (X[calSel] || { logs: [] }).logs.some(l => grpLabel(l) !== 'ตัดอ้อย') ? `<div class="cal-hint">กดค้างที่งานแล้วลากไปวางบนวันอื่น = เปลี่ยนวันที่</div>` : '';
+      calDragInit();
+      const btn = mv + hint + (fut ? '' : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
+      return head('ปฏิทินงาน', '', calSel !== t0 || calYM !== t0.slice(0, 7) ? `<button type="button" class="grp-all" onclick="calSel='';calYM='';render()">วันนี้</button>` : '')
+        + (wk ? `<div class="srow-s" style="padding:0 4px 6px">ฉีดยา 7 วันล่าสุดรวม <b style="color:#B42318">${r1(wk)} ถัง</b></div>` : '')
+        + `<div class="srow-box"><div class="cal-box">${grid}</div><div class="rc-day cal-day"><div class="cal-sl">${calLbl(calSel)}${calSel !== t0 && calSel.slice(0, 4) !== t0.slice(0, 4) ? ' ' + (+calSel.slice(0, 4) + 543) : ''}</div>${dayRowsHtml(calSel, X[calSel])}${btn}</div></div>`;
+    }
+    const TH_MON_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    function calPick(iso) { calSel = iso; render(); }
+    function calMove(k) { let [y, m] = calYM.split('-').map(Number); m += k; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } calYM = `${y}-${pad(m)}`; render(); }
+    // ลากงานไปวันอื่น: กดค้าง 0.4 วิที่แถวงาน → ลากไปวางบนวันในปฏิทิน → ยืนยันในการ์ดเดิม → moveActivities (GAS) · ห้ามวันข้างหน้า / ตัดอ้อย
+    let calDrag = null;
+    function calDragInit() {
+      if (window._calDragOn) return; window._calDragOn = 1;
+      let tm = null, sx = 0, sy = 0;
+      document.addEventListener('touchstart', e => {
+        const r = e.target.closest && e.target.closest('.rc-j[data-ids]'); if (!r || calDrag) return;
+        const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
+        tm = setTimeout(() => { tm = null; calDragStart(r, sx, sy); }, 400);
+      }, { passive: true });
+      document.addEventListener('touchmove', e => {
+        const t = e.touches[0];
+        if (tm && (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8)) { clearTimeout(tm); tm = null; }
+        if (calDrag) { e.preventDefault(); calDragMove(t.clientX, t.clientY); }
+      }, { passive: false });
+      const end = e => { if (tm) { clearTimeout(tm); tm = null; } if (calDrag) { const t = e.changedTouches[0]; calDragEnd(t.clientX, t.clientY); } };
+      document.addEventListener('touchend', end); document.addEventListener('touchcancel', e => { if (tm) clearTimeout(tm); tm = null; if (calDrag) calDragEnd(-1, -1); });
+    }
+    function calDragStart(r, x, y) {
+      const gh = document.createElement('div'); gh.className = 'cal-ghost'; gh.textContent = r.dataset.lb; document.body.appendChild(gh);
+      calDrag = { ids: r.dataset.ids.split(','), lb: r.dataset.lb, from: calSel, gh, row: r, to: '' };
+      r.classList.add('cal-lift'); try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
+      calDragMove(x, y);
+    }
+    function calDragMove(x, y) {
+      const D = calDrag; D.gh.style.transform = `translate(${Math.max(8, Math.min(innerWidth - 296, x - 140))}px, ${y - 96}px)`; // ลอยเหนือนิ้ว ไม่บังวันที่จะวาง
+      if (y < 110) window.scrollBy(0, -12); else if (y > innerHeight - 150) window.scrollBy(0, 12);
+      D.gh.style.display = 'none'; const el = document.elementFromPoint(x, y); D.gh.style.display = '';
+      const c = el && el.closest('.cal-c'), iso = c ? c.dataset.iso : '';
+      document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
+      if (c && iso !== D.from) c.classList.add(iso > todayISO() ? 'nodrop' : 'drop');
+      D.to = c && iso !== D.from ? iso : '';
+    }
+    function calDragEnd() {
+      const D = calDrag; calDrag = null; D.gh.remove(); D.row.classList.remove('cal-lift');
+      if (document.querySelector('.rc-j[data-lift]')) render();
+      document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
+      if (!D.to) return;
+      calMv = D.to > todayISO() ? { err: 'ย้ายไปวันข้างหน้าไม่ได้ (งานยังไม่เกิด) · ถ้าเป็นแผน รอปุ่มนัด/เตือน' } : { ids: D.ids, lb: D.lb, from: D.from, to: D.to };
+      render();
+    }
+    function calMoveGo(btn) {
+      const M = calMv; if (!M || !M.ids) return;
+      btn.disabled = true; btn.textContent = 'กำลังย้าย…';
+      callApi('moveActivities', [M.ids, M.to]).then(d => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); init(d); })
+        .catch(e => { calMv = { err: 'ย้ายไม่สำเร็จ: ' + e.message }; render(); });
+    }
+    // จดงานจากปฏิทิน: เปิดแชตพร้อมชิป "ลงวันที่ …" · ข้อความไม่บอกวัน → ทุกรายการใช้วันนั้น (เว็บบังคับเอง ไม่เชื่อ AI อย่างเดียว)
+    let chatDate = '';
+    function calLog(iso) { chatDate = iso === todayISO() ? '' : iso; switchTab('log'); setLogMode('chat'); chatPvRender(); }
+    const CH_DATE_WORD = /วันนี้|เมื่อวาน|เมื่อวันซืน|วันซืน|พรุ่งนี้|มะรืน|วันที่\s*\d|\d{1,2}\s*(ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค|มกรา|กุมภา|มีนา|เมษา|พฤษภา|มิถุนา|กรกฎา|สิงหา|กันยา|ตุลา|พฤศจิกา|ธันวา)|วัน(จันทร์|อังคาร|พุธ|พฤหัส|ศุกร์|เสาร์|อาทิตย์)|(อาทิตย์|สัปดาห์|อาทิตย)ที่แล้ว|(อาทิตย์|สัปดาห์)ก่อน|\d+\s*วัน(ก่อน|ที่แล้ว)/;
+    function chatDateFix(items, txt) {
+      if (!chatDate || CH_DATE_WORD.test(txt)) return;
+      items.forEach(it => { if (it.type === 'add' || it.type === 'new_chem' || it.type === 'bill' || it.type === 'asset_reg') return;
+        const d0 = it.date; it.date = chatDate; if (it.date_to && d0 && it.date_to > d0) it.date_to = isoAdd(chatDate, dayDiff(d0, it.date_to)); else if (it.date_to) it.date_to = ''; });
+    }
+
     // ===== 🛡️ เฝ้าไร่ (15 พ.ย. 69): คนงานนอนเฝ้าต่อเนื่อง · ไม่ใช่งานของแปลง (ไม่ขึ้นกำลังทำ ไม่บังถึงคิว) =====
     // นับ: คืน = จำนวนคืนที่ค้างแล้ว (วันนี้/วันเลิก − วันเริ่ม) · วัน = ออกเช้านับวันแรกด้วย ออกเย็นไม่นับวันแรก
     const dayDiff = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
@@ -2905,7 +3077,7 @@
       const nT = urRows.length + doRows.length + wsRows.length;
       const todo = head('ต้องทำวันนี้', nT || '', `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`)
         + (nT ? `<div class="srow-box">${urRows.join('') + doRows.join('') + wsRows.join('')}</div>` : none('วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง ไม่มีฝากดู'));
-      return top + todo + recentHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h;
+      return top + todo + calHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h;
     }
     let HOME_V = 'A'; // F แบบ A (ผู้ใช้เลือก 16 พ.ย. 69 06:34) · '' = แบบเดิม
     function nearCutMini(head) {
@@ -4553,8 +4725,8 @@
         .catch(e => alert('❌ ' + e.message));
     }
     function chatPvRender() {
-      $('chatPv').innerHTML = chatPics.map((p, i) => `<div class="pv"><img src="data:image/jpeg;base64,${p.th}" alt="รูปที่ ${i + 1}"><button type="button" aria-label="เอารูปออก" onclick="chatPicDrop(${i})">✕</button></div>`).join('');
-      $('chatList').style.paddingBottom = chatPics.length ? '150px' : '';
+      $('chatPv').innerHTML = (chatDate ? `<button type="button" class="ch-dt" aria-label="เลิกใช้วันที่นี้" onclick="chatDate='';chatPvRender()">ลงวันที่ ${+chatDate.slice(8)} ${TH_MON[+chatDate.slice(5, 7) - 1]}${/^[ก-๙]+$/.test(calLbl(chatDate)) ? ` (${calLbl(chatDate)})` : ''} ✕</button>` : '') + chatPics.map((p, i) => `<div class="pv"><img src="data:image/jpeg;base64,${p.th}" alt="รูปที่ ${i + 1}"><button type="button" aria-label="เอารูปออก" onclick="chatPicDrop(${i})">✕</button></div>`).join('');
+      $('chatList').style.paddingBottom = chatPics.length ? '150px' : chatDate ? '110px' : '';
     }
     function chatPicDrop(i) { chatPics.splice(i, 1); chatPvRender(); }
     function chatOpenBill(mi, i, btn) {
@@ -4676,6 +4848,7 @@
       const lastAi = chat.msgs.slice().reverse().find(m => m.ai);
       const reuse = !pics.length && chat.pics && lastAi && (lastAi.state === 'draft' || (lastAi.ask || []).length) ? chat.pics : null;
       const ctx = chatCtx(), withStats = looksAsk(txt);
+      if (chatDate) ctx.date_default = chatDate;
       if (typed) { box.value = ''; box.style.height = 'auto'; chatPics = []; chatPvRender(); }
       const mine = { me: true, t: txt }; if (pics.length) mine.th = pics.map(p => p.th);
       chat.msgs.push(mine); chatBusy = true; chatSave(); chatRender(true);
@@ -4688,7 +4861,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chFixPlots(items, txt); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chFixPlots(items, txt); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -4904,7 +5077,7 @@
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
       m.rid = m.rid || 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); // รหัสครั้งนี้ — กดซ้ำตอนเน็ตหลุด เซิร์ฟเวอร์ไม่ลงซ้ำ
       chatBusy = true; m.saving = true; chatSave(); chatRender();
-      callApi('chatApply', [ops, m.rid]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; init(d); if (after) setTimeout(after, 250); })
+      callApi('chatApply', [ops, m.rid]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; if (chatDate) { chatDate = ''; chatPvRender(); } init(d); if (after) setTimeout(after, 250); })
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message + '\nถ้าเน็ตหลุดระหว่างรอ อาจบันทึกไปแล้ว — กดบันทึกอีกครั้งได้เลย ระบบกันไม่ให้ลงซ้ำ'))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }

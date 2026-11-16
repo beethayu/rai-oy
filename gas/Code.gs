@@ -1069,8 +1069,12 @@ function geminiCall_(parts, what, level) { // level = thinkingLevel ของร
   // รุ่นหลักลอง 2 ครั้ง (ถ้าติดโควตา/คนใช้เยอะ) แล้วค่อยใช้รุ่นสำรอง
   const tries = [];
   models.forEach(m => { tries.push(m); tries.push(m); }); // แต่ละรุ่นลอง 2 ครั้ง (503 คนใช้เยอะ มักหายในไม่กี่วิ)
+  // K0 16 พ.ย. 69: โควตาฟรีรายวันของรุ่นหมด (429 PerDay) = ลองซ้ำก็ไม่ผ่าน → ข้ามไปรุ่นสำรองทันที ไม่รอ และจำไว้จนโควตารีเซ็ต (เที่ยงคืนเวลาแปซิฟิก)
+  const cache = CacheService.getScriptCache();
+  let wait = 0;
   for (let i = 0; i < tries.length; i++) {
-    if (i > 0) Utilities.sleep(i === 1 ? 1500 : 2500);
+    if (i < tries.length - 2 && cache.get('gq_' + tries[i])) { geminiTrace_.push(tries[i].replace('gemini-', '') + ' ข้าม (โควตาวันนี้หมด)'); if (i % 2 === 0) i++; continue; }
+    if (wait) Utilities.sleep(wait);
     const t1 = Date.now();
     const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + tries[i] + ':generateContent', {
       method: 'post', contentType: 'application/json', muteHttpExceptions: true,
@@ -1089,7 +1093,12 @@ function geminiCall_(parts, what, level) { // level = thinkingLevel ของร
       return out.map(p => p.text || '').join('');
     }
     last = code + ' ' + txt.slice(0, 200);
-    if (i % 2 === 0 && code !== 429 && code < 500) i++; // ผิดแบบถาวร (เช่น 400/404) ไม่ต้องลองซ้ำรุ่นเดิม
+    wait = i === 0 ? 1500 : 2500;
+    if (code === 429 && /PerDay/.test(txt)) {
+      const hm = Utilities.formatDate(new Date(), 'America/Los_Angeles', 'H:m').split(':');
+      try { cache.put('gq_' + tries[i], '1', Math.max(60, Math.min(21600, 86400 - (hm[0] * 3600 + hm[1] * 60)))); } catch (e) {}
+      if (i % 2 === 0) i++; wait = 0;
+    } else if (i % 2 === 0 && code !== 429 && code < 500) i++; // ผิดแบบถาวร (เช่น 400/404) ไม่ต้องลองซ้ำรุ่นเดิม
   }
   if (/^(429|5\d\d)/.test(last)) throw new Error('Gemini ไม่ว่าง (คนใช้เยอะ) รอสักครู่แล้วกดส่งใหม่');
   throw new Error((what || 'อ่านบิล') + 'ไม่ได้ (Gemini ' + last.slice(0, 80) + ')');

@@ -4989,17 +4989,49 @@
       return s;
     }
     // ดินแห้งหรือยัง/รถเข้าได้ไหม (16 พ.ย. 69): สรุปจากตัวคิดน้ำในดิน (soilCalc) รายแปลง ให้แชตตอบด้วยตัวเลขจริง ไม่เดา
+    // ===== รถเข้าแปลงได้ไหม (16 พ.ย. 69) — แอปตอบเอง ไม่ผ่าน AI (AI นับแปลงผิด/จำคำตอบเก่า) =====
+    // เกณฑ์ตั้งจากผลหน้างาน 16 พ.ย. (หนองทิ้งสุ่ม น้ำในดิน 64% ฝนล่าสุด 7 วัน อ้อยคลุมร่อง = แฉะ เข้าไม่ได้) — ปรับเมื่อมี SoilChecks มากขึ้น
+    function plotAgeD(p) { try { const i = flInfo(p); if (i && i.start && !i.pre) return flDd(i.start, todayISO()); } catch (e) {} return calcDays(p.plant_date); }
+    function soilVerdict(p, r) {
+      const t0 = todayISO(), age = plotAgeD(p), cov = (age || 0) >= 120, wl = r.prone.length > 0, past = r.rows.filter(x => !x.fut);
+      const big = [...past].reverse().find(x => x.rain >= 5), dr = big ? dayDiff(big.t, t0) : 99, needD = (cov ? 10 : 5) + (wl ? 3 : 0), lim = cov || wl ? 40 : 50, pct = Math.round(r.pct * 100);
+      const ck = (gData.soilChecks || []).filter(c => (String(c.plot_ids || '').split(',').includes(p.plot_id) || c.area === plotLoc(p.plot_name)) && dayDiff(beToISO(c.date), t0) <= 3).pop();
+      const rainAfter = ck ? past.some(x => x.t > beToISO(ck.date) && x.rain >= 5) : true;
+      const why = [];
+      why.push(cov ? `อ้อยคลุมร่องแล้ว (อายุเกิน 4 เดือน) แดดไม่ถึงดิน หน้าดินแห้งช้า ต้องเว้นฝน ${needD} วัน` : age !== null ? `อ้อยยังไม่คลุมร่อง (อายุไม่ถึง 4 เดือน) แห้งเร็วกว่า ต้องเว้นฝน ${needD} วัน` : 'ยังไม่รู้อายุอ้อย');
+      if (wl) why.push('น้ำขังง่าย (+3 วัน)'); if (r.sand) why.push('ดินทราย ระบายเร็ว');
+      why.push(big ? `ฝน ≥5 มม. ล่าสุด ${dr} วันก่อน (~${r1(big.rain)} มม.)` : 'ไม่มีฝน ≥5 มม. ใน 21 วัน');
+      why.push(`น้ำในดิน ~${pct}% (ต้องต่ำกว่า ${lim}%)`);
+      let v = r.over3 > 0 || pct >= lim || dr < needD ? 'ยังไม่ควรเข้า' : pct >= lim - 10 ? 'ก้ำกึ่ง ลองเดินดู' : 'น่าจะเข้าได้';
+      if (ck && !rainAfter) { v = /เข้าไม่ได้|แฉะ|ขัง/.test(ck.state) ? 'ยังไม่ควรเข้า' : /เข้าได้|แห้ง|หมาด/.test(ck.state) ? 'น่าจะเข้าได้' : v; why.unshift(`หน้างาน ${dShort(beToISO(ck.date))}: ${ck.state}`); }
+      return { v, why, age, cov, wait: Math.max(0, needD - dr) };
+    }
+    const SOIL_Q = /(รถ|ไถ|เข้า).*(ได้|ยัง|ไหม|มั้ย)|แห้ง(แล้ว)?(หรือ)?(ยัง|ไหม|มั้ย)|แฉะ(ไหม|มั้ย|อยู่ไหม)|ดิน.*(ยัง|ไหม|มั้ย|\?)/;
+    const isSoilQ = t => SOIL_Q.test(t) && /ยัง|ไหม|มั้ย|\?|หรือเปล่า|ได้หรือ/.test(t) && !/^(หน้างาน|ดูแล้ว)/.test(t.trim());
+    function soilAnswer(txt) {
+      if (!soilWx) return 'ยังโหลดข้อมูลฝนไม่ได้ ลองถามใหม่อีกครั้งครับ (หรือเดินดูหน้างาน)';
+      const P = gData.plots || [], areas = [...new Set(P.map(p => plotLoc(p.plot_name)))];
+      let pick = P.filter(p => txt.includes(p.plot_name)); if (!pick.length) { const A = areas.filter(a => txt.includes(a)); pick = P.filter(p => A.includes(plotLoc(p.plot_name))); }
+      const all = !pick.length; if (all) pick = P;
+      const R = pick.map(p => { let r = null; try { r = soilCalc(p); } catch (e) {} return r ? { p, ...soilVerdict(p, r) } : null; }).filter(Boolean);
+      if (!R.length) return 'ยังคำนวณไม่ได้ (แปลงยังไม่มีพิกัด) ครับ';
+      const by = {}; R.forEach(x => (by[x.v] = by[x.v] || []).push(x));
+      const icon = { 'ยังไม่ควรเข้า': '🔴', 'ก้ำกึ่ง ลองเดินดู': '🟠', 'น่าจะเข้าได้': '🟢' };
+      const head = all ? `รถเข้าแปลง ทุกพื้นที่ (${R.length} แปลง)` : `${[...new Set(R.map(x => plotLoc(x.p.plot_name)))].join(', ')} ${R.length} แปลง`;
+      let t = head + '\nสรุป: ' + Object.keys(icon).filter(k => by[k]).map(k => `${icon[k]} ${k} ${by[k].length} แปลง`).join(' · ') + '\n';
+      const G = {}; R.forEach(x => { const k = x.v + '|' + x.why.join('|'); (G[k] = G[k] || []).push(x); }); // แปลงเหตุผลเดียวกันรวมกลุ่ม
+      Object.values(G).forEach(g => { t += `\n${icon[g[0].v]} ${g[0].v} ${g.length} แปลง\n` + g.map(x => `• ${x.p.plot_name} — ${x.p.cane_type || ''} อายุ ${x.age !== null ? ageTxt(x.age) : '?'}`).join('\n') + `\nเหตุผล:\n` + g[0].why.map(w => `  – ${w}`).join('\n') + '\n'; });
+      const f3 = Math.max(...R.map(x => { try { return r1(soilCalc(x.p).rows.filter(y => y.fut).slice(0, 3).reduce((a, y) => a + y.rain, 0)); } catch (e) { return 0; } }));
+      t += `\nฝนพยากรณ์ 3 วันข้างหน้า สูงสุด ~${f3} มม.${f3 >= 5 ? ' (ถ้าตกจริง ต้องนับวันใหม่)' : ''}\nค่าประมาณจากฝน Open-Meteo + งานน้ำที่จด ลองเดินดูหน้างานก่อนเอารถเข้า · เดินดูแล้วพิมพ์บอกได้ เช่น "หน้างานหนองทิ้งสุ่มหมาดแล้ว เข้าได้"`;
+      return t;
+    }
     function chatSoil() {
       if (!soilWx) return undefined;
       const t0 = todayISO();
       return (gData.plots || []).map(p => { let r = null; try { r = soilCalc(p); } catch (e) {} if (!r) return null;
         const past = r.rows.filter(x => !x.fut), big = [...past].reverse().find(x => x.rain >= 5);
         return { plot: p.plot_name, area: plotLoc(p.plot_name), est: r.over3 >= 10 ? 'ดินอิ่มน้ำ/แฉะ (ฝนเกินที่ดินรับใน 3 วัน)' : r.pct >= 0.75 ? 'ชื้นมาก' : r.pct >= 0.5 ? 'ชื้น' : r.pct >= 0.25 ? 'หมาด ค่อนข้างแห้ง' : 'แห้ง', water_pct: Math.round(r.pct * 100), rain7_mm: r1(r.rain7),
-          // รถเข้า (ผู้ใช้ 16 พ.ย.: 64% หน้างานยังแฉะเข้าไม่ได้ · อ้อยคลุมร่องแล้ว แดดไม่ถึงดิน หน้าดินแห้งช้า) — ปรับต่อเมื่อมีผลหน้างาน (SoilChecks) มากขึ้น
-          canopy: (r.ageNow || 0) >= 120 ? 'อ้อยคลุมร่องแล้ว หน้าดินแห้งช้า' : undefined,
-          tractor: (() => { const cov = (r.ageNow || 0) >= 120, dr = big ? dayDiff(big.t, t0) : 99, wl = r.prone.length > 0;
-            if (r.over3 > 0 || r.pct >= (cov || wl ? 0.4 : 0.5) || dr < (cov ? 10 : 5) + (wl ? 3 : 0)) return 'ยังไม่ควรเข้า (ชื้น/แฉะ)';
-            return r.pct >= (cov ? 0.3 : 0.35) ? 'ก้ำกึ่ง ลองเดินดูก่อน' : 'น่าจะเข้าได้'; })(),
+          canopy: soilVerdict(p, r).cov ? 'อ้อยคลุมร่องแล้ว หน้าดินแห้งช้า' : undefined, tractor: soilVerdict(p, r).v,
           last_rain: big ? `${dayDiff(big.t, t0)} วันก่อน ~${r1(big.rain)} มม.` : 'ไม่มีฝน ≥5 มม. ใน 21 วัน', rain_next3_mm: r1(r.rows.filter(x => x.fut).slice(0, 3).reduce((a, x) => a + x.rain, 0)),
           sand: r.sand || undefined, waterlog: r.prone.length ? 'น้ำขังง่าย' : undefined, last_irrigation: r.lastIrr ? dayDiff(r.lastIrr.t, t0) + ' วันก่อน' : undefined }; }).filter(Boolean);
     }
@@ -5020,6 +5052,12 @@
       if (typed) { box.value = ''; box.style.height = 'auto'; chatPics = []; chatPvRender(); }
       const mine = { me: true, t: txt }; if (pics.length) mine.th = pics.map(p => p.th);
       chat.msgs.push(mine); chatBusy = true; chatSave(); chatRender(true);
+      if (isSoilQ(txt) && !pics.length) { // รถเข้าแปลงได้ไหม = แอปคำนวณตอบเอง ครบทุกแปลง
+        new Promise(res => { if (soilWx) return res(); let done = false; const tm = setTimeout(() => { done = true; res(); }, 8000); soilLoad(() => { if (!done) { clearTimeout(tm); res(); } }); })
+          .then(() => { chat.msgs.push({ ai: true, t: soilAnswer(txt), items: [], ask: [], state: 'info' }); })
+          .finally(() => { chatBusy = false; chatSave(); chatRender(true); });
+        return;
+      }
       const imgs = pics.map(p => p.b64);
       (needSoil ? new Promise(res => { if (soilBusy) return res(); let done = false; const t = setTimeout(() => { done = true; res(); }, 8000); soilLoad(() => { if (!done) { clearTimeout(t); res(); } }); }) : Promise.resolve())
         .then(() => { if (needSoil) ctx.soil = chatSoil(); return callApi('chatParse', [txt, withStats ? { ...ctx, stats: chatStats() } : ctx, imgs, reuse ? reuse.ids : null]); })

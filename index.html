@@ -4995,7 +4995,11 @@
       return (gData.plots || []).map(p => { let r = null; try { r = soilCalc(p); } catch (e) {} if (!r) return null;
         const past = r.rows.filter(x => !x.fut), big = [...past].reverse().find(x => x.rain >= 5);
         return { plot: p.plot_name, area: plotLoc(p.plot_name), est: r.over3 >= 10 ? 'ดินอิ่มน้ำ/แฉะ (ฝนเกินที่ดินรับใน 3 วัน)' : r.pct >= 0.75 ? 'ชื้นมาก' : r.pct >= 0.5 ? 'ชื้น' : r.pct >= 0.25 ? 'หมาด ค่อนข้างแห้ง' : 'แห้ง', water_pct: Math.round(r.pct * 100), rain7_mm: r1(r.rain7),
-          tractor: r.over3 > 0 || r.pct >= 0.5 ? 'ยังไม่ควรเข้า (ชื้น/แฉะ)' : r.pct >= 0.35 ? 'ก้ำกึ่ง ลองเดินดูก่อน' : 'น่าจะเข้าได้',
+          // รถเข้า (ผู้ใช้ 16 พ.ย.: 64% หน้างานยังแฉะเข้าไม่ได้ · อ้อยคลุมร่องแล้ว แดดไม่ถึงดิน หน้าดินแห้งช้า) — ปรับต่อเมื่อมีผลหน้างาน (SoilChecks) มากขึ้น
+          canopy: (r.ageNow || 0) >= 120 ? 'อ้อยคลุมร่องแล้ว หน้าดินแห้งช้า' : undefined,
+          tractor: (() => { const cov = (r.ageNow || 0) >= 120, dr = big ? dayDiff(big.t, t0) : 99, wl = r.prone.length > 0;
+            if (r.over3 > 0 || r.pct >= (cov || wl ? 0.4 : 0.5) || dr < (cov ? 10 : 5) + (wl ? 3 : 0)) return 'ยังไม่ควรเข้า (ชื้น/แฉะ)';
+            return r.pct >= (cov ? 0.3 : 0.35) ? 'ก้ำกึ่ง ลองเดินดูก่อน' : 'น่าจะเข้าได้'; })(),
           last_rain: big ? `${dayDiff(big.t, t0)} วันก่อน ~${r1(big.rain)} มม.` : 'ไม่มีฝน ≥5 มม. ใน 21 วัน', rain_next3_mm: r1(r.rows.filter(x => x.fut).slice(0, 3).reduce((a, x) => a + x.rain, 0)),
           sand: r.sand || undefined, waterlog: r.prone.length ? 'น้ำขังง่าย' : undefined, last_irrigation: r.lastIrr ? dayDiff(r.lastIrr.t, t0) + ' วันก่อน' : undefined }; }).filter(Boolean);
     }

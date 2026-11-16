@@ -502,6 +502,7 @@
     .cal-hint { font-size: 13px; color: #6B736E; margin-top: 10px; }
     .cal-mv { margin-top: 10px; background: #F4F8F5; border: 1px solid #CFE0D5; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #1F2A23; }
     .cal-mvb { display: flex; gap: 8px; margin-top: 8px; } .cal-mvb button { flex: 1; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-weight: 600; font-size: 15.5px; padding: 8px; } .cal-mvb button.go { background: #1F5E3B; color: #fff; }
+    .rem-r { cursor: pointer; } .srow.rem-today { padding: 10px 14px; } .rem-r .cal-mvb { margin-top: 8px; } .rem-r .cal-mvb button { font-size: 14.5px; padding: 7px 4px; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
     .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
     .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
@@ -2761,7 +2762,8 @@
     const isoAdd = (iso, k) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + k); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
     const CAL_GUARD = '#6D28D9', CAL_FUEL = '#9A3412';
     function calIndex() {
-      const X = {}, at = iso => X[iso] = X[iso] || { logs: [], rain: [], fuel: [], guards: [], ripe: [], reg: [], wx: null };
+      const X = {}, at = iso => X[iso] = X[iso] || { logs: [], rain: [], fuel: [], guards: [], ripe: [], reg: [], rem: [], wx: null };
+      (gData.reminders || []).forEach(r => { const iso = beToISO(r.date); if (iso) at(iso).rem.push(r); });
       (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
         (/^ฝนตก/.test(a.activity_group) ? at(iso).rain : at(iso).logs).push(a); });
       try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty }); })); } catch (e) {}
@@ -2783,6 +2785,7 @@
       if (o.rain.length) d.push(`<i style="background:${DS_COL['ฝนตก']}"></i>`);
       if (o.guards.length) d.push(`<i style="background:${CAL_GUARD}"></i>`);
       if (o.fuel.length) d.push(`<i style="background:${CAL_FUEL}"></i>`);
+      if (o.rem.length) d.push(`<i class="o" style="border-color:#D97706;border-width:2px"></i>`);
       if (o.ripe.length) d.push(`<i class="o" style="border-color:${DS_COL['ตัดอ้อย']}"></i>`);
       if (o.reg.length) d.push(`<i class="o" style="border-color:#B54708"></i>`);
       if (o.wx) d.push(`<i class="o" style="border-color:#1D6FB8"></i>`);
@@ -2794,6 +2797,9 @@
       o = o || {}; const t0 = todayISO();
       const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
       const out = [];
+      (o.rem || []).forEach(r => out.push(remRowHtml(r, iso)));
+      (gData.reminders || []).forEach(r => { const d = beToISO(r.date), n = d ? dayDiff(iso, d) : 0;
+        if (iso >= t0 && n > 0 && n <= num(r.lead_days)) out.push(`<div class="rc-j" style="color:#6B736E">🔔 อีก ${n} วัน · ${esc(r.text)} <span>(${esc(calLbl(d))})</span></div>`); });
       const acts = o.logs || [];
       if (acts.length) {
         const G = {};
@@ -2822,11 +2828,30 @@
       if (!out.length) out.push(`<div class="rc-none"><span>${iso > t0 ? 'ยังไม่มีอะไรวันนี้' : 'ยังไม่มีบันทึก'}</span></div>`);
       return out.join('');
     }
+    // แถวนัด/เตือน: แตะกางปุ่ม · ถึงวัน/เลยแล้ว = "ทำแล้ว → จดเป็นงาน" (เปิดแชตพร้อมข้อความ+วันที่ บันทึกแล้วนัดปิดเอง) · ลากเปลี่ยนวันได้ทุกวัน (รวมวันข้างหน้า)
+    let remOpen = '', chatRemId = '';
+    function remRowHtml(r, iso, inToday) {
+      const t0 = todayISO(), d = beToISO(r.date), op = remOpen === r.rem_id + (inToday ? 't' : ''), due = d <= t0;
+      const sub = [r.time ? r.time + ' น.' : '', r.repeat ? 'ทุก' + r.repeat : '', inToday && d < t0 ? `เลยมา ${dayDiff(d, t0)} วัน` : ''].filter(Boolean).join(' · ');
+      return `<div class="rc-j rem-r"${inToday ? '' : ` data-rem="${esc(r.rem_id)}" data-lb="🔔 ${esc(r.text)}"`} onclick="remOpen=remOpen==='${qa(r.rem_id + (inToday ? 't' : ''))}'?'':'${qa(r.rem_id + (inToday ? 't' : ''))}';render()"><i class="cal-dot" style="background:transparent;border:2px solid #D97706"></i><b>🔔 ${esc(r.text)}</b>${sub ? `<br><span>${esc(sub)}</span>` : ''}
+        ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${due ? `<button type="button" class="go" onclick="remToLog('${qa(r.rem_id)}')">ทำแล้ว → จดเป็นงาน</button><button type="button" onclick="remDo('done','${qa(r.rem_id)}',this)">ทำแล้ว</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="remDo('del','${qa(r.rem_id)}',this)">ลบ</button></div>` : ''}</div>`;
+    }
+    function remDo(fn, id, btn, date) {
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      return callApi('remOp', [{ fn, id, date }]).then(d => { gData.reminders = d.reminders || []; remOpen = ''; render(); })
+        .catch(e => { alert('❌ ' + e.message); render(); });
+    }
+    function remToLog(id) {
+      const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
+      chatRemId = id; const d = beToISO(r.date); chatDate = d < todayISO() ? d : '';
+      switchTab('log'); setLogMode('chat'); chatPvRender();
+      const el = $('chatIn'); el.value = r.text + ' '; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px';
+    }
     function calHtml(head) {
       const t0 = todayISO(); if (!calSel) calSel = t0; if (!calYM) calYM = calSel.slice(0, 7);
       const X = calIndex();
       let wk = 0; for (let k = 0; k < 7; k++) { const o = X[isoAdd(t0, -k)]; if (o) wk += tankOf(o.logs.filter(a => a.activity_group === 'ฉีดยา')); }
-      const cell = (iso, dim) => { const d = +iso.slice(8), cls = (iso === t0 ? ' td' : '') + (iso === calSel ? ' sel' : '') + (dim ? ' dim' : '') + (calDrag && calDrag.to === iso ? (iso > t0 ? ' nodrop' : ' drop') : '');
+      const cell = (iso, dim) => { const d = +iso.slice(8), cls = (iso === t0 ? ' td' : '') + (iso === calSel ? ' sel' : '') + (dim ? ' dim' : '') + (calDrag && calDrag.to === iso ? (iso > t0 && !calDrag.rem ? ' nodrop' : ' drop') : '');
         return `<button type="button" class="cal-c${cls}" data-iso="${iso}" onclick="calPick('${iso}')"><span class="cal-n">${d}</span><span class="cal-dots">${calDots(X[iso])}</span></button>`; };
       const wdays = `<div class="cal-w">${TH_DAY.map(x => `<span>${x.replace('.', '')}</span>`).join('')}</div>`;
       const [y, m] = calYM.split('-').map(Number), first = new Date(y, m - 1, 1), nd = new Date(y, m, 0).getDate();
@@ -2837,9 +2862,9 @@
       const dd = iso => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${TH_MON[d.getMonth()]}`; };
       const mv = !calMv ? '' : calMv.err ? `<div class="cal-mv"><b style="color:#B42318">${esc(calMv.err)}</b><div class="cal-mvb"><button type="button" onclick="calMv=null;render()">ตกลง</button></div></div>`
         : `<div class="cal-mv">ย้าย <b>${esc(calMv.lb)}</b><br>จาก ${dd(calMv.from)} → <b>${dd(calMv.to)}</b> ?<div class="cal-mvb"><button type="button" class="go" onclick="calMoveGo(this)">ย้าย</button><button type="button" onclick="calMv=null;render()">ยกเลิก</button></div></div>`;
-      const hint = (X[calSel] || { logs: [] }).logs.some(l => grpLabel(l) !== 'ตัดอ้อย') ? `<div class="cal-hint">กดค้างที่งานแล้วลากไปวางบนวันอื่น = เปลี่ยนวันที่</div>` : '';
+      const hint = (X[calSel] || { logs: [] }).logs.some(l => grpLabel(l) !== 'ตัดอ้อย') || ((X[calSel] || {}).rem || []).length ? `<div class="cal-hint">กดค้างที่งานแล้วลากไปวางบนวันอื่น = เปลี่ยนวันที่</div>` : '';
       calDragInit();
-      const btn = mv + hint + (fut ? '' : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
+      const btn = mv + hint + (fut ? `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ นัด/เตือน${calSel === isoAdd(t0, 1) ? 'พรุ่งนี้' : 'วันที่ ' + dm}</button>` : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
       return head('ปฏิทินงาน', '', calSel !== t0 || calYM !== t0.slice(0, 7) ? `<button type="button" class="grp-all" onclick="calSel='';calYM='';render()">วันนี้</button>` : '')
         + (wk ? `<div class="srow-s" style="padding:0 4px 6px">ฉีดยา 7 วันล่าสุดรวม <b style="color:#B42318">${r1(wk)} ถัง</b></div>` : '')
         + `<div class="srow-box"><div class="cal-box">${grid}</div><div class="rc-day cal-day"><div class="cal-sl">${calLbl(calSel)}${calSel !== t0 && calSel.slice(0, 4) !== t0.slice(0, 4) ? ' ' + (+calSel.slice(0, 4) + 543) : ''}</div>${dayRowsHtml(calSel, X[calSel])}${btn}</div></div>`;
@@ -2853,7 +2878,7 @@
       if (window._calDragOn) return; window._calDragOn = 1;
       let tm = null, sx = 0, sy = 0;
       document.addEventListener('touchstart', e => {
-        const r = e.target.closest && e.target.closest('.rc-j[data-ids]'); if (!r || calDrag) return;
+        const r = e.target.closest && e.target.closest('.rc-j[data-ids],.rc-j[data-rem]'); if (!r || calDrag) return;
         const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
         tm = setTimeout(() => { tm = null; calDragStart(r, sx, sy); }, 400);
       }, { passive: true });
@@ -2867,7 +2892,7 @@
     }
     function calDragStart(r, x, y) {
       const gh = document.createElement('div'); gh.className = 'cal-ghost'; gh.textContent = r.dataset.lb; document.body.appendChild(gh);
-      calDrag = { ids: r.dataset.ids.split(','), lb: r.dataset.lb, from: calSel, gh, row: r, to: '' };
+      calDrag = { ids: r.dataset.ids ? r.dataset.ids.split(',') : [], rem: r.dataset.rem || '', lb: r.dataset.lb, from: calSel, gh, row: r, to: '' };
       r.classList.add('cal-lift'); try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
       calDragMove(x, y);
     }
@@ -2877,7 +2902,7 @@
       D.gh.style.display = 'none'; const el = document.elementFromPoint(x, y); D.gh.style.display = '';
       const c = el && el.closest('.cal-c'), iso = c ? c.dataset.iso : '';
       document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
-      if (c && iso !== D.from) c.classList.add(iso > todayISO() ? 'nodrop' : 'drop');
+      if (c && iso !== D.from) c.classList.add(iso > todayISO() && !D.rem ? 'nodrop' : 'drop');
       D.to = c && iso !== D.from ? iso : '';
     }
     function calDragEnd() {
@@ -2885,18 +2910,19 @@
       if (document.querySelector('.rc-j[data-lift]')) render();
       document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
       if (!D.to) return;
-      calMv = D.to > todayISO() ? { err: 'ย้ายไปวันข้างหน้าไม่ได้ (งานยังไม่เกิด) · ถ้าเป็นแผน รอปุ่มนัด/เตือน' } : { ids: D.ids, lb: D.lb, from: D.from, to: D.to };
+      calMv = D.to > todayISO() && !D.rem ? { err: 'ย้ายไปวันข้างหน้าไม่ได้ (งานยังไม่เกิด) · ถ้าเป็นแผน รอปุ่มนัด/เตือน' } : { ids: D.ids, rem: D.rem, lb: D.lb, from: D.from, to: D.to };
       render();
     }
     function calMoveGo(btn) {
       const M = calMv; if (!M || !M.ids) return;
       btn.disabled = true; btn.textContent = 'กำลังย้าย…';
+      if (M.rem) return remDo('move', M.rem, null, M.to).then(() => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); render(); });
       callApi('moveActivities', [M.ids, M.to]).then(d => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); init(d); })
         .catch(e => { calMv = { err: 'ย้ายไม่สำเร็จ: ' + e.message }; render(); });
     }
     // จดงานจากปฏิทิน: เปิดแชตพร้อมชิป "ลงวันที่ …" · ข้อความไม่บอกวัน → ทุกรายการใช้วันนั้น (เว็บบังคับเอง ไม่เชื่อ AI อย่างเดียว)
     let chatDate = '';
-    function calLog(iso) { chatDate = iso === todayISO() ? '' : iso; switchTab('log'); setLogMode('chat'); chatPvRender(); }
+    function calLog(iso) { chatDate = iso === todayISO() ? '' : iso; chatRemId = ''; switchTab('log'); setLogMode('chat'); chatPvRender(); }
     const CH_DATE_WORD = /วันนี้|เมื่อวาน|เมื่อวันซืน|วันซืน|พรุ่งนี้|มะรืน|วันที่\s*\d|\d{1,2}\s*(ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค|มกรา|กุมภา|มีนา|เมษา|พฤษภา|มิถุนา|กรกฎา|สิงหา|กันยา|ตุลา|พฤศจิกา|ธันวา)|วัน(จันทร์|อังคาร|พุธ|พฤหัส|ศุกร์|เสาร์|อาทิตย์)|(อาทิตย์|สัปดาห์|อาทิตย)ที่แล้ว|(อาทิตย์|สัปดาห์)ก่อน|\d+\s*วัน(ก่อน|ที่แล้ว)/;
     function chatDateFix(items, txt) {
       if (!chatDate || CH_DATE_WORD.test(txt)) return;
@@ -3074,6 +3100,8 @@
       }
       if (!HOME_V) return top + recentHtml(head) + fuelHtml(head) + guardHtml(head) + nearCutHtml(head) + old + h;
       // F (16 พ.ย. 69 ร่าง): ต้องทำวันนี้ = ถึงคิว + กำลังทำ + ฝากดู การ์ดเดียว → งาน 7 วัน → เฝ้าไร่ → ⛽ → รอตัด (ย่อบรรทัดเดียว)
+      const remRows = (gData.reminders || []).filter(r => { const d = beToISO(r.date); return d && d <= todayISO() && dayDiff(d, todayISO()) <= 30; }).map(r => `<div class="srow rem-today">${remRowHtml(r, todayISO(), true)}</div>`);
+      urRows.unshift(...remRows);
       const nT = urRows.length + doRows.length + wsRows.length;
       const todo = head('ต้องทำวันนี้', nT || '', `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`)
         + (nT ? `<div class="srow-box">${urRows.join('') + doRows.join('') + wsRows.join('')}</div>` : none('วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง ไม่มีฝากดู'));
@@ -4644,6 +4672,7 @@
     const CHAT_STORE = 'raioy_chat';
     let logMode = lsGet('raioy_logmode') || 'chat', chatBusy = false;
     let chat = (() => { try { const c = JSON.parse(lsGet(CHAT_STORE) || 'null'); return c && Array.isArray(c.msgs) ? c : { msgs: [] }; } catch (e) { return { msgs: [] }; } })();
+    const leadTxt = n => n % 30 === 0 ? `${n / 30} เดือน` : n % 7 === 0 ? `${n / 7} สัปดาห์` : `${n} วัน`;
     const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
     const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว' };
     const REG_CATS = ['Truck', 'Tractor', 'Car', 'Home'];
@@ -4977,6 +5006,11 @@
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
+      if (it.type === 'reminder') {
+        it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = ['เดือน', 'ปี'].includes(it.repeat) ? it.repeat : '';
+        it.lead_days = Math.max(0, Math.round(num(it.lead_days))); it.rid = it.rid || 'R' + Date.now() + Math.random().toString(36).slice(2, 5);
+        return it.text && /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') ? it : null;
+      }
       if (it.type === 'fuel_give') {
         const to = (Array.isArray(it.to) ? it.to : [it.to]).map(x => String(x || '').trim()).filter(Boolean), r = fuelTeamOf(to);
         it.team = r.team; it.teamAuto = r.auto; it.item = FUEL_ITEM; it.qty = num(it.qty); it.date = it.date || todayISO(); it.fid = it.fid || 'F' + Date.now() + Math.random().toString(36).slice(2, 5);
@@ -5055,6 +5089,7 @@
           if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
+        else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
@@ -5072,12 +5107,12 @@
     }
     function chatCommit(mi, after) {
       const m = chat.msgs[mi]; if (!m || m.state !== 'draft' || chatBusy) return;
-      for (const it of m.items) { if (it.date && !checkDate(it.date)) return; if (it.date_to && !checkDate(it.date_to)) return; }
+      for (const it of m.items) { if (it.type === 'reminder') continue; if (it.date && !checkDate(it.date)) return; if (it.date_to && !checkDate(it.date_to)) return; }
       const ops = chatOps(m.items);
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
       m.rid = m.rid || 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); // รหัสครั้งนี้ — กดซ้ำตอนเน็ตหลุด เซิร์ฟเวอร์ไม่ลงซ้ำ
       chatBusy = true; m.saving = true; chatSave(); chatRender();
-      callApi('chatApply', [ops, m.rid]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; if (chatDate) { chatDate = ''; chatPvRender(); } init(d); if (after) setTimeout(after, 250); })
+      callApi('chatApply', [ops, m.rid]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; if (chatDate) { chatDate = ''; chatPvRender(); } if (chatRemId) { const rid = chatRemId; chatRemId = ''; remDo('done', rid); } init(d); if (after) setTimeout(after, 250); })
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message + '\nถ้าเน็ตหลุดระหว่างรอ อาจบันทึกไปแล้ว — กดบันทึกอีกครั้งได้เลย ระบบกันไม่ให้ลงซ้ำ'))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }
@@ -5109,6 +5144,10 @@
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+      } else if (it.type === 'reminder') {
+        h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))
+          + row('เวลา', it.time ? it.time + ' น.' : '') + row('ซ้ำ', it.repeat ? 'ทุก' + it.repeat : '') + row('เตือนล่วงหน้า', it.lead_days ? leadTxt(it.lead_days) : '')
+          + (it.date < todayISO() ? `<div class="ch-warn">วันที่นี้ผ่านไปแล้ว — ถ้าทำไปแล้วให้จดเป็นงานแทน</div>` : '');
       } else if (it.type === 'fuel_give') {
         const iv = invItem(it.item) || {}, after = num(iv.stock) - it.qty;
         h = `<div class="ch-t">⛽ ให้น้ำมันเครื่องพ่นยา</div>` + row('ให้ใคร', it.team.join(' + ') + (it.teamAuto ? ' (ทีมที่ฉีดด้วยกันล่าสุด)' : ''))

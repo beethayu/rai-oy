@@ -3925,7 +3925,7 @@
         if (!subs.length && last) subs.push(`ล่าสุด ${esc(last.timestamp)} · ${esc(last.event_type)}`);
         return `<div class="srow ${!isOk ? 'srow-bad' : ''} ${open ? 'open' : ''}">
           <button type="button" class="srow-main" onclick="tglFleet('${qa(a.name)}')">
-            <span class="srow-l"><span class="srow-n">${icon} ${esc(eqS(a.name))}</span>${eqS(a.name) !== a.name ? `<span class="srow-s">${esc(a.name)}</span>` : ''}${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
+            <span class="srow-l"><span class="srow-n">${icon} ${esc(eqS(a.name))}${dash(a.trailer_plate) ? ' <span style="font-size:13px;font-weight:600;color:#1F5E3B;white-space:nowrap">· พ่วง</span>' : ''}</span>${eqS(a.name) !== a.name ? `<span class="srow-s">${esc(a.name)}</span>` : ''}${dash(a.trailer_plate) ? `<span class="srow-s" style="color:#1F2A23"><span style="white-space:nowrap">แม่ <b>${esc(dash(a.plate) || '?')}</b></span> + <span style="white-space:nowrap">ลูก <b>${esc(dash(a.trailer_plate))}</b></span></span>` : dash(a.plate) ? `<span class="srow-s">ทะเบียน ${esc(a.plate)}</span>` : ''}${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
             ${pill}
           </button>
           ${open ? `<div class="srow-act">

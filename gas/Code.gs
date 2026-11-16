@@ -1081,7 +1081,7 @@ function geminiCall_(parts, what, level) { // level = thinkingLevel ของร
       })
     });
     const code = res.getResponseCode(), txt = res.getContentText();
-    geminiTrace_.push(tries[i].replace('gemini-', '') + ' ' + code + ' ' + (Date.now() - t1));
+    geminiTrace_.push(tries[i].replace('gemini-', '') + ' ' + code + ' ' + (Date.now() - t1) + (code === 200 ? '' : ' ' + (txt.match(/"(?:message|quotaId|quotaMetric)"\s*:\s*"[^"]{0,140}/g) || []).join(' | ').replace(/"/g, '')));
     if (code === 200) {
       geminiUsed_ = tries[i];
       const j = JSON.parse(txt);

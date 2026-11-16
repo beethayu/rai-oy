@@ -57,6 +57,9 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
    · repeat: "ทุกวัน" = "วัน" · "ทุกสัปดาห์/ทุกวันจันทร์" = "สัปดาห์" (date = วันแรกที่ถึง) · "ทุกเดือน" = "เดือน" · "ทุกปี" = "ปี" · ไม่บอก = "" · ทุกวันไม่บอกวันเริ่ม = เริ่มวันนี้ ไม่ต้องถาม
    · lead_days = เตือนล่วงหน้ากี่วัน ("ล่วงหน้า 3 วัน" = 3, "1 อาทิตย์" = 7, "2 สัปดาห์" = 14, "1 เดือน" = 30) · "วันจริงพอ" = 0 · ถ้าวันนัดไกลเกิน 7 วันและไม่บอก ให้ถามใน ask "เตือนล่วงหน้าไหม?" options ["วันจริงพอ","3 วัน","1 สัปดาห์","2 สัปดาห์","1 เดือน"] (ใส่ lead_days 0 ไว้ก่อน)
    · ไม่บอกวัน = ถามใน ask "วันไหน?" ห้ามเดา · วันในอดีต/วันนี้ที่ทำไปแล้ว = งานจริง (activity) ไม่ใช่ reminder · เรื่องวันข้างหน้าห้ามลงเป็น activity
+16) {"type":"rem_done","id":"R..."} = ปิดนัด/เตือนที่ทำแล้ว (id ตาม ctx.reminders) เช่น ctx.reminders มี "ไปเอาลำโพงที่ซ่อมเสร็จ" แล้วผู้ใช้บอก "ไปเอาลำโพงมาแล้ว"
+เรื่องนอกไร่ (ของใช้ส่วนตัว/ในบ้าน เช่น ลำโพง ทีวี มือถือ แอร์ รถส่วนตัวที่ไม่อยู่ใน ctx.vehicles) ที่ไม่ใช่นัด: items ว่าง reply สั้น ๆ ว่าเป็นเรื่องนอกไร่ ไม่ได้จดลงไร่ (ถ้าตรงกับนัดใน ctx.reminders ใช้ rem_done)
+asset_note / asset_status / asset_reg: ใช้เมื่อผู้ใช้พูดถึงรถ/เครื่องคันนั้นจริง (ชื่อ รุ่น ยี่ห้อ ชนิด เช่น "รถไถเล็ก" "คูโบต้า" "สิบล้อ") หรือรูปเป็นรถคันนั้น · ห้ามจับจากตัวเลขอย่างเดียว เช่น "2420 บาท" เป็นเงิน ไม่ใช่ Kubota B2420 · ซ่อมของที่ไม่ใช่รถ/เครื่องของไร่ = ไม่ใช่ asset_note
 รูปภาพ (ถ้ามี จะแนบท้ายข้อความ เรียงตามลำดับ เลข 0,1,2…) ส่วนใหญ่เป็นรูปหน้างาน ไม่ใช่บิล:
 - รูปรถ/เครื่องจักร (สิบล้อ รถพ่วง รถไถ ที่ไปต่อกล่อง/ซ่อม/ดัดแปลง): ใช้ item asset_note
   • อ่านป้ายทะเบียนจากรูปเท่านั้น (แบบไทย เช่น "70-1234" หรือ "กข 1234" + จังหวัดถ้าเห็น) อ่านไม่ชัดใส่ "" และใส่ "plates" ใน unsure ห้ามเดาตัวอักษร/ตัวเลข
@@ -187,7 +190,7 @@ function chatParse(text, ctx, images, reuse) {
   const prompt = CHAT_RULES_ +
     (ctx.date_default ? '\n\nผู้ใช้เลือกวันในปฏิทิน: ctx.date_default = ' + ctx.date_default + ' → ข้อความที่ไม่บอกวัน ให้ทุกรายการใช้ date = ctx.date_default แทน today · ถ้า date_default หลัง today = เรื่องที่วางแผน/นัดไว้ ใช้ type reminder เท่านั้น (ห้าม activity)' : '') +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
-      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
+      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], reminders: ctx.reminders || undefined, chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
@@ -324,6 +327,8 @@ function chatApply(ops, rid) {
           done++;
           break;
         }
+      } else if (op.fn === 'remdone') {
+        if (remDone_(ss, op.id)) done++;
       } else if (op.fn === 'rem') {
         if (remAdd_(ss, op.p || {}, op.id)) done++;
       } else if (op.fn === 'unwatch') {

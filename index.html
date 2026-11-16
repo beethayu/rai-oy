@@ -4766,6 +4766,19 @@
     const CHAT_STORE = 'raioy_chat';
     let logMode = lsGet('raioy_logmode') || 'chat', chatBusy = false;
     let chat = (() => { try { const c = JSON.parse(lsGet(CHAT_STORE) || 'null'); return c && Array.isArray(c.msgs) ? c : { msgs: [] }; } catch (e) { return { msgs: [] }; } })();
+    // AI เคยจับ "ซ่อมลำโพง 2420 บาท" เป็น Kubota B2420 (16 พ.ย. 69): รถที่ AI เลือก ต้องมีชื่อ/ยี่ห้อ/ชนิดในข้อความ · ไม่มีเลย แต่มีแค่ตัวเลขรุ่นปนในข้อความ = ทิ้งรายการนั้น
+    const AS_WORDS = { Tractor: /รถไถ|แทรกเตอร์|ไถ/, Truck: /รถ|สิบล้อ|หกล้อ|กระบะ|พ่วง|ดั๊ม|ดัมพ์/, Pump: /พญานาค|ปั๊ม|ปั้ม|เครื่องสูบ/, Car: /รถ/ };
+    const AS_BRAND = { kubota: /คูโบ|kubota/i, 'new holland': /นิวฮอล|ฮอลแลนด์|new holland/i, 'john deere': /จอห์น|deere/i, yanmar: /ยันม่าร์|yanmar/i, isuzu: /อีซูซุ|isuzu/i, hino: /ฮีโน่|hino/i };
+    function chAssetGuard(items, txt, r, hasPic) {
+      const t = String(txt || '');
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg'].includes(it.type) || !it.asset) continue;
+        const a = chAsset(it.asset) || { name: it.asset }, nm = String(a.name), sh = eqS(nm);
+        const said = t.includes(nm) || (sh && t.toLowerCase().includes(sh.toLowerCase())) || Object.keys(AS_BRAND).some(b => nm.toLowerCase().includes(b) && AS_BRAND[b].test(t)) || (AS_WORDS[a.category] || /^$/).test(t);
+        const digits = (sh.match(/\d{3,}/) || [])[0];
+        if (!said && (!hasPic || (digits && t.includes(digits)))) { items.splice(i, 1); r.reply = (r.reply ? r.reply + '\n' : '') + `(ไม่ได้จดเข้า ${sh || nm} — ข้อความไม่ได้พูดถึงรถคันนี้ ถ้าเป็นเรื่องนอกไร่ไม่ต้องจด)`; }
+      }
+    }
     const leadTxt = n => n % 30 === 0 ? `${n / 30} เดือน` : n % 7 === 0 ? `${n / 7} สัปดาห์` : `${n} วัน`;
     const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
     const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว' };
@@ -4828,6 +4841,7 @@
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
         flow: chatFlow(),
         fuel: fuelTeams().map(t => fuelBal(t)).filter(Boolean).map(b => ({ team: b.team.join(' + '), text: fuelLine(b), per_day_l: r1(b.perDay), warn: b.st })),
+        reminders: (gData.reminders || []).map(r => ({ id: r.rem_id, text: r.text, date: beToISO(r.date), repeat: r.repeat || undefined })),
         guards: (gData.guards || []).slice(-12).map(g => { const st = guardStat(g); return { area: g.area, plots: guardPlots(g), workers: g.workers, start: st.s, part: g.start_part, end: st.open ? '' : st.e, nights: st.nights, days: st.days, open: st.open }; }),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
@@ -4984,7 +4998,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chFixPlots(items, txt); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chFixPlots(items, txt); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -5100,6 +5114,7 @@
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
+      if (it.type === 'rem_done') { const r = (gData.reminders || []).find(x => x.rem_id === it.id); if (!r) return null; it.text = r.text; return it; }
       if (it.type === 'reminder') {
         it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'].includes(it.repeat) ? it.repeat : '';
         it.lead_days = Math.max(0, Math.round(num(it.lead_days))); it.rid = it.rid || 'R' + Date.now() + Math.random().toString(36).slice(2, 5);
@@ -5183,6 +5198,7 @@
           if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
+        else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
         else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
@@ -5238,6 +5254,8 @@
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+      } else if (it.type === 'rem_done') {
+        h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
       } else if (it.type === 'reminder') {
         h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))
           + row('เวลา', it.time ? it.time + ' น.' : '') + row('ซ้ำ', it.repeat ? 'ทุก' + it.repeat : '') + row('เตือนล่วงหน้า', it.lead_days ? leadTxt(it.lead_days) : '')

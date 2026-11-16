@@ -52,6 +52,11 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 14) {"type":"fuel_give","to":["หำ","ผัน"],"item":"น้ำมันเบนซิน","qty":4,"date":"YYYY-MM-DD"} = ให้น้ำมันเบนซิน (ผสม 2T แล้ว) ไปใช้กับเครื่องพ่นยา เช่น "ให้น้ำมันหำ 4 ลิตร" "เอาเบนซินให้หำผัน 4 ลิตร"
    · to = ชื่อคนตามที่พิมพ์ (ตาม ctx.workers) · qty = ลิตร ไม่บอกลิตร ให้ถามใน ask "ให้กี่ลิตร?" options ["2 ลิตร","4 ลิตร","6 ลิตร"] ห้ามเดา · ห้ามใช้ activity กับการให้น้ำมัน
    · ถามว่าน้ำมันเหลือเท่าไร/ต้องให้เมื่อไร ตอบจาก ctx.fuel (ค่าประมาณ) ห้ามคิดเลขเอง
+15) {"type":"reminder","text":"จ่ายค่างวดรถ","date":"YYYY-MM-DD","time":"","repeat":"","lead_days":0} = นัด/เตือน/งานที่วางแผนไว้วันข้างหน้า (ในไร่หรือนอกไร่) เช่น "เตือน 20 พ.ย. จ่ายค่างวดรถ" "นัดหมอ 3 ธ.ค. 9 โมง" "พรุ่งนี้หำผันไปฉีดรอบไร่หนองทิ้งสุ่ม" "อีก 2 อาทิตย์ไปเอาของ"
+   · text = เรื่องสั้น ๆ ตามที่พูด (เก็บชื่อคน/ที่) · time = "HH:MM" เมื่อบอกเวลา ("9 โมง" = "09:00", "บ่ายสอง" = "14:00") ไม่บอก = ""
+   · repeat: "ทุกเดือน" = "เดือน" · "ทุกปี" = "ปี" · ไม่บอก = ""
+   · lead_days = เตือนล่วงหน้ากี่วัน ("ล่วงหน้า 3 วัน" = 3, "1 อาทิตย์" = 7, "2 สัปดาห์" = 14, "1 เดือน" = 30) · "วันจริงพอ" = 0 · ถ้าวันนัดไกลเกิน 7 วันและไม่บอก ให้ถามใน ask "เตือนล่วงหน้าไหม?" options ["วันจริงพอ","3 วัน","1 สัปดาห์","2 สัปดาห์","1 เดือน"] (ใส่ lead_days 0 ไว้ก่อน)
+   · ไม่บอกวัน = ถามใน ask "วันไหน?" ห้ามเดา · วันในอดีต/วันนี้ที่ทำไปแล้ว = งานจริง (activity) ไม่ใช่ reminder · เรื่องวันข้างหน้าห้ามลงเป็น activity
 รูปภาพ (ถ้ามี จะแนบท้ายข้อความ เรียงตามลำดับ เลข 0,1,2…) ส่วนใหญ่เป็นรูปหน้างาน ไม่ใช่บิล:
 - รูปรถ/เครื่องจักร (สิบล้อ รถพ่วง รถไถ ที่ไปต่อกล่อง/ซ่อม/ดัดแปลง): ใช้ item asset_note
   • อ่านป้ายทะเบียนจากรูปเท่านั้น (แบบไทย เช่น "70-1234" หรือ "กข 1234" + จังหวัดถ้าเห็น) อ่านไม่ชัดใส่ "" และใส่ "plates" ใน unsure ห้ามเดาตัวอักษร/ตัวเลข
@@ -180,7 +185,7 @@ function chatParse(text, ctx, images, reuse) {
   const fresh = pics.length > 0 && !photoIds.length;
   const hist = (ctx.history || []).slice(-8).map(h => (h.me ? 'ผู้ใช้: ' : 'ผู้ช่วย: ') + h.t).join('\n');
   const prompt = CHAT_RULES_ +
-    (ctx.date_default ? '\n\nผู้ใช้เลือกวันในปฏิทิน: ctx.date_default = ' + ctx.date_default + ' → ข้อความที่ไม่บอกวัน ให้ทุกรายการใช้ date = ctx.date_default แทน today' : '') +
+    (ctx.date_default ? '\n\nผู้ใช้เลือกวันในปฏิทิน: ctx.date_default = ' + ctx.date_default + ' → ข้อความที่ไม่บอกวัน ให้ทุกรายการใช้ date = ctx.date_default แทน today · ถ้า date_default หลัง today = เรื่องที่วางแผน/นัดไว้ ใช้ type reminder เท่านั้น (ห้าม activity)' : '') +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
       trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
@@ -319,6 +324,8 @@ function chatApply(ops, rid) {
           done++;
           break;
         }
+      } else if (op.fn === 'rem') {
+        if (remAdd_(ss, op.p || {}, op.id)) done++;
       } else if (op.fn === 'unwatch') {
         if (deleteWatch_(ss, op.watch_id)) done++;
       } else if (op.fn === 'watch') {

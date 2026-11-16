@@ -286,6 +286,7 @@ function readAll_(ss) {
     lands: readSheet_(ss, 'Lands'),
     damages: readSheet_(ss, 'Damages'),
     guards: readSheet_(ss, 'Guards'),
+    reminders: readRem_(ss),
     waterPlans: readSheet_(ss, 'WaterPlans'),
     flows: readSheet_(ss, 'Flow'),
     flowDef: FLOW_DEF_,
@@ -938,6 +939,7 @@ function buildBrief_(ss, s) {
 
   const sec = (title, arr) => arr.length ? `\n${title} (${arr.length})\n${arr.join('\n')}\n` : '';
   let msg = `🌾 สรุปไร่อ้อย ${thaiDate_(new Date())}\n`;
+  try { msg += remBrief_(ss); } catch (e) {}
   msg += sec('💧 ถึงคิวขึ้นน้ำ', water);
   msg += sec('📋 ถึงคิวตามขั้นตอน', flow);
   try { msg += sec('⛽ น้ำมันเครื่องพ่นยา (ค่าประมาณ)', fuelBrief_(ss, s, acts, inv)); } catch (e) {}

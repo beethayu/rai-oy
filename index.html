@@ -512,6 +512,8 @@
     .ce-chip.on { background: #1F5E3B; border-color: #1F5E3B; color: #fff; font-weight: 600; } .ce-chip button { border: 0; background: transparent; color: inherit; padding: 0 0 0 4px; font-size: 14px; }
     .ce-seg { display: flex; border: 1px solid #1F5E3B; border-radius: 8px; overflow: hidden; } .ce-seg button { flex: 1; border: 0; background: #fff; color: #1F5E3B; font-size: 15px; padding: 6px; font-weight: 600; } .ce-seg button.on { background: #1F5E3B; color: #fff; }
     .ce-s { font-size: 12.5px; color: #8A5A0B; margin-top: 4px; line-height: 1.4; }
+    .ce-dt { -webkit-appearance: none; appearance: none; min-width: 0; text-align: left; } .ds-ed { padding: 0 10px 8px; } .ds-ed .cal-ed { margin-top: 0; }
+    .mb-back { border: 0; background: transparent; color: inherit; font-size: 30px; line-height: 1; padding: 0 12px 2px 0; margin: -4px 0; font-weight: 300; }
     .ce-del { display: block; margin: 12px auto 0; border: 0; background: transparent; color: #B42318; font-size: 15px; font-weight: 600; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
     .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
@@ -1926,13 +1928,13 @@
     const num = v => { const n = parseFloat(String(v === undefined ? '' : v).replace(/,/g, '')); return isNaN(n) ? 0 : n; };
     const r1 = n => Math.round(n * 10) / 10;
     // ชื่อรถแบบสั้น = รุ่นอย่างเดียว ตัดยี่ห้อ/แรงม้า (ผู้ใช้ 15 พ.ย. 69: ชื่อเต็มยาว งง · เลือก TS6020 ไม่เอา "รถไถใหญ่" เผื่อเพิ่มรถ) — ใช้ตอน "แสดง" เท่านั้น ข้อมูลในชีตยังเป็นชื่อเต็ม
-    const eqS = t => String(t == null ? '' : t).replace(/(New Holland|Kubota|John Deere|Yanmar|Massey Ferguson|Ford|Iseki)\s+(?=[A-Za-z]*\d)/gi, '').replace(/\s*\d+\s*แรงม้า/g, ''); // เหลือแค่รุ่น เช่น TS6020, B2420 (รถใหม่ก็ใช้กติกาเดียวกัน)
+    const eqS = t => String(t == null ? '' : t).replace(/(New Holland|Kubota|John Deere|Yanmar|Massey Ferguson|Ford|Iseki)\s+(?=[A-Za-z]*\d)/gi, '').replace(/\s*\d+\s*แรงม้า/g, '').replace(/\s*หมายเลข\s*/g, ' '); // เหลือแค่รุ่น · "พญานาค หมายเลข 1" → "พญานาค 1" (ผู้ใช้ตกลง 16 พ.ย.) เช่น TS6020, B2420 (รถใหม่ก็ใช้กติกาเดียวกัน)
     const r3 = n => Math.round(n * 1000) / 1000;
     const qa = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const escRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pad = n => String(n).padStart(2, '0');
     const $ = id => document.getElementById(id);
-    const hideModal = id => { const m = bootstrap.Modal.getInstance($(id)); if (m) m.hide(); };
+    const hideModal = id => { mProg = { id, t: Date.now() }; const m = bootstrap.Modal.getInstance($(id)); if (m) m.hide(); };
 
     
     function call(fn, args, ok, btn, toastMsg) {
@@ -1991,6 +1993,29 @@
     document.addEventListener('hidden.bs.modal', e => { if (e.target.id === 'actModal') pkSavedReset = false; });
     // กลับหน้าก่อนหน้า: เปิดหน้าต่างลูกจากหน้าดูแปลง/ผัง แล้วกดปิด → กลับมาหน้าเดิมที่ตำแหน่งเดิม (เดิมเด้งออกไปหน้าหลัก)
     let backFn = null;
+    // ย้อนกลับทั่วไป (16 พ.ย. 69 ผู้ใช้: "เวลาปิดชอบเด้งหายไปเลย"): หน้าต่าง B เปิดจากหน้าต่าง A → B มีปุ่ม ‹ บนหัว · ปิด B (‹ หรือ ✕) = กลับ A
+    // จับคู่เฉพาะตอนแอปปิด A เอง (hideModal) แล้วเปิด B ภายใน 1.2 วิ หรือ A ยังเปิดค้าง · ผู้ใช้ปิด A เองแล้วไปเปิด B จากหน้าหลัก = ไม่ผูก
+    let mProg = { id: '', t: 0 }, mPar = {};
+    const M_REOPEN = { dossierModal: () => { const pid = mDsPid; if (pid) openDossier(pid); else showM('dossierModal'); }, flowModal: () => { showM('flowModal'); try { flRender(); } catch (e) {} } };
+    let mDsPid = '';
+    document.addEventListener('show.bs.modal', e => {
+      const id = e.target.id; if (!id || !/Modal$/.test(id)) return;
+      const open = [...document.querySelectorAll('.modal.show')].map(m => m.id).filter(x => x && x !== id);
+      const par = open[open.length - 1] || (Date.now() - mProg.t < 1200 && mProg.id !== id ? mProg.id : '');
+      if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
+      const hd = e.target.querySelector('.modal-header'); if (!hd) return;
+      let b = hd.querySelector('.mb-back');
+      if (mPar[id]) { if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; b.onclick = () => hideModal(id); hd.prepend(b); } }
+      else if (b) b.remove();
+    });
+    document.addEventListener('hidden.bs.modal', e => {
+      const id = e.target.id, par = mPar[id]; if (!par) return;
+      const hadBack = !!backFn;
+      setTimeout(() => {
+        if (hadBack || document.querySelector('.modal.show')) return; // มีที่ไปแล้ว (เปิดหน้าต่างอื่นต่อ / backFn เดิมพากลับแล้ว)
+        delete mPar[id]; try { (M_REOPEN[par] || (() => showM(par)))(); } catch (er) {}
+      }, 450);
+    });
     function dsLeave(pid) { const b = document.querySelector('#dossierModal .modal-body'), y = b ? b.scrollTop : 0; backFn = () => { openDossier(pid); const put = () => { const n = document.querySelector('#dossierModal .modal-body'); if (n) n.scrollTop = y; }; put(); setTimeout(put, 60); setTimeout(put, 400); }; hideModal('dossierModal'); }
     function flLeave() { backFn = () => { showM('flowModal'); flRender(); }; hideModal('flowModal'); }
     document.addEventListener('hidden.bs.modal', () => { if (!backFn) return; setTimeout(() => { if (!backFn || document.querySelector('.modal.show')) return; const f = backFn; backFn = null; try { f(); } catch (e) {} }, 380); });
@@ -2890,10 +2915,11 @@
     let calDrag = null, calDragAt = 0, calLogOpen = '';
     // แตะแถวงาน = แก้ไข (งานเดียวเปิดเลย · หลายแปลงกางปุ่ม "แก้ <แปลง>") · เพิ่งลากเสร็จไม่นับเป็นแตะ
     // แตะแถวงาน = การ์ดแก้ไขกางในที่ (ผู้ใช้ 16 พ.ย.: "ไม่เอาแบบเด้ง") · แก้ทั้งชุดทีเดียว (editActivities) · ลบทีละแปลง/ทั้งชุด (deleteActivities)
-    let calDel = '';
+    let calDel = '', ceRe = () => render();
+    function dsEdit(pid, id) { ceRe = () => dsHist(pid); calLogOpen = calLogOpen === id ? '' : id; calDel = ''; dsHist(pid); }
     function calTapLog(lk) {
       if (Date.now() - calDragAt < 500) return;
-      calLogOpen = calLogOpen === lk ? '' : lk; calDel = ''; render();
+      ceRe = () => render(); calLogOpen = calLogOpen === lk ? '' : lk; calDel = ''; render();
     }
     const dash = v => (v = String(v || '').trim()) === '-' ? '' : v;
     function calEditHtml(g, pname) {
@@ -2905,7 +2931,7 @@
       if (calDel) {
         const one = calDel !== 'all', nm = one ? pname((g.logs.find(x => x.log_id === calDel) || {}).plot_id) : '';
         return `<div class="cal-ed" onclick="event.stopPropagation()"><b style="color:#B42318">${one ? `ลบแปลง ${esc(nm)} ออกจากงานนี้?` : `ลบงานนี้ทั้งหมด (${g.logs.length} แปลง)?`}</b><div class="ce-s">${spray ? 'ยาที่ตัดสต็อกจะคืนให้ · ' : ''}ลบแล้วกู้คืนไม่ได้</div>
-          <div class="cal-mvb"><button type="button" class="go" style="background:#B42318;border-color:#B42318" onclick="calDelGo(this,'${qa(one ? calDel : g.logs.map(x => x.log_id).join(','))}')">ลบ</button><button type="button" onclick="calDel='';render()">ไม่ลบ</button></div></div>`;
+          <div class="cal-mvb"><button type="button" class="go" style="background:#B42318;border-color:#B42318" onclick="calDelGo(this,'${qa(one ? calDel : g.logs.map(x => x.log_id).join(','))}')">ลบ</button><button type="button" onclick="calDel='';ceRe()">ไม่ลบ</button></div></div>`;
       }
       return `<div class="cal-ed" onclick="event.stopPropagation()">
         ${row('งาน', `<b>${esc(grpLabel(l))}</b>`)}
@@ -2915,22 +2941,25 @@
         ${row('จำนวน', inp('ce_q', dash(l.quantity), 'เช่น 4 ถัง', spray) + (spray ? '<div class="ce-s">ฉีดยา: เปลี่ยนจำนวนถัง = ลบแล้วจดใหม่ในแชต (ยาจะคิดใหม่)</div>' : ''))}
         ${row('หมายเหตุ', inp('ce_rm', rmk, ''))}
         ${row('สถานะ', `<div class="ce-seg"><button type="button" id="ce_done" class="${on ? '' : 'on'}" onclick="this.classList.add('on');$('ce_on').classList.remove('on')">เสร็จแล้ว</button><button type="button" id="ce_on" class="${on ? 'on' : ''}" onclick="this.classList.add('on');$('ce_done').classList.remove('on')">กำลังทำ</button></div>`)}
-        ${row('แปลง', `<div class="ce-chips">${g.logs.map(x => `<span class="ce-chip on">${esc(pname(x.plot_id))}${g.logs.length > 1 ? `<button type="button" aria-label="เอาแปลงนี้ออก" onclick="calDel='${qa(x.log_id)}';render()">✕</button>` : ''}</span>`).join('')}</div>`)}
-        ${row('วันที่', '<span class="ce-s" style="margin:0">กดค้างที่งานแล้วลากไปวันอื่น</span>')}
-        <div class="cal-mvb"><button type="button" class="go" onclick="calEditGo(this,'${qa(g.logs.map(x => x.log_id).join(','))}',${spray})">บันทึก</button><button type="button" onclick="calLogOpen='';render()">ยกเลิก</button></div>
-        <button type="button" class="ce-del" onclick="calDel='all';render()">ลบงานนี้</button></div>`;
+        ${row('แปลง', `<div class="ce-chips">${g.logs.map(x => `<span class="ce-chip on">${esc(pname(x.plot_id))}${g.logs.length > 1 ? `<button type="button" aria-label="เอาแปลงนี้ออก" onclick="calDel='${qa(x.log_id)}';ceRe()">✕</button>` : ''}</span>`).join('')}</div>`)}
+        ${row('วันที่', `<input id="ce_dt" type="date" class="ce-in ce-dt" value="${beToISO(String(l.timestamp || '').split(' ')[0])}" max="${todayISO()}">${l.activity_group === 'ตัดอ้อย' ? '<div class="ce-s">ตัดอ้อย: เปลี่ยนวันในหน้าแปลง</div>' : ''}`)}
+        <div class="cal-mvb"><button type="button" class="go" onclick="calEditGo(this,'${qa(g.logs.map(x => x.log_id).join(','))}',${spray})">บันทึก</button><button type="button" onclick="calLogOpen='';ceRe()">ยกเลิก</button></div>
+        <button type="button" class="ce-del" onclick="calDel='all';ceRe()">ลบงานนี้</button></div>`;
     }
     function calEditGo(btn, ids, spray) {
       const box = btn.closest('.cal-ed'), f = { detail: $('ce_det').value, equipment: $('ce_eq').value, remark: $('ce_rm').value, ongoing: $('ce_on').classList.contains('on'),
         operator: [...$('ce_who').querySelectorAll('.ce-chip.on')].map(b => b.textContent.trim()).join(' + ') };
       if (!spray) f.quantity = $('ce_q').value;
+      const L = ids.split(','), l0 = (gData.activities || []).find(a => a.log_id === L[0]) || {}, d0 = beToISO(String(l0.timestamp || '').split(' ')[0]), d1 = $('ce_dt').value;
+      if (d1 && d1 > todayISO()) return alert('วันที่เลยวันนี้ไม่ได้ (งานยังไม่เกิด) — ถ้าเป็นแผน ใช้นัด/เตือน');
       btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
-      callApi('editActivities', [ids.split(','), f]).then(d => { calLogOpen = ''; init(d); }).catch(e => { alert('❌ ' + e.message); btn.disabled = false; btn.textContent = 'บันทึก'; });
+      callApi('editActivities', [L, f]).then(d => d1 && d1 !== d0 && l0.activity_group !== 'ตัดอ้อย' ? callApi('moveActivities', [L, d1]) : d)
+        .then(d => { calLogOpen = ''; init(d); ceRe(); }).catch(e => { alert('❌ ' + e.message); btn.disabled = false; btn.textContent = 'บันทึก'; });
     }
     function calDelGo(btn, ids) {
       btn.disabled = true; btn.textContent = 'กำลังลบ…';
-      callApi('deleteActivities', [ids.split(',')]).then(d => { calDel = ''; if (ids.split(',').length > 1 || !calLogOpen.includes(',')) calLogOpen = ''; else calLogOpen = calLogOpen.split(',').filter(x => x !== ids).join(','); init(d); })
-        .catch(e => { alert('❌ ' + e.message); render(); });
+      callApi('deleteActivities', [ids.split(',')]).then(d => { calDel = ''; if (ids.split(',').length > 1 || !calLogOpen.includes(',')) calLogOpen = ''; else calLogOpen = calLogOpen.split(',').filter(x => x !== ids).join(','); init(d); ceRe(); })
+        .catch(e => { alert('❌ ' + e.message); ceRe(); });
     }
     function calDragInit() {
       if (window._calDragOn) return; window._calDragOn = 1;
@@ -3463,6 +3492,7 @@
       return '';
     }
     function openDossier(pid) {
+      mDsPid = pid;
       let p = gData.plots.find(x => x.plot_id === pid);
       if (!p) return;
       let logs = gData.activities.filter(a => a.plot_id === pid);
@@ -3625,7 +3655,8 @@
           <div class="ds-m"><span class="ds-g" style="color:${DS_COL[lb] || '#4A524D'}">${rain ? '🌧 ฝนตก' : esc(lb)}</span> <b>${rain ? (mm ? `~${mm} มม.` : '') : esc(l.activity_detail === '-' ? '' : l.activity_detail)}</b>${who ? `<small>${who}</small>` : ''}${chs ? `<small style="white-space:normal">${esc(chs)}</small>` : ''}</div>
           <div class="ds-q">${qu ? esc(qu) : ''}<span>${op ? '⌃' : '›'}</span></div></div>`;
         if (op) h += `<div class="ds-x">${r.items.map(x => { const q = x.l.quantity && x.l.quantity !== '-' ? ` · <b>${esc(x.l.quantity)}</b>` : '', hr = hireOf(x.l) ? ` · ${esc(hireTxt(hireOf(x.l)))}` : '', xc = r.items.length > 1 && x.l.activity_group === 'ฉีดยา' ? logChems([x.l]) : '';
-          return `<div class="ds-xi" onclick="event.stopPropagation();dsLeave('${pid}');openLogInspect('${x.l.log_id}')"><div><b>${dsD(x.t, 1)}</b>${q}${hr}${xc ? `<small>${esc(xc)}</small>` : ''}<small>${esc(rmkClean(x.l.remark)) || '–'}</small></div><span>แก้ไข ›</span></div>`; }).join('')}</div>`;
+          const eo = calLogOpen === x.l.log_id;
+          return `<div class="ds-xi" onclick="event.stopPropagation();dsEdit('${pid}','${qa(x.l.log_id)}')"><div><b>${dsD(x.t, 1)}</b>${q}${hr}${xc ? `<small>${esc(xc)}</small>` : ''}<small>${esc(rmkClean(x.l.remark)) || '–'}</small></div><span>${eo ? 'ปิด ⌃' : 'แก้ไข ›'}</span></div>${eo ? `<div class="ds-ed" onclick="event.stopPropagation()">${calEditHtml({ logs: [x.l] }, id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id)}</div>` : ''}`; }).join('')}</div>`;
       });
       el.innerHTML = h + (runs.length ? '' : '<div class="text-center text-muted small py-3">ยังไม่มีข้อมูล</div>');
     }

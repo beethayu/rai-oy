@@ -1057,7 +1057,7 @@ function billFolder_() {
   return f;
 }
 
-var geminiUsed_ = '', geminiForce_ = '';
+var geminiUsed_ = '', geminiForce_ = '', geminiTrace_ = [];
 function geminiCall_(parts, what, level) { // level = thinkingLevel ของรุ่นหลัก (แชตใช้ medium ให้เข้าใจคำพูด · อ่านบิลใช้ minimal ให้เร็ว)
   const props = PropertiesService.getScriptProperties();
   // อ่านบิลไม่ต้องคิดนาน: ปิด thinking ให้เร็ว (รุ่น 2.5 ใช้ thinkingBudget, รุ่น 3 ขึ้นไปใช้ thinkingLevel)
@@ -1071,6 +1071,7 @@ function geminiCall_(parts, what, level) { // level = thinkingLevel ของร
   models.forEach(m => { tries.push(m); tries.push(m); }); // แต่ละรุ่นลอง 2 ครั้ง (503 คนใช้เยอะ มักหายในไม่กี่วิ)
   for (let i = 0; i < tries.length; i++) {
     if (i > 0) Utilities.sleep(i === 1 ? 1500 : 2500);
+    const t1 = Date.now();
     const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + tries[i] + ':generateContent', {
       method: 'post', contentType: 'application/json', muteHttpExceptions: true,
       headers: { 'x-goog-api-key': geminiKey_() },
@@ -1080,6 +1081,7 @@ function geminiCall_(parts, what, level) { // level = thinkingLevel ของร
       })
     });
     const code = res.getResponseCode(), txt = res.getContentText();
+    geminiTrace_.push(tries[i].replace('gemini-', '') + ' ' + code + ' ' + (Date.now() - t1));
     if (code === 200) {
       geminiUsed_ = tries[i];
       const j = JSON.parse(txt);

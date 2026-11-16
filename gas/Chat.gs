@@ -180,8 +180,9 @@ function chatParse(text, ctx, images, reuse) {
   const fresh = pics.length > 0 && !photoIds.length;
   const hist = (ctx.history || []).slice(-8).map(h => (h.me ? 'ผู้ใช้: ' : 'ผู้ช่วย: ') + h.t).join('\n');
   const prompt = CHAT_RULES_ +
+    (ctx.date_default ? '\n\nผู้ใช้เลือกวันในปฏิทิน: ctx.date_default = ' + ctx.date_default + ' → ข้อความที่ไม่บอกวัน ให้ทุกรายการใช้ date = ctx.date_default แทน today' : '') +
     '\n\nctx = ' + JSON.stringify({ today: ctx.today, plots: ctx.plots, workers: ctx.workers, tractors: ctx.tractors,
-      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, draft: ctx.draft || null }) +
+      trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
     '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
@@ -205,7 +206,7 @@ function chatParse(text, ctx, images, reuse) {
   j.ask = Array.isArray(j.ask) ? j.ask : [];
   j.photos = photoIds;
   j.model = geminiUsed_;
-  j.ms = Date.now() - t0;
+  j.ms = Date.now() - t0; j.trace = geminiTrace_;
   return j;
 }
 

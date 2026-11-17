@@ -1001,7 +1001,13 @@ function fuelBrief_(ss, s, acts, inv) {
   const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
   const dt = d => { const x = new Date(d * 864e5); return x.getUTCDate() + ' ' + M[x.getUTCMonth()]; };
   const r1 = v => Math.round(v * 10) / 10, out = [];
-  fuelGives_(readSheet_(ss, SH.SLOG, true)).forEach(t => {
+  const GV = fuelGives_(readSheet_(ss, SH.SLOG, true));
+  // ทีมที่ฉีดอยู่ (2 วัน) แต่ยังไม่เคยจดให้น้ำมัน = แอปคิดไม่ได้ → เตือนให้จด (17 พ.ย. 69 ผู้ใช้: ต้องให้น้ำมันหำ แต่ LINE ไม่เตือน)
+  const NR = {};
+  A.forEach(a => { if (a.activity_group !== 'ฉีดยา' || !(today - a.day <= 2) || a.day > today) return; const w = fuelWho_(a.operator); if (!w.length) return;
+    if (GV.some(t => w.every(x => t.team.indexOf(x) !== -1))) return; const k = w.slice().sort().join('|'); NR[k] = NR[k] || { who: w.join(' + '), day: 0 }; NR[k].day = Math.max(NR[k].day, a.day); });
+  Object.keys(NR).forEach(k => out.push(`• ${NR[k].who} ฉีดอยู่ (ล่าสุด ${dt(NR[k].day)}) แต่ยังไม่ได้จดการให้น้ำมัน — ให้แล้วพิมพ์ในแชต "ให้น้ำมัน ${NR[k].who} … ลิตร" แอปจะคิดให้ว่าเหลือเท่าไรและเตือนรอบหน้า`));
+  GV.forEach(t => {
     const b = fuelBal_(t.team, t.gives, A, today, L);
     if (!b || !b.active || b.st === 'ok') return;
     const who = t.team.join(' + ');

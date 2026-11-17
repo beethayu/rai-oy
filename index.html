@@ -3119,9 +3119,17 @@
     }
     // โชว์ทีมที่ยังฉีดอยู่ (3 วัน) หรือเพิ่งให้น้ำมันภายใน 7 วัน
     const fuelShown = () => fuelTeams().map(t => fuelBal(t)).filter(b => b && (b.active || dayDiff(b.lastGive.iso, todayISO()) <= 7));
+    // ทีมที่ฉีดอยู่ 2 วันล่าสุด แต่ยังไม่เคยจดให้น้ำมัน (คิดไม่ได้ → เตือนให้จด)
+    function fuelNoRec() {
+      const T = fuelTeams(), t0 = todayISO(), N = {};
+      (gData.activities || []).forEach(a => { if (a.activity_group !== 'ฉีดยา') return; const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso || iso > t0 || dayDiff(iso, t0) > 2) return;
+        const w = logWho(a); if (!w.length || T.some(t => w.every(n => t.team.includes(n)))) return; const k = w.slice().sort().join('|'); if (!N[k] || iso > N[k].last) N[k] = { who: w.join(' + '), last: iso }; });
+      return Object.values(N);
+    }
     function fuelHtml(head) {
-      const B = fuelShown(); if (!B.length) return '';
-      return head('น้ำมันเครื่องพ่นยา', 'ค่าประมาณ') + `<div class="srow-box">${B.map(b => {
+      const B = fuelShown(), NR = fuelNoRec(); if (!B.length && !NR.length) return '';
+      const nr = NR.map(x => `<div class="srow" style="background:#FFF4E0"><div class="srow-main" style="cursor:default"><span class="srow-l"><span class="srow-n">⛽ ${esc(x.who)}</span><span class="srow-s">ฉีดอยู่ (ล่าสุด ${esc(dShort(x.last))}) แต่ยังไม่ได้จดการให้น้ำมัน</span><span class="srow-s" style="color:#8A5A0B;font-weight:600">ให้แล้วพิมพ์ในแชต "ให้น้ำมัน ${esc(x.who)} … ลิตร" แอปจะคิดให้ว่าเหลือเท่าไร</span></span></div></div>`).join('');
+      return head('น้ำมันเครื่องพ่นยา', 'ค่าประมาณ') + `<div class="srow-box">${nr}${B.map(b => {
         const key = 'f:' + b.team.join('|'), open = todayOpen === key, warn = b.st === 'now' ? 'ต้องให้น้ำมันก่อนฉีดรอบถัดไป' : b.st === 'soon' ? 'พรุ่งนี้ต้องเตรียมน้ำมัน' : '';
         return `<div class="srow ${open ? 'open' : ''}"${warn ? ' style="background:#FFF4E0"' : ''}><button type="button" class="srow-main" onclick="tglToday('${qa(key)}')">
           <span class="srow-l"><span class="srow-n">⛽ ${esc(b.team.join(' + '))}</span><span class="srow-s">${esc(fuelLine(b))}</span>

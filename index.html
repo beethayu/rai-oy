@@ -5290,6 +5290,8 @@
           if ((a.usage || []).length) base.usage = a.usage.map(u => ({ name: u.name, qty: u.qty }));
           const hr = chHire(a); if (hr) { base.hire = hr; if (a.group === 'รถไถเตรียมดิน/บำรุง' && base.equipment === '-') base.equipment = 'รถจ้าง' + (hr.by ? ' ' + hr.by : ''); }
           const d1 = a.date || todayISO(), d2 = a.date_to && a.date_to > d1 ? a.date_to : '';
+          // ทำต่อจากงานที่ "กำลังทำ" กลุ่มเดียวกัน แล้วบอกว่าเสร็จ (17 พ.ย. 69 "หำผันฉีดรอบไร่ 3 ถัง 90 วา สะเดา เสร็จ") → ปิดงานเก่าให้ด้วย ไม่ย้ายวันงานเก่า
+          if (!a.ongoing) a.plots.forEach(pid => { const og = chOg(pid); if (og && og.activity_group === a.group) ops.push({ fn: 'finish', log_id: og.log_id, keep: true }); });
           if (!d2) return ops.push({ fn: 'act', p: { ...base, custom_date: isoToBE(d1) } });
           const days = chatDays(d1, d2), rng = `${thDate(d1)}–${thDate(d2)}`;
           days.forEach((d, k) => {
@@ -5298,7 +5300,7 @@
               remark: (r => `${r ? r + ' ' : ''}(ช่วง ${rng} วันที่ ${k + 1}/${days.length})`)(dayRmk(base.remark, last)) } });
           });
         } else if (a.type === 'finish') {
-          a.plots.forEach(pid => { const og = chOg(pid); if (og) ops.push({ fn: 'finish', log_id: og.log_id, date: isoToBE(a.date || todayISO()) }); });
+          a.plots.forEach(pid => { const og = chOg(pid); if (og) ops.push({ fn: 'finish', log_id: og.log_id, date: isoToBE(a.date || todayISO()), keep: og.activity_group === 'ฉีดยา' || items.some(x => x.type === 'activity' && x.group === og.activity_group && (x.plots || []).includes(pid)) }); });
         } else if (a.type === 'cancel') {
           if (a.which === 'watch') a.plots.forEach(pid => chCancelWatch(pid, a.reason).forEach(w => ops.push({ fn: 'unwatch', watch_id: w.watch_id })));
           else a.plots.forEach(pid => chCancelLogs(pid, a.which, a).forEach(l => ops.push({ fn: 'cancel', log_id: l.log_id })));

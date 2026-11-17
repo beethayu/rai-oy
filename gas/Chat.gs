@@ -315,7 +315,7 @@ function chatApply(ops, rid) {
           if (d[i][0] !== String(op.log_id)) continue;
           let rm = String(d[i][8] || '').replace('[⏳กำลังทำ]', '').trim();
           if (!rm.includes('เริ่ม')) rm = (rm ? rm + ' ' : '') + 'เริ่ม ' + d[i][1];
-          const rg = sh.getRange(i + 1, 2); rg.setNumberFormat('@'); rg.setValue(op.date || getTodayStr());
+          if (!op.keep) { const rg = sh.getRange(i + 1, 2); rg.setNumberFormat('@'); rg.setValue(op.date || getTodayStr()); } // keep = ปิดสถานะเฉย ๆ ไม่ย้ายวัน (ฉีดยา: ถังผูกกับวัน · 17 พ.ย. 69)
           sh.getRange(i + 1, 9).setValue('[✅เสร็จสิ้น] ' + rm);
           touched.add(d[i][2]);
           try { closeWatchesFor_(ss, [d[i][2]], d[i][3], d[i][4], d[i][0]); } catch (e) {}

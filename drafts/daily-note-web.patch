@@ -1,5 +1,5 @@
 diff --git a/index.html b/index.html
-index 41aa5d3..e8f1558 100644
+index 41aa5d3..e523d12 100644
 --- a/index.html
 +++ b/index.html
 @@ -515,6 +515,7 @@
@@ -10,7 +10,17 @@ index 41aa5d3..e8f1558 100644
      .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
      .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
      .rc-day + .rc-day { border-top: 1px solid #EEF1EF; }
-@@ -2834,11 +2835,11 @@
+@@ -1029,7 +1030,8 @@
+ 
+     <div id="plot-list"></div>
+     <div id="log-view" style="display:none;">
+-      <div class="seg" id="logSeg"><button type="button" data-m="chat" onclick="setLogMode('chat')">พิมพ์เล่า</button><button type="button" data-m="pick" onclick="setLogMode('pick')">กดเลือกงาน</button></div>
++      <div class="seg" id="logSeg"><button type="button" data-m="chat" onclick="setLogMode('chat')">พิมพ์เล่า</button><button type="button" data-m="pick" onclick="setLogMode('pick')">กดเลือกงาน</button><button type="button" data-m="note" onclick="setLogMode('note')">📓 บันทึก</button></div>
++      <div id="notePane" style="display:none"></div>
+       <div id="chatPane" style="display:none">
+         <div id="chatList"></div>
+         <div class="ch-bar"><div class="ch-pv" id="chatPv"></div><button type="button" class="ch-cam" aria-label="ถ่ายรูปหรือเลือกรูปหน้างาน" onclick="chatCam()">📷</button><label for="chatIn" class="visually-hidden">เล่างาน</label><textarea id="chatIn" rows="1" placeholder="เล่างาน / ถามประวัติ / ส่งรูป…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button type="button" class="ch-send" aria-label="ส่ง" onclick="chatSend()">➤</button><input type="file" id="chatFile" accept="image/*" multiple hidden onchange="chatPick(this)"></div>
+@@ -2834,11 +2836,11 @@
      function dayRowsHtml(iso, o) {
        o = o || {}; const t0 = todayISO();
        const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
@@ -26,7 +36,7 @@ index 41aa5d3..e8f1558 100644
        const acts = o.logs || [];
        if (acts.length) {
          const G = {};
-@@ -2862,15 +2863,16 @@
+@@ -2862,15 +2864,16 @@
          out.push(`<div class="rc-j" data-ids="${o.rain.map(x => esc(x.log_id)).join(',')}" data-lb="🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}"><b>🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}</b><br><span>${ps.slice(0, 6).map(id => esc(pname(id))).join(', ')}${ps.length > 6 ? ` และอีก ${ps.length - 6} แปลง` : ''}</span></div>`);
        }
        (o.notes || []).forEach(n => { const op = remOpen === 'n' + n.note_id;
@@ -48,7 +58,7 @@ index 41aa5d3..e8f1558 100644
      }
      // แถวนัด/เตือน: แตะกางปุ่ม · ถึงวัน/เลยแล้ว = "ทำแล้ว → จดเป็นงาน" (เปิดแชตพร้อมข้อความ+วันที่ บันทึกแล้วนัดปิดเอง) · ลากเปลี่ยนวันได้ทุกวัน (รวมวันข้างหน้า)
      let remOpen = '', chatRemId = '';
-@@ -2918,9 +2920,23 @@
+@@ -2918,9 +2921,43 @@
        const btn = mv + hint + (fut ? `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ นัด/เตือน${calSel === isoAdd(t0, 1) ? 'พรุ่งนี้' : 'วันที่ ' + dm}</button>` : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
        return head('ปฏิทินงาน', '', calSel !== t0 || calYM !== t0.slice(0, 7) ? `<button type="button" class="grp-all" onclick="calSel='';calYM='';render()">วันนี้</button>` : '')
          + (wk ? `<div class="srow-s" style="padding:0 4px 6px">ฉีดยา 7 วันล่าสุดรวม <b style="color:#B42318">${r1(wk)} ถัง</b></div>` : '')
@@ -70,10 +80,47 @@ index 41aa5d3..e8f1558 100644
 +        .sort((a, b) => beToISO(b.date) < beToISO(a.date) ? -1 : 1).slice(0, 60);
 +      return L.map(n => `<div class="rc-j" style="padding:8px 0;border-bottom:1px solid #EEF1EF" onclick="calSel='${beToISO(n.date)}';calYM=calSel.slice(0,7);render()"><b>${n.kind === 'idea' ? '💭' : '🏠'} ${esc(n.text)}</b><br><span>${dShort(beToISO(n.date))}${n.workers ? ' · ' + esc(n.workers) : ''}${n.tags ? ' · ' + String(n.tags).split(',').map(t => '#' + esc(t)).join(' ') : ''}</span></div>`).join('') || '<div class="rc-none"><span>ไม่พบ</span></div>';
 +    }
++    // ===== ร่าง 📓 บันทึก (17 พ.ย. 69 ยังไม่ขึ้นแอป): แบบ A = ปฏิทิน+บันทึกย้ายไปแท็บบันทึกงาน โหมดที่ 3 · แบบ B = หน้าแรกเหลือแถบ 7 วัน แตะ = ไปหน้าบันทึก · D = ทบทวนสัปดาห์ =====
++    let HOME_CAL = 'A';
++    const NHEAD = (t, n, extra) => `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:center;padding-right:2px;"><span>${t}${n ? ` <span style="font-weight:500;color:#6B736E;font-size:14px;">${n}</span>` : ''}</span>${extra || ''}</div>`;
++    function notePaneRender() { if (!$('notePane')) return; $('notePane').innerHTML = `<div style="padding:0 2px 120px">${reviewHtml()}${calHtml(NHEAD)}</div>`; }
++    function weekStripHtml() {
++      const t0 = todayISO(), X = calIndex(); let g = '';
++      for (let k = 6; k >= 0; k--) { const iso = isoAdd(t0, -k), d = new Date(iso + 'T00:00:00');
++        g += `<button type="button" class="cal-c${iso === t0 ? ' td' : ''}" onclick="calSel='${iso}';calYM=calSel.slice(0,7);switchTab('log');setLogMode('note')"><span class="cal-wd">${TH_DAY[d.getDay()].replace('.', '')}</span><span class="cal-n">${d.getDate()}</span><span class="cal-dots">${calDots(X[iso])}</span></button>`; }
++      const o = X[t0] || {}, n = (o.logs || []).length, nn = (o.notes || []).length;
++      return `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:center"><span>📓 บันทึก</span><button type="button" class="grp-all" onclick="calSel='';switchTab('log');setLogMode('note')">เปิด ›</button></div><div class="srow-box"><div class="cal-box" style="border:0"><div class="cal-g">${g}</div></div></div>`;
++    }
++    // D ทบทวนสัปดาห์ (ขึ้นวันอาทิตย์–จันทร์): ความคิด/บทเรียนของสัปดาห์ → ✓ เก็บเป็นโน้ตถาวร (AI เรียบเรียงเป็นประโยคเต็ม + โยงโน้ตเก่าเรื่องเดียวกัน) / ✗ ทิ้ง
++    function reviewHtml() {
++      const t0 = todayISO(), W = (gData.notes || []).filter(n => n.kind === 'idea' && dayDiff(beToISO(n.date), t0) <= 7);
++      if (!W.length) return '';
++      return `<div class="srow-h">🗓️ ทบทวนสัปดาห์ <span style="font-weight:500;color:#6B736E;font-size:14px">${W.length} เรื่อง · วันอาทิตย์</span></div><div class="srow-box" style="padding:4px 14px 12px">`
++        + W.map((n, i) => `<div style="padding:10px 0;border-bottom:1px solid #EEF1EF"><div style="font-size:15px;font-weight:600;color:#1F2A23">💭 ${esc(n.text)}</div>`
++          + (i === 0 ? `<div style="margin:8px 0 0;background:#F4F8F5;border:1px solid #CFE0D5;border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.5"><div style="font-size:12.5px;color:#6B736E;font-weight:700">โน้ตถาวร (AI เรียบเรียง ให้ตรวจ)</div>หลังฝนตก แปลงที่อ้อยคลุมร่องแล้วหน้าดินแห้งช้า ต้องเว้นอย่างน้อย 10 วันก่อนเอารถไถเข้า ไม่งั้นรถจมและดินแน่น<div style="font-size:12.5px;color:#1F5E3B;margin-top:4px">🔗 โยงกับ: ผลดูดินหนองทิ้งสุ่ม 16 พ.ย. · "ใส่ปุ๋ยตอนดินชื้นได้ผลดีกว่า"</div></div>` : '')
++          + `<div class="cal-mvb"><button type="button" class="go">✓ เก็บ</button><button type="button">✗ ไม่เอา</button></div></div>`).join('') + `</div>`;
++    }
      function calPick(iso) { if (Date.now() - calDragAt < 400) return; calSel = iso; calLogOpen = ''; render(); }
      function calMove(k) { let [y, m] = calYM.split('-').map(Number); m += k; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } calYM = `${y}-${pad(m)}`; render(); }
      // ลากงานไปวันอื่น: กดค้าง 0.4 วิที่แถวงาน → ลากไปวางบนวันในปฏิทิน → ยืนยันในการ์ดเดิม → moveActivities (GAS) · ห้ามวันข้างหน้า / ตัดอ้อย
-@@ -4819,6 +4835,12 @@
+@@ -3234,7 +3271,7 @@
+       const nT = urRows.length + doRows.length + wsRows.length;
+       const todo = head('ต้องทำวันนี้', nT || '', `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`)
+         + (nT ? `<div class="srow-box">${urRows.join('') + doRows.join('') + wsRows.join('')}</div>` : none('วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง ไม่มีฝากดู'));
+-      return top + todo + calHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h;
++      return top + todo + (HOME_CAL === 'B' ? weekStripHtml() : '') + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h;
+     }
+     let HOME_V = 'A'; // F แบบ A (ผู้ใช้เลือก 16 พ.ย. 69 06:34) · '' = แบบเดิม
+     function nearCutMini(head) {
+@@ -3313,6 +3350,7 @@
+     }
+ 
+     function render() {
++      if (curTab === 'log' && logMode === 'note') notePaneRender();
+       let chkHtml = '', totRai = 0, nUrg = 0, nDoing = 0, nNoWater = 0;
+       const logsBy = {};
+       gData.activities.forEach(a => { (logsBy[a.plot_id] = logsBy[a.plot_id] || []).push(a); });
+@@ -4819,6 +4857,12 @@
          if (!said && (!hasPic || (digits && t.includes(digits)))) { items.splice(i, 1); r.reply = (r.reply ? r.reply + '\n' : '') + `(ไม่ได้จดเข้า ${sh || nm} — ข้อความไม่ได้พูดถึงรถคันนี้ ถ้าเป็นเรื่องนอกไร่ไม่ต้องจด)`; }
        }
      }
@@ -86,7 +133,15 @@ index 41aa5d3..e8f1558 100644
      const leadTxt = n => n % 30 === 0 ? `${n / 30} เดือน` : n % 7 === 0 ? `${n / 7} สัปดาห์` : `${n} วัน`;
      const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
      const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว' };
-@@ -5095,7 +5117,7 @@
+@@ -4834,6 +4878,7 @@
+       document.querySelectorAll('#logSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === logMode));
+       $('pickWrap').style.display = logMode === 'pick' ? 'block' : 'none';
+       $('chatPane').style.display = logMode === 'chat' ? 'block' : 'none';
++      $('notePane').style.display = logMode === 'note' ? 'block' : 'none'; if (logMode === 'note') notePaneRender();
+       if (curTab === 'log') document.querySelector('.sec-hd').style.display = logMode === 'chat' ? 'none' : '';
+       if (logMode === 'chat') chatRender(true); // เปิดแท็บ/สลับโหมดแล้วเลื่อนไปข้อความล่าสุด
+     }
+@@ -5095,7 +5140,7 @@
            chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
            const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
            const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
@@ -95,7 +150,7 @@ index 41aa5d3..e8f1558 100644
            const ask = r.ask || [];
            if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
              ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
-@@ -5217,7 +5239,9 @@
+@@ -5217,7 +5262,9 @@
          try { const r = soilWx && it.plots[0] ? soilCalc(chPlot(it.plots[0])) : null; it.model_pct = r ? Math.round(r.pct * 100) : undefined; } catch (e) {}
          return it.state && (it.area || it.plots.length) ? it : null;
        }
@@ -106,7 +161,7 @@ index 41aa5d3..e8f1558 100644
          let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]); if (!idx.length) idx = ph.map((_, k) => k);
          it.photos = idx; it.photo_ids = idx.map(k => ph[k]); it.text = String(it.text || '').trim(); it.amount = num(it.amount); it.date = it.date || todayISO();
          it.workers = (Array.isArray(it.workers) ? it.workers : [it.workers]).map(x => String(x || '').trim()).filter(Boolean); it.date_to = it.date_to && it.date_to > it.date && it.date_to <= todayISO() ? it.date_to : '';
-@@ -5308,7 +5332,8 @@
+@@ -5308,7 +5355,8 @@
            else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
          }
          else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
@@ -116,7 +171,7 @@ index 41aa5d3..e8f1558 100644
          else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
          else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
          else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
-@@ -5368,8 +5393,10 @@
+@@ -5368,8 +5416,10 @@
        } else if (it.type === 'soil_check') {
          h = `<div class="ch-t">🟫 ผลดูดินหน้างาน</div>` + row('พื้นที่', it.area || pn(it.plots)) + row('สภาพ', it.state) + row('วันที่', dt(it.date))
            + (it.model_pct !== undefined ? `<div class="ch-cn">แอปคำนวณไว้ ~${it.model_pct}% · จดไว้ใช้ปรับตัวคิด และแชตจะเชื่อผลหน้างานนี้ 3 วัน (ถ้าไม่มีฝนเพิ่ม)</div>` : '');

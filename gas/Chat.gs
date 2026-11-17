@@ -314,7 +314,8 @@ function chatApply(ops, rid) {
         for (let i = d.length - 1; i >= 1; i--) {
           if (d[i][0] !== String(op.log_id)) continue;
           let rm = String(d[i][8] || '').replace('[⏳กำลังทำ]', '').trim();
-          if (!rm.includes('เริ่ม')) rm = (rm ? rm + ' ' : '') + 'เริ่ม ' + d[i][1];
+          if (op.keep) { if (!/เสร็จ \d/.test(rm)) rm = (rm ? rm + ' ' : '') + 'เสร็จ ' + (op.date || getTodayStr()); } // คงวันเริ่ม จดวันเสร็จไว้ (ปฏิทินโชว์ "เสร็จ:" วันนั้น)
+          else if (!rm.includes('เริ่ม')) rm = (rm ? rm + ' ' : '') + 'เริ่ม ' + d[i][1];
           if (!op.keep) { const rg = sh.getRange(i + 1, 2); rg.setNumberFormat('@'); rg.setValue(op.date || getTodayStr()); } // keep = ปิดสถานะเฉย ๆ ไม่ย้ายวัน (ฉีดยา: ถังผูกกับวัน · 17 พ.ย. 69)
           sh.getRange(i + 1, 9).setValue('[✅เสร็จสิ้น] ' + rm);
           touched.add(d[i][2]);

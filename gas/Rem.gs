@@ -60,14 +60,14 @@ function remBrief_(ss) {
 }
 
 // ===== 🏠 บันทึกนอกไร่ (16 พ.ย. 69 ผู้ใช้: เรื่องนอกไร่ "ควรขึ้นให้แก้ไข แล้วกดบันทึก") — ไม่ลงบัญชี/สต็อก/ผังของไร่ ขึ้นแค่ในปฏิทิน =====
-const NOTE_H_ = ['note_id', 'created', 'date', 'text', 'amount', 'shop', 'photo_ids', 'workers']; // workers เพิ่ม 17 พ.ย. (งานนอกไร่ของคนงาน → นับวันในสรุปคนงาน)
+const NOTE_H_ = ['note_id', 'created', 'date', 'text', 'amount', 'shop', 'photo_ids', 'workers', 'cat', 'kind', 'tags']; // cat/kind/tags 17 พ.ย. (บันทึกวันนี้: หมวด · kind idea = ความคิด/สิ่งที่อ่าน) // workers เพิ่ม 17 พ.ย. (งานนอกไร่ของคนงาน → นับวันในสรุปคนงาน)
 function noteSheet_(ss) { const sh = getOrCreate_(ss, 'Notes', NOTE_H_); if (sh.getLastColumn() < NOTE_H_.length) sh.getRange(1, 1, 1, NOTE_H_.length).setValues([NOTE_H_]); return sh; }
 function noteAdd_(ss, p, id) {
   const sh = noteSheet_(ss);
   if (sh.getDataRange().getDisplayValues().some(r => r[0] === String(id))) return false;
   const be = remBE_(p.date);
   try { if ((p.photo_ids || []).length) nameChatPhotos_(p.photo_ids, 'นอกไร่_' + String(p.text || '').slice(0, 20), be); } catch (e) {}
-  appendRows_(sh, [[String(id), getTodayStr(), be, String(p.text || '').slice(0, 200), Number(p.amount) || '', String(p.shop || '').slice(0, 80), (p.photo_ids || []).join(','), String(p.workers || '').slice(0, 80)]]);
+  appendRows_(sh, [[String(id), getTodayStr(), be, String(p.text || '').slice(0, 200), Number(p.amount) || '', String(p.shop || '').slice(0, 80), (p.photo_ids || []).join(','), String(p.workers || '').slice(0, 80), String(p.cat || '').slice(0, 30), p.kind === 'idea' ? 'idea' : '', (p.tags || []).join(',').slice(0, 120)]]);
   return true;
 }
 function noteOp(op) {

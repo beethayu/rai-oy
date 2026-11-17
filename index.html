@@ -3099,20 +3099,20 @@
       });
       return Object.values(T);
     }
-    // 🚿 เครื่องสูบน้ำผสมยา (17 พ.ย. 69): เบนซินล้วน สูบใส่ถัง 200 ลิตร ใช้กับทุกทีม · ยังไม่รู้อัตรา → เรียนจากการเติม: เติมครั้งที่ 2 ขึ้นไป = (น้ำมันที่เติมก่อนหน้า) ÷ (ถังที่ฉีดระหว่างนั้น)
+    // 🚿 เครื่องสูบน้ำผสมยา (17 พ.ย. 69): เบนซินล้วน สูบใส่ถัง 200 ลิตร ใช้กับทุกทีม · ผู้ใช้เติมให้มีติดถังตลอด (ไม่รอหมด)
+    // → วิธีเติมเต็มถัง: เติมจนเต็มทุกครั้ง = ที่เติมครั้งนั้น = ที่ใช้ไปตั้งแต่เติมครั้งก่อน · อัตรา = ผลรวมที่เติม (ไม่นับครั้งแรก) ÷ ถังที่ฉีดระหว่างครั้งแรกถึงครั้งล่าสุด
     const PUMP = 'เครื่องสูบผสมยา';
     function pumpBal(t, upto) {
       const gives = t.gives.filter(g => g.iso && g.iso <= upto).sort((a, b) => a.iso < b.iso ? -1 : 1); if (!gives.length) return null;
       const first = gives[0].iso, lastG = gives[gives.length - 1], given = gives.reduce((s, g) => s + g.qty, 0);
       const sp = (gData.activities || []).filter(a => a.activity_group === 'ฉีดยา').map(a => ({ a, iso: beToISO(String(a.timestamp || '').split(' ')[0]) })).filter(x => x.iso && x.iso >= first && x.iso <= upto);
-      const tanks = tankOf(sp.map(x => x.a)), before = tankOf(sp.filter(x => x.iso < lastG.iso).map(x => x.a));
-      const rate = gives.length > 1 && before > 0 ? (given - lastG.qty) / before : null;
+      const tanks = tankOf(sp.map(x => x.a)), between = tankOf(sp.filter(x => x.iso < lastG.iso).map(x => x.a)), since = tankOf(sp.filter(x => x.iso >= lastG.iso).map(x => x.a));
+      const rate = gives.length > 1 && between > 0 ? (given - gives[0].qty) / between : null;
       const byDay = {}; sp.forEach(x => { (byDay[x.iso] = byDay[x.iso] || []).push(x.a); });
       const days = Object.keys(byDay).filter(d => tankOf(byDay[d]) > 0).sort().reverse(), last3 = days.slice(0, 3);
       const tpd = last3.length ? last3.reduce((s, d) => s + tankOf(byDay[d]), 0) / last3.length : 0;
-      const left = rate ? Math.max(0, Math.round((given - tanks * rate) * 10) / 10) : null, perDay = rate ? tpd * rate : null;
-      return { team: t.team, pump: true, gives, given, tanks, rate, used: rate ? tanks * rate : null, left, perDay, enough: rate && perDay ? Math.floor(left / perDay + 1e-9) : null,
-        st: rate && perDay ? (left < perDay ? 'now' : left < 2 * perDay ? 'soon' : 'ok') : 'ok', lastSpray: days[0] || null, active: !!days[0] && dayDiff(days[0], upto) <= 2, lastGive: lastG };
+      const perDay = rate ? tpd * rate : null;
+      return { team: t.team, pump: true, gives, given, tanks, since, rate, used: rate ? since * rate : null, left: null, perDay, enough: null, st: 'ok', lastSpray: days[0] || null, active: !!days[0] && dayDiff(days[0], upto) <= 2, lastGive: lastG };
     }
     function fuelBal(t, upto) {
       upto = upto || todayISO(); if (t.team.length === 1 && t.team[0] === PUMP) return pumpBal(t, upto); const L = fuelL();
@@ -3130,7 +3130,7 @@
     }
     function fuelLine(b) {
       const lg = b.lastGive;
-      if (b.pump) return `เติมล่าสุด ${dShort(lg.iso)} ${r1(lg.qty)} ลิตร${b.gives.length > 1 ? ` (รวม ${r1(b.given)} ลิตร)` : ''} · ฉีดไป ${r1(b.tanks)} ถัง (ทุกทีม)` + (b.rate ? ` · กิน ≈ ${Math.round(b.rate * 100) / 100} ลิตร/ถัง · เหลือ ≈ ${r1(b.left)} ลิตร` : ' · ยังไม่รู้ว่ากินเท่าไร (เติมครั้งหน้าจดในแชต แอปจะคิดอัตราให้)');
+      if (b.pump) return `เติมล่าสุด ${dShort(lg.iso)} ${r1(lg.qty)} ลิตร · หลังจากนั้นฉีดไป ${r1(b.since)} ถัง (ทุกทีม)` + (b.rate ? ` · กิน ≈ ${Math.round(b.rate * 100) / 100} ลิตร/ถัง (≈ ${r1(b.perDay)} ลิตร/วัน) · ตั้งแต่เติมล่าสุดใช้ไป ≈ ${r1(b.used)} ลิตร` : ' · ยังไม่รู้ว่ากินเท่าไร: เติมให้เต็มถังทุกครั้งแล้วจดจำนวนที่เติม แอปจะคิดให้ตั้งแต่ครั้งหน้า');
       return `ให้ล่าสุด ${dShort(lg.iso)} ${r1(lg.qty)} ลิตร${b.gives.length > 1 ? ` (รวม ${r1(b.given)} ลิตร)` : ''} · ฉีดไป ${r1(b.tanks)} ถัง ≈ ใช้ ${r1(b.used)} ลิตร · เหลือ ≈ ${r1(b.left)} ลิตร ${b.left <= 0 ? '(หมดแล้ว)' : `(พออีก ${b.enough} วัน)`}`;
     }
     // โชว์ทีมที่ยังฉีดอยู่ (3 วัน) หรือเพิ่งให้น้ำมันภายใน 7 วัน
@@ -3150,7 +3150,7 @@
         return `<div class="srow ${open ? 'open' : ''}"${warn ? ' style="background:#FFF4E0"' : ''}><button type="button" class="srow-main" onclick="tglToday('${qa(key)}')">
           <span class="srow-l"><span class="srow-n">⛽ ${esc(b.team.join(' + '))}</span><span class="srow-s">${esc(fuelLine(b))}</span>
           ${warn ? `<span class="srow-s" style="color:#8A5A0B;font-weight:600">${warn}</span>` : ''}</span></button>
-          ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px">${b.pump ? `เบนซินล้วน สูบน้ำใส่ถัง 200 ลิตรผสมยา · อัตราคิดจากการเติมจริง: เติมตอนน้ำมันใกล้หมดแล้วพิมพ์ "เติมน้ำมันเครื่องสูบ … ลิตร"${b.rate ? ` · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร` : ''}</div>` : ''}${b.pump ? '<div style="display:none">' : ''}เบนซิน ${r1(fuelL())} ลิตร/ถัง · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร (เฉลี่ยวันที่ฉีดล่าสุด) · ให้เพิ่ม: พิมพ์ในแชต "ให้น้ำมัน${esc(b.team[0])} 4 ลิตร"</div><div class="pq-btns">
+          ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px">${b.pump ? `เบนซินล้วน สูบน้ำใส่ถัง 200 ลิตรผสมยา · คิดแบบเติมเต็มถัง: เติมจนเต็มทุกครั้ง แล้วพิมพ์ "เติมน้ำมันเครื่องสูบ … ลิตร" (จำนวนที่เติม = ที่ใช้ไป)${b.rate ? ` · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร` : ''}</div>` : ''}${b.pump ? '<div style="display:none">' : ''}เบนซิน ${r1(fuelL())} ลิตร/ถัง · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร (เฉลี่ยวันที่ฉีดล่าสุด) · ให้เพิ่ม: พิมพ์ในแชต "ให้น้ำมัน${esc(b.team[0])} 4 ลิตร"</div><div class="pq-btns">
             <button type="button" class="bigbtn bigbtn-out" style="color:#B3261E" onclick="fuelUndo('${qa(b.lastGive.ref)}','${qa(dShort(b.lastGive.iso) + ' ' + r1(b.lastGive.qty) + ' ลิตร')}')">ลบการให้ล่าสุด (ลงผิด)</button></div></div>` : ''}</div>`;
       }).join('')}</div>`;
     }

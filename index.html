@@ -2862,7 +2862,7 @@
         out.push(`<div class="rc-j" data-ids="${o.rain.map(x => esc(x.log_id)).join(',')}" data-lb="🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}"><b>🌧 ฝนตก${mm ? ` ~${r1(mm)} มม.` : ''}</b><br><span>${ps.slice(0, 6).map(id => esc(pname(id))).join(', ')}${ps.length > 6 ? ` และอีก ${ps.length - 6} แปลง` : ''}</span></div>`);
       }
       (o.notes || []).forEach(n => { const op = remOpen === 'n' + n.note_id;
-        out.push(`<div class="rc-j rem-r" data-note="${esc(n.note_id)}" data-lb="🏠 ${esc(n.text)}" onclick="remOpen=remOpen==='n${qa(n.note_id)}'?'':'n${qa(n.note_id)}';render()"><b>🏠 ${esc(n.text)}</b>${num(n.amount) ? ` · <b>${baht(num(n.amount))} บ.</b>` : ''}<br><span>นอกไร่${n.shop ? ' · ' + esc(n.shop) : ''}${n.photo_ids ? ' · 📷' : ''}</span>
+        out.push(`<div class="rc-j rem-r" data-note="${esc(n.note_id)}" data-lb="🏠 ${esc(n.text)}" onclick="remOpen=remOpen==='n${qa(n.note_id)}'?'':'n${qa(n.note_id)}';render()"><b>🏠 ${esc(n.text)}</b>${num(n.amount) ? ` · <b>${baht(num(n.amount))} บ.</b>` : ''}<br><span>นอกไร่${n.workers ? ' · <b style="font-weight:600;color:#1F5E3B">' + esc(n.workers) + '</b>' : ''}${n.shop ? ' · ' + esc(n.shop) : ''}${n.photo_ids ? ' · 📷' : ''}</span>
           ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${n.photo_ids ? `<button type="button" onclick="noteDo('photo','${qa(n.note_id)}')">ดูรูป</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="noteDo('del','${qa(n.note_id)}',this)">ลบ</button></div>` : ''}</div>`); });
       (o.fuel || []).forEach(f => out.push(`<div class="rc-j"${f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ให้น้ำมัน ${esc(f.team.join(' + '))}"` : ''}><b>⛽ ให้น้ำมัน</b> ${esc(f.team.join(' + '))} · <b>${r1(f.qty)} ลิตร</b></div>`));
       (o.guards || []).forEach(g => out.push(`<div class="rc-j"><b>🛡️ เฝ้าไร่</b> ${esc(String(g.workers || '').split(/\s*[,+]\s*/).filter(Boolean).join(' + ') || 'ไม่ระบุคน')}<br><span>${esc(guardWhere(g))}</span></div>`));
@@ -4020,6 +4020,8 @@
         logs.push({ iso, timestamp: l.timestamp, plot: 'หินคลุก ' + (r ? r.member + ' ' + r.name : ''), activity_group: 'ขนหินคลุก',
           activity_detail: `${l.trips} เที่ยว${l.truck ? ' ' + l.truck : ''}`, remark: l.note || '', people: [l.driver] });
       });
+      (gData.notes || []).forEach(n => { const iso = beToISO(n.date), ppl = String(n.workers || '').split(/\s*[+,]\s*/).filter(Boolean); // งานนอกไร่ของคนงาน (17 พ.ย. 69)
+        if (iso && ppl.length && iso >= wsFrom && iso <= wsTo) logs.push({ iso, timestamp: n.date, log_id: 'N' + String(n.text).slice(0, 20), plot: 'นอกไร่', activity_group: 'งานนอกไร่', activity_detail: n.text, remark: '', people: ppl }); });
       const per = {};
       logs.forEach(l => l.people.forEach(w => { (per[w] = per[w] || {})[l.iso] = (per[w][l.iso] || []).concat(l); }));
       const order = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);
@@ -4091,6 +4093,7 @@
         Object.values(B).forEach(ls => {
           const l = ls[0], tg = wsTags(l.remark), det = l.activity_detail && l.activity_detail !== '-' ? l.activity_detail : '';
           const tk = l.activity_group === 'ฉีดยา' ? tankOf(ls) : 0, ch = l.activity_group === 'ฉีดยา' ? logChems(ls) : '';
+          if (l.activity_group === 'งานนอกไร่') { t += `• ${l.people.join(' + ')} : ${det} (นอกไร่)\n`; return; }
           const what = l.activity_group === 'ฉีดยา' ? (det || 'ฉีดยา') + (tk ? ` ${r1(tk)} ถัง` : '') : l.activity_group + (det ? ` (${det})` : '');
           t += `• ${l.people.join(' + ')} : ${[...new Set(ls.map(x => x.plot))].join(', ')} ${what}${tg.length ? ' (' + tg.join(' ') + ')' : ''}\n` + (ch ? `   ${ch}\n` : '');
         });
@@ -5217,6 +5220,7 @@
       if (it.type === 'note') {
         let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]); if (!idx.length) idx = ph.map((_, k) => k);
         it.photos = idx; it.photo_ids = idx.map(k => ph[k]); it.text = String(it.text || '').trim(); it.amount = num(it.amount); it.date = it.date || todayISO();
+        it.workers = (Array.isArray(it.workers) ? it.workers : [it.workers]).map(x => String(x || '').trim()).filter(Boolean); it.date_to = it.date_to && it.date_to > it.date && it.date_to <= todayISO() ? it.date_to : '';
         it.nid = it.nid || 'N' + Date.now() + Math.random().toString(36).slice(2, 5); return it.text ? it : null;
       }
       if (it.type === 'rem_done') { const r = (gData.reminders || []).find(x => x.rem_id === it.id); if (!r) return null; it.text = r.text; return it; }
@@ -5304,7 +5308,7 @@
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
         else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
-        else if (a.type === 'note') ops.push({ fn: 'note', id: a.nid, p: { text: a.text, amount: a.amount, shop: a.shop || '', date: a.date, photo_ids: a.photo_ids || [] } });
+        else if (a.type === 'note') for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
         else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
@@ -5365,7 +5369,8 @@
         h = `<div class="ch-t">🟫 ผลดูดินหน้างาน</div>` + row('พื้นที่', it.area || pn(it.plots)) + row('สภาพ', it.state) + row('วันที่', dt(it.date))
           + (it.model_pct !== undefined ? `<div class="ch-cn">แอปคำนวณไว้ ~${it.model_pct}% · จดไว้ใช้ปรับตัวคิด และแชตจะเชื่อผลหน้างานนี้ 3 วัน (ถ้าไม่มีฝนเพิ่ม)</div>` : '');
       } else if (it.type === 'note') {
-        h = `<div class="ch-t">🏠 นอกไร่ (ไม่ลงบัญชีไร่)</div>` + row('เรื่อง', it.text) + row('เงิน', it.amount ? baht(it.amount) + ' บาท' : '') + row('ร้าน/ที่', it.shop) + row('วันที่', dt(it.date));
+        h = `<div class="ch-t">🏠 นอกไร่ (ไม่ลงบัญชีไร่)</div>` + row('เรื่อง', it.text) + row('คน', it.workers.join(' + ')) + row('เงิน', it.amount ? baht(it.amount) + ' บาท' : '') + row('ร้าน/ที่', it.shop)
+          + row('วันที่', it.date_to ? `${dt(it.date)} – ${dt(it.date_to)} (${dayDiff(it.date, it.date_to) + 1} วัน)` : dt(it.date)) + (it.workers.length ? '<div class="ch-cn">นับวันทำงานในสรุปคนงาน (ก๊อปส่ง LINE)</div>' : '');
       } else if (it.type === 'rem_done') {
         h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
       } else if (it.type === 'reminder') {

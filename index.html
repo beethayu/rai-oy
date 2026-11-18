@@ -7442,7 +7442,7 @@ Export.table.toDrive({
       const sp = acts.find(a => a.activity_group === 'ฉีดยา'); if (sp) { const d = inR(sp.timestamp, lo, hi); return d > B ? `จดฉีดยา ${dShort(d)} (หลังภาพ) — ถ้าเริ่มฉีดก่อน ${dShort(B)} น่าจะเป็นหญ้าโดนยา` : `มีฉีดยา ${dShort(d)} — หญ้าที่โดนยาเหี่ยวก็ขึ้นแบบนี้ ไม่แน่ว่าเป็นไฟ`; }
       return 'ไม่มีบันทึกไฟ/ฉีดยา/ตัดช่วงนี้ — ควรไปดูหน้างาน';
     }
-    function burnGo(k) { const x = satInfo.items.find(q => q.key === k); if (x) fmMap.fitBounds(L.latLngBounds(x.pts), { padding: [30, 30], maxZoom: 18 }); }
+    function burnGo(k) { const x = satInfo.items.find(q => q.key === k); if (!x) return; fmMap.fitBounds(L.latLngBounds(x.pts), { padding: [30, 30], maxZoom: 18 }); fmSel = { kind: x.land ? 'land' : 'plot', id: x.id }; burnMin = true; fmSatBarHtml(); fmPanel(); } // แตะรายการ = เลือกแปลงนั้นด้วย แผงล่างเปลี่ยนตาม (18 พ.ย.)
     // ถอดภาพจุดอ่อน → cls ต่อจุด: 2 แดง (อ่อนมาก) · 1 ส้ม · 0 ปกติ/ดีกว่า · -1 นอกแปลง/เมฆ
     function weakPx(src, cb) {
       const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
@@ -7482,6 +7482,14 @@ Export.table.toDrive({
           dmgRecRes[ck] = n >= 4 ? Math.round(bad / n * 100) : null; fin(dmgRecRes[ck]); }); });
       });
     }
+    function burnSheetLine(x) {
+      const pr = burnPairOf(x), r = pr && burnRes[x.id + '|' + pr.A + '|' + pr.B];
+      if (!pr) return '<div class="dmg-rec">🛰️ ยังไม่มีภาพใสสองภาพติดกันให้เทียบ</div>';
+      if (!r) return '<div class="dmg-rec">🛰️ กำลังเทียบภาพก่อน–หลัง…</div>';
+      if (r.cloud) return `<div class="dmg-rec">🛰️ ${satDs(r.A)} → ${satDs(r.B)} มีเมฆ เทียบไม่ได้</div>`;
+      return r.rai < 0.2 ? `<div class="dmg-rec">🛰️ <b>ไม่เห็นจุดแห้งลง</b> (${satDs(r.A)} → ${satDs(r.B)})</div>`
+        : `<div class="dmg-rec">🛰️ <b>แห้งลง เสียหาย ~${r1(r.dmg || r.rai)} ไร่</b> (${satDs(r.A)} → ${satDs(r.B)})<br><small>${esc(r.cause)}</small></div>`;
+    }
     function burnBarHtml() {
       const L = (satInfo ? satInfo.items : []).filter(x => !x.land).map(x => { const pr = burnPairOf(x); return pr && burnRes[x.id + '|' + pr.A + '|' + pr.B] ? { x, r: burnRes[x.id + '|' + pr.A + '|' + pr.B] } : null; }).filter(Boolean);
       const hit = L.filter(o => o.r.rai >= 0.2).sort((a, b) => b.r.rai - a.r.rai);
@@ -7517,6 +7525,7 @@ Export.table.toDrive({
           <div class="big"><small class="text-muted" style="font-size:12px">ความเขียว</small><div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b style="color:${satColor(cur.ndvi)}">${satLevel(cur.ndvi)}</b></div></div>
         ${cmp ? `<div style="font-size:13.5px;margin-top:4px">${cmp}${pm !== null ? ` <span class="text-muted">(แปลงอื่น ${pm.toFixed(2)})</span>` : ''}</div>` : ''}
         ${weak ? `<div style="font-size:13.5px;margin-top:2px">${weak}</div>` : ''}
+        ${fmSatMode === 'b' ? burnSheetLine(x) : ''}
         ${dmgRecHtml(x)}
         ${latest ? x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag">⚠️ ${esc(f)}</div>`).join('') : ''}
         ${fmSatMode === 'f' ? `<div class="sw-prone mt-2" style="font-size:13.5px">สีฟ้าบนแปลง = จุดที่ดาวเทียมเคยเห็นน้ำบนผิวดินใน 2 ปี ยิ่งเข้มยิ่งขังบ่อย (= แอ่ง) · ไม่มีสี = ไม่เคยเห็นน้ำ หรือช่วงนั้นอ้อยสูงบังอยู่${spotSoilLine(x)}</div>`

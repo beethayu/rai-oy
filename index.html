@@ -4108,11 +4108,13 @@
       const chip = (k, t) => `<button type="button" class="btn btn-sm btn-outline-success py-0" onclick="wsPreset('${k}')">${t}</button>`;
       const list = rows.map(r => {
         const open = wsOpen === r.w;
-        const detail = open ? `<div class="small mt-2 ps-2 border-start border-success border-3">${r.days.map(d => r.by[d].map(l =>
-          `<div class="py-1"><b>${thDate(d)}</b> · ${esc(l.plot)} · ${esc(l.activity_group)}${l.activity_detail && l.activity_detail !== '-' ? ' (' + esc(l.activity_detail) + ')' : ''}${wsTags(l.remark).length ? ' · <b class="text-danger">' + wsTags(l.remark).join(' ') + '</b>' : ''}${(l.remark || '').includes('กำลังทำ') ? ' <span class="text-primary">[เริ่ม ยังไม่เสร็จ]</span>' : ''}</div>`).join('')).join('')}</div>` : '';
+        const allL = r.days.flatMap(d => r.by[d]);
+        const detail = open ? `<div class="small mt-2 ps-2 border-start border-success border-3">${r.days.map(d => wsDayGroups(r.by[d], d, allL).map(g =>
+          `<div class="py-1"><b>${thDate(d)}</b> · ${esc(g.what)}${g.tank ? ` <b style="color:#B42318">${r1(g.tank)} ถัง</b>` : ''}${g.tags.size ? ' · <b class="text-danger">' + [...g.tags].join(' ') + '</b>' : ''}`
+          + (g.doneTxt ? `<br>${esc(g.doneTxt)} <b style="color:#1E7B3C">เสร็จ</b>` : '') + (g.doingTxt ? `<br>${esc(g.doingTxt)} <b style="color:#B26A00">${g.ogW}</b>` : '') + `</div>`).join('')).join('')}</div>` : '';
         return `<div class="border-bottom py-2" style="cursor:pointer" onclick="wsToggle('${qa(r.w)}')">
             <div class="d-flex justify-content-between align-items-center"><b class="fs-6">${esc(r.w)}</b><span class="text-muted small">${open ? '▴' : '▾'}</span></div>
-            <div${!r.days.length && r.gAt.length ? ' style="display:none"' : ''}>ทำงาน <b>${r.days.length}</b> วัน${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}${r.half ? ` · ครึ่งวัน <b>${r.half}</b>` : ''}</div>
+            <div${!r.days.length && r.gAt.length ? ' style="display:none"' : ''}>ทำงาน <b>${r1(r.days.length - r.half / 2)}</b> วัน${r.half ? ` <span class="text-muted small">(ครึ่งวัน ${r.half} วัน)</span>` : ''}${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}</div>
             ${r.tank ? `<div>ฉีดยา <b style="color:#B42318">${r1(r.tank)} ถัง</b>${r.mates.length ? ` <span class="text-muted small">(ทำกับ ${esc(r.mates.join(', '))} · ถังนับรวมทีม ไม่ใช่คนละ ${r1(r.tank)})</span>` : r.team.length > 1 ? ' <span class="text-muted small">(รวมทั้งทีม)</span>' : ''}</div>
             ${(c => c ? `<div class="text-muted small">${esc(c)}</div>` : '')(logChems(r.days.flatMap(d => r.by[d]).filter(l => l.activity_group === 'ฉีดยา')))}` : ''}
             ${(b => b ? `<div class="small">⛽ ${esc(fuelLine(b))} <span class="text-muted">(ค่าประมาณ)</span></div>` : '')(fuelForTeam(r.team))}
@@ -4133,6 +4135,23 @@
         <div class="small text-muted mt-2">นับวันจากงานที่บันทึก (${logs.length} รายการ) · งานหลายวันนับเฉพาะวันที่กดบันทึก ถ้าทำต่อเนื่องให้กด "+ บันทึก" ทุกวัน · กดชื่อเพื่อดูรายวัน</div>`;
     }
 
+    // สรุปคนงานรายวัน แบบเดียวกับปฏิทิน (18 พ.ย. ผู้ใช้: "ขึ้นให้ตรง อันไหนทำ อันไหนเสร็จ"): งาน + ถัง / แปลง … เสร็จ / แปลง … กำลังฉีด
+    // แปลงที่ปิดเสร็จวันนี้จากงานวันก่อน (เสร็จ d/m/y) ขึ้นเป็น เสร็จ ในวันนั้นด้วย
+    function wsDayGroups(ls, d, allLs) {
+      const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id, finOf = l => { const m = String(l.remark || '').match(/เสร็จ (\d{1,2}\/\d{1,2}\/\d{4})/); return m ? beToISO(m[1]) : ''; };
+      const G = {};
+      ls.forEach(l => { const det = l.activity_detail && l.activity_detail !== '-' ? l.activity_detail : '', k = l.activity_group + '|' + det;
+        const g = G[k] = G[k] || { grp: l.activity_group, det, logs: [], done: [], doing: [], tags: new Set() };
+        g.logs.push(l); wsTags(l.remark).forEach(t => g.tags.add(t));
+        if (!l.plot_id || l.activity_group === 'งานนอกไร่') return;
+        const fd = finOf(l), going = String(l.remark || '').includes('กำลังทำ') || (fd && fd > d);
+        const L2 = going ? g.doing : g.done; if (!L2.includes(l.plot_id) && !g.done.includes(l.plot_id)) L2.push(l.plot_id); });
+      (allLs || []).forEach(l => { if (finOf(l) !== d || l.iso === d) return; const det = l.activity_detail && l.activity_detail !== '-' ? l.activity_detail : '', g = G[l.activity_group + '|' + det];
+        if (g && !g.done.includes(l.plot_id)) { g.done.push(l.plot_id); g.doing = g.doing.filter(x => x !== l.plot_id); } });
+      return Object.values(G).map(g => { g.doing = g.doing.filter(x => !g.done.includes(x)); const sp = g.grp === 'ฉีดยา';
+        return { ...g, sp, what: g.grp === 'งานนอกไร่' ? g.det + ' (นอกไร่)' : sp ? (g.det || 'ฉีดยา') : g.grp + (g.det ? ` (${g.det})` : ''), tank: sp ? tankOf(g.logs) : 0,
+          doneTxt: g.done.length ? djWhere(g.done, pname).replace(/<[^>]+>/g, '') : '', doingTxt: g.doing.length ? djWhere(g.doing, pname).replace(/<[^>]+>/g, '') : '', ogW: sp ? 'กำลังฉีด' : 'กำลังทำ' }; });
+    }
     function wsCopy() {
       const { logs, rows } = workSumData();
       if (!logs.length) return alert('ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน');
@@ -4146,14 +4165,15 @@
           const l = ls[0], tg = wsTags(l.remark), det = l.activity_detail && l.activity_detail !== '-' ? l.activity_detail : '';
           const tk = l.activity_group === 'ฉีดยา' ? tankOf(ls) : 0, ch = l.activity_group === 'ฉีดยา' ? logChems(ls) : '';
           if (l.activity_group === 'งานนอกไร่') { t += `• ${l.people.join(' + ')} : ${det} (นอกไร่)\n`; return; }
-          const what = l.activity_group === 'ฉีดยา' ? (det || 'ฉีดยา') + (tk ? ` ${r1(tk)} ถัง` : '') : l.activity_group + (det ? ` (${det})` : '');
-          t += `• ${l.people.join(' + ')} : ${[...new Set(ls.map(x => x.plot))].join(', ')} ${what}${tg.length ? ' (' + tg.join(' ') + ')' : ''}\n` + (ch ? `   ${ch}\n` : '');
+          const g = wsDayGroups(ls, d, logs.filter(x => x.people.join('+') === l.people.join('+')))[0];
+          const st = [g.doneTxt ? g.doneTxt + ' เสร็จ' : '', g.doingTxt ? g.doingTxt + ' ' + g.ogW : ''].filter(Boolean).join(' / ');
+          t += `• ${l.people.join(' + ')} : ${g.what}${tk ? ` ${r1(tk)} ถัง` : ''}${tg.length ? ' (' + tg.join(' ') + ')' : ''}\n` + (st ? `   ${st}\n` : '') + (ch ? `   ${ch}\n` : '');
         });
       });
       t += `\nรวม\n` + rows.map(r => {
         const sp = r.days.flatMap(d => r.by[d]).filter(l => l.activity_group === 'ฉีดยา'), ch = r.tank ? logChems(sp) : '';
         const parts = [];
-        if (r.days.length) parts.push(`${r.days.length} วัน${r.night ? ' ค้างคืน ' + r.night : ''}${r.half ? ' ครึ่งวัน ' + r.half : ''}`);
+        if (r.days.length) parts.push(`${r1(r.days.length - r.half / 2)} วัน${r.half ? ` (ครึ่งวัน ${r.half} วัน)` : ''}${r.night ? ' ค้างคืน ' + r.night : ''}`);
         if (r.tank) parts.push(`ฉีดยา ${r1(r.tank)} ถัง`);
         if (r.gAt.length) parts.push(`เฝ้าไร่ ${r.gAt.join(', ')} ${r.gNight} คืน (นับถึงคืนนี้)`);
         return `• ${r.w} ${parts.join(' · ') || '0 วัน'}` + (ch ? `\n   ${ch}` : '');

@@ -903,7 +903,11 @@
     .sat-bignum { font-size: 34px; font-weight: 700; line-height: 1; }
     .fm-sheet { animation: fmUp .22s ease-out; }
     @keyframes fmUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
-    .fm-sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line2); margin: 0 auto 8px; }
+    .fm-sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line2); margin: 0 auto 8px; position: relative; }
+    .fm-sheet .grab::before { content: ''; position: absolute; left: -60px; right: -60px; top: -14px; bottom: -14px; } /* พื้นที่แตะ/ลากกว้างขึ้น */
+    .fm-sheet.fm-min > :not(.grab):not(.shd) { display: none !important; } .fm-sheet.fm-min .shd small, .fm-sheet.fm-min .shd .big small:last-child { display: none; }
+    #fmPanel:has(.fm-min) .fm-wp { display: none; }
+    .fm-sheet.fm-min .sat-bignum { font-size: 28px !important; }
     .fm-sheet .shd { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
     .fm-sheet .shd small { color: var(--muted); font-size: 13px; }
     .fm-sheet .big { text-align: right; flex: none; }
@@ -7356,7 +7360,7 @@ Export.table.toDrive({
           if (!r || !fmSatOn || fmSatMode !== 'b') return;
           if (fmSatOv[x.key]) fmSatLayer.removeLayer(fmSatOv[x.key]);
           if (r.img) fmSatOv[x.key] = L.imageOverlay(r.img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false }).addTo(fmSatLayer);
-          fmLabels(); fmSatBarHtml();
+          fmLabels(); fmSatBarHtml(); if (fmSel && fmSel.id === x.id) fmPanel(true);
         });
         return;
       }
@@ -7482,6 +7486,16 @@ Export.table.toDrive({
           dmgRecRes[ck] = n >= 4 ? Math.round(bad / n * 100) : null; fin(dmgRecRes[ck]); }); });
       });
     }
+    // ลากขีดบนแผงแปลง: ลงหด (เหลือชื่อ + ความเขียว) ขึ้นกาง · แตะขีด = สลับ (18 พ.ย.)
+    let fmSheetMin = false;
+    (function () { let y0 = null, moved = false;
+      document.addEventListener('touchstart', e => { const g = e.target.closest && e.target.closest('.fm-sheet .grab, .fm-sheet.fm-min'); if (!g) return; y0 = e.touches[0].clientY; moved = false; }, { passive: true });
+      document.addEventListener('touchmove', e => { if (y0 === null) return; const dy = e.touches[0].clientY - y0;
+        if (Math.abs(dy) > 30 && !moved) { moved = true; fmSheetSet(dy > 0); } }, { passive: true });
+      document.addEventListener('touchend', () => { y0 = null; }, { passive: true });
+      document.addEventListener('click', e => { const g = e.target.closest && e.target.closest('.fm-sheet .grab'); if (g) fmSheetSet(!fmSheetMin); else if (e.target.closest && e.target.closest('.fm-sheet.fm-min') && !e.target.closest('button,a')) fmSheetSet(false); });
+    })();
+    function fmSheetSet(min) { fmSheetMin = min; document.querySelectorAll('.fm-sheet').forEach(el => el.classList.toggle('fm-min', min)); document.querySelectorAll('.fm-wp').forEach(el => el.style.display = min ? 'none' : ''); setTimeout(() => fmMap && fmMap.invalidateSize(), 50); }
     function burnSheetLine(x) {
       const pr = burnPairOf(x), r = pr && burnRes[x.id + '|' + pr.A + '|' + pr.B];
       if (!pr) return '<div class="dmg-rec">🛰️ ยังไม่มีภาพใสสองภาพติดกันให้เทียบ</div>';
@@ -7519,7 +7533,7 @@ Export.table.toDrive({
       const dates = x.good.slice(-12);
       const chips = dates.map(q => `<button type="button" class="${q.d === cur.d ? 'on' : ''}" onclick="fmSatPick('${qa(x.key)}','${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('');
       const latest = cur.d === x.last.d;
-      return `<div class="fm-sheet${still ? '' : ' fm-sheet-in'}" style="${still ? 'animation:none' : ''}"><div class="grab"></div>
+      return `<div class="fm-sheet${still ? '' : ' fm-sheet-in'}${fmSheetMin ? ' fm-min' : ''}" style="${still ? 'animation:none' : ''}"><div class="grab"></div>
         <div class="shd"><div><div class="fw-bold" style="font-size:17px">${esc(x.name)}</div><small>${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}</small>
           <div style="font-size:13px;margin-top:2px">ภาพ <b>${satD(cur.d)}</b>${latest ? ' (ล่าสุด)' : ` <span class="old">· ภาพเก่า</span>`}</div></div>
           <div class="big"><small class="text-muted" style="font-size:12px">ความเขียว</small><div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b style="color:${satColor(cur.ndvi)}">${satLevel(cur.ndvi)}</b></div></div>
@@ -7899,7 +7913,7 @@ Export.table.toDrive({
         if (sx && sx.last) {
           P.innerHTML = fmSatSheet(sx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)">กราฟ 12 เดือน</button>
             ${nav(p.center_lat, p.center_lng)}
-            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still) + `<div class="mt-2">${wpBtnHtml('plot', p.plot_id)}</div>`;
+            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still) + `<div class="mt-2 fm-wp">${wpBtnHtml('plot', p.plot_id)}</div>`;
           const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
           return;
         }

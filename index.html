@@ -5147,7 +5147,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chFixPlots(items, txt); chFinMerge(items); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -5174,6 +5174,25 @@
       act.plots = lone; act.ongoing = false; act.unsure = [...new Set([...(act.unsure || []), 'plots'])];
       fin.plots = fin.plots.filter(pid => !lone.includes(pid));
       if (!fin.plots.length) items.splice(items.indexOf(fin), 1);
+    }
+    // แปลงในงานต้องมาจากที่ผู้ใช้พูด (18 พ.ย.: "นายดำ เสร็จ" → AI ใส่ 90 วา/สะเดา/ข้างสระ ที่เสร็จไปเมื่อวาน)
+    // ชื่อแปลงที่พูด: ชื่อเต็ม / ชื่อในวงเล็บ / ชื่อพื้นที่ / สะกดผิด 1 ตัว (นายดำ ≈ ยายดำ) · พูดแต่ AI ใส่แปลงอื่น = แทน · ไม่พูดเลยและไม่ใช่งานค้าง = ถาม
+    function chSaidPlots(txt) {
+      const t = String(txt || '').split('→').pop().replace(/\s+/g, ''), near = (a) => { if (a.length < 4) return false; for (let i = 0; i + a.length <= t.length; i++) { let d = 0; for (let j = 0; j < a.length && d < 2; j++) if (t[i + j] !== a[j]) d++; if (d <= 1) return true; } return false; };
+      const out = { exact: [], fuzzy: [] };
+      (gData.plots || []).forEach(p => { const n0 = String(p.plot_name || ''), m = /^(.*?)\s*\((.+)\)\s*$/.exec(n0), n = n0.replace(/\s+/g, ''), al = (m ? m[2] : n0).replace(/\s+/g, ''), area = m ? m[1].replace(/\s+/g, '') : '';
+        if (t.includes(n) || t.includes(al)) out.exact.push(p.plot_id); else if (near(al)) out.fuzzy.push(p.plot_id); else if (area && t.includes(area) ) out.area = (out.area || []).concat(p.plot_id); });
+      return out;
+    }
+    function chPlotGuard(items, txt, r) {
+      const said = chSaidPlots(txt), named = said.exact.length ? said.exact : said.fuzzy, areaIds = said.area || [];
+      items.filter(it => it.type === 'activity' && it.group !== 'ฝนตก' && Array.isArray(it.plots) && it.plots.length).forEach(it => {
+        if (it.plots.some(pid => named.includes(pid) || areaIds.includes(pid))) return;
+        const mark = () => { if (!(it.unsure || []).includes('plots')) it.unsure = (it.unsure || []).concat('plots'); };
+        if (named.length) { it.plots = named.slice(); mark(); return; }
+        if (it.plots.every(pid => { const og = chOg(pid); return og && og.activity_group === it.group; })) return; // ทำงานค้างต่อ ไม่ต้องบอกชื่อแปลง
+        mark(); r.ask = (r.ask || []).concat({ q: `${it.group === 'ฉีดยา' ? 'ฉีด' : 'ทำ'}แปลงไหนครับ? (ยังไม่เห็นชื่อแปลงในข้อความ)` });
+      });
     }
     function chFixPlots(items, txt) {
       const t = String(txt || '').split('→').pop();

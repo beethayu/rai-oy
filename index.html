@@ -521,6 +521,7 @@
     .dj-g { font-size: 12.5px; font-weight: 600; color: #8A5A0B; background: #FFF4E0; border-radius: 999px; padding: 1px 8px; vertical-align: 2px; white-space: nowrap; }
     .dj-w { font-size: 14.5px; color: #4A524D; margin-top: 2px; } .dj-w b { color: #1F5E3B; font-weight: 700; } .dj-x { font-size: 13.5px; color: #6B736E; margin-top: 2px; line-height: 1.45; }
     .dj-ok { color: #1F5E3B; font-size: 13px; background: #E8F2EC; border-radius: 999px; padding: 1px 8px; white-space: nowrap; } .dj-og { color: #8A5A0B; font-size: 13px; background: #FFF4E0; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+    .fm-full .modal-footer, .fm-full .fm-top { display: none !important; } .fm-full #fmFullBtn { top: 62px !important; } .fm-full #fmLyBtn { display: none; }
     .fm-dmgtg { display: block; border: 0; background: transparent; color: #9A2B1E; font-size: 13.5px; padding: 2px 0 4px; } .fm-dmgtg b { text-decoration: underline; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
     .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
@@ -1717,6 +1718,7 @@
           <div style="display:none"><button type="button" id="fmLayerBtn"></button><button type="button" id="fmPoiBtn"></button><button type="button" id="fmLandBtn"></button><button type="button" id="fmRainBtn"></button><button type="button" id="fmSatBtn"></button></div>
           <button type="button" class="mp-btn" style="top:62px" id="fmLyBtn" onclick="lyToggle('fm')" aria-label="เลเยอร์"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3 2.5 8.2 12 13.4l9.5-5.2z" fill="#1F5E3B"/><path d="M4.6 11.6 2.5 12.8 12 18l9.5-5.2-2.1-1.2L12 15.7z" fill="#1F5E3B" opacity=".55"/></svg></button>
           <button type="button" class="mp-btn" style="top:180px" onclick="fmGoMe()" aria-label="ไปที่ฉัน"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#1E6FD9" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="#1E6FD9"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="#1E6FD9" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button type="button" class="mp-btn" style="top:240px" id="fmFullBtn" onclick="fmFull()" aria-label="ดูแผนที่เต็มจอ"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5E3B" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           <div class="ly-sheet" id="fmLy" style="display:none"></div>
           <div class="fm-rbar" id="fmSatBar" style="display:none"></div>
           <div class="fm-rbar" id="fmRainBar" style="display:none">
@@ -7450,7 +7452,7 @@ Export.table.toDrive({
     }
     function fmClose() {
       if (fmEdit && fmEdit.pts.length && !confirm('ยังไม่ได้บันทึกขอบที่วาด ปิดเลยไหม?')) return;
-      fmEdit = null; if (kmItems) kmCancel(); hideModal('farmMapModal');
+      fmEdit = null; if (kmItems) kmCancel(); fmFull(false); hideModal('farmMapModal');
     }
     function fmFit(pts) { if (pts.length) fmMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 18 }); }
     function fmFitAll() {
@@ -7530,6 +7532,12 @@ Export.table.toDrive({
       const e = fmEdit, pid = e ? (e.kind === 'dmg' ? e.dmg.plot_id : e.kind === 'plot' ? e.id : '') : '';
       fmEdit = null; fmEditLayer.clearLayers(); $('fmHint').style.display = 'none';
       fmSel = pid ? { kind: 'plot', id: pid } : e && e.kind === 'land' && e.id ? { kind: 'land', id: e.id } : null; fmRender();
+    }
+    // ดูแผนที่เต็มจอ (18 พ.ย. 69 ผู้ใช้: "ทำยังไงให้เห็นเต็มๆจอ") — ซ่อนช่องค้นหา + แผงข้อมูลแปลงด้านล่าง · กดอีกครั้ง = กลับ
+    function fmFull(on) {
+      const m = $('fmMap').closest('.modal'); on = on === undefined ? !m.classList.contains('fm-full') : on; m.classList.toggle('fm-full', on);
+      $('fmFullBtn').innerHTML = on ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5E3B" stroke-width="2.2" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>' : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5E3B" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+      setTimeout(() => { try { fmMap.invalidateSize(); } catch (e) {} }, 60);
     }
     function fmRender() {
       fmHdr();

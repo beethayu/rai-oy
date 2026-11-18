@@ -732,10 +732,11 @@
     .mp-btn.on { background: #D4ECE3; }
     #fmMap .leaflet-top.leaflet-right { top: 112px; }
     #wpMap .leaflet-top.leaflet-right { top: 58px; }
-    .ly-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1100; background: #fff; border-radius: 18px 18px 0 0; padding: 12px 16px 14px; box-shadow: 0 -4px 18px rgba(0,0,0,.2); animation: fmUp .2s ease-out; }
+    .ly-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1100; max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #fff; border-radius: 18px 18px 0 0; padding: 12px 16px 14px; box-shadow: 0 -4px 18px rgba(0,0,0,.2); animation: fmUp .2s ease-out; }
     .ly-hd { display: flex; align-items: center; justify-content: space-between; }
     .ly-hd b { font-size: 18px; }
     .ly-hd button { border: 0; background: none; color: inherit; font-size: 22px; width: 40px; height: 40px; }
+    .ly-sheet .ly-hd { position: sticky; top: -12px; background: #fff; z-index: 2; padding-top: 4px; } /* หัว + ✕ ติดบนเสมอ (เคยหลุดขอบบน 18 พ.ย.) */
     .ly-h { font-size: 15px; font-weight: 700; margin: 8px 0 8px; }
     .ly-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border-bottom: 1px solid #EEF1EF; padding-bottom: 10px; }
     .ly-grid:last-child { border-bottom: 0; }
@@ -8294,6 +8295,7 @@ Export.table.toDrive({
     function lyToggle(m) {
       lyOpen = lyOpen === m ? '' : m;
       ['fm', 'wp'].forEach(k => { const e = $(k + 'Ly'); if (e) e.style.display = lyOpen === k ? '' : 'none'; });
+      if (lyOpen === 'fm' && typeof fmSheetSet === 'function') fmSheetSet(true); // หดแผงแปลงให้แผ่นเลเยอร์มีที่
       if (lyOpen) lyRender(lyOpen);
     }
     function lyRender(m) {

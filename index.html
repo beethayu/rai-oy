@@ -7302,7 +7302,7 @@ Export.table.toDrive({
 
     // ===== ชั้นดาวเทียมบนแผนที่ไร่: ภาพสีของแต่ละแปลงวางบนแผนที่จริง ซูม/แตะดูได้ =====
     // ดูภาพดาวเทียม (จุดอ่อน/น้ำขัง) = ซ่อนพื้นที่เสียหายที่วาดไว้ให้อัตโนมัติ (18 พ.ย. 69 ผู้ใช้: ปิดที่วาดไฟไหม้ไม่ได้ บังจุดอ่อน) · ปุ่มในแถบเปิดกลับได้
-    let fmDmgShow = false; const fmDmgHidden = () => fmSatOn && fmSatMode !== 'n' && !fmDmgShow;
+    let fmDmgShow = true; const fmDmgHidden = () => fmSatOn && !fmDmgShow; // สีปกติ = เริ่มแสดง · จุดอ่อน/น้ำขัง = เริ่มซ่อน · ทุกโหมดมีปุ่มเปิดปิด
     let fmSatOn = false, fmSatMode = 'n', fmSatWant = false, fmSatLayer = null, fmSatDate = {}, fmSatOv = {};
     function fmSatToggle(on) {
       fmSatOn = on === undefined ? !fmSatOn : !!on;
@@ -7311,11 +7311,11 @@ Export.table.toDrive({
       if (!fmSatOn) { fmSatDate = {}; if (fmSatLayer) fmSatLayer.clearLayers(); fmSatOv = {}; fmRender(); return; }
       satEnsure(() => { fmSatBarHtml(); fmRender(); fmSatDraw(); });
     }
-    function fmSatSetMode(m) { fmSatMode = m; fmDmgShow = false; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
+    function fmSatSetMode(m) { fmSatMode = m; fmDmgShow = m === 'n'; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
     function fmSatBarHtml() {
       const W = fmSatMode === 'w', F = fmSatMode === 'f', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
       $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
-        ${fmSatMode !== 'n' && (gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;fmRender();fmSatBarHtml()">🔥 พื้นที่เสียหายที่วาดไว้: <b>${fmDmgShow ? 'แสดงอยู่ · ซ่อน' : 'ซ่อนอยู่ · แสดง'}</b></button>` : ''}
+        ${(gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;fmRender();fmSatBarHtml()">🔥 พื้นที่เสียหายที่วาดไว้: <b>${fmDmgShow ? 'แสดงอยู่ · ซ่อน' : 'ซ่อนอยู่ · แสดง'}</b></button>` : ''}
         ${F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
         : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
           : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div></div>`}`;
@@ -7323,6 +7323,8 @@ Export.table.toDrive({
     function fmSatDraw() {
       if (!fmMap || !fmSatOn || !satInfo) return;
       if (!fmSatLayer) { fmMap.createPane('satPane', fmMap.getPane('rotatePane') || undefined).style.zIndex = 390; fmSatLayer = L.layerGroup().addTo(fmMap); }   // ต้องอยู่ใน rotatePane (leaflet-rotate) ไม่งั้นภาพเลื่อนหลุดจอ
+      if (!fmMap._satFix) { fmMap._satFix = 1; // ภาพดาวเทียมเลื่อนหลังซูม/หมุน (18 พ.ย. 69 ผู้ใช้: ซูมเข้าออกไม่ค่อยตรง) → วางตำแหน่งใหม่ทุกครั้งที่ซูม/หมุน/เลื่อนเสร็จ
+        fmMap.on('zoomend moveend viewreset rotate resize', () => Object.values(fmSatOv).forEach(o => { try { o && o._reset && o._reset(); } catch (e) {} })); }
       fmSatLayer.clearLayers(); fmSatOv = {};
       const W = fmSatMode === 'w';
       satInfo.items.forEach(x => {

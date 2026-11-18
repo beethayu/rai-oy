@@ -5147,7 +5147,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chFixPlots(items, txt); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chFixPlots(items, txt); chFinMerge(items); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -5165,6 +5165,16 @@
     const chAsset = n => (gData.assets || []).find(a => a.category !== 'Worker' && a.name === String(n || '').trim());
     // กันแชตจับแปลงผิด (14 พ.ย. 69: ตอบ "หนองบวบหอม 1" แต่การ์ดเป็น หนองบวบหอม 3 (แรก)): ข้อความ/คำตอบชิปมีชื่อแปลงเต็มชื่อเดียว
     // แต่รายการ (แปลงเดียว) เป็นแปลงอื่น → ใช้แปลงที่พิมพ์ แล้วทำช่องแปลงเป็นสีส้มให้ตรวจ
+    // "ฉีด 2 ถัง ยายดำ เสร็จ" แล้ว AI แยกเป็น งานฉีด (แปลงที่ค้างเดิม) + งานเสร็จ (ยายดำ ไม่มีงานค้าง) → รวมเป็นงานฉีดที่ยายดำ เสร็จวันนี้ (18 พ.ย.)
+    function chFinMerge(items) {
+      const act = items.find(it => it.type === 'activity' && it.group !== 'ฝนตก'), fin = items.find(it => it.type === 'finish');
+      if (!act || !fin) return;
+      const lone = (fin.plots || []).filter(pid => !chOg(pid) && !(act.plots || []).includes(pid));
+      if (!lone.length) return;
+      act.plots = lone; act.ongoing = false; act.unsure = [...new Set([...(act.unsure || []), 'plots'])];
+      fin.plots = fin.plots.filter(pid => !lone.includes(pid));
+      if (!fin.plots.length) items.splice(items.indexOf(fin), 1);
+    }
     function chFixPlots(items, txt) {
       const t = String(txt || '').split('→').pop();
       let hit = (gData.plots || []).filter(p => p.plot_name && t.includes(p.plot_name));

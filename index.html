@@ -523,6 +523,7 @@
     .dj-ok { color: #1F5E3B; font-size: 13px; background: #E8F2EC; border-radius: 999px; padding: 1px 8px; white-space: nowrap; } .dj-og { color: #8A5A0B; font-size: 13px; background: #FFF4E0; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
     .fm-full .modal-footer, .fm-full .fm-top { display: none !important; } .fm-full #fmFullBtn { top: 62px !important; } .fm-full #fmLyBtn { display: none; }
     .burn-min { display: block; width: auto !important; margin: 4px auto 2px; border: 0; background: #E8EFEA; color: #1F5C3A; border-radius: 12px; padding: 3px 10px; font-size: 13px; font-weight: 600; }
+    .dmg-rec { font-size: 13.5px; margin-top: 6px; padding: 6px 10px; background: #FFF6F2; border-radius: 10px; color: #1F2A23; } .dmg-rec small { color: #6B736E; font-size: 12px; }
     .burn-list { font-size: 14px; color: #1F2A23; max-height: 120px; overflow-y: auto; } .burn-list > div { padding: 3px 0; cursor: pointer; } .burn-list span, .burn-list small { color: #6B736E; }
     .fm-dmgtg { display: block; border: 0; background: transparent; color: #9A2B1E; font-size: 13.5px; padding: 2px 0 4px; } .fm-dmgtg b { text-decoration: underline; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
@@ -7411,7 +7412,24 @@ Export.table.toDrive({
         g.putImageData(D, 0, 0);
         const lat0 = x.pts.reduce((s, p) => s + p[0], 0) / x.pts.length, b = L.latLngBounds(x.pts);
         const m2 = (b.getEast() - b.getWest()) * 111320 * Math.cos(lat0 * Math.PI / 180) * (b.getNorth() - b.getSouth()) * 110540 / (c.width * c.height);
-        cb({ img: n ? c.toDataURL() : '', rai: Math.round(n * m2 / 1600 * 100) / 100, A, B, cloud: false, cause: burnCause(x.id, A, B) });
+        const res = { img: n ? c.toDataURL() : '', rai: Math.round(n * m2 / 1600 * 100) / 100, A, B, cloud: false, cause: burnCause(x.id, A, B) };
+        if (res.rai < 0.2) return cb(res);
+        // ขนาดความเสียหาย = ก้อนสีแดงในภาพจุดอ่อนวันหลัง ที่ทับจุดที่เพิ่งแห้งลง (ไฟหนองบวบหอม 1: แดง ~1.2 ไร่ vs เดินวัด 1.06 · แห้งลงอย่างเดียว 0.75)
+        satImg(x, B, true, wimg => {
+          if (!wimg) return cb(res);
+          weakPx(wimg, w => {
+            if (!w) return cb(res);
+            const mk = document.createElement('canvas'); mk.width = w.W; mk.height = w.H; const mg = mk.getContext('2d'); mg.imageSmoothingEnabled = false; mg.drawImage(c, 0, 0, w.W, w.H);
+            const md = mg.getImageData(0, 0, w.W, w.H).data, seen = new Uint8Array(w.W * w.H); let cnt = 0;
+            for (let i = 0; i < w.W * w.H; i++) if (md[i * 4 + 3] > 0 && w.cls[i] === 2 && !seen[i]) {
+              const st = [i]; seen[i] = 1;
+              while (st.length) { const j = st.pop(); cnt++; const X = j % w.W, Y = (j / w.W) | 0;
+                [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const a = X + dx, b2 = Y + dy, k = b2 * w.W + a; if (a >= 0 && b2 >= 0 && a < w.W && b2 < w.H && !seen[k] && w.cls[k] === 2) { seen[k] = 1; st.push(k); } }); }
+            }
+            const wm2 = m2 * c.width * c.height / (w.W * w.H);
+            res.dmg = Math.round(cnt * wm2 / 1600 * 100) / 100; cb(res);
+          });
+        });
       };
       im.onerror = () => cb(null); im.src = src;
     }
@@ -7425,13 +7443,52 @@ Export.table.toDrive({
       return 'ไม่มีบันทึกไฟ/ฉีดยา/ตัดช่วงนี้ — ควรไปดูหน้างาน';
     }
     function burnGo(k) { const x = satInfo.items.find(q => q.key === k); if (x) fmMap.fitBounds(L.latLngBounds(x.pts), { padding: [30, 30], maxZoom: 18 }); }
+    // ถอดภาพจุดอ่อน → cls ต่อจุด: 2 แดง (อ่อนมาก) · 1 ส้ม · 0 ปกติ/ดีกว่า · -1 นอกแปลง/เมฆ
+    function weakPx(src, cb) {
+      const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height).data, cls = new Int8Array(c.width * c.height);
+        for (let i = 0; i < cls.length; i++) { const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2];
+          cls[i] = d[i * 4 + 3] === 0 || (r === gg && gg === b) || b > 180 ? -1 : r > 190 && gg < 70 ? 2 : r > 220 && gg > 110 && gg < 170 && b < 90 ? 1 : 0; }
+        cb({ W: c.width, H: c.height, cls }); };
+      im.onerror = () => cb(null); im.src = src;
+    }
+    const inPolyLL = (pt, poly) => { let o = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j];
+      if ((a[0] > pt[0]) !== (b[0] > pt[0]) && pt[1] < (b[1] - a[1]) * (pt[0] - a[0]) / (b[0] - a[0]) + a[1]) o = !o; } return o; };
+    // 🔥 ติดตามรอยเสียหายที่วาดไว้: ทุกภาพใสหลังวันเกิดเหตุ นับ % ของรอยที่ยังแดง/ส้มในภาพจุดอ่อน → ลดลง = แตกใบใหม่ (รอด)
+    const dmgRecRes = {};
+    function dmgRecHtml(x) {
+      const L2 = (gData.damages || []).filter(d => d.plot_id === x.id && pPath(d.boundary).length >= 3 && beToISO(String(d.date || '').split(' ')[0]));
+      if (!L2.length || x.land) return '';
+      return L2.map((d, i) => { const id = 'dmgRec' + i + '_' + x.id; setTimeout(() => dmgRecRun(x, d, id), 0);
+        return `<div class="dmg-rec" id="${id}">${dmgT(d.type)[1]} ${esc(d.type)} ${dShort(beToISO(d.date.split(' ')[0]))} · กำลังดูภาพหลังเกิดเหตุ…</div>`; }).join('');
+    }
+    function dmgRecRun(x, d, id) {
+      const d0 = beToISO(d.date.split(' ')[0]), poly = pPath(d.boundary), dates = x.good.filter(q => q.d > d0).slice(-6), bb = L.latLngBounds(x.pts);
+      const head = `${dmgT(d.type)[1]} <b>${esc(d.type)} ${dShort(d0)}</b> ${num(d.map_rai) ? fmtRai(num(d.map_rai) * 1600) : ''}`;
+      const put = h => { const e = $(id); if (e) e.innerHTML = h; };
+      if (!dates.length) return put(`${head}<br><small>ยังไม่มีภาพใสหลังเกิดเหตุ — รอภาพถัดไป (~5 วัน)</small>`);
+      const out = {}; let left = dates.length;
+      dates.forEach(q => { const ck = x.id + '|' + d0 + '|' + q.d;
+        const fin = v => { out[q.d] = v; if (--left) return;
+          const ok = dates.filter(o => out[o.d] != null); if (!ok.length) return put(`${head}<br><small>อ่านภาพไม่ได้</small>`);
+          const last = out[ok[ok.length - 1].d], first = out[ok[0].d];
+          const st = last <= 20 ? ['#1E7B3C', 'ฟื้นแล้ว — แตกใบใหม่ เขียวใกล้ส่วนอื่น'] : ok.length > 1 && last < first - 15 ? ['#B26A00', 'กำลังฟื้น — ส่วนที่อ่อนลดลง'] : ok.length > 1 && last >= first - 5 ? ['#B42318', 'ยังไม่ฟื้น — ควรผ่าดูยอด'] : ['#B42318', 'ยังอ่อนอยู่ — รอภาพถัดไปดูแนวโน้ม'];
+          put(`${head}<div style="color:${st[0]};font-weight:700">${st[1]}</div><small>ส่วนในรอยที่ยังอ่อน: ${ok.map(o => `${dShort(o.d)} <b>${out[o.d]}%</b>`).join(' → ')} · ต่ำกว่า 20% = ฟื้น</small>`); };
+        if (dmgRecRes[ck] !== undefined) return fin(dmgRecRes[ck]);
+        satImg(x, q.d, true, img => { if (!img) return fin(null); weakPx(img, w => { if (!w) return fin(null);
+          let n = 0, bad = 0; const dLat = bb.getNorth() - bb.getSouth(), dLng = bb.getEast() - bb.getWest();
+          for (let Y = 0; Y < w.H; Y++) for (let X = 0; X < w.W; X++) { const k = Y * w.W + X; if (w.cls[k] < 0) continue;
+            if (!inPolyLL([bb.getNorth() - (Y + 0.5) / w.H * dLat, bb.getWest() + (X + 0.5) / w.W * dLng], poly)) continue; n++; if (w.cls[k] > 0) bad++; }
+          dmgRecRes[ck] = n >= 4 ? Math.round(bad / n * 100) : null; fin(dmgRecRes[ck]); }); });
+      });
+    }
     function burnBarHtml() {
       const L = (satInfo ? satInfo.items : []).filter(x => !x.land).map(x => { const pr = burnPairOf(x); return pr && burnRes[x.id + '|' + pr.A + '|' + pr.B] ? { x, r: burnRes[x.id + '|' + pr.A + '|' + pr.B] } : null; }).filter(Boolean);
       const hit = L.filter(o => o.r.rai >= 0.2).sort((a, b) => b.r.rai - a.r.rai);
       return `<div class="sat-key1"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>`
         + `<button type="button" class="burn-min" onclick="burnMin=!burnMin;fmSatBarHtml()">${burnMin ? `▴ รายการ (${hit.length})` : '▾ ย่อ'}</button>`
-        + (burnMin ? '' : `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> ~${r1(o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
-        + (burnMin ? '' : `<small style="color:#6B736E;font-size:12px">จุดที่เขียวกลายเป็นแห้ง (ไฟ ยาฆ่าหญ้า ตัด อ้อยล้ม ดาวเทียมแยกไม่ได้ ดูสาเหตุจากบันทึก) · เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · แตะชื่อแปลงเพื่อซูม · ค่าประมาณ ต้องไปดูหน้างาน</small>`));
+        + (burnMin ? '' : `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> เสียหาย ~${r1(o.r.dmg || o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
+        + (burnMin ? '' : `<small style="color:#6B736E;font-size:12px">จุดที่เขียวกลายเป็นแห้ง (ไฟ ยาฆ่าหญ้า ตัด อ้อยล้ม ดาวเทียมแยกไม่ได้ ดูสาเหตุจากบันทึก) · เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · ไร่ = ก้อนสีแดงในจุดอ่อนที่ทับจุดที่เพิ่งแห้งลง (คลาด ~20–30%) · แตะชื่อแปลงเพื่อซูม · ต้องไปดูหน้างาน</small>`));
     }
     const fmSatCur = x => x.good.find(q => q.d === fmSatDate[x.key]) || x.last;
     function fmSatPick(key, d) {
@@ -7450,7 +7507,7 @@ Export.table.toDrive({
       const peers = satInfo.items.filter(o => !o.land && o.key !== x.key && o.type === x.type).map(o => (o.good.find(q => q.d === cur.d) || {}).ndvi).filter(v => v != null);
       const pm = peers.length >= 3 ? satMed(peers) : null;
       const cmp = pm === null || x.land ? '' : cur.ndvi >= pm + 0.08 ? `เขียวกว่า${x.type}แปลงอื่นวันเดียวกัน` : cur.ndvi <= pm - 0.08 ? `เขียวน้อยกว่า${x.type}แปลงอื่นวันเดียวกัน` : `ใกล้เคียง${x.type}แปลงอื่นวันเดียวกัน`;
-      const weak = W && cur.weak !== null ? (cur.ndvi < 0.5 ? 'ใบยังไม่คลุม ดูจุดอ่อนยังไม่แม่น' : satWeakBad(cur) ? `⚠️ ราว ${Math.round(cur.weak * 100)}% ของแปลงอ่อนกว่าส่วนอื่น (สีแดง/ส้ม)` : `✅ ทั้งแปลงใกล้เคียงกัน`) : '';
+      const weak = W && cur.weak !== null ? (cur.ndvi < 0.5 ? 'ใบยังไม่คลุม ดูจุดอ่อนยังไม่แม่น' : satWeakBad(cur) ? `⚠️ ราว ${Math.round(cur.weak * 100)}% ของแปลงอ่อนกว่าส่วนอื่น (สีแดง/ส้ม)` : (gData.damages || []).some(d => d.plot_id === x.id && pPath(d.boundary).length >= 3) ? `✅ นอกรอยเสียหาย ส่วนอื่นใกล้เคียงกัน (อ่อน ${Math.round(cur.weak * 100)}% ของแปลง)` : `✅ ทั้งแปลงใกล้เคียงกัน`) : '';
       const dates = x.good.slice(-12);
       const chips = dates.map(q => `<button type="button" class="${q.d === cur.d ? 'on' : ''}" onclick="fmSatPick('${qa(x.key)}','${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('');
       const latest = cur.d === x.last.d;
@@ -7460,6 +7517,7 @@ Export.table.toDrive({
           <div class="big"><small class="text-muted" style="font-size:12px">ความเขียว</small><div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b style="color:${satColor(cur.ndvi)}">${satLevel(cur.ndvi)}</b></div></div>
         ${cmp ? `<div style="font-size:13.5px;margin-top:4px">${cmp}${pm !== null ? ` <span class="text-muted">(แปลงอื่น ${pm.toFixed(2)})</span>` : ''}</div>` : ''}
         ${weak ? `<div style="font-size:13.5px;margin-top:2px">${weak}</div>` : ''}
+        ${dmgRecHtml(x)}
         ${latest ? x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag">⚠️ ${esc(f)}</div>`).join('') : ''}
         ${fmSatMode === 'f' ? `<div class="sw-prone mt-2" style="font-size:13.5px">สีฟ้าบนแปลง = จุดที่ดาวเทียมเคยเห็นน้ำบนผิวดินใน 2 ปี ยิ่งเข้มยิ่งขังบ่อย (= แอ่ง) · ไม่มีสี = ไม่เคยเห็นน้ำ หรือช่วงนั้นอ้อยสูงบังอยู่${spotSoilLine(x)}</div>`
           : `<div class="sat-dates" id="fmSatDates">${chips}</div>
@@ -7692,7 +7750,7 @@ Export.table.toDrive({
       const editing = id => fmEdit && fmEdit.id === id;
       // ป้ายพื้นที่เสียหาย (เดิมเป็น tooltip ทับป้ายอื่น) → อยู่ในระบบกันทับ · ซูมออกมากไม่โชว์ (มีใน คำอธิบายสี)
       if (z >= 14 && fmSatOn && fmSatMode === 'b' && satInfo) satInfo.items.forEach(x => { const pr = !x.land && burnPairOf(x), r = pr && burnRes[x.id + '|' + pr.A + '|' + pr.B];
-        if (!r || r.rai < 0.2) return; const b = L.latLngBounds(x.pts); lbl([b.getSouth(), b.getCenter().lng], `🛰️ แห้งลง ~${r1(r.rai)} ไร่`, 'fm-tag fm-tag-dmg'); });
+        if (!r || r.rai < 0.2) return; const b = L.latLngBounds(x.pts); lbl([b.getSouth(), b.getCenter().lng], `🛰️ เสียหาย ~${r1(r.dmg || r.rai)} ไร่`, 'fm-tag fm-tag-dmg'); });
       if (z >= 14 && !fmDmgHidden()) (gData.damages || []).forEach(x => { const pts = pPath(x.boundary); if (pts.length < 3 || editing(x.dmg_id)) return;
         const b = L.latLngBounds(pts), ll = [b.getNorth(), b.getCenter().lng];
         lbl(ll, `${dmgT(x.type)[1]} ${num(x.map_rai) ? fmtRai(num(x.map_rai) * 1600) : esc(x.type)}`, 'fm-tag fm-tag-dmg'); });

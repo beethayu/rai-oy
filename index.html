@@ -7488,12 +7488,15 @@ Export.table.toDrive({
     }
     // ลากขีดบนแผงแปลง: ลงหด (เหลือชื่อ + ความเขียว) ขึ้นกาง · แตะขีด = สลับ (18 พ.ย.)
     let fmSheetMin = false;
-    (function () { let y0 = null, moved = false;
-      document.addEventListener('touchstart', e => { const g = e.target.closest && e.target.closest('.fm-sheet .grab, .fm-sheet.fm-min'); if (!g) return; y0 = e.touches[0].clientY; moved = false; }, { passive: true });
-      document.addEventListener('touchmove', e => { if (y0 === null) return; const dy = e.touches[0].clientY - y0;
-        if (Math.abs(dy) > 30 && !moved) { moved = true; fmSheetSet(dy > 0); } }, { passive: true });
-      document.addEventListener('touchend', () => { y0 = null; }, { passive: true });
-      document.addEventListener('click', e => { const g = e.target.closest && e.target.closest('.fm-sheet .grab'); if (g) fmSheetSet(!fmSheetMin); else if (e.target.closest && e.target.closest('.fm-sheet.fm-min') && !e.target.closest('button,a')) fmSheetSet(false); });
+    // ย่อตอนปล่อยนิ้ว + กันคลิกหลอก: ถ้าย่อระหว่างลาก แผงเตี้ยลงแล้วคลิกที่ iOS ส่งตามมาตกบนแผนที่ → แผนที่ล้างแปลงที่เลือก (แผงหายไปเลย 18 พ.ย.)
+    let fmSheetT = 0;
+    (function () { let y0 = null, dy = 0;
+      document.addEventListener('touchstart', e => { const g = e.target.closest && e.target.closest('.fm-sheet .grab, .fm-sheet .shd'); y0 = g ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+      document.addEventListener('touchmove', e => { if (y0 !== null) dy = e.touches[0].clientY - y0; }, { passive: true });
+      document.addEventListener('touchend', e => { if (y0 === null) return; const onGrab = e.target.closest && e.target.closest('.fm-sheet .grab'); y0 = null;
+        if (Math.abs(dy) > 30) { e.preventDefault(); fmSheetT = Date.now(); fmSheetSet(dy > 0); }
+        else if (onGrab || fmSheetMin) { e.preventDefault(); fmSheetT = Date.now(); fmSheetSet(onGrab ? !fmSheetMin : false); } }, { passive: false });
+      document.addEventListener('click', e => { if (Date.now() - fmSheetT < 600) return; const g = e.target.closest && e.target.closest('.fm-sheet .grab'); if (g) fmSheetSet(!fmSheetMin); else if (e.target.closest && e.target.closest('.fm-sheet.fm-min') && !e.target.closest('button,a')) fmSheetSet(false); });
     })();
     function fmSheetSet(min) { fmSheetMin = min; document.querySelectorAll('.fm-sheet').forEach(el => el.classList.toggle('fm-min', min)); document.querySelectorAll('.fm-wp').forEach(el => el.style.display = min ? 'none' : ''); setTimeout(() => fmMap && fmMap.invalidateSize(), 50); }
     function burnSheetLine(x) {
@@ -7584,6 +7587,7 @@ Export.table.toDrive({
           fmPoi = poiAttach(fmMap, 'fmPoiBtn');
           fmLayer = L.layerGroup().addTo(fmMap); fmEditLayer = L.layerGroup().addTo(fmMap);
           fmMap.on('click', e => {
+            if (Date.now() - fmSheetT < 600) return;
             $('fmRes').style.display = 'none';
             if (kmItems) return;
             if (lyOpen === 'fm') return lyToggle('fm');

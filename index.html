@@ -522,6 +522,7 @@
     .dj-w { font-size: 14.5px; color: #4A524D; margin-top: 2px; } .dj-w b { color: #1F5E3B; font-weight: 700; } .dj-x { font-size: 13.5px; color: #6B736E; margin-top: 2px; line-height: 1.45; }
     .dj-ok { color: #1F5E3B; font-size: 13px; background: #E8F2EC; border-radius: 999px; padding: 1px 8px; white-space: nowrap; } .dj-og { color: #8A5A0B; font-size: 13px; background: #FFF4E0; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
     .fm-full .modal-footer, .fm-full .fm-top { display: none !important; } .fm-full #fmFullBtn { top: 62px !important; } .fm-full #fmLyBtn { display: none; }
+    .burn-list { font-size: 14px; color: #1F2A23; max-height: 120px; overflow-y: auto; } .burn-list > div { padding: 3px 0; cursor: pointer; } .burn-list span, .burn-list small { color: #6B736E; }
     .fm-dmgtg { display: block; border: 0; background: transparent; color: #9A2B1E; font-size: 13.5px; padding: 2px 0 4px; } .fm-dmgtg b { text-decoration: underline; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
     .ch-dt { display: inline-flex; align-items: center; gap: 6px; background: #E8F2EC; color: #1F5E3B; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; padding: 5px 12px; flex: 0 0 auto; }
@@ -7311,12 +7312,12 @@ Export.table.toDrive({
       if (!fmSatOn) { fmSatDate = {}; if (fmSatLayer) fmSatLayer.clearLayers(); fmSatOv = {}; fmRender(); return; }
       satEnsure(() => { fmSatBarHtml(); fmRender(); fmSatDraw(); });
     }
-    function fmSatSetMode(m) { fmSatMode = m; fmDmgShow = m === 'n'; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
+    function fmSatSetMode(m) { fmSatMode = m; fmDmgShow = m === 'n' || m === 'b'; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
     function fmSatBarHtml() {
       const W = fmSatMode === 'w', F = fmSatMode === 'f', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
-      $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
+      $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button><button type="button" class="${fmSatMode === 'b' ? 'on' : ''}" onclick="fmSatSetMode('b')">รอยไหม้</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
         ${(gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;fmRender();fmSatBarHtml()">🔥 พื้นที่เสียหายที่วาดไว้: <b>${fmDmgShow ? 'แสดงอยู่ · ซ่อน' : 'ซ่อนอยู่ · แสดง'}</b></button>` : ''}
-        ${F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
+        ${fmSatMode === 'b' ? burnBarHtml() : F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
         : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
           : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div></div>`}`;
     }
@@ -7346,6 +7347,16 @@ Export.table.toDrive({
       callApi('getWaterSpots', [ids]).then(done).catch(() => done(null));
     }
     function fmSatOne(x) {
+      if (fmSatMode === 'b') {
+        const pr = burnPairOf(x); if (!pr || x.land) return;
+        burnImg(x, pr, r => {
+          if (!r || !fmSatOn || fmSatMode !== 'b') return;
+          if (fmSatOv[x.key]) fmSatLayer.removeLayer(fmSatOv[x.key]);
+          if (r.img) fmSatOv[x.key] = L.imageOverlay(r.img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false }).addTo(fmSatLayer);
+          fmLabels(); fmSatBarHtml();
+        });
+        return;
+      }
       if (fmSatMode === 'f') {
         spotImg(x.id, img => {
           if (!img || !fmSatOn || fmSatMode !== 'f') return;
@@ -7360,6 +7371,60 @@ Export.table.toDrive({
         if (fmSatOv[x.key]) fmSatLayer.removeLayer(fmSatOv[x.key]);
         fmSatOv[x.key] = L.imageOverlay(img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false, className: 'fm-sat-img' }).addTo(fmSatLayer);
       });
+    }
+    // ===== 🔥 รอยไหม้จากดาวเทียม (18 พ.ย. 69) — คู่ภาพใส ก่อน/หลัง · จุดที่ NBR ตกมากกว่าค่ากลางของแปลงในคู่เดียวกัน ≥ 0.08 (และ ≥ 0.06)
+    // เทียบรอยไฟที่ผู้ใช้วาด หนองบวบหอม 1 (13 พ.ย.): ได้ 0.75 ไร่ อยู่ในรอยวาด 95% · คู่ภาพไม่มีไฟ = 0 · หญ้าโดนยาฆ่าหญ้าก็ขึ้นเหมือนกัน → บอกสาเหตุจากบันทึกในแอป
+    const BURN_K = 0.08, BURN_MIN = 0.06, burnRes = {}, burnWait = {};
+    function burnPairOf(x) {
+      if (!x.last) return null; const B = fmSatDate[x.key] || x.last.d, prev = x.good.filter(q => q.d < B).pop();
+      return prev && dayDiff(prev.d, B) <= 20 ? { A: prev.d, B } : null;
+    }
+    function burnImg(x, pr, cb) {
+      const k = x.id + '|' + pr.A + '|' + pr.B; if (burnRes[k]) return cb(burnRes[k]);
+      (burnWait[pr.A + '|' + pr.B] = burnWait[pr.A + '|' + pr.B] || []).push({ x, k, cb });
+      clearTimeout(burnImg._t); burnImg._t = setTimeout(burnFlush, 60);
+    }
+    function burnFlush() {
+      Object.keys(burnWait).forEach(pk => { const L = burnWait[pk]; delete burnWait[pk]; const [A, B] = pk.split('|');
+        for (let i = 0; i < L.length; i += 20) { const part = L.slice(i, i + 20);
+          callApi('getBurnPair', [part.map(q => q.x.id), A, B]).then(r => part.forEach(q => burnDecode(r[q.x.id], q.x, A, B, res => { burnRes[q.k] = res; q.cb(res); })))
+            .catch(() => part.forEach(q => q.cb(null))); } });
+    }
+    function burnDecode(src, x, A, B, cb) {
+      if (!src) return cb({ img: '', rai: 0, A, B, cloud: true });
+      const im = new Image(); im.onload = () => {
+        const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+        const D = g.getImageData(0, 0, c.width, c.height), px = D.data, vals = [];
+        for (let i = 0; i < px.length; i += 4) if (px[i + 3] > 0 && px[i + 2] < 128) vals.push(px[i] / 255 - 0.5);
+        if (vals.length < 20) return cb({ img: '', rai: 0, A, B, cloud: true });
+        const med = vals.slice().sort((a, b) => a - b)[vals.length >> 1], th = Math.max(BURN_MIN, med + BURN_K); let n = 0;
+        for (let i = 0; i < px.length; i += 4) {
+          const ok = px[i + 3] > 0 && px[i + 2] < 128, d = px[i] / 255 - 0.5;
+          if (ok && d >= th) { n++; const hi = d >= th + 0.08; px[i] = hi ? 158 : 240; px[i + 1] = hi ? 16 : 90; px[i + 2] = hi ? 10 : 20; px[i + 3] = 225; } else px[i + 3] = 0;
+        }
+        g.putImageData(D, 0, 0);
+        const lat0 = x.pts.reduce((s, p) => s + p[0], 0) / x.pts.length, b = L.latLngBounds(x.pts);
+        const m2 = (b.getEast() - b.getWest()) * 111320 * Math.cos(lat0 * Math.PI / 180) * (b.getNorth() - b.getSouth()) * 110540 / (c.width * c.height);
+        cb({ img: n ? c.toDataURL() : '', rai: Math.round(n * m2 / 1600 * 100) / 100, A, B, cloud: false, cause: burnCause(x.id, A, B) });
+      };
+      im.onerror = () => cb(null); im.src = src;
+    }
+    // สาเหตุที่น่าจะเป็น จากบันทึกในแอปช่วงระหว่างภาพก่อน–หลัง (ดาวเทียมแยกไฟกับยาฆ่าหญ้า/ตัดอ้อยไม่ได้)
+    function burnCause(pid, A, B) {
+      const inR = (be, lo, hi) => { const d = beToISO(String(be || '').split(' ')[0]); return d && d >= (lo || A) && d <= (hi || B) ? d : ''; };
+      const dm = (gData.damages || []).find(x => x.plot_id === pid && inR(x.date)); if (dm) return `ตรงกับ${dm.type}ที่จด ${dShort(beToISO(dm.date))}`;
+      const lo = isoAdd(A, -14), hi = isoAdd(B, 2), acts = (gData.activities || []).filter(a => a.plot_id === pid && inR(a.timestamp, lo, hi));
+      const cut = acts.find(a => a.activity_group === 'ตัดอ้อย'); if (cut) return `มีตัดอ้อย ${dShort(inR(cut.timestamp, lo, hi))} — น่าจะเป็นรอยตัด ไม่ใช่ไฟ`;
+      const sp = acts.find(a => a.activity_group === 'ฉีดยา'); if (sp) { const d = inR(sp.timestamp, lo, hi); return d > B ? `จดฉีดยา ${dShort(d)} (หลังภาพ) — ถ้าเริ่มฉีดก่อน ${dShort(B)} น่าจะเป็นหญ้าโดนยา` : `มีฉีดยา ${dShort(d)} — หญ้าที่โดนยาเหี่ยวก็ขึ้นแบบนี้ ไม่แน่ว่าเป็นไฟ`; }
+      return 'ไม่มีบันทึกไฟ/ฉีดยา/ตัดช่วงนี้ — ควรไปดูหน้างาน';
+    }
+    function burnGo(k) { const x = satInfo.items.find(q => q.key === k); if (x) fmMap.fitBounds(L.latLngBounds(x.pts), { padding: [30, 30], maxZoom: 18 }); }
+    function burnBarHtml() {
+      const L = (satInfo ? satInfo.items : []).filter(x => !x.land).map(x => { const pr = burnPairOf(x); return pr && burnRes[x.id + '|' + pr.A + '|' + pr.B] ? { x, r: burnRes[x.id + '|' + pr.A + '|' + pr.B] } : null; }).filter(Boolean);
+      const hit = L.filter(o => o.r.rai >= 0.2).sort((a, b) => b.r.rai - a.r.rai);
+      return `<div class="sat-key1"><span><i style="background:#9E100A"></i>ไหม้/แห้งตายแรง</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>`
+        + `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นรอยไหม้ในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> ~${r1(o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
+        + `<small style="color:#6B736E;font-size:12px">เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · แตะชื่อแปลงเพื่อซูม · ค่าประมาณ ต้องไปดูหน้างาน</small>`;
     }
     const fmSatCur = x => x.good.find(q => q.d === fmSatDate[x.key]) || x.last;
     function fmSatPick(key, d) {
@@ -7619,6 +7684,8 @@ Export.table.toDrive({
       if (num(S('HOME_LAT')) && num(S('HOME_LNG'))) { const t = rtag('บ้าน'); lbl([num(S('HOME_LAT')), num(S('HOME_LNG'))], t ? `🏠 บ้าน <span>· ${t.txt}</span>` : '🏠 บ้าน', t ? 'fm-tag fm-tag-grp fm-tag-rain" style="' + t.st : 'fm-tag fm-tag-home'); }
       const editing = id => fmEdit && fmEdit.id === id;
       // ป้ายพื้นที่เสียหาย (เดิมเป็น tooltip ทับป้ายอื่น) → อยู่ในระบบกันทับ · ซูมออกมากไม่โชว์ (มีใน คำอธิบายสี)
+      if (z >= 14 && fmSatOn && fmSatMode === 'b' && satInfo) satInfo.items.forEach(x => { const pr = !x.land && burnPairOf(x), r = pr && burnRes[x.id + '|' + pr.A + '|' + pr.B];
+        if (!r || r.rai < 0.2) return; const b = L.latLngBounds(x.pts); lbl([b.getSouth(), b.getCenter().lng], `🛰️ ไหม้/แห้ง ~${r1(r.rai)} ไร่`, 'fm-tag fm-tag-dmg'); });
       if (z >= 14 && !fmDmgHidden()) (gData.damages || []).forEach(x => { const pts = pPath(x.boundary); if (pts.length < 3 || editing(x.dmg_id)) return;
         const b = L.latLngBounds(pts), ll = [b.getNorth(), b.getCenter().lng];
         lbl(ll, `${dmgT(x.type)[1]} ${num(x.map_rai) ? fmtRai(num(x.map_rai) * 1600) : esc(x.type)}`, 'fm-tag fm-tag-dmg'); });

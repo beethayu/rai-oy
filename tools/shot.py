@@ -21,7 +21,8 @@ try:
         b = p.chromium.launch(); c = b.new_context(viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True, device_scale_factor=2)
         pg = c.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         D = open(data, encoding='utf-8').read()
-        pg.route('https://script.google.com/**', lambda r: r.fulfill(status=200, content_type='application/json', body='{"ok":true,"result":' + (D if json.loads(r.request.post_data or '{}').get('fn') == 'getInitialData' else 'null') + '}'))
+        mock = lambda fn: D if fn == 'getInitialData' else (open(f'/tmp/mock_{fn}.json').read() if os.path.exists(f'/tmp/mock_{fn}.json') else 'null')  # /tmp/mock_<fn>.json = ผลจำลองของฟังก์ชันอื่น
+        pg.route('https://script.google.com/**', lambda r: r.fulfill(status=200, content_type='application/json', body='{"ok":true,"result":' + mock(json.loads(r.request.post_data or '{}').get('fn')) + '}'))
         pg.route('https://api.open-meteo.com/**', lambda r: r.fulfill(status=500, body=''))
         for h in ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com']: pg.route(f'https://{h}/**', cdn)
         pg.route('https://fonts.googleapis.com/**', lambda r: r.fulfill(body=''))

@@ -543,58 +543,41 @@ function buildWaterSpots() {
   return ok + '/' + ids.length;
 }
 
-// ===== 🔥 หารอยไหม้อัตโนมัติ (18 พ.ย. 69) =====
-// ต่อจุด 10 ม.: ไล่ภาพใสทุกภาพในช่วง หาคู่ภาพติดกัน (ห่าง ≤ 20 วัน) ที่ NBR = (B08−B12)/(B08+B12) ตกมาก (dNBR) และหลังไหม้อินฟราเรดต่ำ (ถ่าน)
-// กันเมฆ/เงา: ภาพถัดไปภายใน 8 วันเด้งกลับใกล้ค่าเดิม = ไม่นับ · ก่อนไหม้ต้องเป็นพืชเขียว (NDVI ≥ 0.3) กันดินโล่งเปลี่ยนสี
-// สี: แดงเข้ม = ไหม้แรง (dNBR ≥ 0.44) · ส้มแดง = ไหม้ปานกลาง · ช่องโปร่งใส (alpha 200–250) เก็บ "วันที่เห็นรอยครั้งแรก" เป็นสัดส่วนของช่วงเวลา (หน้าเว็บถอดกลับ)
-const BURN_EVAL_ = `//VERSION=3
+// ===== 🔥 หารอยไหม้จากดาวเทียม (18 พ.ย. 69) — เทียบคู่ภาพ ก่อน (A) / หลัง (B) =====
+// ทดลองกับรอยไฟที่ผู้ใช้เดินวาด (หนองบวบหอม 1 ไหม้ 13 พ.ย.): อ้อยยังเขียว ไฟไหม้ใบล่าง/เศษใบ → NBR ตกแค่ ~0.09 (เกณฑ์ป่าไหม้ 0.27 จับไม่ได้)
+// และการหาค่าตกมากสุดทั้งช่วง 120 วัน ไปจับหมอก/เมฆบางหน้าฝนแทน → ใช้คู่ภาพใสสองวัน แล้วหน้าเว็บเทียบกับค่ากลางของแปลงในคู่เดียวกัน
+// ภาพคืน: R = (dNBR + 0.5) ×255 · G = NIR หลัง ×2 ×255 · B = 255 ถ้าภาพหลังเป็นน้ำ (ไม่นับ) · A = 255 ใช้ได้ / 0 เมฆ-นอกแปลง
+const BURN_PAIR_EVAL_ = `//VERSION=3
 function setup() {
-  return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
+  return { input: [{ bands: ['B03', 'B08', 'B11', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
 }
+function day(t) { return new Date(t).toISOString().slice(0, 10); }
 function evaluatePixel(ss, scenes) {
-  var o = [];
+  var a = null, b = null;
   for (var i = 0; i < ss.length; i++) {
-    var s = ss[i];
+    var s = ss[i], d = scenes && scenes.orbits && scenes.orbits[i] ? scenes.orbits[i].dateFrom.slice(0, 10) : '';
     if (s.dataMask !== 1 || [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
-    var t = scenes && scenes.orbits && scenes.orbits[i] ? Date.parse(scenes.orbits[i].dateFrom) : i;
-    o.push({ t: t, nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), ndvi: (s.B08 - s.B04) / (s.B08 + s.B04 || 1), nir: s.B08, wet: (s.B03 - s.B11) / (s.B03 + s.B11 || 1) > 0 });
+    var v = { nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), nir: s.B08, wet: (s.B03 - s.B11) / (s.B03 + s.B11 || 1) > 0 };
+    if (d === DA && !a) a = v; else if (d === DB && !b) b = v;
   }
-  if (!o.length) return [0, 0, 0, 0];
-  o.sort(function (a, b) { return a.t - b.t; });
-  var best = 0, bt = 0, D = 86400000;
-  for (var j = 1; j < o.length; j++) {
-    var p = o[j - 1], c = o[j];
-    if (c.t - p.t > 20 * D || p.ndvi < 0.3 || c.wet) continue;   // ภาพหลังเป็นน้ำ (น้ำท่วม/น้ำขัง) ไม่นับเป็นไหม้
-    var d = p.nbr - c.nbr;
-    if (d < TH || c.nir > NIRMAX || c.nbr > 0.1) continue;
-    var q = o[j + 1];
-    if (q && q.t - c.t <= 8 * D && p.nbr - q.nbr < d * 0.4) continue;   // เด้งกลับเร็ว = เมฆ/เงา
-    if (d > best) { best = d; bt = c.t; }
-  }
-  if (!best) return [0, 0, 0, 0];
-  var f = Math.max(0, Math.min(1, (bt - FROM) / (TO - FROM))), a = (200 + Math.round(f * 50)) / 255;
-  return best >= 0.44 ? [0.62, 0.06, 0.04, a] : [0.94, 0.35, 0.08, a];
+  if (!a || !b) return [0, 0, 0, 0];
+  return [Math.max(0, Math.min(1, a.nbr - b.nbr + 0.5)), Math.min(1, b.nir * 2), b.wet ? 1 : 0, 1];
 }`;
 
-// โหมดตรวจค่า (ตั้งเกณฑ์): R = dNBR มากสุด ×255 · G = NIR หลัง ×510 · B = NBR หลัง (+1)/2 ×255 · A = วันที่ (เหมือนเดิม) — ไม่ใช้เกณฑ์ ยกเว้น ก่อนเขียว + ห่าง ≤ 20 วัน
-const BURN_DBG_EVAL_ = BURN_EVAL_.replace("if (d < TH || c.nir > NIRMAX || c.nbr > 0.1) continue;", "if (d <= 0) continue;").replace("    var q = o[j + 1];\n    if (q && q.t - c.t <= 8 * D && p.nbr - q.nbr < d * 0.4) continue;   // เด้งกลับเร็ว = เมฆ/เงา\n", "").replace("if (d > best) { best = d; bt = c.t; }", "if (d > best) { best = d; bt = c.t; bn = c.nir; bb = c.nbr; }").replace("var best = 0, bt = 0,", "var bn = 0, bb = 0, best = 0, bt = 0,").replace("return best >= 0.44 ? [0.62, 0.06, 0.04, a] : [0.94, 0.35, 0.08, a];", "return [Math.min(1, best), Math.min(1, bn * 2), (bb + 1) / 2, a];");
-// ids = รหัสแปลง → { id: 'data:image/png;base64,…' | '' } · days = ย้อนหลังกี่วัน (ค่าเริ่ม 120) · แคช 6 ชม. · คืน from/to ให้หน้าเว็บถอดวันที่
-function getBurnScan(ids, days, opt) {
-  opt = opt || {};
-  days = Math.max(30, Math.min(400, Number(days) || 120));
-  const th = Number(opt.th) || 0.27, nirMax = Number(opt.nir) || 0.2;
+// ids = รหัสแปลง · dA/dB = วันที่ภาพก่อน/หลัง (YYYY-MM-DD ตามรายการภาพใสของแปลง) → { id: 'data:image/png;base64,…' | '' } · แคช 6 ชม.
+function getBurnPair(ids, dA, dB) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dA || '') || !/^\d{4}-\d{2}-\d{2}$/.test(dB || '') || dA >= dB) throw new Error('วันที่ภาพก่อน/หลังไม่ถูก');
   const cache = CacheService.getScriptCache(), out = {}, need = [];
-  const to = new Date(), from = new Date(to.getTime() - days * 864e5);
   const bmap = {}; readSheet_(SpreadsheetApp.getActiveSpreadsheet(), SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
-  const tag = (opt.debug ? 'dbg' : '') + days + '_' + th + '_' + nirMax + '_' + to.toISOString().slice(0, 10);
   (ids || []).slice(0, 40).map(String).forEach(id => {
-    const hit = cache.get('burn_' + id + '_' + tag); if (hit) { out[id] = hit; return; }
+    const ck = 'burnp_' + id + '_' + dA + '_' + dB, hit = cache.get(ck); if (hit) { out[id] = hit; return; }
     const pts = parsePath_(bmap[id] || ''); if (pts.length < 3) { out[id] = ''; return; }
-    const body = satImgBody_(pts, to.toISOString().slice(0, 10), 0);
-    body.input.data[0].dataFilter = { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: 90 };
+    const body = satImgBody_(pts, dB, 0);
+    // ภาพในคลังอาจลงวันก่อนหน้าตามเวลา UTC → ขอกว้างขึ้นวันละข้าง แล้วเลือกตามวันที่ใน evalscript
+    body.input.data[0].dataFilter = { timeRange: { from: dA + 'T00:00:00Z', to: new Date(new Date(dB + 'T00:00:00Z').getTime() + 864e5).toISOString() }, maxCloudCoverage: 100 };
     delete body.input.data[0].processing;
-    body.evalscript = (opt.debug ? BURN_DBG_EVAL_ : BURN_EVAL_).replace('//VERSION=3', '//VERSION=3\nvar TH = ' + th + ', NIRMAX = ' + nirMax + ', FROM = ' + from.getTime() + ', TO = ' + to.getTime() + ';');
-    need.push({ id, body });
+    body.evalscript = BURN_PAIR_EVAL_.replace('//VERSION=3', "//VERSION=3\nvar DA = '" + dA + "', DB = '" + dB + "';");
+    need.push({ id, ck, body });
   });
   if (need.length) {
     const token = satToken_();
@@ -604,11 +587,11 @@ function getBurnScan(ids, days, opt) {
         headers: { Authorization: 'Bearer ' + token, Accept: 'image/png' }, payload: JSON.stringify(n.body), muteHttpExceptions: true })));
       part.forEach((n, j) => {
         const r = res[j];
-        if (r.getResponseCode() !== 200) { out[n.id] = ''; console.warn('burn ' + n.id + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 160)); return; }
+        if (r.getResponseCode() !== 200) { out[n.id] = ''; console.warn('burnp ' + n.id + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 160)); return; }
         const img = 'data:image/png;base64,' + Utilities.base64Encode(r.getBlob().getBytes());
-        out[n.id] = img; try { cache.put('burn_' + n.id + '_' + tag, img, 21600); } catch (e) {}
+        out[n.id] = img; try { cache.put(n.ck, img, 21600); } catch (e) {}
       });
     }
   }
-  return { imgs: out, from: from.getTime(), to: to.getTime() };
+  return out;
 }

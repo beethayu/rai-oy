@@ -522,6 +522,7 @@
     .dj-w { font-size: 14.5px; color: #4A524D; margin-top: 2px; } .dj-w b { color: #1F5E3B; font-weight: 700; } .dj-x { font-size: 13.5px; color: #6B736E; margin-top: 2px; line-height: 1.45; }
     .dj-ok { color: #1F5E3B; font-size: 13px; background: #E8F2EC; border-radius: 999px; padding: 1px 8px; white-space: nowrap; } .dj-og { color: #8A5A0B; font-size: 13px; background: #FFF4E0; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
     .fm-full .modal-footer, .fm-full .fm-top { display: none !important; } .fm-full #fmFullBtn { top: 62px !important; } .fm-full #fmLyBtn { display: none; }
+    .burn-min { display: block; width: auto !important; margin: 4px auto 2px; border: 0; background: #E8EFEA; color: #1F5C3A; border-radius: 12px; padding: 3px 10px; font-size: 13px; font-weight: 600; }
     .burn-list { font-size: 14px; color: #1F2A23; max-height: 120px; overflow-y: auto; } .burn-list > div { padding: 3px 0; cursor: pointer; } .burn-list span, .burn-list small { color: #6B736E; }
     .fm-dmgtg { display: block; border: 0; background: transparent; color: #9A2B1E; font-size: 13.5px; padding: 2px 0 4px; } .fm-dmgtg b { text-decoration: underline; }
     .cal-add { display: block; width: 100%; margin-top: 10px; border: 1px solid #1F5E3B; background: #fff; color: #1F5E3B; border-radius: 10px; font-size: 15.5px; font-weight: 600; padding: 9px; }
@@ -7374,7 +7375,10 @@ Export.table.toDrive({
     }
     // ===== 🔥 รอยไหม้จากดาวเทียม (18 พ.ย. 69) — คู่ภาพใส ก่อน/หลัง · จุดที่ NBR ตกมากกว่าค่ากลางของแปลงในคู่เดียวกัน ≥ 0.08 (และ ≥ 0.06)
     // เทียบรอยไฟที่ผู้ใช้วาด หนองบวบหอม 1 (13 พ.ย.): ได้ 0.75 ไร่ อยู่ในรอยวาด 95% · คู่ภาพไม่มีไฟ = 0 · หญ้าโดนยาฆ่าหญ้าก็ขึ้นเหมือนกัน → บอกสาเหตุจากบันทึกในแอป
-    const BURN_K = 0.08, BURN_MIN = 0.06, burnRes = {}, burnWait = {};
+    // ต้องเขียวลดด้วย (NDVI ตกมากกว่าส่วนอื่นของแปลง ≥0.03) — สำนักแจงขวาใน NBR ตกแต่เขียวขึ้น = ดินใต้ใบแห้งหลังฝน 9 พ.ย. ไม่ใช่ใบแห้ง
+    let burnMin = false;
+    const BURN_K = 0.08, BURN_MIN = 0.06, BURN_VEG = 0.2, // ภาพก่อนต้องเป็นต้นไม้ (NIR ≥ 0.2) — ดินเปล่าชื้นหลังฝนแล้วแห้ง NBR ก็ตก (สำนักแจง ขวาใน 18 พ.ย.)
+       burnRes = {}, burnWait = {};
     function burnPairOf(x) {
       if (!x.last) return null; const B = fmSatDate[x.key] || x.last.d, prev = x.good.filter(q => q.d < B).pop();
       return prev && dayDiff(prev.d, B) <= 20 ? { A: prev.d, B } : null;
@@ -7395,12 +7399,13 @@ Export.table.toDrive({
       const im = new Image(); im.onload = () => {
         const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
         const D = g.getImageData(0, 0, c.width, c.height), px = D.data, vals = [];
-        for (let i = 0; i < px.length; i += 4) if (px[i + 3] > 0 && px[i + 2] < 128) vals.push(px[i] / 255 - 0.5);
+        const gv = [];
+        for (let i = 0; i < px.length; i += 4) if (px[i + 3] > 0 && px[i + 2] < 128) { vals.push(px[i] / 255 - 0.5); gv.push(px[i + 1] / 255 - 0.5); }
         if (vals.length < 20) return cb({ img: '', rai: 0, A, B, cloud: true });
-        const med = vals.slice().sort((a, b) => a - b)[vals.length >> 1], th = Math.max(BURN_MIN, med + BURN_K); let n = 0;
+        const mid = a => a.slice().sort((p, q) => p - q)[a.length >> 1], med = mid(vals), gmed = mid(gv), th = Math.max(BURN_MIN, med + BURN_K), gth = Math.max(0.01, gmed + 0.03); let n = 0;
         for (let i = 0; i < px.length; i += 4) {
           const ok = px[i + 3] > 0 && px[i + 2] < 128, d = px[i] / 255 - 0.5;
-          if (ok && d >= th) { n++; const hi = d >= th + 0.08; px[i] = hi ? 158 : 240; px[i + 1] = hi ? 16 : 90; px[i + 2] = hi ? 10 : 20; px[i + 3] = 225; } else px[i + 3] = 0;
+          if (ok && d >= th && px[i + 2] / 255 >= BURN_VEG && px[i + 1] / 255 - 0.5 >= gth) { n++; const hi = d >= th + 0.08; px[i] = hi ? 158 : 240; px[i + 1] = hi ? 16 : 90; px[i + 2] = hi ? 10 : 20; px[i + 3] = 225; } else px[i + 3] = 0;
         }
         g.putImageData(D, 0, 0);
         const lat0 = x.pts.reduce((s, p) => s + p[0], 0) / x.pts.length, b = L.latLngBounds(x.pts);
@@ -7423,8 +7428,9 @@ Export.table.toDrive({
       const L = (satInfo ? satInfo.items : []).filter(x => !x.land).map(x => { const pr = burnPairOf(x); return pr && burnRes[x.id + '|' + pr.A + '|' + pr.B] ? { x, r: burnRes[x.id + '|' + pr.A + '|' + pr.B] } : null; }).filter(Boolean);
       const hit = L.filter(o => o.r.rai >= 0.2).sort((a, b) => b.r.rai - a.r.rai);
       return `<div class="sat-key1"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>`
-        + `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> ~${r1(o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
-        + `<small style="color:#6B736E;font-size:12px">จุดที่เขียวกลายเป็นแห้ง (ไฟ ยาฆ่าหญ้า ตัด อ้อยล้ม ดาวเทียมแยกไม่ได้ ดูสาเหตุจากบันทึก) · เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · แตะชื่อแปลงเพื่อซูม · ค่าประมาณ ต้องไปดูหน้างาน</small>`;
+        + `<button type="button" class="burn-min" onclick="burnMin=!burnMin;fmSatBarHtml()">${burnMin ? `▴ รายการ (${hit.length})` : '▾ ย่อ'}</button>`
+        + (burnMin ? '' : `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> ~${r1(o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
+        + (burnMin ? '' : `<small style="color:#6B736E;font-size:12px">จุดที่เขียวกลายเป็นแห้ง (ไฟ ยาฆ่าหญ้า ตัด อ้อยล้ม ดาวเทียมแยกไม่ได้ ดูสาเหตุจากบันทึก) · เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · แตะชื่อแปลงเพื่อซูม · ค่าประมาณ ต้องไปดูหน้างาน</small>`));
     }
     const fmSatCur = x => x.good.find(q => q.d === fmSatDate[x.key]) || x.last;
     function fmSatPick(key, d) {

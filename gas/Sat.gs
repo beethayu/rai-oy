@@ -549,7 +549,7 @@ function buildWaterSpots() {
 // สี: แดงเข้ม = ไหม้แรง (dNBR ≥ 0.44) · ส้มแดง = ไหม้ปานกลาง · ช่องโปร่งใส (alpha 200–250) เก็บ "วันที่เห็นรอยครั้งแรก" เป็นสัดส่วนของช่วงเวลา (หน้าเว็บถอดกลับ)
 const BURN_EVAL_ = `//VERSION=3
 function setup() {
-  return { input: [{ bands: ['B04', 'B08', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
+  return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
 }
 function evaluatePixel(ss, scenes) {
   var o = [];
@@ -557,14 +557,14 @@ function evaluatePixel(ss, scenes) {
     var s = ss[i];
     if (s.dataMask !== 1 || [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
     var t = scenes && scenes.orbits && scenes.orbits[i] ? Date.parse(scenes.orbits[i].dateFrom) : i;
-    o.push({ t: t, nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), ndvi: (s.B08 - s.B04) / (s.B08 + s.B04 || 1), nir: s.B08 });
+    o.push({ t: t, nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), ndvi: (s.B08 - s.B04) / (s.B08 + s.B04 || 1), nir: s.B08, wet: (s.B03 - s.B11) / (s.B03 + s.B11 || 1) > 0 });
   }
   if (!o.length) return [0, 0, 0, 0];
   o.sort(function (a, b) { return a.t - b.t; });
   var best = 0, bt = 0, D = 86400000;
   for (var j = 1; j < o.length; j++) {
     var p = o[j - 1], c = o[j];
-    if (c.t - p.t > 20 * D || p.ndvi < 0.3) continue;
+    if (c.t - p.t > 20 * D || p.ndvi < 0.3 || c.wet) continue;   // ภาพหลังเป็นน้ำ (น้ำท่วม/น้ำขัง) ไม่นับเป็นไหม้
     var d = p.nbr - c.nbr;
     if (d < TH || c.nir > NIRMAX || c.nbr > 0.1) continue;
     var q = o[j + 1];
@@ -576,6 +576,8 @@ function evaluatePixel(ss, scenes) {
   return best >= 0.44 ? [0.62, 0.06, 0.04, a] : [0.94, 0.35, 0.08, a];
 }`;
 
+// โหมดตรวจค่า (ตั้งเกณฑ์): R = dNBR มากสุด ×255 · G = NIR หลัง ×510 · B = NBR หลัง (+1)/2 ×255 · A = วันที่ (เหมือนเดิม) — ไม่ใช้เกณฑ์ ยกเว้น ก่อนเขียว + ห่าง ≤ 20 วัน
+const BURN_DBG_EVAL_ = BURN_EVAL_.replace("if (d < TH || c.nir > NIRMAX || c.nbr > 0.1) continue;", "if (d <= 0) continue;").replace("    var q = o[j + 1];\n    if (q && q.t - c.t <= 8 * D && p.nbr - q.nbr < d * 0.4) continue;   // เด้งกลับเร็ว = เมฆ/เงา\n", "").replace("if (d > best) { best = d; bt = c.t; }", "if (d > best) { best = d; bt = c.t; bn = c.nir; bb = c.nbr; }").replace("var best = 0, bt = 0,", "var bn = 0, bb = 0, best = 0, bt = 0,").replace("return best >= 0.44 ? [0.62, 0.06, 0.04, a] : [0.94, 0.35, 0.08, a];", "return [Math.min(1, best), Math.min(1, bn * 2), (bb + 1) / 2, a];");
 // ids = รหัสแปลง → { id: 'data:image/png;base64,…' | '' } · days = ย้อนหลังกี่วัน (ค่าเริ่ม 120) · แคช 6 ชม. · คืน from/to ให้หน้าเว็บถอดวันที่
 function getBurnScan(ids, days, opt) {
   opt = opt || {};
@@ -584,14 +586,14 @@ function getBurnScan(ids, days, opt) {
   const cache = CacheService.getScriptCache(), out = {}, need = [];
   const to = new Date(), from = new Date(to.getTime() - days * 864e5);
   const bmap = {}; readSheet_(SpreadsheetApp.getActiveSpreadsheet(), SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
-  const tag = days + '_' + th + '_' + nirMax + '_' + to.toISOString().slice(0, 10);
+  const tag = (opt.debug ? 'dbg' : '') + days + '_' + th + '_' + nirMax + '_' + to.toISOString().slice(0, 10);
   (ids || []).slice(0, 40).map(String).forEach(id => {
     const hit = cache.get('burn_' + id + '_' + tag); if (hit) { out[id] = hit; return; }
     const pts = parsePath_(bmap[id] || ''); if (pts.length < 3) { out[id] = ''; return; }
     const body = satImgBody_(pts, to.toISOString().slice(0, 10), 0);
     body.input.data[0].dataFilter = { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: 90 };
     delete body.input.data[0].processing;
-    body.evalscript = BURN_EVAL_.replace('//VERSION=3', '//VERSION=3\nvar TH = ' + th + ', NIRMAX = ' + nirMax + ', FROM = ' + from.getTime() + ', TO = ' + to.getTime() + ';');
+    body.evalscript = (opt.debug ? BURN_DBG_EVAL_ : BURN_EVAL_).replace('//VERSION=3', '//VERSION=3\nvar TH = ' + th + ', NIRMAX = ' + nirMax + ', FROM = ' + from.getTime() + ', TO = ' + to.getTime() + ';');
     need.push({ id, body });
   });
   if (need.length) {

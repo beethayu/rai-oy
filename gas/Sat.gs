@@ -557,12 +557,12 @@ function evaluatePixel(ss, scenes) {
   for (var i = 0; i < ss.length; i++) {
     var s = ss[i], d = scenes && scenes.orbits && scenes.orbits[i] ? scenes.orbits[i].dateFrom.slice(0, 10) : '';
     if (s.dataMask !== 1 || [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
-    var v = { nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), nir: s.B08, wet: (s.B03 - s.B11) / (s.B03 + s.B11 || 1) > 0 };
+    var v = { nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), nir: s.B08, ndvi: (s.B08 - s.B04) / (s.B08 + s.B04 || 1), wet: (s.B03 - s.B11) / (s.B03 + s.B11 || 1) > 0 };
     if (d === DA && !a) a = v; else if (d === DB && !b) b = v;
   }
   if (!a || !b) return [0, 0, 0, 0];
   // B: น้ำ = 1 · ไม่ใช่น้ำ = NIR ภาพก่อน (0–0.49) → เว็บตัดจุดที่ภาพก่อนไม่ใช่ต้นไม้ (ดินเปล่า/ถนน ชื้นหลังฝนแล้วแห้ง)
-  return [Math.max(0, Math.min(1, a.nbr - b.nbr + 0.5)), Math.min(1, b.nir * 2), b.wet ? 1 : Math.min(0.49, a.nir), 1];
+  return [Math.max(0, Math.min(1, a.nbr - b.nbr + 0.5)), Math.max(0, Math.min(1, a.ndvi - b.ndvi + 0.5)), b.wet ? 1 : Math.min(0.49, a.nir), 1];
 }`;
 
 // ids = รหัสแปลง · dA/dB = วันที่ภาพก่อน/หลัง (YYYY-MM-DD ตามรายการภาพใสของแปลง) → { id: 'data:image/png;base64,…' | '' } · แคช 6 ชม.
@@ -571,7 +571,7 @@ function getBurnPair(ids, dA, dB) {
   const cache = CacheService.getScriptCache(), out = {}, need = [];
   const bmap = {}; readSheet_(SpreadsheetApp.getActiveSpreadsheet(), SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
   (ids || []).slice(0, 40).map(String).forEach(id => {
-    const ck = 'burnp2_' + id + '_' + dA + '_' + dB, hit = cache.get(ck); if (hit) { out[id] = hit; return; }
+    const ck = 'burnp3_' + id + '_' + dA + '_' + dB, hit = cache.get(ck); if (hit) { out[id] = hit; return; }
     const pts = parsePath_(bmap[id] || ''); if (pts.length < 3) { out[id] = ''; return; }
     const body = satImgBody_(pts, dB, 0);
     // ภาพในคลังอาจลงวันก่อนหน้าตามเวลา UTC → ขอกว้างขึ้นวันละข้าง แล้วเลือกตามวันที่ใน evalscript

@@ -7315,7 +7315,7 @@ Export.table.toDrive({
     function fmSatSetMode(m) { fmSatMode = m; fmDmgShow = m === 'n' || m === 'b'; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
     function fmSatBarHtml() {
       const W = fmSatMode === 'w', F = fmSatMode === 'f', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
-      $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button><button type="button" class="${fmSatMode === 'b' ? 'on' : ''}" onclick="fmSatSetMode('b')">รอยไหม้</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
+      $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button><button type="button" class="${fmSatMode === 'b' ? 'on' : ''}" onclick="fmSatSetMode('b')">แห้งลง</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
         ${(gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;fmRender();fmSatBarHtml()">🔥 พื้นที่เสียหายที่วาดไว้: <b>${fmDmgShow ? 'แสดงอยู่ · ซ่อน' : 'ซ่อนอยู่ · แสดง'}</b></button>` : ''}
         ${fmSatMode === 'b' ? burnBarHtml() : F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
         : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
@@ -7422,9 +7422,9 @@ Export.table.toDrive({
     function burnBarHtml() {
       const L = (satInfo ? satInfo.items : []).filter(x => !x.land).map(x => { const pr = burnPairOf(x); return pr && burnRes[x.id + '|' + pr.A + '|' + pr.B] ? { x, r: burnRes[x.id + '|' + pr.A + '|' + pr.B] } : null; }).filter(Boolean);
       const hit = L.filter(o => o.r.rai >= 0.2).sort((a, b) => b.r.rai - a.r.rai);
-      return `<div class="sat-key1"><span><i style="background:#9E100A"></i>ไหม้/แห้งตายแรง</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>`
-        + `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นรอยไหม้ในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> ~${r1(o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
-        + `<small style="color:#6B736E;font-size:12px">เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · แตะชื่อแปลงเพื่อซูม · ค่าประมาณ ต้องไปดูหน้างาน</small>`;
+      return `<div class="sat-key1"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>`
+        + `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> ~${r1(o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
+        + `<small style="color:#6B736E;font-size:12px">จุดที่เขียวกลายเป็นแห้ง (ไฟ ยาฆ่าหญ้า ตัด อ้อยล้ม ดาวเทียมแยกไม่ได้ ดูสาเหตุจากบันทึก) · เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · แตะชื่อแปลงเพื่อซูม · ค่าประมาณ ต้องไปดูหน้างาน</small>`;
     }
     const fmSatCur = x => x.good.find(q => q.d === fmSatDate[x.key]) || x.last;
     function fmSatPick(key, d) {
@@ -7685,7 +7685,7 @@ Export.table.toDrive({
       const editing = id => fmEdit && fmEdit.id === id;
       // ป้ายพื้นที่เสียหาย (เดิมเป็น tooltip ทับป้ายอื่น) → อยู่ในระบบกันทับ · ซูมออกมากไม่โชว์ (มีใน คำอธิบายสี)
       if (z >= 14 && fmSatOn && fmSatMode === 'b' && satInfo) satInfo.items.forEach(x => { const pr = !x.land && burnPairOf(x), r = pr && burnRes[x.id + '|' + pr.A + '|' + pr.B];
-        if (!r || r.rai < 0.2) return; const b = L.latLngBounds(x.pts); lbl([b.getSouth(), b.getCenter().lng], `🛰️ ไหม้/แห้ง ~${r1(r.rai)} ไร่`, 'fm-tag fm-tag-dmg'); });
+        if (!r || r.rai < 0.2) return; const b = L.latLngBounds(x.pts); lbl([b.getSouth(), b.getCenter().lng], `🛰️ แห้งลง ~${r1(r.rai)} ไร่`, 'fm-tag fm-tag-dmg'); });
       if (z >= 14 && !fmDmgHidden()) (gData.damages || []).forEach(x => { const pts = pPath(x.boundary); if (pts.length < 3 || editing(x.dmg_id)) return;
         const b = L.latLngBounds(pts), ll = [b.getNorth(), b.getCenter().lng];
         lbl(ll, `${dmgT(x.type)[1]} ${num(x.map_rai) ? fmtRai(num(x.map_rai) * 1600) : esc(x.type)}`, 'fm-tag fm-tag-dmg'); });

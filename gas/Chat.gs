@@ -338,6 +338,9 @@ function chatApply(ops, rid) {
         if (soilChkAdd_(ss, op.p || {}, op.id)) done++;
       } else if (op.fn === 'note') {
         if (noteAdd_(ss, op.p || {}, op.id)) done++;
+      } else if (op.fn === 'notedel') { // แทนบันทึกนอกไร่เดิมของคนเดียวกันวันเดียวกัน (เช่น จดล่วงหน้าเมื่อวาน วันนี้จดของจริง)
+        const sh = ss.getSheetByName('Notes'), d = sh ? sh.getDataRange().getDisplayValues() : [], r = d.findIndex((row, i) => i > 0 && row[0] === String(op.id));
+        if (r > 0) { sh.deleteRow(r + 1); done++; }
       } else if (op.fn === 'remdone') {
         if (remDone_(ss, op.id)) done++;
       } else if (op.fn === 'rem') {

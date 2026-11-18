@@ -5273,7 +5273,11 @@
         let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]); if (!idx.length) idx = ph.map((_, k) => k);
         it.photos = idx; it.photo_ids = idx.map(k => ph[k]); it.text = String(it.text || '').trim(); it.amount = num(it.amount); it.date = it.date || todayISO();
         it.workers = (Array.isArray(it.workers) ? it.workers : [it.workers]).map(x => String(x || '').trim()).filter(Boolean); it.date_to = it.date_to && it.date_to > it.date && it.date_to <= todayISO() ? it.date_to : '';
-        it.nid = it.nid || 'N' + Date.now() + Math.random().toString(36).slice(2, 5); return it.text ? it : null;
+        it.nid = it.nid || 'N' + Date.now() + Math.random().toString(36).slice(2, 5);
+        // คนเดียวกัน วันเดียวกัน มีบันทึกนอกไร่อยู่แล้ว (มักจดล่วงหน้า) → การ์ดนี้แทนอันเดิม ไม่ลงซ้ำ (18 พ.ย.)
+        if (!it.date_to && it.workers.length && it.keep_old !== true) { const o = (gData.notes || []).find(n => beToISO(n.date) === it.date && String(n.workers || '').split(/\s*[+,]\s*/).some(w => it.workers.includes(w)));
+          if (o) { it.replace = o.note_id; it.replace_text = o.text; if (!it.shop && o.shop) it.shop = o.shop; } else delete it.replace; }
+        return it.text ? it : null;
       }
       if (it.type === 'rem_done') { const r = (gData.reminders || []).find(x => x.rem_id === it.id); if (!r) return null; it.text = r.text; return it; }
       if (it.type === 'reminder') {
@@ -5362,7 +5366,7 @@
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
         else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
-        else if (a.type === 'note') for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
+        else if (a.type === 'note' && (a.replace && ops.push({ fn: 'notedel', id: a.replace }), true)) for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
         else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
@@ -5424,7 +5428,7 @@
           + (it.model_pct !== undefined ? `<div class="ch-cn">แอปคำนวณไว้ ~${it.model_pct}% · จดไว้ใช้ปรับตัวคิด และแชตจะเชื่อผลหน้างานนี้ 3 วัน (ถ้าไม่มีฝนเพิ่ม)</div>` : '');
       } else if (it.type === 'note') {
         h = `<div class="ch-t">🏠 นอกไร่ (ไม่ลงบัญชีไร่)</div>` + row('เรื่อง', it.text) + row('คน', it.workers.join(' + ')) + row('เงิน', it.amount ? baht(it.amount) + ' บาท' : '') + row('ร้าน/ที่', it.shop)
-          + row('วันที่', it.date_to ? `${dt(it.date)} – ${dt(it.date_to)} (${dayDiff(it.date, it.date_to) + 1} วัน)` : dt(it.date)) + (it.workers.length ? '<div class="ch-cn">นับวันทำงานในสรุปคนงาน (ก๊อปส่ง LINE)</div>' : '');
+          + row('วันที่', it.date_to ? `${dt(it.date)} – ${dt(it.date_to)} (${dayDiff(it.date, it.date_to) + 1} วัน)` : dt(it.date)) + (it.replace ? `<div class="ch-cn" style="color:#B26A00">แทนบันทึกเดิมวันเดียวกัน: "${esc(it.replace_text)}" (ไม่ลงซ้ำ)</div>` : '') + (it.workers.length ? '<div class="ch-cn">นับวันทำงานในสรุปคนงาน (ก๊อปส่ง LINE)</div>' : '');
       } else if (it.type === 'rem_done') {
         h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
       } else if (it.type === 'reminder') {

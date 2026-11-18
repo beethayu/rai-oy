@@ -4052,6 +4052,8 @@
     function wsSetRange() { wsFrom = $('ws_from').value; wsTo = $('ws_to').value; $('wsum-box').innerHTML = workSumHtml(); }
     function wsToggle(n) { wsOpen = wsOpen === n ? '' : n; $('wsum-box').innerHTML = workSumHtml(); }
     function thDate(iso) { const [y, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]} ${String(+y + 543).slice(2)}`; }
+    // งานนอกไร่ครึ่งวัน (18 พ.ย.): ข้อความมี "เลิกเที่ยง/ครึ่งวัน/ช่วงเช้า" หรือ "ถึง 8–12 โมง" (ไม่ใช่บ่าย/เย็น) = นับครึ่งวัน
+    const noteHalf = t => { t = String(t || ''); if (/เลิกเที่ยง|ครึ่งวัน|ช่วงเช้า|แค่เช้า/.test(t)) return true; const m = t.match(/(บ่าย\s*)?ถึง\s*(\d{1,2})\s*โมง(เย็น)?/); return !!(m && !m[1] && !m[3] && +m[2] >= 7 && +m[2] <= 12); };
     const wsTags = r => ['ค้างคืน', 'เลิกเที่ยง'].filter(t => (r || '').includes(t));
 
     function workSumData() {
@@ -4071,7 +4073,7 @@
           activity_detail: `${l.trips} เที่ยว${l.truck ? ' ' + l.truck : ''}`, remark: l.note || '', people: [l.driver] });
       });
       (gData.notes || []).forEach(n => { const iso = beToISO(n.date), ppl = String(n.workers || '').split(/\s*[+,]\s*/).filter(Boolean); // งานนอกไร่ของคนงาน (17 พ.ย. 69)
-        if (iso && ppl.length && iso >= wsFrom && iso <= wsTo) logs.push({ iso, timestamp: n.date, log_id: 'N' + String(n.text).slice(0, 20), plot: 'นอกไร่', activity_group: 'งานนอกไร่', activity_detail: n.text, remark: '', people: ppl }); });
+        if (iso && ppl.length && iso >= wsFrom && iso <= wsTo) logs.push({ iso, timestamp: n.date, log_id: 'N' + String(n.text).slice(0, 20), plot: 'นอกไร่', activity_group: 'งานนอกไร่', activity_detail: n.text, remark: noteHalf(n.text) ? 'เลิกเที่ยง' : '', people: ppl }); });
       const per = {};
       logs.forEach(l => l.people.forEach(w => { (per[w] = per[w] || {})[l.iso] = (per[w][l.iso] || []).concat(l); }));
       const order = (gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name);

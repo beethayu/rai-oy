@@ -549,14 +549,14 @@ function buildWaterSpots() {
 // ภาพคืน: R = (dNBR + 0.5) ×255 · G = NIR หลัง ×2 ×255 · B = 255 ถ้าภาพหลังเป็นน้ำ (ไม่นับ) · A = 255 ใช้ได้ / 0 เมฆ-นอกแปลง
 const BURN_PAIR_EVAL_ = `//VERSION=3
 function setup() {
-  return { input: [{ bands: ['B03', 'B08', 'B11', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
+  return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
 }
 function day(t) { return new Date(t).toISOString().slice(0, 10); }
 function evaluatePixel(ss, scenes) {
   var a = null, b = null;
   for (var i = 0; i < ss.length; i++) {
     var s = ss[i], d = scenes && scenes.orbits && scenes.orbits[i] ? scenes.orbits[i].dateFrom.slice(0, 10) : '';
-    if (s.dataMask !== 1 || [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
+    if (s.dataMask !== 1 || [0, 1, 2, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
     var v = { nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), nir: s.B08, ndvi: (s.B08 - s.B04) / (s.B08 + s.B04 || 1), wet: (s.B03 - s.B11) / (s.B03 + s.B11 || 1) > 0 };
     if (d === DA && !a) a = v; else if (d === DB && !b) b = v;
   }
@@ -571,7 +571,7 @@ function getBurnPair(ids, dA, dB) {
   const cache = CacheService.getScriptCache(), out = {}, need = [];
   const bmap = {}; readSheet_(SpreadsheetApp.getActiveSpreadsheet(), SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
   (ids || []).slice(0, 40).map(String).forEach(id => {
-    const ck = 'burnp3_' + id + '_' + dA + '_' + dB, hit = cache.get(ck); if (hit) { out[id] = hit; return; }
+    const ck = 'burnp4_' + id + '_' + dA + '_' + dB, hit = cache.get(ck); if (hit) { out[id] = hit; return; }
     const pts = parsePath_(bmap[id] || ''); if (pts.length < 3) { out[id] = ''; return; }
     const body = satImgBody_(pts, dB, 0);
     // ภาพในคลังอาจลงวันก่อนหน้าตามเวลา UTC → ขอกว้างขึ้นวันละข้าง แล้วเลือกตามวันที่ใน evalscript

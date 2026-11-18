@@ -542,3 +542,71 @@ function buildWaterSpots() {
   console.log('จุดน้ำขัง: สร้าง ' + ok + '/' + ids.length + ' แปลง');
   return ok + '/' + ids.length;
 }
+
+// ===== 🔥 หารอยไหม้อัตโนมัติ (18 พ.ย. 69) =====
+// ต่อจุด 10 ม.: ไล่ภาพใสทุกภาพในช่วง หาคู่ภาพติดกัน (ห่าง ≤ 20 วัน) ที่ NBR = (B08−B12)/(B08+B12) ตกมาก (dNBR) และหลังไหม้อินฟราเรดต่ำ (ถ่าน)
+// กันเมฆ/เงา: ภาพถัดไปภายใน 8 วันเด้งกลับใกล้ค่าเดิม = ไม่นับ · ก่อนไหม้ต้องเป็นพืชเขียว (NDVI ≥ 0.3) กันดินโล่งเปลี่ยนสี
+// สี: แดงเข้ม = ไหม้แรง (dNBR ≥ 0.44) · ส้มแดง = ไหม้ปานกลาง · ช่องโปร่งใส (alpha 200–250) เก็บ "วันที่เห็นรอยครั้งแรก" เป็นสัดส่วนของช่วงเวลา (หน้าเว็บถอดกลับ)
+const BURN_EVAL_ = `//VERSION=3
+function setup() {
+  return { input: [{ bands: ['B04', 'B08', 'B12', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
+}
+function evaluatePixel(ss, scenes) {
+  var o = [];
+  for (var i = 0; i < ss.length; i++) {
+    var s = ss[i];
+    if (s.dataMask !== 1 || [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) continue;
+    var t = scenes && scenes.orbits && scenes.orbits[i] ? Date.parse(scenes.orbits[i].dateFrom) : i;
+    o.push({ t: t, nbr: (s.B08 - s.B12) / (s.B08 + s.B12 || 1), ndvi: (s.B08 - s.B04) / (s.B08 + s.B04 || 1), nir: s.B08 });
+  }
+  if (!o.length) return [0, 0, 0, 0];
+  o.sort(function (a, b) { return a.t - b.t; });
+  var best = 0, bt = 0, D = 86400000;
+  for (var j = 1; j < o.length; j++) {
+    var p = o[j - 1], c = o[j];
+    if (c.t - p.t > 20 * D || p.ndvi < 0.3) continue;
+    var d = p.nbr - c.nbr;
+    if (d < TH || c.nir > NIRMAX || c.nbr > 0.1) continue;
+    var q = o[j + 1];
+    if (q && q.t - c.t <= 8 * D && p.nbr - q.nbr < d * 0.4) continue;   // เด้งกลับเร็ว = เมฆ/เงา
+    if (d > best) { best = d; bt = c.t; }
+  }
+  if (!best) return [0, 0, 0, 0];
+  var f = Math.max(0, Math.min(1, (bt - FROM) / (TO - FROM))), a = (200 + Math.round(f * 50)) / 255;
+  return best >= 0.44 ? [0.62, 0.06, 0.04, a] : [0.94, 0.35, 0.08, a];
+}`;
+
+// ids = รหัสแปลง → { id: 'data:image/png;base64,…' | '' } · days = ย้อนหลังกี่วัน (ค่าเริ่ม 120) · แคช 6 ชม. · คืน from/to ให้หน้าเว็บถอดวันที่
+function getBurnScan(ids, days, opt) {
+  opt = opt || {};
+  days = Math.max(30, Math.min(400, Number(days) || 120));
+  const th = Number(opt.th) || 0.27, nirMax = Number(opt.nir) || 0.2;
+  const cache = CacheService.getScriptCache(), out = {}, need = [];
+  const to = new Date(), from = new Date(to.getTime() - days * 864e5);
+  const bmap = {}; readSheet_(SpreadsheetApp.getActiveSpreadsheet(), SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; });
+  const tag = days + '_' + th + '_' + nirMax + '_' + to.toISOString().slice(0, 10);
+  (ids || []).slice(0, 40).map(String).forEach(id => {
+    const hit = cache.get('burn_' + id + '_' + tag); if (hit) { out[id] = hit; return; }
+    const pts = parsePath_(bmap[id] || ''); if (pts.length < 3) { out[id] = ''; return; }
+    const body = satImgBody_(pts, to.toISOString().slice(0, 10), 0);
+    body.input.data[0].dataFilter = { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: 90 };
+    delete body.input.data[0].processing;
+    body.evalscript = BURN_EVAL_.replace('//VERSION=3', '//VERSION=3\nvar TH = ' + th + ', NIRMAX = ' + nirMax + ', FROM = ' + from.getTime() + ', TO = ' + to.getTime() + ';');
+    need.push({ id, body });
+  });
+  if (need.length) {
+    const token = satToken_();
+    for (let i = 0; i < need.length; i += 6) {
+      const part = need.slice(i, i + 6);
+      const res = UrlFetchApp.fetchAll(part.map(n => ({ url: SAT_PROC_URL_, method: 'post', contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + token, Accept: 'image/png' }, payload: JSON.stringify(n.body), muteHttpExceptions: true })));
+      part.forEach((n, j) => {
+        const r = res[j];
+        if (r.getResponseCode() !== 200) { out[n.id] = ''; console.warn('burn ' + n.id + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 160)); return; }
+        const img = 'data:image/png;base64,' + Utilities.base64Encode(r.getBlob().getBytes());
+        out[n.id] = img; try { cache.put('burn_' + n.id + '_' + tag, img, 21600); } catch (e) {}
+      });
+    }
+  }
+  return { imgs: out, from: from.getTime(), to: to.getTime() };
+}

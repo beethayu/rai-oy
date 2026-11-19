@@ -637,25 +637,9 @@
     .fm-leg { background: rgba(255,255,255,.94); border-radius: 10px; padding: 5px 8px; font-size: 12px; color: #1F2A23; display: flex; flex-wrap: wrap; gap: 4px 10px; max-width: 240px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
     .fm-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } .fm-leg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
     .cmp-go { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 8px; border: 1.5px solid var(--green); background: #fff; color: var(--green); font-weight: 700; font-size: 15px; border-radius: 12px; padding: 10px 14px; }
-    .cmp-go span { font-weight: 500; font-size: 13px; } .cmp-go-s { margin-top: 2px; padding: 7px 12px; font-size: 14px; }
-    #cmpFull { position: fixed; left: 0; right: 0; bottom: 0; top: env(safe-area-inset-top); z-index: 1990; background: var(--ground); display: flex; flex-direction: column; }
-    .cmpf-h { background: var(--green); color: #fff; display: flex; align-items: center; gap: 6px; padding: 8px 12px 8px 4px; }
-    .cmpf-h b { display: block; font-size: 18px; } .cmpf-h small { display: block; font-size: 13px; opacity: .85; }
-    .cmpf-back { border: 0; background: transparent; color: #fff; font-size: 34px; line-height: 1; width: 44px; height: 44px; }
-    .cmpf-mode { display: flex; background: var(--green); padding: 0 12px 10px; gap: 4px; }
-    .cmpf-mode button { flex: 1; border: 0; border-radius: 10px; padding: 8px 0; background: rgba(255,255,255,.14); color: #fff; font-size: 15px; font-weight: 600; }
-    .cmpf-mode button.on { background: #fff; color: var(--green); }
-    .cmpf-maps { flex: 1; display: flex; flex-direction: column; gap: 2px; background: var(--green); min-height: 0; }
-    .cmpf-map { flex: 1; position: relative; min-height: 0; } .cmpf-map .leaflet-container { background: #2A332D; }
-    .cmpf-pill { position: absolute; left: 8px; top: 8px; z-index: 500; background: rgba(255,255,255,.95); color: #1F2A23; font-weight: 700; font-size: 14px; border-radius: 999px; padding: 4px 12px; box-shadow: 0 1px 4px rgba(0,0,0,.3); pointer-events: none; }
-    .cmpf-panel { max-height: 42%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 12px calc(14px + env(safe-area-inset-bottom)); background: var(--ground); }
-    .cmpf-sum { background: #fff; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; } .cmpf-k { font-size: 12.5px; color: #6B736E; } .cmpf-k a { color: var(--green); font-weight: 700; }
-    .cmpf-t { font-size: 18px; font-weight: 700; margin: 2px 0; } .cmpf-f { font-size: 14.5px; color: #1F2A23; }
-    .cmpf-row { display: flex; justify-content: space-between; gap: 8px; width: 100%; border: 0; border-top: 1px solid var(--line); background: transparent; padding: 8px 0; font-size: 14px; text-align: left; color: #1F2A23; }
-    .cmpf-row b { color: #B45309; white-space: nowrap; font-size: 13.5px; }
-    .cmpf-cl { font-size: 13px; color: #6B736E; font-weight: 700; margin: 6px 0 2px; }
-    .cmpf-n { display: block; font-size: 11px; color: #6B736E; font-weight: 400; } .sat-dates .on .cmpf-n { color: rgba(255,255,255,.8); }
-    .cmpf-note { font-size: 12.5px; color: #6B736E; margin-top: 10px; }
+    .cmp-go span { font-weight: 500; font-size: 13px; }
+    .sat-nx { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 4px; } .sat-nx span { font-size: 13px; color: #6B736E; }
+    .sat-nx button { border: 1.5px solid var(--green); background: #fff; color: var(--green); font-weight: 700; font-size: 14px; border-radius: 12px; padding: 8px 14px; min-height: 40px; }
     .fm-sw { display: inline-block; width: 38px; height: 22px; border-radius: 11px; background: #D3D1C6; position: relative; vertical-align: middle; margin-left: 6px; transition: background .15s; }
     .fm-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: left .15s; }
     .fm-sw.on { background: #1F7A3D; } .fm-sw.on::after { left: 18px; }
@@ -7389,7 +7373,7 @@ Export.table.toDrive({
     }
     function satPick(d) { satSelD = d; satDetail(); }
     function satPickB(d) { satBefD = d; satDetail(); }
-    function satSetMode(m) { satMode = m; satDetail(); }
+    function satSetMode(m) { satMode = m; satDetail(); satScrollOn(); }
     function satDetail() {
       const x = satInfo.items.find(i => i.key === satSelK);
       const dates = x.good.slice(-12), cur = x.good.find(q => q.d === satSelD) || x.last;
@@ -7443,8 +7427,8 @@ Export.table.toDrive({
         <div class="d-flex justify-content-between align-items-start gap-2"><div><h5 class="mb-0 fw-bold">${esc(x.name)}</h5><small class="text-muted">${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}${cur ? ' · ภาพ ' + satD(cur.d) : ''}</small></div>
           ${cur ? `<div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div>` : ''}</div>
         ${x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag mt-1">⚠️ ${esc(f)}</div>`).join('')}
-        <div class="sat-seg"><button type="button" class="${W || C ? '' : 'on'}" onclick="satSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="satSetMode('w')">หาจุดอ่อน</button>${x.land ? '' : `<button type="button" class="${C ? 'on' : ''}" onclick="cmpOpen('${qa(x.key)}')">ก่อน–หลัง ›</button>`}</div>
-        ${C ? `<div class="sat-cmp"><div><div class="sat-cl">ก่อน · ${bef ? satDs(bef.d) : '-'}</div><div class="sat-img" id="satImgB">${bef ? '<small class="text-muted">กำลังโหลด…</small>' : '<small class="text-muted">ไม่มีภาพ</small>'}</div></div>
+        <div class="sat-seg"><button type="button" class="${W || C ? '' : 'on'}" onclick="satSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="satSetMode('w')">หาจุดอ่อน</button>${x.land ? '' : `<button type="button" class="${C ? 'on' : ''}" onclick="satSetMode('c')">ก่อน–หลัง</button>`}</div>
+        ${C ? `<div class="sat-nx"><button type="button" onclick="satNext(-1)" aria-label="แปลงก่อนหน้า">‹ แปลงก่อน</button><span>${(i => i + 1)(satInfo.items.filter(i => !i.land && i.last).findIndex(o => o.key === x.key))}/${satInfo.items.filter(i => !i.land && i.last).length}</span><button type="button" onclick="satNext(1)" aria-label="แปลงถัดไป">แปลงถัดไป ›</button></div><div class="sat-cmp"><div><div class="sat-cl">ก่อน · ${bef ? satDs(bef.d) : '-'}</div><div class="sat-img" id="satImgB">${bef ? '<small class="text-muted">กำลังโหลด…</small>' : '<small class="text-muted">ไม่มีภาพ</small>'}</div></div>
           <div><div class="sat-cl">หลัง · ${cur ? satDs(cur.d) : '-'}</div><div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลด…</small>' : ''}</div></div></div>`
         : `<div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลดภาพ…</small>' : '<small class="text-muted">ยังไม่มีภาพใสของแปลงนี้</small>'}</div>`}
         ${C ? '' : key}${say}
@@ -7498,7 +7482,6 @@ Export.table.toDrive({
     function fmSatBarHtml() {
       const W = fmSatMode === 'w', F = fmSatMode === 'f', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
       $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button><button type="button" class="${fmSatMode === 'b' ? 'on' : ''}" onclick="fmSatSetMode('b')">แห้งลง</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
-        ${F ? '' : `<button type="button" class="cmp-go cmp-go-s" onclick="cmpOpen(fmSel && fmSel.kind === 'plot' ? 'plot|' + fmSel.id : null)">🔍 เทียบภาพก่อน–หลัง <span>เต็มจอ ทั้งไร่ ›</span></button>`}
         ${(gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;try{localStorage.setItem('raioy_dmgshow',fmDmgShow?'1':'0')}catch(e){};fmRender();fmSatBarHtml()"><span>🔥 แสดงรอยเสียหายที่วาดไว้</span><span class="fm-sw ${fmDmgShow ? 'on' : ''}"></span></button>` : ''}
         ${fmSatMode === 'b' ? burnBarHtml() : F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
         : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
@@ -7735,79 +7718,14 @@ Export.table.toDrive({
     // แผงล่าง: บรรทัดเดียว + ปุ่มเข้าโหมดเทียบเต็มจอ (19 พ.ย. 69 ผู้ใช้: เลือกก่อน–หลังในแผงกดยาก รก → ไปโหมดเต็ม)
     function fmCmpHtml(x, cur) {
       if (fmSatMode === 'f' || x.land) return '';
-      return ''; // ปุ่มเทียบอยู่ที่แถบโหมดที่เดียว (เปิดที่แปลงที่เลือกให้)
+      return `<button type="button" class="cmp-go" onclick="satOpenCmp('${qa(x.key)}')">🔍 เทียบภาพก่อน–หลัง <span>หน้าดาวเทียมรายแปลง ›</span></button>`;
     }
-    // ===== 🔍 เทียบภาพก่อน–หลังเต็มจอ (19 พ.ย. 69 ผู้ใช้: เทียบทั้งหมดไปไว้เต็มจอ · อยากเห็นทั้งแผนที่ ไม่ใช่แปลงเดียว · เลือกแบบชิป "ภาพก่อน/ภาพหลัง")
-    // แผนที่ 2 อัน บน = ก่อน ล่าง = หลัง เลื่อน/ซูมพร้อมกัน · วันที่เป็นรอบภาพของทั้งไร่ แต่ละแปลงใช้ภาพใสของตัวเองที่ ≤ วันนั้นไม่เกิน 7 วัน (เมฆบังบางแปลง)
-    // แตะแปลง = สรุปแปลงนั้น · "ทั้งไร่" = สรุปทุกแปลง (แปลงที่เปลี่ยนมากขึ้นก่อน แตะ = ซูม)
-    let cmpA = null, cmpB = null, cmpM = 'n', cmpSel = null, cmpMA = null, cmpMB = null, cmpLA = null, cmpLB = null, cmpBurn = {};
-    const cmpItems = () => satInfo.items.filter(x => !x.land && x.pts.length >= 3 && x.good.length);
-    const cmpDates = () => [...new Set(cmpItems().flatMap(x => x.good.map(q => q.d)))].sort().slice(-16);
-    const cmpPick = (x, D) => D ? x.good.filter(q => q.d <= D && dayDiff(q.d, D) <= 7).pop() || null : null;
-    function cmpOpen(key) {
-      const it = cmpItems(); if (!it.length) return; const L2 = cmpDates();
-      const x = key ? satInfo.items.find(i => i.key === key) : null;
-      cmpSel = x && !x.land ? x.key : null; cmpM = fmSatMode === 'f' || !fmSatOn ? 'n' : fmSatMode;
-      cmpB = x && x.last ? (fmSatDate[x.key] || x.last.d) : L2[L2.length - 1];
-      const bq = x ? fmBefOf(x) : null;
-      cmpA = bq ? bq.d : L2.filter(d => d < cmpB && it.filter(y => cmpPick(y, d)).length >= it.length / 2).pop() || L2.filter(d => d < cmpB).pop() || null;
-      let el = $('cmpFull'); if (!el) { el = document.createElement('div'); el.id = 'cmpFull'; document.body.appendChild(el); }
-      el.style.display = ''; el.innerHTML = `<div class="cmpf-h"><button type="button" class="cmpf-back" onclick="cmpClose()" aria-label="กลับ">‹</button><div><b>เทียบภาพก่อน–หลัง</b><small>ทั้งไร่ · เลื่อน/ซูมแผนที่ไหนก็ได้ อีกอันตามไปด้วย</small></div></div>
-        <div class="cmpf-mode" id="cmpMode"></div>
-        <div class="cmpf-maps"><div class="cmpf-map" id="cmpMapA"><span class="cmpf-pill" id="cmpPillA"></span></div><div class="cmpf-map" id="cmpMapB"><span class="cmpf-pill" id="cmpPillB"></span></div></div>
-        <div class="cmpf-panel" id="cmpPanel"></div>`;
-      loadLeaflet().then(() => {
-        const mk = id => { const m = L.map(id, { zoomControl: false, attributionControl: false, rotate: false, rotateControl: false, compassBearing: false });
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20, maxNativeZoom: 18 }).addTo(m); return m; };
-        cmpMA = mk('cmpMapA'); cmpMB = mk('cmpMapB'); let lock = false;
-        const sync = (a, b) => a.on('move zoom', () => { if (lock) return; lock = true; b.setView(a.getCenter(), a.getZoom(), { animate: false }); lock = false; });
-        sync(cmpMA, cmpMB); sync(cmpMB, cmpMA);
-        cmpLA = L.layerGroup().addTo(cmpMA); cmpLB = L.layerGroup().addTo(cmpMB);
-        const sel = cmpSel && satInfo.items.find(i => i.key === cmpSel);
-        cmpMA.fitBounds(L.latLngBounds(sel ? sel.pts : cmpItems().flatMap(y => y.pts)), { padding: [16, 16], maxZoom: 17 });
-        cmpDraw(true);
-      }).catch(e => { $('cmpPanel').innerHTML = `<div class="cmpf-sum">${esc(e.message)}</div>`; });
-    }
-    function cmpClose() { const el = $('cmpFull'); if (!el) return; el.style.display = 'none'; try { cmpMA && cmpMA.remove(); cmpMB && cmpMB.remove(); } catch (e) {} cmpMA = cmpMB = null; el.innerHTML = ''; }
-    function cmpSet(k, v) { if (k === 'A') cmpA = v; else if (k === 'B') cmpB = v; else if (k === 'M') cmpM = v; if (cmpA && cmpB && cmpA >= cmpB) { if (k === 'A') cmpB = cmpDates().find(d => d > cmpA) || cmpB; else cmpA = cmpDates().filter(d => d < cmpB).pop() || null; } cmpDraw(true); }
-    function cmpSelect(key, zoom) { cmpSel = key; if (zoom && cmpMA) { const x = key && satInfo.items.find(i => i.key === key); cmpMA.fitBounds(L.latLngBounds(x ? x.pts : cmpItems().flatMap(y => y.pts)), { padding: [16, 16], maxZoom: 17 }); } cmpDraw(false); }
-    function cmpDraw(imgs) {
-      if (!cmpMA) return; const W = cmpM === 'w', Bm = cmpM === 'b', it = cmpItems(), L2 = cmpDates();
-      $('cmpMode').innerHTML = [['n', 'สีปกติ'], ['w', 'จุดอ่อน'], ['b', 'แห้งลง']].map(([m, t]) => `<button type="button" class="${cmpM === m ? 'on' : ''}" onclick="cmpSet('M','${m}')">${t}</button>`).join('');
-      $('cmpPillA').textContent = 'ก่อน · ' + (cmpA ? satDs(cmpA) : '—'); $('cmpPillB').textContent = 'หลัง · ' + satDs(cmpB) + (Bm ? ' + จุดแห้ง' : '');
-      if (imgs) { cmpLA.clearLayers(); cmpLB.clearLayers(); const A0 = cmpA, B0 = cmpB, M0 = cmpM, live = () => cmpMA && cmpA === A0 && cmpB === B0 && cmpM === M0;
-        it.forEach(x => { const qa_ = cmpPick(x, cmpA), qb = cmpPick(x, cmpB), bnd = L.latLngBounds(x.pts);
-          if (qa_) satImg(x, qa_.d, W, img => { if (img && live()) L.imageOverlay(img, bnd, { className: 'fm-sat-img' }).addTo(cmpLA); });
-          if (qb) satImg(x, qb.d, W, img => { if (img && live()) { L.imageOverlay(img, bnd, { className: 'fm-sat-img' }).addTo(cmpLB);
-            if (Bm && qa_ && qa_.d < qb.d) burnImg(x, { A: qa_.d, B: qb.d }, r => { if (!live()) return; cmpBurn[x.key] = r; if (r && r.img) L.imageOverlay(r.img, bnd).addTo(cmpLB); cmpPanel(); }); } }); }); }
-      // เส้นขอบแปลง (แตะ = เลือก) · วาดทุกครั้งให้แปลงที่เลือกขอบเหลือง
-      [cmpMA, cmpMB].forEach(m => { (m._cmpOut || []).forEach(l => m.removeLayer(l)); m._cmpOut = it.map(x => L.polygon(x.pts, { color: x.key === cmpSel ? '#FFD23F' : '#fff', weight: x.key === cmpSel ? 3.5 : 1.2, fill: true, fillOpacity: 0, interactive: true })
-        .on('click', () => cmpSelect(x.key === cmpSel ? null : x.key, false)).addTo(m)); });
-      cmpPanel();
-    }
-    function cmpPanel() {
-      const P = $('cmpPanel'); if (!P || !cmpMA) return; const W = cmpM === 'w', Bm = cmpM === 'b', it = cmpItems(), L2 = cmpDates();
-      const one = x => { const a = cmpPick(x, cmpA), b = cmpPick(x, cmpB); if (!a || !b || a.d >= b.d) return null; const r = cmpBurn[x.key];
-        if (W) { if (a.weak == null || b.weak == null) return null; const d = Math.round(b.weak * 100) - Math.round(a.weak * 100); return { x, a, b, d, bad: d > 3, good: d < -3, txt: `จุดอ่อน ${Math.round(a.weak * 100)}% → ${Math.round(b.weak * 100)}%` }; }
-        if (Bm) return { x, a, b, d: r && !r.cloud ? r.rai : -1, wait: !r, bad: r && r.rai >= 0.2, good: false, txt: !r ? 'กำลังคำนวณ…' : r.cloud ? 'มีเมฆ เทียบไม่ได้' : r.rai >= 0.2 ? `แห้งลง ~${r1(r.dmg || r.rai)} ไร่` : 'ไม่พบจุดแห้งลง' };
-        const d = b.ndvi - a.ndvi; return { x, a, b, d: -d, bad: d <= -0.03, good: d >= 0.03, txt: `ความเขียว ${a.ndvi.toFixed(2)} → ${b.ndvi.toFixed(2)} (${Math.abs(d) < 0.005 ? '±0.00' : (d > 0 ? '+' : '') + d.toFixed(2)})` }; };
-      const sel = cmpSel && satInfo.items.find(i => i.key === cmpSel); let sum;
-      if (sel) { const o = one(sel), tone = !o ? '#1F2A23' : o.bad ? '#B45309' : o.good ? '#1F7A3D' : '#1F2A23';
-        const title = !o ? 'แปลงนี้ไม่มีภาพใสให้เทียบช่วงนี้' : Bm ? o.txt : W ? (o.bad ? 'จุดอ่อนมากขึ้น' : o.good ? 'จุดอ่อนน้อยลง' : 'จุดอ่อนใกล้เดิม') : (o.bad ? 'เขียวลดลง' : o.good ? 'เขียวขึ้น' : 'ความเขียวใกล้เดิม');
-        sum = `<div class="cmpf-sum"><div class="cmpf-k d-flex justify-content-between"><span>แปลงที่เลือก</span><a href="#" onclick="event.preventDefault();cmpSelect(null,true)">ดูทั้งไร่ ›</a></div>
-          <div style="font-size:16px;font-weight:700">${esc(sel.name)}</div><div class="cmpf-t" style="color:${tone}">${title}</div>
-          ${o ? `<div class="cmpf-f">${Bm ? (o.wait ? '' : esc(burnCause(sel.id, o.a.d, o.b.d))) : o.txt}</div><div class="cmpf-k">ภาพของแปลงนี้ ${satDs(o.a.d)} → ${satDs(o.b.d)} · ห่าง ${dayDiff(o.a.d, o.b.d)} วัน</div>` : ''}</div>`; }
-      else { const R2 = it.map(one).filter(Boolean), up = R2.filter(o => o.good).length, dn = R2.filter(o => o.bad), wait = R2.filter(o => o.wait).length;
-        dn.sort((p, q) => q.d - p.d);
-        const head = Bm ? (wait ? `กำลังคำนวณ ${R2.length - wait}/${R2.length} แปลง` : dn.length ? `พบแห้งลง ${dn.length} แปลง` : 'ไม่พบแปลงที่แห้งลง')
-          : W ? (dn.length ? `จุดอ่อนมากขึ้น ${dn.length} แปลง` : 'จุดอ่อนไม่เพิ่มขึ้น') : `เขียวขึ้น ${up} · ลดลง ${dn.length} · ใกล้เดิม ${R2.length - up - dn.length} แปลง`;
-        sum = `<div class="cmpf-sum"><div class="cmpf-k">ทั้งไร่ ${R2.length} แปลงที่มีภาพใสทั้งสองช่วง · แตะแปลงบนแผนที่เพื่อดูทีละแปลง</div><div class="cmpf-t" style="color:${dn.length ? '#B45309' : '#1F7A3D'}">${head}</div>
-          ${dn.slice(0, 6).map(o => `<button type="button" class="cmpf-row" onclick="cmpSelect('${qa(o.x.key)}',true)"><span>${esc(o.x.name)}</span><b>${o.txt}</b></button>`).join('')}</div>`; }
-      const chips = (k, cur) => `<div class="cmpf-cl">${k === 'A' ? 'ภาพก่อน' : 'ภาพหลัง'}</div><div class="sat-dates">${L2.filter(d => k === 'A' ? d < cmpB : !cmpA || d > cmpA).map(d => { const n = it.filter(y => cmpPick(y, d) && cmpPick(y, d).d === d).length;
-        return `<button type="button" class="${d === cur ? 'on' : ''}" onclick="cmpSet('${k}','${d}')">${satDs(d)}<small class="cmpf-n">${n}/${it.length}</small></button>`; }).join('')}</div>`;
-      P.innerHTML = sum + chips('A', cmpA) + chips('B', cmpB) + `<div class="cmpf-note">ตัวเลขใต้วันที่ = จำนวนแปลงที่ภาพวันนั้นใส (ไม่มีเมฆ) · แปลงที่มีเมฆใช้ภาพใสก่อนหน้าไม่เกิน 7 วัน · ${W ? 'จุดอ่อน = เทียบกับส่วนอื่นของแปลงในภาพเดียวกัน' : Bm ? 'แห้งลง = เคยเขียวแล้วแห้ง ไม่นับแถบขอบแปลง ~10 ม.' : 'ความเขียว (NDVI) จาก Sentinel-2 ช่องละ 10 ม.'}</div>`;
-      P.querySelectorAll('.sat-dates').forEach(r => { const b = r.querySelector('.on'); if (b) r.scrollLeft = b.offsetLeft - r.clientWidth / 2 + b.offsetWidth / 2; }); // วันที่เลือกอยู่กลางแถวเสมอ (ไม่เลื่อนทั้งหน้า)
-    }
+    // เทียบก่อน–หลัง = แท็บในหน้าดาวเทียมรายแปลง (19 พ.ย. 69 ผู้ใช้เลือกแบบนี้ "ดูง่ายกว่า" · ลองแผนที่บน–ล่างแล้วดูยาก)
+    function satOpenCmp(key) { fmEdit = null; hideModal('farmMapModal'); setTimeout(() => { openSat(key); satEnsure(() => { satBefD = null; satMode = 'c'; satDetail(); satScrollOn(); }); }, 300); }
+    const satScrollOn = () => requestAnimationFrame(() => document.querySelectorAll('#sat-body .sat-dates').forEach(r => { const b = r.querySelector('.on'); if (b) r.scrollLeft = b.offsetLeft - r.clientWidth / 2 + b.offsetWidth / 2; }));
+    function satNext(dir) { // ‹ › เปลี่ยนแปลงในหน้าเทียบ โดยคงโหมดเดิม
+      const L2 = satInfo.items.filter(i => !i.land && i.last), i = L2.findIndex(o => o.key === satSelK), n = L2[(i + dir + L2.length) % L2.length]; if (!n) return;
+      satSelK = n.key; satSelD = n.last.d; satBefD = null; satDetail(); satScrollOn(); }
     const fmSatItem = (kind, id) => satInfo && satInfo.items.find(i => i.key === kind + '|' + id);
 
     function flowBtn() {
@@ -7853,7 +7771,7 @@ Export.table.toDrive({
             else if (fmSel) { fmSel = null; fmRender(); }
           });
           $('farmMapModal').addEventListener('shown.bs.modal', () => { fmMap.invalidateSize(); if (fmNeedFit && !fmSel && !fmEdit) fmFitAll(); fmNeedFit = false; }); // I-2: ฟิตใหม่หลังหน้าต่างเปิดเต็ม (ก่อนหน้านี้ขนาด 0 → ซูมสุด ป้ายตกขอบ)
-          $('farmMapModal').addEventListener('hidden.bs.modal', () => { cmpClose(); if (fmWatch !== null) navigator.geolocation.clearWatch(fmWatch); fmWatch = null; if (fmAcc) { fmAcc.remove(); fmAcc = null; } });
+          $('farmMapModal').addEventListener('hidden.bs.modal', () => { if (fmWatch !== null) navigator.geolocation.clearWatch(fmWatch); fmWatch = null; if (fmAcc) { fmAcc.remove(); fmAcc = null; } });
         }
         setTimeout(() => {
           fmMap.invalidateSize();

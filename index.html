@@ -3364,7 +3364,7 @@
         <span class="srow-s" style="font-size:12px">${what.split(' · ').map(w => `<span style="white-space:nowrap">${w}</span>`).join(' · ')}</span></span></div></div></div>`;
       return head('ตรวจข้อมูล', `<span style="color:#B45309;font-weight:700">ควรเช็ก ${L.length}</span>`) + `<div class="srow-box">${L.map(o => {
         const open = dqOpen === o.k, go = o.iso ? `<button type="button" class="bigbtn bigbtn-main" onclick="dqGo('${esc(qa(o.k))}')">ดูในปฏิทิน ${esc(dShort(o.iso))}</button>`
-          : o.stock ? `<button type="button" class="bigbtn bigbtn-main" onclick="switchTab('stock')">ไปหน้าสต็อก</button>` : o.pid ? `<button type="button" class="bigbtn bigbtn-main" onclick="openDossier('${qa(o.pid)}')">ดูแปลง</button>` : '';
+          : o.stock ? `<button type="button" class="bigbtn bigbtn-main" onclick="switchTab('stock')">ไปหน้าสต็อก</button>` : o.pid ? `<button type="button" class="bigbtn bigbtn-main" onclick="dqBurnMap('${qa(o.pid)}')">ดูจุดแห้งบนแผนที่</button>` : '';
         return `<div class="srow ${open ? 'open' : ''}" style="background:#FFF4E0"><button type="button" class="srow-main" onclick="dqOpen=dqOpen==='${esc(qa(o.k))}'?'':'${esc(qa(o.k))}';render()">
           <span class="srow-l"><span class="srow-n">${o.ic} ${esc(o.t)}</span><span class="srow-s">${esc(o.s)}</span></span><span style="color:#6B736E">${open ? '▴' : '▾'}</span></button>
           ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px;color:#1F2A23">${esc(o.x)}</div><div class="pq-btns">${go}<button type="button" class="bigbtn bigbtn-out" onclick="dqDismiss('${esc(qa(o.k))}')">ถูกแล้ว ไม่ต้องเตือน</button></div></div>` : ''}</div>`;
@@ -3374,6 +3374,8 @@
       try { const M = dqOk(), lo = isoAdd(todayISO(), -90); Object.keys(M).forEach(x => { if (M[x] < lo) delete M[x]; }); M[k] = todayISO(); localStorage.setItem('raioy_dqok', JSON.stringify(M)); } catch (e) {}
       dqOpen = ''; render();
     }
+    // 🛰️ แห้งลง → เปิดแผนที่ไร่ที่แปลงนั้น โหมด "แห้งลง" (ภาพจุดแห้งแบบในแผนที่) ไม่ใช่หน้าแปลงที่เป็นรายการงาน (19 พ.ย. ผู้ใช้: ดูแล้วไม่จบ)
+    function dqBurnMap(pid) { dqOpen = ''; fmSatMode = 'b'; burnMin = false; fmSatWant = true; openFarmMap(pid); }
     function dqGo(k) { // เปิดวันนั้นในปฏิทิน + กางการ์ดแก้ไขของงานนั้น (กลุ่มเดียวกับที่ dayRowsHtml วาด)
       const o = dqItems().find(x => x.k === k); if (!o) return;
       calSel = o.iso; calYM = o.iso.slice(0, 7); calLogOpen = ''; calDel = '';

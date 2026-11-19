@@ -4084,12 +4084,14 @@
       call('updateMasterOption', [regNewCat, 'add', nm], d => { init(d); save(); }, $('btnRg'));
     }
     // แชร์ข้อมูลรถเข้า LINE (19 พ.ย. 69) — แผ่นแชร์ของ iPhone (เลือก LINE แล้วเลือกห้อง) ไม่เด้งออกเว็บ · เครื่องที่ไม่มีแผ่นแชร์ = คัดลอกข้อความ
+    // ย่อ (19 พ.ย. 69 ผู้ใช้: "ยาวไป"): รายคัน = บรรทัดเดียว · ทุกคัน = รวมตามวันหมด 1 บรรทัดต่อวัน ✅ ต่อได้แล้ว ❗ เลยกำหนด ▫️ ยังไม่ถึง
+    const regMark = ex => { const d = regDays(ex); return d === null ? '' : d < 0 ? '❗' : d <= 90 ? '✅' : '▫️'; };
+    const regSt = ex => { const d = regDays(ex); return d === null ? '' : d < 0 ? ` (เลย ${regMD(ex)})` : d <= 90 ? ' (ต่อได้แล้ว)' : ''; };
+    const regPl = pl => pl && pl !== '-' ? ' ' + pl : '';
     function regLine(a) {
-      const g = REG_GRP.find(x => x[0] === a.category) || ['', '🚗', ''], one = (pl, ex) => {
-        const d = regDays(ex), st = d === null ? '' : d < 0 ? ` (เลยกำหนด ${regMD(ex)})` : d <= 90 ? ` (ต่อได้แล้ว · อีก ${regMD(ex)})` : ` (อีก ${regMD(ex)})`;
-        return `ทะเบียน ${pl && pl !== '-' ? pl : '-'}\nภาษีหมด ${ex ? satD(beToISO(ex)) : 'ยังไม่ระบุ'}${st}`; };
-      let t = `${g[1]} ${a.name}${g[2] ? ' · ' + g[2].split(' · ')[0] : ''}\n${one(a.plate, a.reg_expire)}`;
-      if (a.trailer_plate || a.trailer_reg_expire) t += `\n↳ พ่วง ${one(a.trailer_plate, a.trailer_reg_expire).replace('ทะเบียน ', '')}`;
+      const g = REG_GRP.find(x => x[0] === a.category) || ['', '🚗'];
+      let t = `${g[1]} ${a.name}${regPl(a.plate)} · ภาษีหมด ${a.reg_expire ? satD(beToISO(a.reg_expire)) : '-'}${regSt(a.reg_expire)}`;
+      if (a.trailer_plate || a.trailer_reg_expire) t += `\nพ่วง${regPl(a.trailer_plate)} · หมด ${a.trailer_reg_expire ? satD(beToISO(a.trailer_reg_expire)) : '-'}${regSt(a.trailer_reg_expire)}`;
       return t;
     }
     function regShareText(t) {
@@ -4098,9 +4100,11 @@
     }
     function regShare(nm) { const a = (gData.assets || []).find(x => x.name === nm); if (a) regShareText(regLine(a)); }
     function regShareAll() {
-      const as = (gData.assets || []).filter(a => REG_CATS.includes(a.category));
-      const t = '🪪 ภาษีรถ ' + satD(todayISO()) + '\n\n' + REG_GRP.map(([c]) => as.filter(a => a.category === c).map(regLine).join('\n\n')).filter(Boolean).join('\n\n');
-      regShareText(t);
+      const by = {};
+      regItems().filter(i => i.exp).forEach(i => (by[i.exp] = by[i.exp] || []).push(i));
+      const L = Object.keys(by).sort((x, y) => beToISO(x).localeCompare(beToISO(y)))
+        .map(e => `${regMark(e)} ${satD(beToISO(e))} · ${by[e].map(i => (i.tr ? eqS(i.a.name) + ' (พ่วง)' : eqS(i.a.name)) + regPl(i.plate)).join(', ')}`);
+      regShareText(`🪪 ภาษีรถ (${satD(todayISO())})\n${L.join('\n')}\n✅ ต่อได้แล้ว ❗ เลยกำหนด`);
     }
     function regMove(nm, c) { const a = (gData.assets || []).find(x => x.name === nm); if (!a || a.category === c) return;
       call('setAssetCategory', [nm, c], d => { init(d); openReg(nm); }, null, 'ย้ายหมวดแล้ว'); }

@@ -4099,12 +4099,12 @@
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { const t = $('syncToast'); t.innerText = '📋 คัดลอกแล้ว วางในไลน์ได้เลย'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2200); }, () => prompt('คัดลอกข้อความนี้', t));
     }
     function regShare(nm) { const a = (gData.assets || []).find(x => x.name === nm); if (a) regShareText(regLine(a)); }
+    // ทุกคัน (19 พ.ย. 69 ผู้ใช้: "เรียงทีละคัน ให้รู้ว่ากี่คันต่อได้ ยังไม่ต้องต่อ") = 3 หมวดพร้อมจำนวน บรรทัดละคัน เรียงตามวันหมด
     function regShareAll() {
-      const by = {};
-      regItems().filter(i => i.exp).forEach(i => (by[i.exp] = by[i.exp] || []).push(i));
-      const L = Object.keys(by).sort((x, y) => beToISO(x).localeCompare(beToISO(y)))
-        .map(e => `${regMark(e)} ${satD(beToISO(e))} · ${by[e].map(i => (i.tr ? eqS(i.a.name) + ' (พ่วง)' : eqS(i.a.name)) + regPl(i.plate)).join(', ')}`);
-      regShareText(`🪪 ภาษีรถ (${satD(todayISO())})\n${L.join('\n')}\n✅ ต่อได้แล้ว ❗ เลยกำหนด`);
+      const its = regItems().filter(i => i.exp), ln = i => `• ${i.tr ? eqS(i.a.name) + ' (พ่วง)' : eqS(i.a.name)}${regPl(i.plate)} · ${satD(beToISO(i.exp))}`;
+      const sec = (h, L) => L.length ? `\n${h} ${L.length} คัน\n${L.map(ln).join('\n')}` : '';
+      const late = its.filter(i => regDays(i.exp) < 0), can = its.filter(i => regDays(i.exp) >= 0 && regDays(i.exp) <= 90), far = its.filter(i => regDays(i.exp) > 90);
+      regShareText(`🪪 ภาษีรถ (${satD(todayISO())})` + sec('❗ เลยกำหนด', late) + sec('✅ ต่อได้แล้ว', can) + sec('▫️ ยังไม่ต้องต่อ', far));
     }
     function regMove(nm, c) { const a = (gData.assets || []).find(x => x.name === nm); if (!a || a.category === c) return;
       call('setAssetCategory', [nm, c], d => { init(d); openReg(nm); }, null, 'ย้ายหมวดแล้ว'); }

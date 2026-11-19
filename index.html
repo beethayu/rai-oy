@@ -1467,6 +1467,7 @@
           </div>
           <div class="text-muted small mb-2">ถ่ายรูปป้ายภาษี/เล่มทะเบียนส่งในแชทก็ได้ ระบบอ่านวันให้</div>
           <button type="button" class="btn btn-success w-100 fw-bold" id="btnRg" onclick="submitReg()">💾 บันทึก</button>
+          <button type="button" class="btn btn-outline-success fw-bold w-100 mt-2" id="rg_share" onclick="regShare($('rg_name').value)">📤 แชร์ข้อมูลรถเข้า LINE</button>
           <button type="button" class="btn btn-sm btn-outline-danger w-100 mt-2" id="rg_del" onclick="delReg()">ลบรถคันนี้ออกจากรายการ</button>
         </div>
       </div>
@@ -4033,7 +4034,8 @@
       const nextOk = !nx.length && all.filter(i => ds(i) !== null).sort((a, b) => ds(a) - ds(b))[0];
       const sum = `<div class="rg-sum"><div class="rg-k">ภาษีรถ · ${all.filter(i => !i.tr).length} คัน</div><div class="rg-t" style="color:${tone}">${title}</div>
         ${facts || (nextOk ? `<div class="rg-f">คันถัดไป <b>${esc(eqS(nextOk.label))}</b> หมด ${esc(dt(nextOk.exp))} (อีก ${regMD(nextOk.exp)})</div>` : '')}
-        <div class="rg-k mt-1">ต่อล่วงหน้าได้ 90 วันก่อนหมด · ซื้อ พ.ร.บ. ก่อน · รถยนต์ใช้งานครบ 7 ปี / มอไซค์ครบ 5 ปี ต้องตรวจ ตรอ. ก่อน</div></div>`;
+        <div class="rg-k mt-1">ต่อล่วงหน้าได้ 90 วันก่อนหมด · ซื้อ พ.ร.บ. ก่อน · รถยนต์ใช้งานครบ 7 ปี / มอไซค์ครบ 5 ปี ต้องตรวจ ตรอ. ก่อน</div>
+        <button type="button" class="cmp-go" onclick="regShareAll()">📤 แชร์ข้อมูลรถทุกคันเข้า LINE <span>›</span></button></div>`;
       // ทุกคัน (สิบล้อ รถไร่ รถไถ รถบ้าน มอไซค์) อยู่ในช่วงต่อล่วงหน้า 90 วัน = ป้าย "ต่อได้แล้ว" · ≤30 ส้ม · เลย = แดง · ไกล = นับถอยหลังตัวเทา
       const st = i => { const d = ds(i), md = regMD(i.exp); if (d === null) return '<span class="rg-none">ใส่วันหมด ›</span>';
         return d < 0 ? `<span class="rg-tag rg-late"><b>เลยกำหนด</b><small>${md}</small></span>` : d <= 90 ? `<span class="rg-tag ${d <= 30 ? 'rg-soon' : 'rg-ok'}"><b>${d === 0 ? 'หมดวันนี้' : 'ต่อได้แล้ว'}</b><small>${d === 0 ? 'ต่อวันนี้' : 'อีก ' + md}</small></span>`
@@ -4060,6 +4062,7 @@
       $('rg_plate').value = a ? a.plate || '' : ''; $('rg_exp').value = a ? beToISO(a.reg_expire) || '' : '';
       $('rg_tplate').value = a ? a.trailer_plate || '' : ''; $('rg_texp').value = a ? beToISO(a.trailer_reg_expire) || '' : '';
       $('rg_tr_box').style.display = (!a && regNewCat === 'Car') || (a && (a.category === 'Truck' || a.category === 'Car')) ? 'block' : 'none';
+      $('rg_share').style.display = a ? '' : 'none';
       const mv = a && ['Truck', 'Car', 'Home', 'Moto'].includes(a.category); $('rg_catbox').style.display = mv ? '' : 'none';
       if (mv) $('rg_cats').innerHTML = [['Truck', '🚛 สิบล้อ'], ['Car', '🚚 รถใช้ในไร่'], ['Home', '🚗 รถส่วนตัว'], ['Moto', '🛵 มอไซค์']].map(([c, t]) => `<button type="button" class="ch-chip${a.category === c ? ' on' : ''}" onclick="regMove('${qa(a.name)}','${c}')">${t}</button>`).join('');
       $('rg_del').style.display = a && (a.category === 'Car' || a.category === 'Home' || a.category === 'Moto') ? 'block' : 'none';
@@ -4079,6 +4082,25 @@
       }
       nm = $('rg_newname').value.trim(); if (!nm) return alert(regNewCat === 'Moto' ? 'ใส่ชื่อรถก่อนครับ เช่น เวฟ แดง' : regNewCat === 'Home' ? 'ใส่ชื่อรถก่อนครับ เช่น Jazz' : 'ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
       call('updateMasterOption', [regNewCat, 'add', nm], d => { init(d); save(); }, $('btnRg'));
+    }
+    // แชร์ข้อมูลรถเข้า LINE (19 พ.ย. 69) — แผ่นแชร์ของ iPhone (เลือก LINE แล้วเลือกห้อง) ไม่เด้งออกเว็บ · เครื่องที่ไม่มีแผ่นแชร์ = คัดลอกข้อความ
+    function regLine(a) {
+      const g = REG_GRP.find(x => x[0] === a.category) || ['', '🚗', ''], one = (pl, ex) => {
+        const d = regDays(ex), st = d === null ? '' : d < 0 ? ` (เลยกำหนด ${regMD(ex)})` : d <= 90 ? ` (ต่อได้แล้ว · อีก ${regMD(ex)})` : ` (อีก ${regMD(ex)})`;
+        return `ทะเบียน ${pl && pl !== '-' ? pl : '-'}\nภาษีหมด ${ex ? satD(beToISO(ex)) : 'ยังไม่ระบุ'}${st}`; };
+      let t = `${g[1]} ${a.name}${g[2] ? ' · ' + g[2].split(' · ')[0] : ''}\n${one(a.plate, a.reg_expire)}`;
+      if (a.trailer_plate || a.trailer_reg_expire) t += `\n↳ พ่วง ${one(a.trailer_plate, a.trailer_reg_expire).replace('ทะเบียน ', '')}`;
+      return t;
+    }
+    function regShareText(t) {
+      if (navigator.share) return navigator.share({ text: t }).catch(() => {});
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { const t = $('syncToast'); t.innerText = '📋 คัดลอกแล้ว วางในไลน์ได้เลย'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2200); }, () => prompt('คัดลอกข้อความนี้', t));
+    }
+    function regShare(nm) { const a = (gData.assets || []).find(x => x.name === nm); if (a) regShareText(regLine(a)); }
+    function regShareAll() {
+      const as = (gData.assets || []).filter(a => REG_CATS.includes(a.category));
+      const t = '🪪 ภาษีรถ ' + satD(todayISO()) + '\n\n' + REG_GRP.map(([c]) => as.filter(a => a.category === c).map(regLine).join('\n\n')).filter(Boolean).join('\n\n');
+      regShareText(t);
     }
     function regMove(nm, c) { const a = (gData.assets || []).find(x => x.name === nm); if (!a || a.category === c) return;
       call('setAssetCategory', [nm, c], d => { init(d); openReg(nm); }, null, 'ย้ายหมวดแล้ว'); }

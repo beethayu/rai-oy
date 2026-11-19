@@ -4090,8 +4090,8 @@
     const regPl = pl => pl && pl !== '-' ? ' ' + pl : '';
     function regLine(a) {
       const g = REG_GRP.find(x => x[0] === a.category) || ['', '🚗'];
-      let t = `${g[1]} ${a.name}${regPl(a.plate)} · ภาษีหมด ${a.reg_expire ? satD(beToISO(a.reg_expire)) : '-'}${regSt(a.reg_expire)}`;
-      if (a.trailer_plate || a.trailer_reg_expire) t += `\nพ่วง${regPl(a.trailer_plate)} · หมด ${a.trailer_reg_expire ? satD(beToISO(a.trailer_reg_expire)) : '-'}${regSt(a.trailer_reg_expire)}`;
+      let t = `${g[1]} ${a.plate && a.plate !== '-' ? a.plate : 'ไม่มีทะเบียน'} · ภาษีหมด ${a.reg_expire ? satD(beToISO(a.reg_expire)) : '-'}${regSt(a.reg_expire)} · ${a.name}`;
+      if (a.trailer_plate || a.trailer_reg_expire) t += `\n↳ ${a.trailer_plate && a.trailer_plate !== '-' ? a.trailer_plate : 'ไม่มีทะเบียน'} · หมด ${a.trailer_reg_expire ? satD(beToISO(a.trailer_reg_expire)) : '-'}${regSt(a.trailer_reg_expire)} · พ่วง`;
       return t;
     }
     function regShareText(t) {
@@ -4101,7 +4101,7 @@
     function regShare(nm) { const a = (gData.assets || []).find(x => x.name === nm); if (a) regShareText(regLine(a)); }
     // ทุกคัน (19 พ.ย. 69 ผู้ใช้: "เรียงทีละคัน ให้รู้ว่ากี่คันต่อได้ ยังไม่ต้องต่อ") = 3 หมวดพร้อมจำนวน บรรทัดละคัน เรียงตามวันหมด
     function regShareAll() {
-      const its = regItems().filter(i => i.exp), ln = i => `• ${i.tr ? eqS(i.a.name) + ' (พ่วง)' : eqS(i.a.name)}${regPl(i.plate)} · ${satD(beToISO(i.exp))}`;
+      const its = regItems().filter(i => i.exp), ln = i => `• ${i.plate && i.plate !== '-' ? i.plate : 'ไม่มีทะเบียน'} · ${satD(beToISO(i.exp))} · ${i.tr ? eqS(i.a.name) + ' (พ่วง)' : eqS(i.a.name)}`; // ทะเบียน + วันหมดก่อน ชื่อรถท้าย (ผู้ใช้ขอ)
       const sec = (h, L) => L.length ? `\n${h} ${L.length} คัน\n${L.map(ln).join('\n')}` : '';
       const late = its.filter(i => regDays(i.exp) < 0), can = its.filter(i => regDays(i.exp) >= 0 && regDays(i.exp) <= 90), far = its.filter(i => regDays(i.exp) > 90);
       regShareText(`🪪 ภาษีรถ (${satD(todayISO())})` + sec('❗ เลยกำหนด', late) + sec('✅ ต่อได้แล้ว', can) + sec('▫️ ยังไม่ต้องต่อ', far));

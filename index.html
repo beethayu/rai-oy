@@ -636,6 +636,10 @@
     .fm-chip.on { border-color: #1F5E3B; color: #1F5E3B; font-weight: 600; }
     .fm-leg { background: rgba(255,255,255,.94); border-radius: 10px; padding: 5px 8px; font-size: 12px; color: #1F2A23; display: flex; flex-wrap: wrap; gap: 4px 10px; max-width: 240px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
     .fm-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } .fm-leg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+    .cmp-box { margin-top: 8px; padding: 8px 10px; background: #F4F7F4; border-radius: 12px; font-size: 14px; color: #1F2A23; }
+    .cmp-box small { color: #6B736E; font-size: 12.5px; } .cmp-h { font-size: 12px; color: #6B736E; margin-bottom: 2px; }
+    .cmp-seg { display: flex; } .cmp-seg button { flex: 1; font-size: 13px; padding: 6px 4px; white-space: nowrap; }
+    .cmp-dates { margin-top: 6px; align-items: center; } .cmp-l { font-size: 12px; color: #6B736E; flex: none; padding-right: 2px; }
     .fm-tag-dmg { background: #FFF1EC !important; color: #B42318 !important; }
     .fm-tag-guard { background: #EDE3FA !important; color: #5B2A9E !important; }
     .grp-all { border: 0; background: transparent; color: #1F5E3B; font-size: 14px; font-weight: 600; padding: 0; }
@@ -3306,9 +3310,9 @@
     let dqOpen = '';
     function burnMemo(x, r) { // จำผลแห้งลงของภาพคู่ล่าสุด ให้หน้าวันนี้ใช้ (ไม่ต้องโหลดดาวเทียมใหม่)
       try { if (x.land || !r || r.cloud) return; const pr = burnPairOf(x); if (!pr || pr.B !== x.last.d) return; // เฉพาะคู่ล่าสุด ไม่ใช่ภาพที่ผู้ใช้เลือกดูย้อนหลัง
-        const M = JSON.parse(localStorage.getItem('raioy_burnchk') || '{}');
+        const M = JSON.parse(localStorage.getItem('raioy_burnchk2') || '{}');
         if (r.rai >= 0.2) M[x.id] = { A: r.A, B: r.B, rai: r1(r.dmg || r.rai) }; else delete M[x.id];
-        localStorage.setItem('raioy_burnchk', JSON.stringify(M)); } catch (e) {}
+        localStorage.setItem('raioy_burnchk2', JSON.stringify(M)); } catch (e) {}
     }
     function dqItems() {
       const t0 = todayISO(), lo = isoAdd(t0, -DQ_DAYS), ok = dqOk(), out = [];
@@ -3350,7 +3354,7 @@
       (gData.inventory || []).forEach(i => { const q = num(String(i.stock).replace(/,/g, '')); if (!(q < 0)) return;
         add({ k: 'stk:' + i.name + '|' + q, ic: '📦', t: `สต็อกติดลบ · ${i.name}`, s: `เหลือ ${qtyTxt(q, i.unit)}`, x: 'ใช้มากกว่าที่ซื้อเข้า — ลืมจดซื้อ หรือจำนวนถัง/อัตราผิด ตรวจในหน้าสต็อก', stock: 1 }); });
       // 7) ดาวเทียมแห้งลง ไม่มีบันทึก (คิดสาเหตุใหม่ทุกครั้ง: จดเพิ่มแล้วหายเอง)
-      try { const M = JSON.parse(localStorage.getItem('raioy_burnchk') || '{}');
+      try { const M = JSON.parse(localStorage.getItem('raioy_burnchk2') || '{}');
         Object.keys(M).forEach(pid => { const m = M[pid]; if (!m.B || m.B < lo || !(gData.plots || []).some(p => p.plot_id === pid)) return;
           if (!/ควรไปดูหน้างาน/.test(burnCause(pid, m.A, m.B))) return;
           add({ k: 'burn:' + pid + '|' + m.B, ic: '🛰️', t: `แห้งลงไม่มีบันทึก · ${pname(pid)}`, s: `~${r1(m.rai)} ไร่ · ภาพ ${dShort(m.A)} → ${dShort(m.B)}`,
@@ -7457,6 +7461,11 @@ Export.table.toDrive({
     let fmDmgShow = (() => { try { return localStorage.getItem('raioy_dmgshow') !== '0'; } catch (e) { return true; } })(); // จำค่าที่ผู้ใช้เลือกไว้ทุกแท็บ จนกว่าจะกดเปลี่ยน (18 พ.ย.)
     const fmDmgHidden = () => fmSatOn && !fmDmgShow; // สีปกติ = เริ่มแสดง · จุดอ่อน/น้ำขัง = เริ่มซ่อน · ทุกโหมดมีปุ่มเปิดปิด
     let fmSatOn = false, fmSatMode = 'n', fmSatWant = false, fmSatLayer = null, fmSatDate = {}, fmSatOv = {};
+    // เทียบก่อน–หลังในแผงล่างทุกโหมด (19 พ.ย. 69) · fmSatBef[key] = วันภาพ "ก่อน" ที่ผู้ใช้เลือก (ไม่เลือก = ภาพใสก่อนหน้า) · fmCmpView = 'A' โชว์ภาพก่อน / 'B' ภาพหลังแบบสีปกติ (โหมดแห้งลง) / '' ปกติของโหมด
+    let fmSatBef = {}, fmCmpView = '', fmCmpKey = '';
+    function fmBefOf(x) { const d = fmSatDate[x.key] || (x.last && x.last.d), b = fmSatBef[x.key]; if (!d) return null;
+      if (fmSatMode === 'b') { const pr = burnPairOf(x); return pr ? x.good.find(q => q.d === pr.A) : null; }
+      return (b && b < d && x.good.find(q => q.d === b)) || x.good.filter(q => q.d < d).pop() || null; }
     function fmSatToggle(on) {
       fmSatOn = on === undefined ? !fmSatOn : !!on;
       $('fmSatBtn').classList.toggle('on', fmSatOn); $('fmSatBar').style.display = fmSatOn ? '' : 'none'; $('fmMap').classList.toggle('fm-saton', fmSatOn);
@@ -7464,7 +7473,7 @@ Export.table.toDrive({
       if (!fmSatOn) { fmSatDate = {}; if (fmSatLayer) fmSatLayer.clearLayers(); fmSatOv = {}; fmRender(); return; }
       satEnsure(() => { fmSatBarHtml(); fmRender(); fmSatDraw(); });
     }
-    function fmSatSetMode(m) { fmSatMode = m; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
+    function fmSatSetMode(m) { fmSatMode = m; fmCmpView = ''; fmRender(); if (m === 'f') soilLoad(); fmSatBarHtml(); fmSatDraw(); fmPanel(true); }
     function fmSatBarHtml() {
       const W = fmSatMode === 'w', F = fmSatMode === 'f', latest = (satData.sat || []).reduce((m, r) => r[0] > m ? r[0] : m, '');
       $('fmSatBar').innerHTML = `<div class="fm-rrow"><div class="fm-rseg"><button type="button" class="${fmSatMode === 'n' ? 'on' : ''}" onclick="fmSatSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="fmSatSetMode('w')">จุดอ่อน</button><button type="button" class="${F ? 'on' : ''}" onclick="fmSatSetMode('f')">น้ำขัง</button><button type="button" class="${fmSatMode === 'b' ? 'on' : ''}" onclick="fmSatSetMode('b')">แห้งลง</button></div><small>${F ? (spotBusy ? 'กำลังสร้างภาพ…' : '2 ปีย้อนหลัง') : 'ภาพ ' + (latest ? satDs(latest) : '-')}</small></div>
@@ -7499,6 +7508,16 @@ Export.table.toDrive({
       callApi('getWaterSpots', [ids]).then(done).catch(() => done(null));
     }
     function fmSatOne(x) {
+      const cv = fmCmpView && fmCmpKey === x.key ? fmCmpView : '';
+      if (cv && fmSatMode !== 'f') { // แปลงที่เลือก: ภาพก่อน (โหมดเดียวกัน) หรือภาพหลังสีปกติ (โหมดแห้งลง)
+        const bq = fmBefOf(x), d = cv === 'A' ? bq && bq.d : (fmSatDate[x.key] || x.last.d), W = fmSatMode === 'w'; if (!d) return;
+        satImg(x, d, W, img => {
+          if (!img || !fmSatOn || fmCmpView !== cv) return;
+          if (fmSatOv[x.key]) fmSatLayer.removeLayer(fmSatOv[x.key]);
+          fmSatOv[x.key] = L.imageOverlay(img, L.latLngBounds(x.pts), { pane: 'satPane', interactive: false, className: 'fm-sat-img' }).addTo(fmSatLayer);
+        });
+        return;
+      }
       if (fmSatMode === 'b') {
         const pr = burnPairOf(x); if (!pr || x.land) return;
         burnImg(x, pr, r => {
@@ -7554,8 +7573,14 @@ Export.table.toDrive({
         for (let i = 0; i < px.length; i += 4) if (px[i + 3] > 0 && px[i + 2] < 128) { vals.push(px[i] / 255 - 0.5); gv.push(px[i + 1] / 255 - 0.5); }
         if (vals.length < 20) return cb({ img: '', rai: 0, A, B, cloud: true });
         const mid = a => a.slice().sort((p, q) => p - q)[a.length >> 1], med = mid(vals), gmed = mid(gv), th = Math.max(BURN_MIN, med + BURN_K), gth = Math.max(0.01, gmed + 0.03); let n = 0;
+        // ไม่นับแถบขอบแปลง ~10 ม. (19 พ.ย. 69: หนองเฝ้า ข้าง รร. จุดส้มเรียงตามขอบ = ช่องภาพเห็นถนน/แปลงข้างปน ไม่ใช่อ้อยแห้ง)
+        const Wc = c.width, Hc = c.height, la0 = x.pts.reduce((s, p) => s + p[0], 0) / x.pts.length, bb = L.latLngBounds(x.pts);
+        const pxm = Math.sqrt((bb.getEast() - bb.getWest()) * 111320 * Math.cos(la0 * Math.PI / 180) * (bb.getNorth() - bb.getSouth()) * 110540 / (Wc * Hc)), er = Math.max(1, Math.round(10 / pxm));
+        const edge = new Uint8Array(Wc * Hc);
+        for (let yy = 0; yy < Hc; yy++) for (let xx = 0; xx < Wc; xx++) { if (yy < er || xx < er || yy >= Hc - er || xx >= Wc - er) edge[yy * Wc + xx] = 1; if (px[(yy * Wc + xx) * 4 + 3] > 0) continue;
+          for (let oy = -er; oy <= er; oy++) for (let ox = -er; ox <= er; ox++) { const a = xx + ox, b2 = yy + oy; if (a >= 0 && b2 >= 0 && a < Wc && b2 < Hc) edge[b2 * Wc + a] = 1; } }
         for (let i = 0; i < px.length; i += 4) {
-          const ok = px[i + 3] > 0 && px[i + 2] < 128, d = px[i] / 255 - 0.5;
+          const ok = px[i + 3] > 0 && px[i + 2] < 128 && !edge[i >> 2], d = px[i] / 255 - 0.5;
           if (ok && d >= th && px[i + 2] / 255 >= BURN_VEG && px[i + 1] / 255 - 0.5 >= gth) { n++; const hi = d >= th + 0.08; px[i] = hi ? 158 : 240; px[i + 1] = hi ? 16 : 90; px[i + 2] = hi ? 10 : 20; px[i + 3] = 225; } else px[i + 3] = 0;
         }
         g.putImageData(D, 0, 0);
@@ -7664,7 +7689,7 @@ Export.table.toDrive({
     function fmSatPick(key, d) {
       const x = satInfo.items.find(i => i.key === key); if (!x) return;
       if (d === x.last.d) delete fmSatDate[key]; else fmSatDate[key] = d;
-      fmSatOne(x); fmLabels(); fmPanel(true);
+      fmCmpView = ''; fmSatOne(x); fmLabels(); fmPanel(true);
     }
     // แผ่นข้อมูลดาวเทียมของแปลงที่แตะ (ตอนเปิด 🛰️)
     function spotSoilLine(x) {
@@ -7688,13 +7713,32 @@ Export.table.toDrive({
         ${cmp ? `<div style="font-size:13.5px;margin-top:4px">${cmp}${pm !== null ? ` <span class="text-muted">(แปลงอื่น ${pm.toFixed(2)})</span>` : ''}</div>` : ''}
         ${weak ? `<div style="font-size:13.5px;margin-top:2px">${weak}</div>` : ''}
         ${fmSatMode === 'b' ? burnSheetLine(x) : ''}
+        ${fmCmpHtml(x, cur)}
         ${dmgRecHtml(x)}
         ${latest ? x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag">⚠️ ${esc(f)}</div>`).join('') : ''}
         ${fmSatMode === 'f' ? `<div class="sw-prone mt-2" style="font-size:13.5px">สีฟ้าบนแปลง = จุดที่ดาวเทียมเคยเห็นน้ำบนผิวดินใน 2 ปี ยิ่งเข้มยิ่งขังบ่อย (= แอ่ง) · ไม่มีสี = ไม่เคยเห็นน้ำ หรือช่วงนั้นอ้อยสูงบังอยู่${spotSoilLine(x)}</div>`
           : `<div class="sat-dates" id="fmSatDates">${chips}</div>
-        <div class="d-flex justify-content-between" style="font-size:12px;color:var(--muted)"><span>แตะวันที่ = เปลี่ยนภาพบนแผนที่</span>${latest ? '' : `<a href="#" style="color:var(--green);font-weight:700" onclick="event.preventDefault();fmSatPick('${qa(x.key)}','${x.last.d}')">กลับภาพล่าสุด</a>`}</div>`}
+        <div class="d-flex justify-content-between" style="font-size:12px;color:var(--muted)"><span>แถวนี้ = ภาพหลัง (แตะ = เปลี่ยนภาพบนแผนที่)</span>${latest ? '' : `<a href="#" style="color:var(--green);font-weight:700" onclick="event.preventDefault();fmSatPick('${qa(x.key)}','${x.last.d}')">กลับภาพล่าสุด</a>`}</div>`}
         <div class="d-flex gap-2 mt-2">${btns}</div></div>`;
     }
+    function fmCmpHtml(x, cur) {
+      if (fmSatMode === 'f') return `<div class="cmp-box"><small>น้ำขังเป็นสถิติรวม 2 ปี ไม่มีภาพก่อน–หลังให้เทียบ</small></div>`;
+      const bq = fmBefOf(x), B = fmSatMode === 'b';
+      if (!bq) return `<div class="cmp-box"><small>${B ? 'ยังไม่มีภาพใสก่อนหน้าภายใน 20 วันให้เทียบ' : 'ยังไม่มีภาพใสก่อนหน้าให้เทียบ'}</small></div>`;
+      const dd = cur.ndvi - bq.ndvi, gap = dayDiff(bq.d, cur.d);
+      let line;
+      if (fmSatMode === 'w' && cur.weak != null && bq.weak != null) {
+        const a = Math.round(bq.weak * 100), b = Math.round(cur.weak * 100), rai = num(x.rai), r = v => rai ? ` (~${r1(rai * v)} ไร่)` : '';
+        line = `<b style="color:${b > a + 3 ? '#B45309' : b < a - 3 ? '#1F7A3D' : '#1F2A23'}">จุดอ่อน ${a}% → ${b}%</b>${r(cur.weak)} · ${b > a + 3 ? 'มากขึ้น' : b < a - 3 ? 'น้อยลง' : 'ใกล้เดิม'}`;
+      } else line = `<b style="color:${dd >= 0.03 ? '#1F7A3D' : dd <= -0.03 ? '#B45309' : '#1F2A23'}">ความเขียว ${bq.ndvi.toFixed(2)} → ${cur.ndvi.toFixed(2)} (${Math.abs(dd) < 0.005 ? '±0.00' : (dd > 0 ? '+' : '') + dd.toFixed(2)})</b> · ${dd >= 0.03 ? 'เขียวขึ้น' : dd <= -0.03 ? 'เขียวลดลง' : 'ใกล้เดิม'}`;
+      const seg = (v, t) => `<button type="button" class="${fmCmpView === v ? 'on' : ''}" onclick="fmCmpSet('${v}')">${t}</button>`;
+      const opts = B ? [] : x.good.filter(q => q.d < cur.d).slice(-10).reverse(); // ใกล้สุดก่อน (ภาพที่เลือกไม่ตกขอบ)
+      return `<div class="cmp-box"><div class="cmp-h">เทียบกับภาพ ${satDs(bq.d)} (${gap} วันก่อน)</div><div>${line}</div>
+        <div class="fm-rseg cmp-seg mt-2">${seg('A', 'ภาพก่อน ' + satDs(bq.d))}${B ? seg('B', 'ภาพหลัง ' + satDs(cur.d)) + seg('', 'จุดแห้ง') : seg('', 'ภาพหลัง ' + satDs(cur.d))}</div>
+        ${opts.length > 1 ? `<div class="sat-dates cmp-dates"><span class="cmp-l">ก่อน:</span>${opts.map(q => `<button type="button" class="${q.d === bq.d ? 'on' : ''}" onclick="fmBefPick('${qa(x.key)}','${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('')}</div>` : ''}</div>`;
+    }
+    function fmCmpSet(v) { const x = fmSel && fmSatItem('plot', fmSel.id); fmCmpView = v; fmCmpKey = x ? x.key : ''; if (x) fmSatOne(x); fmPanel(true); }
+    function fmBefPick(key, d) { fmSatBef[key] = d; fmCmpView = 'A'; fmCmpKey = key; const x = satInfo.items.find(i => i.key === key); if (x) fmSatOne(x); fmPanel(true); }
     const fmSatItem = (kind, id) => satInfo && satInfo.items.find(i => i.key === kind + '|' + id);
 
     function flowBtn() {
@@ -8054,6 +8098,7 @@ Export.table.toDrive({
     }
     function fmPanel(still) {
       const P = $('fmPanel'), H = $('fmHint');
+      if (fmCmpKey && (!fmSel || 'plot|' + fmSel.id !== fmCmpKey)) { const k = fmCmpKey; fmCmpKey = ''; fmCmpView = ''; const ox = satInfo && satInfo.items.find(i => i.key === k); if (ox && fmSatOn) fmSatOne(ox); } // เลือกแปลงอื่น/ปิด = แปลงเดิมกลับภาพปกติ
       if (fmEdit) { fmEditPanel(); return; }
       if (kmItems) { kmPanel(); return; }
       H.style.display = 'none';

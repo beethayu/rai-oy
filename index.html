@@ -664,7 +664,8 @@
     .rg-add { border: 0; background: transparent; color: var(--green); font-weight: 700; font-size: 14px; padding: 4px 0; }
     .rg-plate { display: inline-block; border: 1.5px solid #3A443E; border-radius: 6px; padding: 0 6px; font-size: 13px; font-weight: 700; color: #1F2A23; background: #fff; margin-right: 6px; line-height: 1.5; }
     .rg-row .srow-s { margin-top: 3px; } .rg-tr { padding-top: 4px !important; } .rg-tri { font-size: 14px; color: #6B736E; font-weight: 600; padding-left: 4px; }
-    .rg-can { text-align: right; color: #1E4FB8; flex-shrink: 0; } .rg-can b { display: block; font-size: 14.5px; } .rg-can small { font-size: 12.5px; color: #5B6E9A; }
+    .rg-tag { text-align: center; flex-shrink: 0; border-radius: 12px; padding: 5px 10px; line-height: 1.25; } .rg-tag b { display: block; font-size: 14.5px; } .rg-tag small { font-size: 12.5px; white-space: nowrap; }
+    .rg-ok { background: #E4ECFB; color: #183F94; } .rg-soon { background: #FDEBD3; color: #9A4A06; } .rg-late { background: #FDE4E1; color: #9B1C1C; }
     .rg-far { font-size: 14px; color: #6B736E; flex-shrink: 0; } .rg-none { font-size: 13.5px; color: #8A918C; flex-shrink: 0; }
     .sat-cmpsw { display: flex; justify-content: space-between; align-items: center; width: 100%; border: 0; background: #fff; border-radius: 12px; padding: 8px 12px; margin-top: 8px; font-size: 15px; font-weight: 700; color: #1F2A23; text-align: left; }
     .sat-cmpsw small { font-weight: 400; color: #6B736E; font-size: 12.5px; } .cmpf-k { font-size: 12.5px; color: #6B736E; }
@@ -3998,9 +3999,17 @@
       const t = new Date(y, parseInt(p[1], 10) - 1, parseInt(p[0], 10)), n = new Date(); n.setHours(0, 0, 0, 0); t.setHours(0, 0, 0, 0);
       return isNaN(t) ? null : Math.round((t - n) / 86400000);
     }
+    // นับถอยหลังเป็น "เดือน วัน" (19 พ.ย. 69 ผู้ใช้ขอ) ตามปฏิทินจริง: 19 พ.ย. → 31 ธ.ค. = 1 เดือน 12 วัน
+    function regMD(be) {
+      const e = beToISO(be), t = todayISO(); if (!e) return '';
+      let [a, b] = e >= t ? [t, e] : [e, t]; const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number);
+      let mo = (y2 - y1) * 12 + (m2 - m1), dy = d2 - d1;
+      if (dy < 0) { mo--; dy += new Date(y2, m2 - 1, 0).getDate(); }
+      return mo > 0 ? `${mo} เดือน${dy ? ' ' + dy + ' วัน' : ''}` : `${dy} วัน`;
+    }
     function regInfo(be) {
       const d = regDays(be); if (d === null) return null;
-      return { d, cls: d < 0 ? 'pill-urgent' : d <= 30 ? 'pill-doing' : 'pill-normal', txt: d < 0 ? `เกิน ${-d} วัน` : d === 0 ? 'วันนี้' : `อีก ${d} วัน` };
+      return { d, cls: d < 0 ? 'pill-urgent' : d <= 30 ? 'pill-doing' : 'pill-normal', txt: d < 0 ? `เกิน ${regMD(be)}` : d === 0 ? 'วันนี้' : `อีก ${regMD(be)}` };
     }
     function regItems() {
       const out = [];
@@ -4023,11 +4032,12 @@
       const facts = Object.keys(byD).sort((a, b) => beToISO(a).localeCompare(beToISO(b))).slice(0, 3).map(e => `<div class="rg-f"><b>${esc(dt(e))}</b> · ${byD[e].map(i => esc(eqS(i.label))).join(', ')}${byD[e].length > 1 ? ' <span class="text-muted">(ไปต่อพร้อมกันได้)</span>' : ''}</div>`).join('');
       const nextOk = !nx.length && all.filter(i => ds(i) !== null).sort((a, b) => ds(a) - ds(b))[0];
       const sum = `<div class="rg-sum"><div class="rg-k">ภาษีรถ · ${all.filter(i => !i.tr).length} คัน</div><div class="rg-t" style="color:${tone}">${title}</div>
-        ${facts || (nextOk ? `<div class="rg-f">คันถัดไป <b>${esc(eqS(nextOk.label))}</b> หมด ${esc(dt(nextOk.exp))} (อีก ${ds(nextOk)} วัน)</div>` : '')}
+        ${facts || (nextOk ? `<div class="rg-f">คันถัดไป <b>${esc(eqS(nextOk.label))}</b> หมด ${esc(dt(nextOk.exp))} (อีก ${regMD(nextOk.exp)})</div>` : '')}
         <div class="rg-k mt-1">ต่อล่วงหน้าได้ 90 วันก่อนหมด · ซื้อ พ.ร.บ. ก่อน · รถยนต์ใช้งานครบ 7 ปี / มอไซค์ครบ 5 ปี ต้องตรวจ ตรอ. ก่อน</div></div>`;
-      const st = i => { const d = ds(i); if (d === null) return '<span class="rg-none">ใส่วันหมด ›</span>';
-        return d < 0 ? `<span class="pill pill-urgent">เลย ${-d} วัน</span>` : d <= 30 ? `<span class="pill pill-doing" style="background:#FDEBD3;color:#9A4A06">อีก ${d} วัน</span>`
-          : d <= 90 ? `<span class="rg-can"><b>ต่อได้แล้ว</b><small>อีก ${d} วัน</small></span>` : `<span class="rg-far">อีก ${d} วัน</span>`; };
+      // ทุกคัน (สิบล้อ รถไร่ รถไถ รถบ้าน มอไซค์) อยู่ในช่วงต่อล่วงหน้า 90 วัน = ป้าย "ต่อได้แล้ว" · ≤30 ส้ม · เลย = แดง · ไกล = นับถอยหลังตัวเทา
+      const st = i => { const d = ds(i), md = regMD(i.exp); if (d === null) return '<span class="rg-none">ใส่วันหมด ›</span>';
+        return d < 0 ? `<span class="rg-tag rg-late"><b>เลยกำหนด</b><small>${md}</small></span>` : d <= 90 ? `<span class="rg-tag ${d <= 30 ? 'rg-soon' : 'rg-ok'}"><b>${d === 0 ? 'หมดวันนี้' : 'ต่อได้แล้ว'}</b><small>${d === 0 ? 'ต่อวันนี้' : 'อีก ' + md}</small></span>`
+          : `<span class="rg-far">อีก ${md}</span>`; };
       const row = i => `<button type="button" class="srow-main rg-row${i.tr ? ' rg-tr' : ''}" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l">
           <span class="srow-n">${i.tr ? '<span class="rg-tri">↳ พ่วง</span>' : esc(eqS(i.label))}</span>
           <span class="srow-s">${i.plate && i.plate !== '-' ? `<span class="rg-plate">${esc(i.plate)}</span>` : '<span class="text-muted">ยังไม่ใส่ทะเบียน</span>'}${i.exp ? ' หมด ' + esc(dt(i.exp)) : ''}</span></span>${st(i)}</button>`;

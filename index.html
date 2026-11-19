@@ -7897,7 +7897,10 @@ Export.table.toDrive({
       // I-1 (16 พ.ย. 69): ป้ายไม่ทับกัน — วางตามลำดับสำคัญ ทับป้ายที่วางแล้ว = ข้าม (ซูมเข้าแล้วจะขึ้นเอง)
       const placed = [], fits = (ll, html) => {
         const t = String(html).replace(/<[^>]+>/g, ''), w = t.length * 8.5 + 22, h = 30, c = fmMap.latLngToContainerPoint(ll);
-        const W = fmMap.getSize().x, cx = Math.min(Math.max(c.x, w / 2 + 4), W - w / 2 - 4); // ไม่ให้ตกขอบซ้าย/ขวา
+        const SZ = fmMap.getSize(), W = SZ.x;
+        // จุดอยู่นอกจอ = วางตรงจุดจริง ไม่ดึงเข้าขอบ (19 พ.ย. 69: ป้ายหนองบวบหอม 1/2 + 🔥 ห่าง 4 กม. ถูกดึงมาแปะข้างหนองเฝ้า ตอนแผนที่หมุน)
+        if (c.x < 0 || c.x > W || c.y < 0 || c.y > SZ.y) return { dx: 0, dy: 0 };
+        const cx = Math.min(Math.max(c.x, w / 2 + 4), W - w / 2 - 4); // ไม่ให้ตกขอบซ้าย/ขวา (เฉพาะจุดที่อยู่ในจอ)
         for (const [ox, dy] of [[0, 0], [0, 32], [0, -32], [70, 0], [-70, 0], [0, 64], [0, -64], [70, 32], [-70, -32]]) { // ทับ = ขยับก่อน ไม่ได้จริง ๆ ค่อยข้าม
           const x = Math.min(Math.max(cx + ox, w / 2 + 4), W - w / 2 - 4), r = [x - w / 2, c.y - h / 2 + dy, x + w / 2, c.y + h / 2 + dy];
           if (!placed.some(q => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1])) { placed.push(r); return { dx: Math.round(x - c.x), dy }; }

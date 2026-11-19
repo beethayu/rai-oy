@@ -2307,7 +2307,7 @@
     function billRowHtml(it, i) {
       if (isDisc(it)) return discRowHtml(it, i);
       const inv = (gData.inventory || []).filter(x => x.category === STOCK_CAT[it.category]);
-      const assets = (gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home');
+      const assets = (gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home' && a.category !== 'Moto');
       const sIt = invItem(it.stock_item);
       const opt = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
       return `<div class="bill-row bl-c">
@@ -2504,7 +2504,7 @@
         </div>` : ''}
         <div class="border-top mt-3 pt-3">
           <div class="bill-lbl">บิลซ่อมรถ: ทุกรายการเป็นของรถ/เครื่องคันนี้ (ไม่เข้าสต็อก)</div>
-          <div class="d-flex gap-2"><select class="form-select form-select-sm" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home').map(a => `<option value="${esc(a.name)}">${esc(eqS(a.name))}</option>`).join('')}</select>
+          <div class="d-flex gap-2"><select class="form-select form-select-sm" id="bv_asset"><option value="">เลือกรถ/เครื่อง</option>${(gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home' && a.category !== 'Moto').map(a => `<option value="${esc(a.name)}">${esc(eqS(a.name))}</option>`).join('')}</select>
           <button type="button" class="btn btn-sm btn-outline-success text-nowrap" id="btnBillAsset" onclick="billAsset('${qa(b.id)}')">ใช้ทั้งบิล</button></div>
         </div>
         ${billsGrouped().length > 1 ? `<div class="border-top mt-3 pt-3">
@@ -4003,10 +4003,10 @@
     }
     function regDue() { return regItems().filter(i => { const r = regInfo(i.exp); return r && r.d <= 30; }); }
     function regPaneHtml() {
-      const all = regItems(), farm = all.filter(i => i.a.category !== 'Home'), home = all.filter(i => i.a.category === 'Home');
+      const all = regItems(), farm = all.filter(i => i.a.category !== 'Home' && i.a.category !== 'Moto'), home = all.filter(i => i.a.category === 'Home'), moto = all.filter(i => i.a.category === 'Moto');
       const box = its => `<div class="srow-box">${its.map(i => {
         const r = regInfo(i.exp), c = i.a.category;
-        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${c === 'Home' ? '🚗' : c === 'Car' ? '🚙' : c === 'Tractor' ? '🚜' : '🚛'} ${esc(eqS(i.label))}</span>
+        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${c === 'Moto' ? '🛵' : c === 'Home' ? '🚗' : c === 'Car' ? '🚙' : c === 'Tractor' ? '🚜' : '🚛'} ${esc(eqS(i.label))}</span>
           <span class="srow-s">${esc(i.plate || 'ยังไม่ระบุทะเบียน')}${r ? ' · หมด ' + esc(i.exp) : ''}</span></span>
           ${r ? `<span class="pill ${r.cls}">${r.txt}</span>` : '<span class="pill" style="background:#eee;color:#666">แตะเพิ่ม</span>'}</button>`;
       }).join('')}</div>`;
@@ -4014,19 +4014,21 @@
         <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Car')">+ เพิ่มรถอื่นที่ใช้ในไร่ (หกล้อ ฯลฯ)</button>
         <div class="srow-h" style="margin-top:18px">🚗 รถส่วนตัว / รถบ้าน</div>${home.length ? box(home) : '<div class="srow-s p-2">ยังไม่มี · ไม่ปนกับงานไร่</div>'}
         <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Home')">+ เพิ่มรถส่วนตัว</button>
-        <div class="srow-s mt-2">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ (รถที่ยังไม่มีในรายการ เลือกได้ว่าเป็นรถไร่หรือรถส่วนตัว)</div>`;
+        <div class="srow-h" style="margin-top:18px">🛵 มอเตอร์ไซค์ (ที่บ้าน)</div>${moto.length ? box(moto) : '<div class="srow-s p-2">ยังไม่มี · จดทะเบียน/วันหมดภาษี</div>'}
+        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Moto')">+ เพิ่มมอเตอร์ไซค์</button>
+        <div class="srow-s mt-2">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ (รถที่ยังไม่มีในรายการ เลือกได้ว่าเป็นรถไร่ รถส่วนตัว หรือมอเตอร์ไซค์)</div>`;
     }
     let regNewCat = 'Car';
     function openReg(name, cat) {
       const a = name ? (gData.assets || []).find(x => x.name === name) : null;
       if (name && !a) return;
-      regNewCat = cat === 'Home' ? 'Home' : 'Car';
-      $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + eqS(a.name) : regNewCat === 'Home' ? '🚗 เพิ่มรถส่วนตัว' : '🪪 เพิ่มรถที่ใช้ในไร่';
+      regNewCat = cat === 'Home' || cat === 'Moto' ? cat : 'Car';
+      $('regTitle').innerText = a ? '🪪 ทะเบียน: ' + eqS(a.name) : regNewCat === 'Moto' ? '🛵 เพิ่มมอเตอร์ไซค์' : regNewCat === 'Home' ? '🚗 เพิ่มรถส่วนตัว' : '🪪 เพิ่มรถที่ใช้ในไร่';
       $('rg_name').value = a ? a.name : ''; $('rg_newname').value = a ? a.name : '';
       $('rg_plate').value = a ? a.plate || '' : ''; $('rg_exp').value = a ? beToISO(a.reg_expire) || '' : '';
       $('rg_tplate').value = a ? a.trailer_plate || '' : ''; $('rg_texp').value = a ? beToISO(a.trailer_reg_expire) || '' : '';
       $('rg_tr_box').style.display = (!a && regNewCat === 'Car') || (a && (a.category === 'Truck' || a.category === 'Car')) ? 'block' : 'none';
-      $('rg_del').style.display = a && (a.category === 'Car' || a.category === 'Home') ? 'block' : 'none';
+      $('rg_del').style.display = a && (a.category === 'Car' || a.category === 'Home' || a.category === 'Moto') ? 'block' : 'none';
       bootstrap.Modal.getOrCreateInstance($('regModal')).show();
     }
     function submitReg() {
@@ -4041,13 +4043,13 @@
         if ((gData.assets || []).some(x => x.name === nn)) return alert('มีชื่อ "' + nn + '" อยู่แล้ว');
         return call('renameAsset', [nm, nn], d => { init(d); nm = nn; save(); }, $('btnRg'));
       }
-      nm = $('rg_newname').value.trim(); if (!nm) return alert(regNewCat === 'Home' ? 'ใส่ชื่อรถก่อนครับ เช่น Jazz' : 'ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
+      nm = $('rg_newname').value.trim(); if (!nm) return alert(regNewCat === 'Moto' ? 'ใส่ชื่อรถก่อนครับ เช่น เวฟ แดง' : regNewCat === 'Home' ? 'ใส่ชื่อรถก่อนครับ เช่น Jazz' : 'ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
       call('updateMasterOption', [regNewCat, 'add', nm], d => { init(d); save(); }, $('btnRg'));
     }
     function delReg() {
       const nm = $('rg_name').value; if (!nm || !confirm('ลบ "' + nm + '" ออกจากรายการรถ?')) return;
       const da = (gData.assets || []).find(x => x.name === nm);
-      call('updateMasterOption', [da && da.category === 'Home' ? 'Home' : 'Car', 'remove', nm], d => { hideModal('regModal'); init(d); });
+      call('updateMasterOption', [da && (da.category === 'Home' || da.category === 'Moto') ? da.category : 'Car', 'remove', nm], d => { hideModal('regModal'); init(d); });
     }
     function setFleetPane(p) { fleetPane = p; fleetOpen = ''; renderFleet(); uiSave(); }
     function tglFleet(n) { fleetOpen = fleetOpen === n ? '' : n; renderFleet(); }
@@ -5005,10 +5007,12 @@
     // 19 พ.ย. 69: "รถหกล้อ…อีแอ๋ว" + รูปป้ายภาษี → AI ใส่ "เพิ่มสิบล้อ" (Truck = หมวดสิบล้อ ทั้งคันที่ใช้ในไร่และขนหิน · หกล้อ/กระบะ = Car รถใช้ในไร่) ซ้ำกับรายการต่อทะเบียนที่เพิ่มรถใหม่ให้อยู่แล้ว
     function chAddGuard(items, txt) {
       const t = String(txt || ''), six = /หกล้อ|6\s*ล้อ|กระบะ|ปิกอัพ|ปิคอัพ/.test(t) && !/สิบล้อ|10\s*ล้อ/.test(t);
-      for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (!it || it.type !== 'add' || !['Truck', 'Car', 'Home', 'Tractor'].includes(it.category)) continue;
+      for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (!it || it.type !== 'add' || !['Truck', 'Car', 'Home', 'Moto', 'Tractor'].includes(it.category)) continue;
         if (items.some(o => o && o.type === 'asset_reg' && String(o.asset || '').trim() === String(it.name || '').trim())) { items.splice(i, 1); continue; } // ต่อทะเบียนเพิ่มรถใหม่ให้เอง (เลือกรถส่วนตัว/รถใช้ในไร่)
         if (it.category === 'Truck' && six) it.category = 'Car';
       }
+      const moto = /มอไซ|มอเตอร์ไซ|มอ'ไซ|จักรยานยนต์|เวฟ|คลิก|สกู๊ตเตอร์/.test(t);
+      if (moto) { items.forEach(o => { if (o && o.type === 'add' && ['Home', 'Car', 'Truck'].includes(o.category)) o.category = 'Moto'; if (o && o.type === 'asset_reg' && o.new_cat !== 'Car') { o.new_cat = 'Moto'; if (o.newCat) o.newCat = 'Moto'; } }); return; }
       items.forEach(o => { if (o && o.type === 'asset_reg' && six && o.new_cat !== 'Home') { o.new_cat = 'Car'; if (o.newCat) o.newCat = 'Car'; } });
     }
     function chAssetGuard(items, txt, r, hasPic) {
@@ -5024,7 +5028,7 @@
     const leadTxt = n => n % 30 === 0 ? `${n / 30} เดือน` : n % 7 === 0 ? `${n / 7} สัปดาห์` : `${n} วัน`;
     const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
     const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว' };
-    const REG_CATS = ['Truck', 'Tractor', 'Car', 'Home'];
+    const REG_CATS = ['Truck', 'Tractor', 'Car', 'Home', 'Moto']; // Moto = มอเตอร์ไซค์ที่บ้าน (19 พ.ย. 69) จดภาษีเหมือนรถส่วนตัว ไม่ปนงานไร่
     function chatSave() {
       chat.msgs = chat.msgs.slice(-30);
       let keep = 4; // รูปย่อเก็บเฉพาะ 4 ข้อความล่าสุด (กัน localStorage เต็ม)
@@ -5411,7 +5415,7 @@
       if (it.type === 'asset_status') { it.known = !!chAsset(it.asset); it.date = it.date || todayISO(); return it.asset && ['at_shop', 'done'].includes(it.state) ? it : null; }
       if (it.type === 'asset_reg') {
         const ra = chAsset(it.asset); it.known = !!ra && REG_CATS.includes(ra.category);
-        if (!it.known && !ra) it.newCat = it.newCat || (it.new_cat === 'Car' ? 'Car' : 'Home');
+        if (!it.known && !ra) it.newCat = it.newCat || (it.new_cat === 'Car' || it.new_cat === 'Moto' ? it.new_cat : 'Home');
         return it.asset && (it.plate || it.trailer_plate || it.expire || it.trailer_expire) ? it : null;
       }
       if (it.type === 'new_chem' || it.type === 'bill') {
@@ -5674,7 +5678,7 @@
         h = `<div class="ch-t">🪪 ต่อทะเบียน/ภาษี · ${esc(it.asset)}</div>` + er('ทะเบียน', 'plate') + er('ครบกำหนด', 'expire', 1)
           + (tr ? er('ทะเบียนพ่วง', 'trailer_plate') + er('พ่วงครบกำหนด', 'trailer_expire', 1) : '')
           + (live ? '<div class="ch-note" style="font-size:12.5px;color:#6B736E">แตะช่องเพื่อแก้ได้เลย</div>' : '')
-          + (!it.known && it.newCat ? `<div class="ch-warn" style="background:#F2F7F3;color:inherit">รถใหม่ "${esc(it.asset)}" · เพิ่มเป็น<div class="ch-chips mt-1">${['Home', 'Car'].map(c => `<button type="button" class="ch-chip${it.newCat === c ? ' on' : ''}" ${live ? '' : 'disabled'} onclick="chatRegCat(${mi},${i},'${c}')">${c === 'Home' ? '🚗 รถส่วนตัว' : '🚙 รถใช้ในไร่'}</button>`).join('')}</div></div>`
+          + (!it.known && it.newCat ? `<div class="ch-warn" style="background:#F2F7F3;color:inherit">รถใหม่ "${esc(it.asset)}" · เพิ่มเป็น<div class="ch-chips mt-1">${['Home', 'Moto', 'Car'].map(c => `<button type="button" class="ch-chip${it.newCat === c ? ' on' : ''}" ${live ? '' : 'disabled'} onclick="chatRegCat(${mi},${i},'${c}')">${c === 'Home' ? '🚗 รถส่วนตัว' : c === 'Moto' ? '🛵 มอไซค์' : '🚙 รถใช้ในไร่'}</button>`).join('')}</div></div>`
             : !it.known ? `<div class="ch-warn">"${esc(it.asset)}" ไม่ใช่รถ — เลือกชื่อรถใหม่</div>` : '');
       } else if (it.type === 'new_chem') {
         const m = chat.msgs[mi] || {}, th = m.th || [], shown = (it.photos || []).map(k => th[k]).filter(Boolean), hasBill = (m.items || []).some(x => x.type === 'bill');

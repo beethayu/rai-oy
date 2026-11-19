@@ -80,7 +80,7 @@ function daysUntil_(s) {
 }
 // ทะเบียน/ภาษีที่เหลือ ≤ 30 วัน (รถไร่ + รถส่วนตัว) สำหรับสรุป LINE
 function regBrief_(assets) {
-  const ic = { Truck: '🚛', Tractor: '🚜', Car: '🚙', Home: '🚗' }, out = [];
+  const ic = { Truck: '🚛', Tractor: '🚜', Car: '🚙', Home: '🚗', Moto: '🛵' }, out = [];
   assets.filter(a => ic[a.category]).forEach(a => {
     [[a.name, a.plate, a.reg_expire], [a.name + ' (พ่วง)', a.trailer_plate, a.trailer_reg_expire]].forEach(([n, pl, ex]) => {
       const d = daysUntil_(ex);
@@ -243,7 +243,7 @@ function syncAssets_(ss, options, assets) {
   const names = new Set((assets || readSheet_(ss, SH.ASSET)).map(a => a.name));
   const today = getTodayStr();
   const rows = []; let n = 0;
-  [['Tractor', 'TR', 'พร้อมใช้', true], ['Truck', 'TK', 'พร้อมใช้', true], ['Pump', 'PM', 'พร้อมใช้', false], ['Worker', 'WK', 'ปกติ', false], ['Car', 'CR', 'พร้อมใช้', false], ['Home', 'HC', 'พร้อมใช้', false]]
+  [['Tractor', 'TR', 'พร้อมใช้', true], ['Truck', 'TK', 'พร้อมใช้', true], ['Pump', 'PM', 'พร้อมใช้', false], ['Worker', 'WK', 'ปกติ', false], ['Car', 'CR', 'พร้อมใช้', false], ['Home', 'HC', 'พร้อมใช้', false], ['Moto', 'MC', 'พร้อมใช้', false]]
     .forEach(([cat, pre, st, hasBat]) => {
       (options[cat] || []).forEach(name => {
         if (names.has(name)) return;
@@ -1141,7 +1141,7 @@ function readBill(images, mime, opts) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const inv = readSheet_(ss, SH.INV).map(i => `- ${i.name} [${i.category}] หน่วยย่อย ${i.unit}` +
     (Number(i.pack_size) > 1 ? ` (1 ${i.pack_name} = ${i.pack_size} ${i.unit})` : ''));
-  const assets = readSheet_(ss, SH.ASSET).filter(a => a.category !== 'Worker' && a.category !== 'Home').map(a => `- ${a.name}`);
+  const assets = readSheet_(ss, SH.ASSET).filter(a => a.category !== 'Worker' && a.category !== 'Home' && a.category !== 'Moto').map(a => `- ${a.name}`);
   const today = getTodayStr();
   const shops = readSheet_(ss, 'Expenses').map(e => e.shop).filter((x, i, a) => x && x !== '-' && a.indexOf(x) === i);
   const aliases = billAliases_(ss);

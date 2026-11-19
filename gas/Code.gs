@@ -1573,6 +1573,28 @@ function closeWatchesFor_(ss, plotIds, group, detail, logId) {
 }
 
 // เปลี่ยนชื่อรถ/เครื่อง/คนงาน: ชื่อใช้เป็นตัวเชื่อมทุกชีต → แก้ MasterOptions, Assets (+ แบตติดรถ), AssetLogs, Activities.equipment/operator
+// ย้ายหมวดรถ (19 พ.ย. 69: "สิบล้อหน้ายาว" ถูกเพิ่มจากแชตเป็นรถใช้ในไร่) — เปลี่ยน category ในชีตรถ + ย้ายชื่อข้ามคอลัมน์ชีตตัวเลือก ไม่ลบแถวรถ (ประวัติ/ทะเบียนอยู่ครบ)
+function setAssetCategory(name, cat) {
+  name = String(name || '').trim();
+  if (!name || ['Truck', 'Car', 'Home', 'Moto'].indexOf(cat) < 0) throw new Error('หมวดไม่ถูกต้อง');
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const aSh = ss.getSheetByName(SH.ASSET), ad = aSh.getDataRange().getDisplayValues();
+    let old = '';
+    for (let i = 1; i < ad.length; i++) if (ad[i][2] === name) { old = ad[i][1]; aSh.getRange(i + 1, 2).setValue(cat); }
+    if (!old) throw new Error('ไม่พบ "' + name + '"');
+    if (['Truck', 'Car', 'Home', 'Moto'].indexOf(old) < 0) throw new Error('ย้ายได้เฉพาะรถ');
+    if (old !== cat) {
+      const oSh = ss.getSheetByName(SH.OPT), od = oSh.getDataRange().getDisplayValues(), head = od[0];
+      const col = c => { let i = head.indexOf(c); if (i < 0) { i = head.length; head.push(c); oSh.getRange(1, i + 1).setValue(c); } return i; };
+      const oc = col(old), nc = col(cat), vals = c => od.slice(1).map(r => r[c] || '').filter(Boolean);
+      const put = (c, list) => { const n = Math.max(oSh.getLastRow(), list.length + 1); if (n > 1) oSh.getRange(2, c + 1, n - 1, 1).clearContent(); if (list.length) oSh.getRange(2, c + 1, list.length, 1).setNumberFormat('@').setValues(list.map(v => [v])); };
+      put(oc, vals(oc).filter(v => v !== name));
+      const nl = nc < od[0].length ? vals(nc) : []; if (nl.indexOf(name) < 0) nl.push(name); put(nc, nl);
+    }
+    return readAll_(ss);
+  });
+}
 function renameAsset(oldN, newN) {
   oldN = String(oldN || '').trim(); newN = String(newN || '').trim();
   if (!oldN || !newN || oldN === newN) throw new Error('ชื่อไม่ถูกต้อง');

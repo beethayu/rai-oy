@@ -658,6 +658,14 @@
     .fm-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } .fm-leg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
     .cmp-go { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 8px; border: 1.5px solid var(--green); background: #fff; color: var(--green); font-weight: 700; font-size: 15px; border-radius: 12px; padding: 10px 14px; }
     .cmp-go span { font-weight: 500; font-size: 13px; }
+    .rg-sum { background: #fff; border: 1px solid #E1E6E2; border-radius: 14px; padding: 12px 14px; margin-bottom: 6px; }
+    .rg-k { font-size: 12.5px; color: #6B736E; } .rg-t { font-size: 18px; font-weight: 700; margin: 2px 0 4px; } .rg-f { font-size: 14.5px; color: #1F2A23; margin-top: 2px; }
+    .rg-h { display: flex; justify-content: space-between; align-items: center; margin: 16px 2px 6px; font-weight: 700; color: var(--green); font-size: 15px; }
+    .rg-add { border: 0; background: transparent; color: var(--green); font-weight: 700; font-size: 14px; padding: 4px 0; }
+    .rg-plate { display: inline-block; border: 1.5px solid #3A443E; border-radius: 6px; padding: 0 6px; font-size: 13px; font-weight: 700; color: #1F2A23; background: #fff; margin-right: 6px; line-height: 1.5; }
+    .rg-row .srow-s { margin-top: 3px; } .rg-tr { padding-top: 4px !important; } .rg-tri { font-size: 14px; color: #6B736E; font-weight: 600; padding-left: 4px; }
+    .rg-can { text-align: right; color: #1E4FB8; flex-shrink: 0; } .rg-can b { display: block; font-size: 14.5px; } .rg-can small { font-size: 12.5px; color: #5B6E9A; }
+    .rg-far { font-size: 14px; color: #6B736E; flex-shrink: 0; } .rg-none { font-size: 13.5px; color: #8A918C; flex-shrink: 0; }
     .sat-cmpsw { display: flex; justify-content: space-between; align-items: center; width: 100%; border: 0; background: #fff; border-radius: 12px; padding: 8px 12px; margin-top: 8px; font-size: 15px; font-weight: 700; color: #1F2A23; text-align: left; }
     .sat-cmpsw small { font-weight: 400; color: #6B736E; font-size: 12.5px; } .cmpf-k { font-size: 12.5px; color: #6B736E; }
     .sat-img .stk { display: grid; width: 100%; } .sat-img .stk img { grid-area: 1 / 1; width: 100%; } /* ภาพหลัง + จุดแห้งซ้อนกัน */
@@ -1445,6 +1453,7 @@
         <div class="modal-body p-3">
           <input type="hidden" id="rg_name">
           <div id="rg_newbox"><label class="small fw-bold">ชื่อรถ</label><input type="text" class="form-control mb-2" id="rg_newname" placeholder="เช่น หกล้อ ขาว / กระบะ"></div>
+          <div id="rg_catbox" style="display:none"><label class="small fw-bold">หมวด</label><div class="ch-chips mb-2" id="rg_cats"></div></div>
           <label class="small fw-bold">ทะเบียนรถ</label>
           <input type="text" class="form-control mb-2" id="rg_plate" placeholder="เช่น 70-1234 ชม.">
           <label class="small fw-bold">ครบกำหนดต่อทะเบียน/ภาษี</label>
@@ -4002,21 +4011,34 @@
       return out.sort((x, y) => { const dx = regDays(x.exp), dy = regDays(y.exp); return (dx === null ? 9999 : dx) - (dy === null ? 9999 : dy); });
     }
     function regDue() { return regItems().filter(i => { const r = regInfo(i.exp); return r && r.d <= 30; }); }
+    // หน้าทะเบียน (19 พ.ย. 69 ปรับให้อ่านง่าย): การ์ดสรุปบนสุด · แบ่งกลุ่มตามชนิด ไอคอนอยู่หัวกลุ่มครั้งเดียว · ทะเบียนเป็นป้าย
+    // · ≤90 วัน = "ต่อได้แล้ว" (ต่อล่วงหน้าได้ 90 วัน — กรมการขนส่งทางบก) · ≤30 ส้ม · เลย = แดง · ไกลกว่านั้นตัวเทาไม่ใช้ป้ายสี · พ่วงอยู่ใต้หัว
+    const REG_GRP = [['Truck', '🚛', 'สิบล้อ'], ['Car', '🚚', 'รถใช้ในไร่ · หกล้อ กระบะ'], ['Tractor', '🚜', 'รถไถ'], ['Home', '🚗', 'รถส่วนตัว / รถบ้าน'], ['Moto', '🛵', 'มอเตอร์ไซค์ (ที่บ้าน)']];
     function regPaneHtml() {
-      const all = regItems(), farm = all.filter(i => i.a.category !== 'Home' && i.a.category !== 'Moto'), home = all.filter(i => i.a.category === 'Home'), moto = all.filter(i => i.a.category === 'Moto');
-      const box = its => `<div class="srow-box">${its.map(i => {
-        const r = regInfo(i.exp), c = i.a.category;
-        return `<button type="button" class="srow-main" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l"><span class="srow-n">${c === 'Moto' ? '🛵' : c === 'Home' ? '🚗' : c === 'Car' ? '🚙' : c === 'Tractor' ? '🚜' : '🚛'} ${esc(eqS(i.label))}</span>
-          <span class="srow-s">${esc(i.plate || 'ยังไม่ระบุทะเบียน')}${r ? ' · หมด ' + esc(i.exp) : ''}</span></span>
-          ${r ? `<span class="pill ${r.cls}">${r.txt}</span>` : '<span class="pill" style="background:#eee;color:#666">แตะเพิ่ม</span>'}</button>`;
-      }).join('')}</div>`;
-      return `<div class="srow-h">🪪 รถในไร่ · ต่อทะเบียน / ภาษี</div>${farm.length ? box(farm) : '<div class="srow-s p-2">ยังไม่มีรถ</div>'}
-        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Car')">+ เพิ่มรถอื่นที่ใช้ในไร่ (หกล้อ ฯลฯ)</button>
-        <div class="srow-h" style="margin-top:18px">🚗 รถส่วนตัว / รถบ้าน</div>${home.length ? box(home) : '<div class="srow-s p-2">ยังไม่มี · ไม่ปนกับงานไร่</div>'}
-        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Home')">+ เพิ่มรถส่วนตัว</button>
-        <div class="srow-h" style="margin-top:18px">🛵 มอเตอร์ไซค์ (ที่บ้าน)</div>${moto.length ? box(moto) : '<div class="srow-s p-2">ยังไม่มี · จดทะเบียน/วันหมดภาษี</div>'}
-        <button class="btn btn-sm btn-outline-success w-100 mt-2" onclick="openReg('','Moto')">+ เพิ่มมอเตอร์ไซค์</button>
-        <div class="srow-s mt-2">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ (รถที่ยังไม่มีในรายการ เลือกได้ว่าเป็นรถไร่ รถส่วนตัว หรือมอเตอร์ไซค์)</div>`;
+      const all = regItems(), ds = i => regDays(i.exp), dt = be => satD(beToISO(be));
+      const late = all.filter(i => ds(i) !== null && ds(i) < 0), soon = all.filter(i => ds(i) !== null && ds(i) >= 0 && ds(i) <= 30), can = all.filter(i => ds(i) !== null && ds(i) > 30 && ds(i) <= 90);
+      const [tone, title] = late.length ? ['#B42318', `เลยกำหนด ${late.length} คัน — ห้ามขับ ต่อด่วน`] : soon.length ? ['#B45309', `ต้องต่อภายใน 30 วัน ${soon.length} คัน`]
+        : can.length ? ['#1E4FB8', `ต่อล่วงหน้าได้แล้ว ${can.length} คัน`] : ['#1F7A3D', 'ภาษีปกติทุกคัน'];
+      const nx = all.filter(i => ds(i) !== null && ds(i) <= 90), byD = {}; nx.forEach(i => (byD[i.exp] = byD[i.exp] || []).push(i));
+      const facts = Object.keys(byD).sort((a, b) => beToISO(a).localeCompare(beToISO(b))).slice(0, 3).map(e => `<div class="rg-f"><b>${esc(dt(e))}</b> · ${byD[e].map(i => esc(eqS(i.label))).join(', ')}${byD[e].length > 1 ? ' <span class="text-muted">(ไปต่อพร้อมกันได้)</span>' : ''}</div>`).join('');
+      const nextOk = !nx.length && all.filter(i => ds(i) !== null).sort((a, b) => ds(a) - ds(b))[0];
+      const sum = `<div class="rg-sum"><div class="rg-k">ภาษีรถ · ${all.filter(i => !i.tr).length} คัน</div><div class="rg-t" style="color:${tone}">${title}</div>
+        ${facts || (nextOk ? `<div class="rg-f">คันถัดไป <b>${esc(eqS(nextOk.label))}</b> หมด ${esc(dt(nextOk.exp))} (อีก ${ds(nextOk)} วัน)</div>` : '')}
+        <div class="rg-k mt-1">ต่อล่วงหน้าได้ 90 วันก่อนหมด · ซื้อ พ.ร.บ. ก่อน · รถยนต์ใช้งานครบ 7 ปี / มอไซค์ครบ 5 ปี ต้องตรวจ ตรอ. ก่อน</div></div>`;
+      const st = i => { const d = ds(i); if (d === null) return '<span class="rg-none">ใส่วันหมด ›</span>';
+        return d < 0 ? `<span class="pill pill-urgent">เลย ${-d} วัน</span>` : d <= 30 ? `<span class="pill pill-doing" style="background:#FDEBD3;color:#9A4A06">อีก ${d} วัน</span>`
+          : d <= 90 ? `<span class="rg-can"><b>ต่อได้แล้ว</b><small>อีก ${d} วัน</small></span>` : `<span class="rg-far">อีก ${d} วัน</span>`; };
+      const row = i => `<button type="button" class="srow-main rg-row${i.tr ? ' rg-tr' : ''}" onclick="openReg('${qa(i.a.name)}')"><span class="srow-l">
+          <span class="srow-n">${i.tr ? '<span class="rg-tri">↳ พ่วง</span>' : esc(eqS(i.label))}</span>
+          <span class="srow-s">${i.plate && i.plate !== '-' ? `<span class="rg-plate">${esc(i.plate)}</span>` : '<span class="text-muted">ยังไม่ใส่ทะเบียน</span>'}${i.exp ? ' หมด ' + esc(dt(i.exp)) : ''}</span></span>${st(i)}</button>`;
+      const grp = ([c, ic, t]) => { const its = all.filter(i => i.a.category === c).sort((a, b) => (a.a.name === b.a.name ? (a.tr ? 1 : -1) : (ds(a) ?? 9999) - (ds(b) ?? 9999)));
+        // พ่วงต่อท้ายหัวของมัน
+        const ord = []; its.filter(i => !i.tr).forEach(h => { ord.push(h); its.filter(i => i.tr && i.a.name === h.a.name).forEach(x => ord.push(x)); });
+        const add = c === 'Car' ? 'เพิ่มรถใช้ในไร่' : c === 'Home' ? 'เพิ่มรถส่วนตัว' : c === 'Moto' ? 'เพิ่มมอเตอร์ไซค์' : '';
+        if (!ord.length && !add) return '';
+        return `<div class="rg-h"><span>${ic} ${t}</span>${add ? `<button type="button" class="rg-add" onclick="openReg('','${c}')">+ ${add}</button>` : ''}</div>
+          ${ord.length ? `<div class="srow-box">${ord.map(row).join('')}</div>` : '<div class="srow-s px-1">ยังไม่มี</div>'}`; };
+      return sum + REG_GRP.map(grp).join('') + `<div class="srow-s mt-3">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ · แตะรถเพื่อแก้ทะเบียน/วัน หรือย้ายหมวด</div>`;
     }
     let regNewCat = 'Car';
     function openReg(name, cat) {
@@ -4028,6 +4050,8 @@
       $('rg_plate').value = a ? a.plate || '' : ''; $('rg_exp').value = a ? beToISO(a.reg_expire) || '' : '';
       $('rg_tplate').value = a ? a.trailer_plate || '' : ''; $('rg_texp').value = a ? beToISO(a.trailer_reg_expire) || '' : '';
       $('rg_tr_box').style.display = (!a && regNewCat === 'Car') || (a && (a.category === 'Truck' || a.category === 'Car')) ? 'block' : 'none';
+      const mv = a && ['Truck', 'Car', 'Home', 'Moto'].includes(a.category); $('rg_catbox').style.display = mv ? '' : 'none';
+      if (mv) $('rg_cats').innerHTML = [['Truck', '🚛 สิบล้อ'], ['Car', '🚚 รถใช้ในไร่'], ['Home', '🚗 รถส่วนตัว'], ['Moto', '🛵 มอไซค์']].map(([c, t]) => `<button type="button" class="ch-chip${a.category === c ? ' on' : ''}" onclick="regMove('${qa(a.name)}','${c}')">${t}</button>`).join('');
       $('rg_del').style.display = a && (a.category === 'Car' || a.category === 'Home' || a.category === 'Moto') ? 'block' : 'none';
       bootstrap.Modal.getOrCreateInstance($('regModal')).show();
     }
@@ -4046,6 +4070,8 @@
       nm = $('rg_newname').value.trim(); if (!nm) return alert(regNewCat === 'Moto' ? 'ใส่ชื่อรถก่อนครับ เช่น เวฟ แดง' : regNewCat === 'Home' ? 'ใส่ชื่อรถก่อนครับ เช่น Jazz' : 'ใส่ชื่อรถก่อนครับ เช่น หกล้อ ขาว');
       call('updateMasterOption', [regNewCat, 'add', nm], d => { init(d); save(); }, $('btnRg'));
     }
+    function regMove(nm, c) { const a = (gData.assets || []).find(x => x.name === nm); if (!a || a.category === c) return;
+      call('setAssetCategory', [nm, c], d => { init(d); openReg(nm); }, null, 'ย้ายหมวดแล้ว'); }
     function delReg() {
       const nm = $('rg_name').value; if (!nm || !confirm('ลบ "' + nm + '" ออกจากรายการรถ?')) return;
       const da = (gData.assets || []).find(x => x.name === nm);

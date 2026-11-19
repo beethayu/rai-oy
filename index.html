@@ -3284,7 +3284,8 @@
       const nT = urRows.length + doRows.length + wsRows.length;
       const todo = head('ต้องทำวันนี้', nT || '', `<button type="button" class="wbtn" onclick="openWatch('')">+ ฝากดู</button>`)
         + (nT ? `<div class="srow-box">${urRows.join('') + doRows.join('') + wsRows.join('')}</div>` : none('วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง ไม่มีฝากดู'));
-      return top + todo + calHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h;
+      const dq = dqItems(), dqH = dqHtml(head, dq); // ตรวจข้อมูล: มีจุดต้องเช็ก = ขึ้นต่อจากต้องทำวันนี้ · ปกติ = ท้ายหน้า
+      return top + todo + (dq.length ? dqH : '') + calHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h + (dq.length ? '' : dqH);
     }
     let HOME_V = 'A'; // F แบบ A (ผู้ใช้เลือก 16 พ.ย. 69 06:34) · '' = แบบเดิม
     function nearCutMini(head) {
@@ -3294,6 +3295,92 @@
       return head('รอตัดฤดูนี้', '') + `<div class="srow-box"><div class="srow"><button type="button" class="srow-main" onclick="cutAll=true;render()">
         <span class="srow-l"><span class="srow-n">${L.length} แปลง${nr ? ` · <b style="color:#8A5A0B">ครบตัด ${nr}</b>` : ' · ยังไม่มีแปลงครบตัด'}</span>
         <span class="srow-s">แก่สุด ${esc(o.p.plot_name)} ${esc(ageTxt(o.age))}</span></span><span style="color:#6B736E">›</span></button></div></div>`;
+    }
+
+    // ===== 🔎 ตรวจข้อมูลอัตโนมัติ (19 พ.ย. 69 ผู้ใช้: "ต้องเช็คทุกอย่างเหนื่อย") — การ์ดเดียวบนหน้าวันนี้ ขึ้นทุกวัน
+    // ปกติ = พื้นขาว "ไม่พบจุดผิด" ท้ายหน้า · เจอ = ส้ม ต่อจาก "ต้องทำวันนี้" · แตะรายการ = กาง (ดูวันนั้นในปฏิทิน / ถูกแล้ว ไม่ต้องเตือน)
+    // ตรวจ 30 วันล่าสุด: บันทึกซ้ำ (แปลง+วัน+งาน+คน เดียวกัน คนละชุด) · นอกไร่ซ้ำ (คน+วันเดียวกัน) · งานจริงลงวันข้างหน้า
+    // · กำลังทำเกิน 7 วัน · ให้น้ำมันแล้วไม่มีงานฉีด (ก่อน 2 – หลัง 3 วัน) · สต็อกติดลบ · ดาวเทียมแห้งลงไม่มีบันทึก (ผลจากแผนที่ที่เคยเปิด)
+    const DQ_DAYS = 30, DQ_LONG = 7;
+    const dqOk = () => { try { return JSON.parse(localStorage.getItem('raioy_dqok') || '{}'); } catch (e) { return {}; } };
+    let dqOpen = '';
+    function burnMemo(x, r) { // จำผลแห้งลงของภาพคู่ล่าสุด ให้หน้าวันนี้ใช้ (ไม่ต้องโหลดดาวเทียมใหม่)
+      try { if (x.land || !r || r.cloud) return; const pr = burnPairOf(x); if (!pr || pr.B !== x.last.d) return; // เฉพาะคู่ล่าสุด ไม่ใช่ภาพที่ผู้ใช้เลือกดูย้อนหลัง
+        const M = JSON.parse(localStorage.getItem('raioy_burnchk') || '{}');
+        if (r.rai >= 0.2) M[x.id] = { A: r.A, B: r.B, rai: r1(r.dmg || r.rai) }; else delete M[x.id];
+        localStorage.setItem('raioy_burnchk', JSON.stringify(M)); } catch (e) {}
+    }
+    function dqItems() {
+      const t0 = todayISO(), lo = isoAdd(t0, -DQ_DAYS), ok = dqOk(), out = [];
+      const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
+      const isoOf = a => beToISO(String(a.timestamp || '').split(' ')[0]);
+      const det = a => a.activity_detail && a.activity_detail !== '-' ? a.activity_detail : '';
+      const add = o => { if (!ok[o.k]) out.push(o); };
+      const acts = (gData.activities || []).filter(a => { const d = isoOf(a); return d && d >= lo && !/^ฝนตก/.test(a.activity_group); });
+      // 1) บันทึกซ้ำ
+      const G = {};
+      acts.forEach(a => { const k = [a.plot_id, isoOf(a), grpLabel(a), det(a), logWho(a).slice().sort().join('+')].join('|'); (G[k] = G[k] || []).push(a); });
+      Object.keys(G).forEach(k => { const L = G[k], B = [...new Set(L.map(l => String(l.log_id || '').split('_')[0]))]; if (B.length < 2) return;
+        const a = L[0], iso = isoOf(a), who = logWho(a).join(' + ');
+        add({ k: 'dup:' + k, ic: '📋', t: `บันทึกซ้ำ ${B.length} ครั้ง · ${pname(a.plot_id)}`, s: `${dShort(iso)} · ${det(a) || grpLabel(a)}${who ? ' · ' + who : ''}`,
+          x: 'งานเดียวกัน แปลงเดียวกัน คนเดียวกัน วันเดียวกัน ถูกจดไว้มากกว่า 1 ชุด — ถ้าจดเบิ้ล ลบชุดที่เกินในปฏิทิน (ถังยา/ค่าแรงจะนับเกิน)', iso, log: a }); });
+      // 2) นอกไร่ซ้ำ: คนเดียวกัน วันเดียวกัน
+      const N = {};
+      (gData.notes || []).forEach(n => { const iso = beToISO(n.date); if (!iso || iso < lo || n.kind === 'idea') return;
+        String(n.workers || '').split(/\s*[+,]\s*/).filter(Boolean).forEach(w => { (N[w + '|' + iso] = N[w + '|' + iso] || []).push(n); }); });
+      Object.keys(N).forEach(k => { const L = N[k]; if (L.length < 2) return; const [w, iso] = k.split('|');
+        add({ k: 'note:' + k, ic: '🏠', t: `นอกไร่ซ้ำ · ${w}`, s: `${dShort(iso)} · ${L.map(n => String(n.text || '').slice(0, 18)).join(' / ')}`,
+          x: `${w} มีบันทึกนอกไร่ ${L.length} อันในวันเดียวกัน — สรุปคนงานจะนับวันเกิน ถ้าเป็นงานเดียวกันลบอันที่เกิน`, iso }); });
+      // 3) งานจริงลงวันข้างหน้า / 4) กำลังทำนานเกิน
+      const seenB = {};
+      (gData.activities || []).forEach(a => { const iso = isoOf(a); if (!iso || /^ฝนตก/.test(a.activity_group)) return; const b = String(a.log_id || '').split('_')[0];
+        const on = String(a.remark || '').includes('[⏳กำลังทำ]'), ps = (gData.activities || []).filter(x => String(x.log_id || '').split('_')[0] === b);
+        const nm = ps.length > 1 ? `${pname(a.plot_id)} +${ps.length - 1} แปลง` : pname(a.plot_id);
+        if (iso > t0 && !seenB['f' + b]) { seenB['f' + b] = 1;
+          add({ k: 'fut:' + b, ic: '📅', t: `งานลงวันข้างหน้า · ${nm}`, s: `${dShort(iso)} · ${det(a) || grpLabel(a)}`, x: 'งานที่ยังไม่ได้ทำไม่ควรลงเป็นงานจริง (สต็อก/ผังแปลงเปลี่ยนแล้ว) — ถ้าเป็นแผน ลบแล้วตั้งเป็นนัด/เตือนแทน ถ้าลงวันผิด ลากไปวันที่ทำจริง', iso, log: a }); }
+        else if (on && iso <= isoAdd(t0, -DQ_LONG) && !seenB['o' + b]) { seenB['o' + b] = 1;
+          add({ k: 'long:' + b, ic: '⏳', t: `กำลังทำ ${dayDiff(iso, t0)} วันแล้ว · ${nm}`, s: `เริ่ม ${dShort(iso)} · ${det(a) || grpLabel(a)}`, x: `ยังขึ้น "กำลังทำ" เกิน ${DQ_LONG} วัน — ลืมกดเสร็จไหม? ถ้าเสร็จแล้ว แตะงานในปฏิทินแล้วเปลี่ยนสถานะเป็นเสร็จแล้ว`, iso, log: a }); } });
+      // 5) ให้น้ำมันแล้วไม่มีงานฉีดของทีมนั้น (เครื่องสูบใช้ทุกทีม ไม่ตรวจ)
+      try { fuelTeams().forEach(t => { if (t.team.length === 1 && t.team[0] === PUMP) return;
+        t.gives.forEach(g => { if (!g.iso || g.iso < lo || g.iso > isoAdd(t0, -2)) return;
+          const has = (gData.activities || []).some(a => a.activity_group === 'ฉีดยา' && (d => d >= isoAdd(g.iso, -2) && d <= isoAdd(g.iso, 3))(isoOf(a)) && logWho(a).some(n => t.team.includes(n)));
+          if (!has) add({ k: 'fuel:' + g.ref, ic: '⛽', t: `ให้น้ำมันแต่ไม่มีงานฉีด · ${t.team.join(' + ')}`, s: `${dShort(g.iso)} · ${r1(g.qty)} ลิตร`,
+            x: `ไม่มีงานฉีดยาของ ${t.team.join(' + ')} ช่วง ${dShort(isoAdd(g.iso, -2))}–${dShort(isoAdd(g.iso, 3))} — ลืมจดงานฉีด หรือใส่ชื่อทีมผิด? (น้ำมันคงเหลือจะคิดผิด)`, iso: g.iso }); }); }); } catch (e) {}
+      // 6) สต็อกติดลบ
+      (gData.inventory || []).forEach(i => { const q = num(String(i.stock).replace(/,/g, '')); if (!(q < 0)) return;
+        add({ k: 'stk:' + i.name + '|' + q, ic: '📦', t: `สต็อกติดลบ · ${i.name}`, s: `เหลือ ${qtyTxt(q, i.unit)}`, x: 'ใช้มากกว่าที่ซื้อเข้า — ลืมจดซื้อ หรือจำนวนถัง/อัตราผิด ตรวจในหน้าสต็อก', stock: 1 }); });
+      // 7) ดาวเทียมแห้งลง ไม่มีบันทึก (คิดสาเหตุใหม่ทุกครั้ง: จดเพิ่มแล้วหายเอง)
+      try { const M = JSON.parse(localStorage.getItem('raioy_burnchk') || '{}');
+        Object.keys(M).forEach(pid => { const m = M[pid]; if (!m.B || m.B < lo || !(gData.plots || []).some(p => p.plot_id === pid)) return;
+          if (!/ควรไปดูหน้างาน/.test(burnCause(pid, m.A, m.B))) return;
+          add({ k: 'burn:' + pid + '|' + m.B, ic: '🛰️', t: `แห้งลงไม่มีบันทึก · ${pname(pid)}`, s: `~${r1(m.rai)} ไร่ · ภาพ ${dShort(m.A)} → ${dShort(m.B)}`,
+            x: 'ดาวเทียมเห็นจุดที่เขียวกลายเป็นแห้ง แต่ไม่มีบันทึกไฟ/ฉีดยา/ตัดช่วงนั้น — ควรไปดูหน้างาน ถ้าเป็นไฟ จดความเสียหายที่หน้าแปลง', pid }); }); } catch (e) {}
+      return out.sort((a, b) => (b.iso || '') < (a.iso || '') ? -1 : 1);
+    }
+    function dqHtml(head, L) {
+      const what = 'บันทึกซ้ำ · งานค้างนาน · ลงวันข้างหน้า · น้ำมันไม่มีงานฉีด · สต็อกติดลบ · ดาวเทียมแห้งลงไม่มีบันทึก';
+      if (!L.length) return head('ตรวจข้อมูล', '') + `<div class="srow-box"><div class="srow"><div class="srow-main" style="cursor:default"><span class="srow-l">
+        <span class="srow-n" style="color:#1F7A3D">✓ ไม่พบจุดผิด</span><span class="srow-s" style="color:#1F2A23">ตรวจ ${DQ_DAYS} วันล่าสุดอัตโนมัติทุกครั้งที่เปิดหน้านี้</span>
+        <span class="srow-s" style="font-size:12px">${what.split(' · ').map(w => `<span style="white-space:nowrap">${w}</span>`).join(' · ')}</span></span></div></div></div>`;
+      return head('ตรวจข้อมูล', `<span style="color:#B45309;font-weight:700">ควรเช็ก ${L.length}</span>`) + `<div class="srow-box">${L.map(o => {
+        const open = dqOpen === o.k, go = o.iso ? `<button type="button" class="bigbtn bigbtn-main" onclick="dqGo('${esc(qa(o.k))}')">ดูในปฏิทิน ${esc(dShort(o.iso))}</button>`
+          : o.stock ? `<button type="button" class="bigbtn bigbtn-main" onclick="switchTab('stock')">ไปหน้าสต็อก</button>` : o.pid ? `<button type="button" class="bigbtn bigbtn-main" onclick="openDossier('${qa(o.pid)}')">ดูแปลง</button>` : '';
+        return `<div class="srow ${open ? 'open' : ''}" style="background:#FFF4E0"><button type="button" class="srow-main" onclick="dqOpen=dqOpen==='${esc(qa(o.k))}'?'':'${esc(qa(o.k))}';render()">
+          <span class="srow-l"><span class="srow-n">${o.ic} ${esc(o.t)}</span><span class="srow-s">${esc(o.s)}</span></span><span style="color:#6B736E">${open ? '▴' : '▾'}</span></button>
+          ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px;color:#1F2A23">${esc(o.x)}</div><div class="pq-btns">${go}<button type="button" class="bigbtn bigbtn-out" onclick="dqDismiss('${esc(qa(o.k))}')">ถูกแล้ว ไม่ต้องเตือน</button></div></div>` : ''}</div>`;
+      }).join('')}</div>`;
+    }
+    function dqDismiss(k) {
+      try { const M = dqOk(), lo = isoAdd(todayISO(), -90); Object.keys(M).forEach(x => { if (M[x] < lo) delete M[x]; }); M[k] = todayISO(); localStorage.setItem('raioy_dqok', JSON.stringify(M)); } catch (e) {}
+      dqOpen = ''; render();
+    }
+    function dqGo(k) { // เปิดวันนั้นในปฏิทิน + กางการ์ดแก้ไขของงานนั้น (กลุ่มเดียวกับที่ dayRowsHtml วาด)
+      const o = dqItems().find(x => x.k === k); if (!o) return;
+      calSel = o.iso; calYM = o.iso.slice(0, 7); calLogOpen = ''; calDel = '';
+      if (o.log) { const det = a => a.activity_detail && a.activity_detail !== '-' ? a.activity_detail : '', key = a => grpLabel(a) + '|' + det(a) + '|' + logWho(a).join(' + ');
+        const X = calIndex()[o.iso]; if (X) calLogOpen = X.logs.filter(a => key(a) === key(o.log)).map(l => l.log_id).join(','); ceRe = () => render(); }
+      dqOpen = ''; render();
+      requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.querySelector('.cal-day') || document.querySelector('.cal-box'); if (el) el.scrollIntoView({ block: 'start' }); }));
     }
 
     // แท็บแปลง: บรรทัดเดียวต่อแปลง จัดกลุ่มตามสถานที่ (ผู้ใช้: ห้ามเรียงตามอายุ) แตะแล้วกางการ์ดเต็ม
@@ -7453,7 +7540,7 @@ Export.table.toDrive({
     function burnFlush() {
       Object.keys(burnWait).forEach(pk => { const L = burnWait[pk]; delete burnWait[pk]; const [A, B] = pk.split('|');
         for (let i = 0; i < L.length; i += 20) { const part = L.slice(i, i + 20);
-          callApi('getBurnPair', [part.map(q => q.x.id), A, B]).then(r => part.forEach(q => burnDecode(r[q.x.id], q.x, A, B, res => { burnRes[q.k] = res; q.cb(res); })))
+          callApi('getBurnPair', [part.map(q => q.x.id), A, B]).then(r => part.forEach(q => burnDecode(r[q.x.id], q.x, A, B, res => { burnRes[q.k] = res; burnMemo(q.x, res); q.cb(res); })))
             .catch(() => part.forEach(q => q.cb(null))); } });
     }
     function burnDecode(src, x, A, B, cb) {

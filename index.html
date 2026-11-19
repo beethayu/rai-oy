@@ -638,6 +638,9 @@
     .fm-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } .fm-leg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
     .cmp-go { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 8px; border: 1.5px solid var(--green); background: #fff; color: var(--green); font-weight: 700; font-size: 15px; border-radius: 12px; padding: 10px 14px; }
     .cmp-go span { font-weight: 500; font-size: 13px; }
+    .sat-cmpsw { display: flex; justify-content: space-between; align-items: center; width: 100%; border: 0; background: #fff; border-radius: 12px; padding: 8px 12px; margin-top: 8px; font-size: 15px; font-weight: 700; color: #1F2A23; text-align: left; }
+    .sat-cmpsw small { font-weight: 400; color: #6B736E; font-size: 12.5px; } .cmpf-k { font-size: 12.5px; color: #6B736E; }
+    .sat-img .stk { display: grid; width: 100%; } .sat-img .stk img { grid-area: 1 / 1; width: 100%; } /* ภาพหลัง + จุดแห้งซ้อนกัน */
     .sat-nx { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 4px; } .sat-nx span { font-size: 13px; color: #6B736E; }
     .sat-nx button { border: 1.5px solid var(--green); background: #fff; color: var(--green); font-weight: 700; font-size: 14px; border-radius: 12px; padding: 8px 14px; min-height: 40px; }
     .fm-sw { display: inline-block; width: 38px; height: 22px; border-radius: 11px; background: #D3D1C6; position: relative; vertical-align: middle; margin-left: 6px; transition: background .15s; }
@@ -7374,11 +7377,52 @@ Export.table.toDrive({
     function satPick(d) { satSelD = d; satDetail(); }
     function satPickB(d) { satBefD = d; satDetail(); }
     function satSetMode(m) { satMode = m; satDetail(); satScrollOn(); }
+    let satCmp = (() => { try { return localStorage.getItem('raioy_satcmp') === '1'; } catch (e) { return false; } })();
+    function satCmpSet(v) { satCmp = v; try { localStorage.setItem('raioy_satcmp', v ? '1' : '0'); } catch (e) {} satDetail(); satScrollOn(); }
+    // คำอธิบายผลเทียบ (4 ชั้น: หัวเทา → ข้อสรุปสีสถานะ → ข้อเท็จจริง → หมายเหตุ) · โยงงานที่จดในแปลงช่วงเดียวกัน + เทียบแปลงชนิดเดียวกันช่วงเดียวกัน
+    function satCmpSay(x, bef, cur, dmg, burn) {
+      if (!bef) return '<div id="satCmpSay" class="sat-card mt-2"><small class="text-muted">ยังไม่มีภาพใสก่อนหน้าให้เทียบ</small></div>';
+      const A = bef.d, B = cur.d, gap = dayDiff(A, B), W = satMode === 'w', Bm = satMode === 'b';
+      const isoOf = a => beToISO(String(a.timestamp || '').split(' ')[0]);
+      const logs = (gData.activities || []).filter(a => a.plot_id === x.id && (d => d && d > A && d <= B)(isoOf(a)));
+      const logTxt = logs.length ? [...new Set(logs.map(a => `${grpLabel(a)}${a.activity_detail && a.activity_detail !== '-' ? ' ' + a.activity_detail : ''} ${dShort(isoOf(a))}`))].slice(0, 4).join(' · ') : '';
+      const peerD = satInfo.items.filter(o => !o.land && o.key !== x.key && o.type === x.type).map(o => { const a = o.good.find(q => q.d === A), b = o.good.find(q => q.d === B); return a && b ? (W ? (a.weak != null && b.weak != null ? (b.weak - a.weak) * 100 : null) : b.ndvi - a.ndvi) : null; }).filter(v => v != null);
+      const pmd = peerD.length >= 3 ? satMed(peerD) : null;
+      let tone = '#1F2A23', title = '', fact = '', mean = '';
+      if (Bm) {
+        if (!burn) { title = 'กำลังหาจุดแห้งลง…'; fact = `เทียบภาพ ${satDs(A)} กับ ${satDs(B)}`; }
+        else if (burn.cloud) { title = 'เทียบไม่ได้ (เมฆ/ข้อมูลไม่พอ)'; fact = 'ลองเลือกภาพก่อนวันอื่น'; }
+        else if (burn.rai >= 0.2) { tone = '#B45309'; title = `แห้งลง ~${r1(burn.dmg || burn.rai)} ไร่`; fact = esc(burnCause(x.id, A, B)); mean = 'สีแดง = แห้งตายแรง (มักเป็นไฟหรือยาฆ่าหญ้า) · สีส้ม = ใบแห้งลงชัด · ดาวเทียมแยกไฟ/ยา/ตัดไม่ได้ ดูจากบันทึกและหน้างาน'; }
+        else { tone = '#1F7A3D'; title = 'ไม่พบจุดแห้งลง'; fact = 'ไม่มีจุดที่เคยเขียวแล้วแห้งจนถึงเกณฑ์ (0.2 ไร่)'; }
+      } else if (W) {
+        if (bef.weak == null || cur.weak == null) { title = 'ภาพนี้ไม่มีค่าจุดอ่อน'; }
+        else { const a = Math.round(bef.weak * 100), b = Math.round(cur.weak * 100), rai = num(x.rai);
+          tone = b > a + 3 ? '#B45309' : b < a - 3 ? '#1F7A3D' : '#1F2A23'; title = b > a + 3 ? 'จุดอ่อนมากขึ้น' : b < a - 3 ? 'จุดอ่อนน้อยลง' : 'จุดอ่อนใกล้เดิม';
+          fact = `ส่วนที่อ่อนกว่าส่วนอื่น <b>${a}%</b> → <b>${b}%</b> ของแปลง${rai ? ` (~${r1(rai * bef.weak)} → ${r1(rai * cur.weak)} ไร่)` : ''}`;
+          mean = cur.ndvi < 0.5 ? 'ใบยังไม่คลุม ค่าจุดอ่อนยังไม่แม่น ดินกับอ้อยปนกัน' : b > a + 3 ? 'จุดสีแดงในภาพหลังขยาย — ไปดูว่าเป็นน้ำขัง ดินแน่น หญ้า หรืออ้อยขาด' : b < a - 3 ? 'ส่วนที่เคยอ่อนโตตามทันส่วนอื่นแล้ว' : 'จุดอ่อนเดิมยังอยู่ที่เดิม ไม่ขยาย'; }
+      } else {
+        const dv = cur.ndvi - bef.ndvi; tone = dv >= 0.03 ? '#1F7A3D' : dv <= -0.03 ? '#B45309' : '#1F2A23'; title = dv >= 0.03 ? 'เขียวขึ้น' : dv <= -0.03 ? 'เขียวลดลง' : 'ความเขียวใกล้เดิม';
+        fact = `ความเขียวทั้งแปลง <b>${bef.ndvi.toFixed(2)}</b> → <b>${cur.ndvi.toFixed(2)}</b> (${Math.abs(dv) < 0.005 ? '±0.00' : (dv > 0 ? '+' : '') + dv.toFixed(2)})`;
+        mean = dv >= 0.03 ? (bef.ndvi < 0.5 ? 'อ้อยโต ใบเริ่มคลุมดินมากขึ้น' : 'ใบเขียวเข้มขึ้น (ได้น้ำ/ปุ๋ย หรือหลังฝน)') : dv <= -0.03 ? 'เขียวลดลง — อาจจากแล้ง ใบแก่ช่วงใกล้ตัด ไฟ ยาฆ่าหญ้า หรือตัด ดูภาพหลังว่าลดทั้งแปลงหรือเป็นหย่อม' : (cur.ndvi >= 0.7 ? 'ใบคลุมเต็มแปลงแล้ว ค่าเฉลี่ยจะขยับน้อย ความเสียหายเป็นหย่อมดูที่ภาพหรือโหมดแห้งลง' : 'ไม่เปลี่ยนมากในช่วงนี้');
+      }
+      const dIn = (dmg || []).find(o => (d => d > A && d <= B)(beToISO(o.date)));
+      if (dIn && !Bm && (tone === '#B45309')) mean = `น่าจะมาจาก ${dmgT(dIn.type)[1]} ${esc(dIn.type)} ${dShort(beToISO(dIn.date))} ที่จดไว้ — ดูว่าจุดที่เปลี่ยนในภาพหลังตรงกับรอยที่วาดไหม`; // ไม่ชี้สาเหตุอื่นซ้อน (การ์ดห้ามขัดกันเอง)
+      const peer = pmd === null || Bm ? '' : W ? `${x.type}แปลงอื่นช่วงเดียวกัน ${pmd >= 0 ? '+' : ''}${Math.round(pmd)}%` : `${x.type}แปลงอื่นช่วงเดียวกัน ${pmd >= 0 ? '+' : ''}${pmd.toFixed(2)}`;
+      return `<div id="satCmpSay" class="sat-card mt-2"><div class="cmpf-k">เทียบ ${satD(A)} → ${satD(B)} · ห่าง ${gap} วัน</div>
+        <div style="font-size:18px;font-weight:700;color:${tone};margin:2px 0">${title}</div>${fact ? `<div style="font-size:14.5px">${fact}</div>` : ''}
+        ${mean ? `<div style="font-size:14px;margin-top:4px">${mean}</div>` : ''}
+        ${peer ? `<div style="font-size:13.5px;margin-top:4px">เทียบ: ${peer}</div>` : ''}
+        <div style="font-size:13.5px;margin-top:4px">${logTxt ? `งานที่จดในแปลงช่วงนี้: ${esc(logTxt)}` : '<span class="text-muted">ไม่มีงานที่จดในแปลงนี้ช่วงนี้</span>'}</div>
+        ${(dmg || []).slice(0, 2).map(o => `<div class="sat-flag mt-1">${dmgT(o.type)[1]} ${esc(o.type)} ${esc(o.date)} ≈ ${fmtRai(num(o.map_rai) * 1600)}${x.rai ? ` (${Math.round(num(o.map_rai) / num(x.rai) * 100)}% ของแปลง)` : ''}</div>`).join('')}
+        <div class="cmpf-k" style="margin-top:6px">${Bm ? 'ไม่นับแถบขอบแปลง ~10 ม.' : 'ใบที่โดนไฟ/ยาจะแห้งให้เห็นภายในไม่กี่วันถึง ~2 สัปดาห์ ภาพแรกหลังเกิดเหตุอาจยังไม่ต่าง'} · ค่าจาก Sentinel-2 ช่องละ 10 ม.</div></div>`;
+    }
     function satDetail() {
       const x = satInfo.items.find(i => i.key === satSelK);
       const dates = x.good.slice(-12), cur = x.good.find(q => q.d === satSelD) || x.last;
       if (cur) satSelD = cur.d;
-      const W = satMode === 'w', C = satMode === 'c';
+      // 19 พ.ย. 69: โหมด สีปกติ/จุดอ่อน/แห้งลง + สวิตช์ "เทียบก่อน–หลัง" ใช้ได้ทุกโหมด (จำใน localStorage) · แห้งลงเทียบเสมอ · ที่ดินดูไว้ไม่มีเทียบ
+      if (satMode === 'c') { satMode = 'n'; satCmp = true; } if (x.land && satMode === 'b') satMode = 'n';
+      const W = satMode === 'w', Bm = satMode === 'b', C = !x.land && (satCmp || Bm);
       let say = '', tiles = '';
       // เทียบก่อน–หลัง (14 พ.ย. 69 ไฟไหม้): ก่อน = ภาพใสก่อนวันเกิดเหตุ (ถ้าจดพื้นที่เสียหายไว้) / ภาพก่อนหน้า
       const dmg = x.land ? [] : (gData.damages || []).filter(o => o.plot_id === x.id).sort((a, b) => beToISO(b.date).localeCompare(beToISO(a.date)));
@@ -7389,12 +7433,8 @@ Export.table.toDrive({
         satBefD = bef ? bef.d : null;
       }
       if (cur) {
-        if (C) {
-          const dv = bef ? cur.ndvi - bef.ndvi : null;
-          say = `<div class="sat-say">${bef ? `ความเขียวทั้งแปลง ${bef.ndvi.toFixed(2)} → ${cur.ndvi.toFixed(2)} ${dv <= -0.05 ? '(ลดลง)' : dv >= 0.05 ? '(เพิ่มขึ้น)' : '(ใกล้เดิม)'}` : 'ยังไม่มีภาพก่อนหน้าให้เทียบ'}</div>
-            ${dmg.length ? dmg.slice(0, 2).map(o => `<div class="sat-flag mt-1">${dmgT(o.type)[1]} ${esc(o.type)} ${esc(o.date)} ≈ ${fmtRai(num(o.map_rai) * 1600)}${x.rai ? ` (${Math.round(num(o.map_rai) / num(x.rai) * 100)}% ของแปลง ค่าเฉลี่ยทั้งแปลงแทบไม่ขยับ ดูที่ภาพ)` : ''}</div>`).join('') : ''}
-            <div class="sat-note">ดูตรงที่สีจางลงหรือกลายเป็นน้ำตาลในภาพหลัง · ใบที่โดนไฟจะแห้งเหลืองภายในไม่กี่วันถึง ~2 สัปดาห์ ภาพแรกหลังเกิดเหตุอาจยังไม่ต่าง</div>`;
-        } else if (W) {
+        if (C) say = satCmpSay(x, bef, cur, dmg);
+        else if (W) {
           const w = cur.weak, w2 = cur.weak2;
           say = w === null ? '<div class="sat-say">สีแดง/ส้ม = ส่วนที่อ่อนกว่าส่วนอื่นของแปลงเดียวกัน</div>'
             : satWeakBad(cur) && cur.ndvi >= 0.5 ? `<div class="sat-say">⚠️ ราว ${Math.round(w * 100)}% ของแปลงอ่อนกว่าส่วนอื่น</div><div class="sat-note">ไปดูตรงสีแดงก่อน: น้ำขัง ดินแน่น หรืออ้อยขาด · ไม่นับริมขอบ ~10 ม. ที่ติดถนน/ต้นไม้</div>`
@@ -7427,11 +7467,12 @@ Export.table.toDrive({
         <div class="d-flex justify-content-between align-items-start gap-2"><div><h5 class="mb-0 fw-bold">${esc(x.name)}</h5><small class="text-muted">${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}${cur ? ' · ภาพ ' + satD(cur.d) : ''}</small></div>
           ${cur ? `<div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div>` : ''}</div>
         ${x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag mt-1">⚠️ ${esc(f)}</div>`).join('')}
-        <div class="sat-seg"><button type="button" class="${W || C ? '' : 'on'}" onclick="satSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="satSetMode('w')">หาจุดอ่อน</button>${x.land ? '' : `<button type="button" class="${C ? 'on' : ''}" onclick="satSetMode('c')">ก่อน–หลัง</button>`}</div>
+        <div class="sat-seg"><button type="button" class="${W || Bm ? '' : 'on'}" onclick="satSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="satSetMode('w')">หาจุดอ่อน</button>${x.land ? '' : `<button type="button" class="${Bm ? 'on' : ''}" onclick="satSetMode('b')">แห้งลง</button>`}</div>
+        ${x.land ? '' : Bm ? `<div class="sat-cmpsw"><span>เทียบก่อน–หลัง <small>(แห้งลงเทียบสองภาพเสมอ)</small></span></div>` : `<button type="button" class="sat-cmpsw" onclick="satCmpSet(!satCmp)"><span>เทียบก่อน–หลัง</span><span class="fm-sw ${satCmp ? 'on' : ''}"></span></button>`}
         ${C ? `<div class="sat-nx"><button type="button" onclick="satNext(-1)" aria-label="แปลงก่อนหน้า">‹ แปลงก่อน</button><span>${(i => i + 1)(satInfo.items.filter(i => !i.land && i.last).findIndex(o => o.key === x.key))}/${satInfo.items.filter(i => !i.land && i.last).length}</span><button type="button" onclick="satNext(1)" aria-label="แปลงถัดไป">แปลงถัดไป ›</button></div><div class="sat-cmp"><div><div class="sat-cl">ก่อน · ${bef ? satDs(bef.d) : '-'}</div><div class="sat-img" id="satImgB">${bef ? '<small class="text-muted">กำลังโหลด…</small>' : '<small class="text-muted">ไม่มีภาพ</small>'}</div></div>
           <div><div class="sat-cl">หลัง · ${cur ? satDs(cur.d) : '-'}</div><div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลด…</small>' : ''}</div></div></div>`
         : `<div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลดภาพ…</small>' : '<small class="text-muted">ยังไม่มีภาพใสของแปลงนี้</small>'}</div>`}
-        ${C ? '' : key}${say}
+        ${C && !W ? (Bm ? `<div class="sat-key2"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>` : '') : key}${say}
         ${C && cur ? `<div class="sat-h">ภาพก่อน</div><div class="sat-dates" id="satDatesB">${x.good.filter(q => q.d < cur.d).slice(-12).map(q => `<button type="button" class="${bef && q.d === bef.d ? 'on' : ''}" onclick="satPickB('${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('')}</div>` : ''}
         ${dates.length ? `<div class="sat-h">${C ? 'ภาพหลัง' : 'เลือกวันที่ (ภาพที่ไม่มีเมฆบัง)'}</div><div class="sat-dates" id="satDates">${chips}</div>` : ''}
         ${tiles}
@@ -7439,8 +7480,12 @@ Export.table.toDrive({
         ${years}`;
       const dd = $('satDates'); if (dd) dd.scrollLeft = dd.scrollWidth;
       const db = $('satDatesB'); if (db) db.scrollLeft = db.scrollWidth;
-      if (C && bef) { const d = bef.d; satImg(x, d, false, img => { if (satSelK !== x.key || satBefD !== d || satMode !== 'c') return; const el = $('satImgB'); if (el) el.innerHTML = img ? `<img src="${img}" alt="ภาพก่อน ${satD(d)}">` : '<small class="text-muted">โหลดภาพไม่ได้</small>'; }); }
-      if (cur) { const d = cur.d, m = satMode; satImg(x, d, W, img => { if (satSelK !== x.key || satSelD !== d || satMode !== m) return; const el = $('satImg'); if (el) el.innerHTML = img ? `<img src="${img}" alt="ภาพแปลง ${esc(x.name)} ${satD(d)}">` : '<small class="text-muted">โหลดภาพไม่ได้ ลองใหม่อีกครั้ง</small>'; }); }
+      const live = (m, a, b) => satSelK === x.key && satMode === m && (!b || satSelD === b) && (!a || satBefD === a);
+      if (C && bef) { const d = bef.d, m = satMode; satImg(x, d, W, img => { if (!live(m, d)) return; const el = $('satImgB'); if (el) el.innerHTML = img ? `<img src="${img}" alt="ภาพก่อน ${satD(d)}">` : '<small class="text-muted">โหลดภาพไม่ได้</small>'; }); }
+      if (cur) { const d = cur.d, m = satMode; satImg(x, d, W, img => { if (!live(m, null, d)) return; const el = $('satImg'); if (!el) return;
+        if (!img) { el.innerHTML = '<small class="text-muted">โหลดภาพไม่ได้ ลองใหม่อีกครั้ง</small>'; return; }
+        el.innerHTML = Bm ? `<div class="stk"><img src="${img}" alt="ภาพหลัง ${satD(d)}"></div>` : `<img src="${img}" alt="ภาพแปลง ${esc(x.name)} ${satD(d)}">`;
+        if (Bm && bef) { const A = bef.d; burnImg(x, { A, B: d }, r => { if (!live(m, A, d)) return; const st = el.querySelector('.stk'); if (st && r && r.img) st.insertAdjacentHTML('beforeend', `<img src="${r.img}" alt="จุดแห้งลง">`); const sy = $('satCmpSay'); if (sy) sy.outerHTML = satCmpSay(x, bef, cur, dmg, r || { cloud: true }); }); } }); }
     }
     function satChart(x, cur) {
       const W = 320, H = 130, L = 26, B = 18, days = 365, pts = x.good.filter(q => satAge(q.d) <= days);
@@ -7721,7 +7766,7 @@ Export.table.toDrive({
       return `<button type="button" class="cmp-go" onclick="satOpenCmp('${qa(x.key)}')">🔍 เทียบภาพก่อน–หลัง <span>หน้าดาวเทียมรายแปลง ›</span></button>`;
     }
     // เทียบก่อน–หลัง = แท็บในหน้าดาวเทียมรายแปลง (19 พ.ย. 69 ผู้ใช้เลือกแบบนี้ "ดูง่ายกว่า" · ลองแผนที่บน–ล่างแล้วดูยาก)
-    function satOpenCmp(key) { fmEdit = null; hideModal('farmMapModal'); setTimeout(() => { openSat(key); satEnsure(() => { satBefD = null; satMode = 'c'; satDetail(); satScrollOn(); }); }, 300); }
+    function satOpenCmp(key) { fmEdit = null; hideModal('farmMapModal'); setTimeout(() => { openSat(key); satEnsure(() => { satBefD = null; satCmp = true; satMode = fmSatMode === 'w' || fmSatMode === 'b' ? fmSatMode : 'n'; satDetail(); setTimeout(satScrollOn, 400); }); }, 300); }
     const satScrollOn = () => requestAnimationFrame(() => document.querySelectorAll('#sat-body .sat-dates').forEach(r => { const b = r.querySelector('.on'); if (b) r.scrollLeft = b.offsetLeft - r.clientWidth / 2 + b.offsetWidth / 2; }));
     function satNext(dir) { // ‹ › เปลี่ยนแปลงในหน้าเทียบ โดยคงโหมดเดิม
       const L2 = satInfo.items.filter(i => !i.land && i.last), i = L2.findIndex(o => o.key === satSelK), n = L2[(i + dir + L2.length) % L2.length]; if (!n) return;

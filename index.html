@@ -34,16 +34,36 @@
     const APP_BUILD = '__BUILD__';
     let apiBusy = 0;
     const API_BG = /^(get[A-Z]\w*|weatherForecast|soilWeather|rainDaily|rainClimate|rockThumbs|chatPhotos)$/; // อ่านเบื้องหลัง ไม่กันการอัปเดต (บันทึก/AI กัน)
-    function callApi(fn, args) {
+    // สลับแอประหว่างรอ AI (19 พ.ย. 69): iOS พักหน้าเว็บ คำขอหลุด แต่ Apps Script ทำต่อจนเสร็จและเก็บผลตาม rid → กลับมาแล้วไปเอาผล (getResult) ไม่ขึ้น "เชื่อมต่อไม่ได้"
+    let pageHidAt = 0; document.addEventListener('visibilitychange', () => { if (document.hidden) pageHidAt = Date.now(); });
+    const API_KEEP = /^(chatParse|chatBillRead|readBill)$/;
+    const waitVisible = () => new Promise(ok => { if (!document.hidden) return ok(); const f = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', f); ok(); } }; document.addEventListener('visibilitychange', f); });
+    function callApi(fn, args, _again) {
+      const keep = API_KEEP.test(fn), rid = keep ? Date.now().toString(36) + Math.random().toString(36).slice(2, 8) : '', t0 = Date.now();
+      return callApi1(fn, args, rid).catch(e => {
+        if (!keep || !e.net || (pageHidAt < t0 && !document.hidden)) throw e; // หลุดเองตอนอยู่หน้าแอป = แจ้งเหมือนเดิม
+        return waitVisible().then(() => new Promise((ok, bad) => {
+          const poll = () => callApi1('getResult', [rid]).then(j => {
+            if (j && j.ok) return ok(j.result);
+            if (j && !j.ok) return bad(new Error(j.error || 'เกิดข้อผิดพลาด'));
+            if (Date.now() - t0 < 150000) return setTimeout(poll, 2500);
+            if (!_again) return callApi(fn, args, true).then(ok, bad); // ไม่มีผลเลย (คำขอไม่ถึงหลังบ้าน) = ส่งใหม่ครั้งเดียว
+            bad(e);
+          }, () => Date.now() - t0 < 150000 ? setTimeout(poll, 2500) : bad(e));
+          poll();
+        }));
+      });
+    }
+    function callApi1(fn, args, rid) {
       const bg = API_BG.test(fn); if (!bg) apiBusy++;
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' ? 120000 : fn === 'getWaterSpots' ? 300000 : 60000);
       return fetch(API_URL, {
         method: 'POST', redirect: 'follow', signal: ctrl.signal,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ fn: fn, args: args, k: lsGet(KEY_STORE) || '' })
+        body: JSON.stringify(rid ? { fn: fn, args: args, k: lsGet(KEY_STORE) || '', rid } : { fn: fn, args: args, k: lsGet(KEY_STORE) || '' })
       })
-        .catch(e => { throw (e.name === 'AbortError' ? new Error('หมดเวลาเชื่อมต่อ สัญญาณอาจอ่อน ลองใหม่อีกครั้ง') : new Error('เชื่อมต่อไม่ได้ ตรวจสอบสัญญาณเน็ต')); })
+        .catch(e => { throw Object.assign(e.name === 'AbortError' ? new Error('หมดเวลาเชื่อมต่อ สัญญาณอาจอ่อน ลองใหม่อีกครั้ง') : new Error('เชื่อมต่อไม่ได้ ตรวจสอบสัญญาณเน็ต'), { net: true }); })
         .then(r => r.json())
         .then(j => {
           if (!j.ok) {

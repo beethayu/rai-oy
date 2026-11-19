@@ -25,7 +25,7 @@ function doPost(e) {
   } catch (err) {
     return apiOut_({ ok: false, error: 'ข้อมูลที่ส่งมาไม่ใช่ JSON' });
   }
-  return apiRun_(req.fn, req.args || [], req.k);
+  return apiRun_(req.fn, req.args || [], req.k, req.rid);
 }
 
 function apiKeyOk_(k) {
@@ -34,7 +34,7 @@ function apiKeyOk_(k) {
   return String(k || '') === String(key);
 }
 
-function apiRun_(fn, args, k) {
+function apiRun_(fn, args, k, rid) {
   try {
     if (!apiKeyOk_(k)) {
       Utilities.sleep(800);
@@ -46,10 +46,26 @@ function apiRun_(fn, args, k) {
     const f = globalThis[fn];
     if (typeof f !== 'function') throw new Error('ไม่พบฟังก์ชัน: ' + fn);
     const result = f.apply(null, Array.isArray(args) ? args : [args]);
-    return apiOut_({ ok: true, result: result === undefined ? null : result });
+    const out = { ok: true, result: result === undefined ? null : result };
+    apiKeep_(rid, out);
+    return apiOut_(out);
   } catch (err) {
-    return apiOut_({ ok: false, error: String((err && err.message) || err) });
+    const out = { ok: false, error: String((err && err.message) || err) };
+    if (!/^AUTH/.test(out.error)) apiKeep_(rid, out);
+    return apiOut_(out);
   }
+}
+
+// 19 พ.ย. 69 ผู้ใช้: "พิมพ์เสร็จแล้วสลับแอป → ขึ้นเชื่อมต่อไม่ได้ · รออยู่หน้าแชตผ่าน" = iOS พักหน้าเว็บ ตัดคำขอกลางทาง แต่สคริปต์ฝั่งนี้ทำต่อจนเสร็จ
+// → คำขอที่มี rid (แชต/อ่านบิล) เก็บผลไว้ 10 นาที · กลับเข้าแอปแล้วหน้าเว็บมาเอาผลด้วย getResult (ไม่เรียก Gemini ซ้ำ ไม่อัปรูปซ้ำ)
+function apiKeep_(rid, out) {
+  if (!rid || !/^[a-z0-9]{6,24}$/.test(String(rid))) return;
+  try { const s = JSON.stringify(out); if (s.length < 95000) CacheService.getScriptCache().put('rr_' + rid, s, 600); } catch (e) {}
+}
+function getResult(rid) {
+  if (!/^[a-z0-9]{6,24}$/.test(String(rid || ''))) return null;
+  const s = CacheService.getScriptCache().get('rr_' + rid);
+  return s ? JSON.parse(s) : null; // { ok, result | error } หรือ null = ยังไม่เสร็จ/ไม่มี
 }
 
 function apiOut_(obj) {

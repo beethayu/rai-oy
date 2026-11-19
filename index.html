@@ -4982,6 +4982,15 @@
     // AI เคยจับ "ซ่อมลำโพง 2420 บาท" เป็น Kubota B2420 (16 พ.ย. 69): รถที่ AI เลือก ต้องมีชื่อ/ยี่ห้อ/ชนิดในข้อความ · ไม่มีเลย แต่มีแค่ตัวเลขรุ่นปนในข้อความ = ทิ้งรายการนั้น
     const AS_WORDS = { Tractor: /รถไถ|แทรกเตอร์|ไถ/, Truck: /รถ|สิบล้อ|หกล้อ|กระบะ|พ่วง|ดั๊ม|ดัมพ์/, Pump: /พญานาค|ปั๊ม|ปั้ม|เครื่องสูบ/, Car: /รถ/ };
     const AS_BRAND = { kubota: /คูโบ|kubota/i, 'new holland': /นิวฮอล|ฮอลแลนด์|new holland/i, 'john deere': /จอห์น|deere/i, yanmar: /ยันม่าร์|yanmar/i, isuzu: /อีซูซุ|isuzu/i, hino: /ฮีโน่|hino/i };
+    // 19 พ.ย. 69: "รถหกล้อ…อีแอ๋ว" + รูปป้ายภาษี → AI ใส่ "เพิ่มสิบล้อ" (Truck = สิบล้อเท่านั้น ใช้นับเที่ยวหิน) ซ้ำกับรายการต่อทะเบียนที่เพิ่มรถใหม่ให้อยู่แล้ว
+    function chAddGuard(items, txt) {
+      const t = String(txt || ''), six = /หกล้อ|6\s*ล้อ|กระบะ|ปิกอัพ|ปิคอัพ/.test(t) && !/สิบล้อ|10\s*ล้อ/.test(t);
+      for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (!it || it.type !== 'add' || !['Truck', 'Car', 'Home', 'Tractor'].includes(it.category)) continue;
+        if (items.some(o => o && o.type === 'asset_reg' && String(o.asset || '').trim() === String(it.name || '').trim())) { items.splice(i, 1); continue; } // ต่อทะเบียนเพิ่มรถใหม่ให้เอง (เลือกรถส่วนตัว/รถใช้ในไร่)
+        if (it.category === 'Truck' && six) it.category = 'Car';
+      }
+      items.forEach(o => { if (o && o.type === 'asset_reg' && six && o.new_cat !== 'Home') { o.new_cat = 'Car'; if (o.newCat) o.newCat = 'Car'; } });
+    }
     function chAssetGuard(items, txt, r, hasPic) {
       const t = String(txt || '');
       for (let i = items.length - 1; i >= 0; i--) {
@@ -5268,7 +5277,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง

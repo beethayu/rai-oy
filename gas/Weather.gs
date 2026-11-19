@@ -129,9 +129,12 @@ function readRain_(ss) { return sortDesc_(readSheet_(ss, 'RainLog')).slice(0, 40
 function wxBrief_(ss) {
   const pts = wxPoints_(ss);
   if (!pts.length) return '';
-  const res = wxFetch_(pts, { daily: 'precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max', past_days: 1, forecast_days: 1 });
+  const q = { daily: 'precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max', past_days: 1, forecast_days: 1 };
+  let res; // เคยหายจาก LINE เงียบ ๆ (19 พ.ย. 69) → ลองซ้ำ 1 ครั้ง ยังไม่ได้ = บอกในข้อความ
+  try { res = wxFetch_(pts, q); } catch (e) { Utilities.sleep(3000); try { res = wxFetch_(pts, q); } catch (e2) { return `\n🌦️ อากาศ: ดึงพยากรณ์ไม่ได้ (${String(e2.message).slice(0, 60)}) ดูในแอปแทน\n`; } }
   const lines = res.map((r, i) => {
-    const d = r.daily, y = Math.round(d.precipitation_sum[0] * 10) / 10, t = d.precipitation_probability_max[1];
+    const d = r.daily; if (!d || !d.precipitation_sum) return `• ${pts[i].loc}: ไม่มีข้อมูล`;
+    const y = Math.round(d.precipitation_sum[0] * 10) / 10, t = d.precipitation_probability_max[1];
     return `• ${pts[i].loc}: เมื่อวานฝน ~${y} มม. · วันนี้ฝน ${t}% ${Math.round(d.precipitation_sum[1] * 10) / 10} มม. · ลม ${Math.round(d.wind_speed_10m_max[1])} (กระโชก ${Math.round(d.wind_gusts_10m_max[1])}) กม./ชม.`;
   });
   return `\n🌦️ อากาศ (ค่าประมาณ Open-Meteo)\n${lines.join('\n')}\n`;

@@ -890,6 +890,21 @@ function buildBrief_(ss, s) {
   // ขั้นตอนจาก 📋 (ชีต Flow): งานถึงคิวรายแปลง · ฉีดยาคุมเตือนเฉพาะเมื่อถึงช่วงฉีดตามขั้นตอน (เดิมเตือนทุกรอบน้ำ)
   const steps = flowSteps_(ss), logsBy = {}, today = flowDay_(Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy'));
   acts.forEach(a => { (logsBy[a.plot_id] = logsBy[a.plot_id] || []).push(a); });
+  // พ.ย.–ธ.ค. ใกล้ตัด: ไม่เตือนคิวน้ำ/ฉีดยา ยกเว้นอ้อยใหม่อายุ < 180 วัน — กฎเดียวกับแอป isNearHarvest (index.html) แก้ต้องแก้คู่กัน
+  // (19 พ.ย. 69 ผู้ใช้: LINE ขึ้น "ใกล้ถึงรอบน้ำ" 10 แปลง แต่แอปบอกงดน้ำ)
+  const mon = +Utilities.formatDate(new Date(), 'Asia/Bangkok', 'M');
+  const nearCut = p => (mon === 11 || mon === 12) && !(p.cane_type === 'อ้อยใหม่' && (d => d !== null && d < 180)(daysSince_(p.plant_date)));
+  // ฝนเมื่อวาน (RainLog ลงเอง 03:30 จาก Open-Meteo = ค่าประมาณ) · ยังไม่จดเข้าแปลง → บอกใน LINE ให้ไปยืนยันในแอป ไม่ลงเอง
+  const rainY = {}, rainList = [];
+  try {
+    const y = new Date(Date.now() - 864e5), yBE = Utilities.formatDate(y, 'Asia/Bangkok', 'dd/MM/') + (+Utilities.formatDate(y, 'Asia/Bangkok', 'yyyy') + 543);
+    const locOf = {}; wxPoints_(ss).forEach(pt => pt.plots.forEach(id => { locOf[id] = pt.loc; }));
+    readRain_(ss).forEach(r => { if (String(r.timestamp).split(' ')[0] === yBE && Number(r.rain_mm) >= 10) rainY[r.loc] = Number(r.rain_mm); });
+    const logged = new Set(acts.filter(a => /^ฝนตก/.test(a.activity_group) && flowDay_(a.timestamp) >= today - 1).map(a => a.plot_id));
+    Object.keys(rainY).forEach(loc => { if (loc === 'บ้าน') return; const ids = Object.keys(locOf).filter(id => locOf[id] === loc && !logged.has(id)); if (!ids.length) return;
+      rainList.push(`• ${loc} ~${Math.round(rainY[loc])} มม. (${ids.length} แปลงยังไม่ได้จด)`); });
+    plots.forEach(p => { p._rainY = rainY[locOf[p.plot_id]] && !logged.has(p.plot_id) ? rainY[locOf[p.plot_id]] : 0; });
+  } catch (e) { console.error(e); }
   plots.forEach(p => {
     const note = p.status_note || '';
     const name = `${p.plot_id} ${p.plot_name}`;
@@ -906,11 +921,12 @@ function buildBrief_(ss, s) {
     const fl = due.filter(x => !(damp && x.g.includes('ฉีดยา')));
     if (fl.length) flow.push(`• ${name}: ${fl.map(x => x.n).join(', ')}`);
     if (note.includes('✅ ตัดอ้อย')) return;
-    if (w === null) return;
+    if (w === null || nearCut(p)) return;
+    const rn = p._rainY ? ` (เมื่อวานฝน ~${Math.round(p._rainY)} มม. ถ้าตกจริงไม่ต้องให้น้ำ)` : '';
     const lim = p.cane_type === 'อ้อยใหม่' ? wNew : wRat;
-    if (w >= lim) water.push(`• ${name} (${p.area_rai} ไร่) ขาดน้ำ ${w} วัน`);
+    if (w >= lim) water.push(`• ${name} (${p.area_rai} ไร่) ขาดน้ำ ${w} วัน${rn}`);
     else if (damp && sprayDue) spray.push(`• ${name} หลังน้ำ ${w} วัน`);
-    else if (lim - w <= 2) soon.push(`• ${name} อีก ${lim - w} วัน`);
+    else if (lim - w <= 2) soon.push(`• ${name} อีก ${lim - w} วัน${rn}`);
   });
 
   const dm = downSinceMap_(alogs);
@@ -942,6 +958,7 @@ function buildBrief_(ss, s) {
   const sec = (title, arr) => arr.length ? `\n${title} (${arr.length})\n${arr.join('\n')}\n` : '';
   let msg = `🌾 สรุปไร่อ้อย ${thaiDate_(new Date())}\n`;
   try { msg += remBrief_(ss); } catch (e) {}
+  if (rainList.length) msg += `\n🌧️ ฝนเมื่อวาน (ค่าประมาณ ยังไม่ได้จดเข้าแปลง)\n${rainList.join('\n')}\nตกจริง → เปิดแอปหน้าวันนี้ กด "ตกจริง" แล้วติ๊กแปลง\n`;
   msg += sec('💧 ถึงคิวขึ้นน้ำ', water);
   msg += sec('📋 ถึงคิวตามขั้นตอน', flow);
   try { msg += sec('⛽ น้ำมันเครื่องพ่นยา (ค่าประมาณ)', fuelBrief_(ss, s, acts, inv)); } catch (e) {}
@@ -1012,7 +1029,7 @@ function fuelBrief_(ss, s, acts, inv) {
     if (!b || !b.active || b.st === 'ok') return;
     const who = t.team.join(' + ');
     out.push(b.st === 'now' ? `• วันนี้ต้องให้น้ำมันเบนซิน ${who} (เหลือ ≈ ${r1(b.left)} ลิตร · ให้ล่าสุด ${dt(b.lastGive.day)})`
-      : `• พรุ่งนี้ต้องเตรียมน้ำมันให้ ${who} (เหลือ ≈ ${r1(b.left)} ลิตร ${b.enough <= 1 ? 'พอวันนี้วันเดียว' : 'พออีก ' + b.enough + ' วัน'})`);
+      : `• ${who} น้ำมันเหลือ ≈ ${r1(b.left)} ลิตร ${b.enough <= 1 ? 'พอฉีดวันนี้ ถ้าพรุ่งนี้ฉีดต่อต้องเติม' : 'พอฉีดอีก ' + b.enough + ' วัน'}`);
   });
   const it = inv.find(i => i.name === FUEL_ITEM_), st = it ? Number(String(it.stock).replace(/,/g, '')) || 0 : null;
   if (out.length && st !== null && st < 4) out.push(`• สต็อกเบนซินเหลือ ${r1(st)} ลิตร`);

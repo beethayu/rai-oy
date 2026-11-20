@@ -92,6 +92,9 @@ function logDailyRain(days) {
       rows.push([be(t), pts[i].loc, d.precipitation_sum[k], d.precipitation_hours[k], d.wind_speed_10m_max[k], d.wind_gusts_10m_max[k], pts[i].lat, pts[i].lng, getTodayStr()]);
     });
   });
+  return rainUpsert_(ss, rows) + ` (${pts.map(p => p.loc).join(', ')})`;
+}
+function rainUpsert_(ss, rows) {
   return withLock_(() => {
     const sh = getOrCreate_(ss, 'RainLog', RAIN_H_);
     const cur = sh.getDataRange().getDisplayValues();
@@ -105,8 +108,35 @@ function logDailyRain(days) {
       else add.push(v);
     });
     appendRows_(sh, add);
-    return `ลง ${rows.length} แถว (${pts.map(p => p.loc).join(', ')})`;
+    return `ลง ${rows.length} แถว`;
   });
+}
+
+// 20 พ.ย. 69: Open-Meteo ตอบเซิร์ฟเวอร์ Google ว่า "Daily API request limit exceeded" (IP ของ Apps Script ใช้ร่วมกับคนทั้งโลก โควตาฟรีนับต่อ IP — หมดช่วงตี 3–4 ไทยก่อนรีเซ็ต 07:00)
+// → มือถือดึงได้ปกติ: หน้าเว็บส่งผลที่ดึงได้มาเก็บ (ทุก ≥2 ชม.) · ลง RainLog วันที่ผ่านไปแล้ว (ฝนเมื่อวาน/การ์ดตกจริงไหม) + เก็บพยากรณ์ล่าสุดให้ LINE เช้าใช้ตอนเซิร์ฟเวอร์ดึงไม่ได้
+function wxPush(pack) {
+  const pts = (pack && pack.pts) || []; if (!pts.length) return 'ไม่มีข้อมูล';
+  const ss = SpreadsheetApp.getActiveSpreadsheet(), today = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
+  const be = iso => { const p = iso.split('-'); return `${p[2]}/${p[1]}/${+p[0] + 543}`; }, rows = [], keep = [];
+  pts.forEach(pt => { const d = pt.daily || {}; if (!pt.loc || !d.time) return; const k = { loc: String(pt.loc), d: {} };
+    d.time.forEach((t, i) => {
+      if (t < today && t >= Utilities.formatDate(new Date(Date.now() - 3 * 864e5), 'Asia/Bangkok', 'yyyy-MM-dd'))
+        rows.push([be(t), pt.loc, d.precipitation_sum[i], d.precipitation_hours ? d.precipitation_hours[i] : '', d.wind_speed_10m_max[i], d.wind_gusts_10m_max[i], pt.lat, pt.lng, getTodayStr()]);
+      if (t >= Utilities.formatDate(new Date(Date.now() - 864e5), 'Asia/Bangkok', 'yyyy-MM-dd') && Object.keys(k.d).length < 4)
+        k.d[t] = [d.precipitation_sum[i], d.precipitation_probability_max ? d.precipitation_probability_max[i] : null, d.wind_speed_10m_max[i], d.wind_gusts_10m_max[i]];
+    }); keep.push(k); });
+  PropertiesService.getScriptProperties().setProperty('WX_LAST', JSON.stringify({ at: Utilities.formatDate(new Date(), 'Asia/Bangkok', 'd/M HH:mm'), pts: keep }));
+  return rows.length ? rainUpsert_(ss, rows) : 'เก็บพยากรณ์แล้ว';
+}
+// LINE เช้า: ดึงเองไม่ได้ → ใช้ที่แอปส่งมาล่าสุด (บอกเวลา)
+function wxBriefCached_(pts) {
+  let c = null; try { c = JSON.parse(PropertiesService.getScriptProperties().getProperty('WX_LAST') || 'null'); } catch (e) {}
+  if (!c || !c.pts || !c.pts.length) return '';
+  const tz = 'Asia/Bangkok', t = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'), y = Utilities.formatDate(new Date(Date.now() - 864e5), tz, 'yyyy-MM-dd');
+  const r1 = v => Math.round((Number(v) || 0) * 10) / 10;
+  const lines = c.pts.filter(p => p.loc !== 'บ้าน' || pts.some(x => x.loc === 'บ้าน')).map(p => { const a = p.d[y], b = p.d[t]; if (!a && !b) return '';
+    return `• ${p.loc}: ${a ? `เมื่อวานฝน ~${r1(a[0])} มม.` : ''}${a && b ? ' · ' : ''}${b ? `วันนี้ฝน ${b[1] == null ? '-' : b[1] + '%'} ${r1(b[0])} มม. · ลม ${Math.round(b[2])} (กระโชก ${Math.round(b[3])}) กม./ชม.` : ''}`; }).filter(Boolean);
+  return lines.length ? `\n🌦️ อากาศ (ค่าประมาณ จากที่แอปดึงไว้ ${c.at})\n${lines.join('\n')}\n` : '';
 }
 
 function logDailyRainTrigger() {
@@ -131,7 +161,7 @@ function wxBrief_(ss) {
   if (!pts.length) return '';
   const q = { daily: 'precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max', past_days: 1, forecast_days: 1 };
   let res; // เคยหายจาก LINE เงียบ ๆ (19 พ.ย. 69) → ลองซ้ำ 1 ครั้ง ยังไม่ได้ = บอกในข้อความ
-  try { res = wxFetch_(pts, q); } catch (e) { Utilities.sleep(3000); try { res = wxFetch_(pts, q); } catch (e2) { return `\n🌦️ อากาศ: ดึงพยากรณ์ไม่ได้ (${String(e2.message).slice(0, 60)}) ดูในแอปแทน\n`; } }
+  try { res = wxFetch_(pts, q); } catch (e) { Utilities.sleep(3000); try { res = wxFetch_(pts, q); } catch (e2) { console.error(e2); return wxBriefCached_(pts) || '\n🌦️ อากาศ: ดึงพยากรณ์ไม่ได้ ดูในแอปแทน\n'; } }
   const lines = res.map((r, i) => {
     const d = r.daily; if (!d || !d.precipitation_sum) return `• ${pts[i].loc}: ไม่มีข้อมูล`;
     const y = Math.round(d.precipitation_sum[0] * 10) / 10, t = d.precipitation_probability_max[1];

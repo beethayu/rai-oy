@@ -1024,9 +1024,14 @@ function fuelBrief_(ss, s, acts, inv) {
   A.forEach(a => { if (a.activity_group !== 'ฉีดยา' || !(today - a.day <= 2) || a.day > today) return; const w = fuelWho_(a.operator); if (!w.length) return;
     if (GV.some(t => w.every(x => t.team.indexOf(x) !== -1))) return; const k = w.slice().sort().join('|'); NR[k] = NR[k] || { who: w.join(' + '), day: 0 }; NR[k].day = Math.max(NR[k].day, a.day); });
   Object.keys(NR).forEach(k => out.push(`• ${NR[k].who} ฉีดอยู่ (ล่าสุด ${dt(NR[k].day)}) แต่ยังไม่ได้จดการให้น้ำมัน — ให้แล้วพิมพ์ในแชต "ให้น้ำมัน ${NR[k].who} … ลิตร" แอปจะคิดให้ว่าเหลือเท่าไรและเตือนรอบหน้า`));
+  // ยาที่ทีมใช้ฉีดครั้งล่าสุดหมดสต็อกทุกตัว = ยังไม่ได้ฉีดต่อ ไม่เตือนน้ำมัน (20 พ.ย. 69 ผู้ใช้: "ยาสำหรับฉีดรอบไร่หมดไปหลายวันแล้ว" แต่ LINE ยังเตือนเติมน้ำมัน)
+  const SL = readSheet_(ss, SH.SLOG, true), invQ = {}; inv.forEach(i => { invQ[i.name] = Number(String(i.stock).replace(/,/g, '')) || 0; });
+  const chemOut = team => { const last = A.filter(a => a.activity_group === 'ฉีดยา' && fuelWho_(a.operator).some(x => team.indexOf(x) !== -1)).sort((p, q) => q.day - p.day)[0]; if (!last) return false;
+    const bt = String(last.log_id || '').split('_')[0], its = {}; SL.forEach(r => { if (String(r.ref_log_id || '').split('_')[0] === bt && r.item_name !== FUEL_ITEM_ && Number(String(r.change_qty).replace(/,/g, '')) < 0) its[r.item_name] = 1; });
+    const n = Object.keys(its); return n.length > 0 && n.every(x => (x in invQ ? invQ[x] : 1) <= 0); };
   GV.forEach(t => {
     const b = fuelBal_(t.team, t.gives, A, today, L);
-    if (!b || !b.active || b.st === 'ok') return;
+    if (!b || !b.active || b.st === 'ok' || chemOut(t.team)) return;
     const who = t.team.join(' + ');
     out.push(b.st === 'now' ? `• วันนี้ต้องให้น้ำมันเบนซิน ${who} (เหลือ ≈ ${r1(b.left)} ลิตร · ให้ล่าสุด ${dt(b.lastGive.day)})`
       : `• ${who} น้ำมันเหลือ ≈ ${r1(b.left)} ลิตร ${b.enough <= 1 ? 'พอฉีดวันนี้ ถ้าพรุ่งนี้ฉีดต่อต้องเติม' : 'พอฉีดอีก ' + b.enough + ' วัน'}`);

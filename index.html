@@ -3222,7 +3222,14 @@
       return `ให้ล่าสุด ${dShort(lg.iso)} ${r1(lg.qty)} ลิตร${b.gives.length > 1 ? ` (รวม ${r1(b.given)} ลิตร)` : ''} · ฉีดไป ${r1(b.tanks)} ถัง ≈ ใช้ ${r1(b.used)} ลิตร · เหลือ ≈ ${r1(b.left)} ลิตร ${b.left <= 0 ? '(หมดแล้ว)' : `(พออีก ${b.enough} วัน)`}`;
     }
     // โชว์ทีมที่ยังฉีดอยู่ (3 วัน) หรือเพิ่งให้น้ำมันภายใน 7 วัน
-    const fuelShown = () => fuelTeams().map(t => fuelBal(t)).filter(b => b && (b.active || dayDiff(b.lastGive.iso, todayISO()) <= 7));
+    // ยาที่ทีมใช้ฉีดครั้งล่าสุดหมดสต็อกทุกตัว = หยุดฉีด ไม่เตือนน้ำมัน (เหมือน LINE fuelBrief_)
+    function fuelChemOut(team) {
+      const bOf = id => String(id || '').split('_')[0], last = (gData.activities || []).filter(a => a.activity_group === 'ฉีดยา' && logWho(a).some(n => team.includes(n)))
+        .sort((p, q) => beToISO(String(q.timestamp).split(' ')[0]) < beToISO(String(p.timestamp).split(' ')[0]) ? -1 : 1)[0]; if (!last) return false;
+      const its = [...new Set((gData.stockLogs || []).filter(r => bOf(r.ref_log_id) === bOf(last.log_id) && r.item_name !== FUEL_ITEM && num(r.change_qty) < 0).map(r => r.item_name))];
+      return its.length > 0 && its.every(n => { const i = (gData.inventory || []).find(x => x.name === n); return i ? num(String(i.stock).replace(/,/g, '')) <= 0 : false; });
+    }
+    const fuelShown = () => fuelTeams().map(t => fuelBal(t)).filter(b => b && (b.active || dayDiff(b.lastGive.iso, todayISO()) <= 7)).map(b => b.pump || !b.active || !fuelChemOut(b.team) ? b : Object.assign({}, b, { st: 'ok', chemOut: true }));
     // ทีมที่ฉีดอยู่ 2 วันล่าสุด แต่ยังไม่เคยจดให้น้ำมัน (คิดไม่ได้ → เตือนให้จด)
     function fuelNoRec() {
       const T = fuelTeams(), t0 = todayISO(), N = {};
@@ -9314,6 +9321,13 @@ Export.table.toDrive({
     let wxData = null, wxLoading = false, wxErr = '';
     try { wxData = JSON.parse(lsGet(WX_STORE) || 'null'); if (wxData && !Array.isArray(wxData.res)) wxData = null; } catch (e) { wxData = null; }
 
+    // ส่งผลพยากรณ์จากมือถือไปเก็บหลังบ้าน ทุก ≥2 ชม. (เซิร์ฟเวอร์ Google โดน Open-Meteo จำกัดรายวัน) → ฝนเมื่อวานลงชีต + LINE เช้ามีอากาศใช้
+    function wxPushMaybe(locs, res) {
+      try { if (Date.now() - (+lsGet('raioy_wxpush') || 0) < 2 * 3600e3) return; lsSet('raioy_wxpush', String(Date.now()));
+        const pick = d => ({ time: d.time, precipitation_sum: d.precipitation_sum, precipitation_hours: d.precipitation_hours, precipitation_probability_max: d.precipitation_probability_max, wind_speed_10m_max: d.wind_speed_10m_max, wind_gusts_10m_max: d.wind_gusts_10m_max });
+        callApi('wxPush', [{ pts: locs.map((l, i) => res[i] && res[i].daily ? { loc: l.loc, lat: l.lat, lng: l.lng, daily: pick(res[i].daily) } : null).filter(Boolean) }]).catch(() => lsSet('raioy_wxpush', '0'));
+      } catch (e) {}
+    }
     function wxLocs() {
       const g = {}, order = [];
       (gData.plots || []).forEach(p => {
@@ -9342,7 +9356,7 @@ Export.table.toDrive({
         .then(res => {
           if (!Array.isArray(res) || !res.length || !res[0].daily || !res[0].hourly) throw new Error('ข้อมูลพยากรณ์ไม่ครบ');
           wxData = { t: Date.now(), key, res };
-          lsSet(WX_STORE, JSON.stringify(wxData));
+          lsSet(WX_STORE, JSON.stringify(wxData)); wxPushMaybe(locs, res);
         }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; })
         .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if (curTab === 'log' && logMode === 'chat') chatRender(); if ($('wxModal').classList.contains('show')) wxRender(); if (fmRain && $('farmMapModal').classList.contains('show')) fmRainRender(); });
     }

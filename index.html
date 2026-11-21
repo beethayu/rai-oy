@@ -3989,11 +3989,16 @@
     const isDown = e => /เสีย|จอด|ป่วย|ร้านช่าง/.test(e) && !/ซ่อมเสร็จ|รับรถกลับ/.test(e);
     const isUp = e => /พร้อมใช้|ปกติ|ซ่อมเสร็จ|รับรถกลับ/.test(e);
     function downMap() {
-      const m = {};
+      const m = {}, weak = {};
       [...(gData.assetLogs || [])].reverse().forEach(l => {
-        const e = l.event_type || '';
-        if (isDown(e)) { if (!m[l.asset_name]) m[l.asset_name] = l.timestamp; }
-        else if (isUp(e)) delete m[l.asset_name];
+        const e = l.event_type || '', n = l.asset_name;
+        if (isDown(e)) { if (!m[n]) m[n] = l.timestamp; }
+        else if (isUp(e)) { delete m[n]; delete weak[n]; }
+        else if (/ดัดแปลง|ซ่อม/.test(e) && !m[n]) (weak[n] = weak[n] || []).push(l.timestamp); // ส่งเข้าร้านก่อน (ดัดแปลง/ซ่อม) แล้วค่อยจดว่าจอดอยู่ = นับวันจากตอนส่งเข้าร้าน
+      });
+      Object.keys(m).forEach(n => {
+        const d0 = beToISO(m[n]), w = (weak[n] || []).find(t => { const g = (new Date(d0) - new Date(beToISO(t))) / 864e5; return g >= 0 && g <= 60; });
+        if (w) m[n] = w;
       });
       return m;
     }
@@ -5500,8 +5505,8 @@
         let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]);
         if (!idx.length) idx = ph.map((_, k) => k); // AI ไม่ได้ระบุเลขรูป = ใช้ทุกรูปของข้อความนั้น
         it.photos = idx; it.photo_ids = idx.map(k => ph[k]);
-        if (!it.photo_ids.length) return null;
-        if (it.type === 'plot_photo') return (it.plots || []).length ? it : null;
+        if (it.type === 'plot_photo') return (it.plots || []).length && it.photo_ids.length ? it : null;
+        if (!it.photo_ids.length && it.type !== 'asset_note') return null; // asset_note พิมพ์อย่างเดียวไม่มีรูปก็จดได้ (เคยถูกทิ้งเงียบ ๆ เช่น "เปลี่ยนหัวเทียน Jazz")
         if (!String(it.asset || '').trim()) return null;
         it.plates = (Array.isArray(it.plates) ? it.plates : []).filter(x => x && String(x.plate || '').trim());
         it.date = it.date || todayISO(); it.known = !!chAsset(it.asset); it.state = ['at_shop', 'done'].includes(it.state) ? it.state : ''; return it;

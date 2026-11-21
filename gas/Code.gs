@@ -761,11 +761,17 @@ function isUpEvt_(e) { return /พร้อมใช้|ปกติ|ซ่อ�
 
 // วันที่เริ่มเสีย/จอด/ป่วย ของแต่ละคัน (ที่ยังไม่หาย)
 function downSinceMap_(alogs) {
-  const m = {};
+  const m = {}, weak = {};
+  const iso = s => { const p = String(s || '').split('/'); return p.length === 3 ? new Date(Number(p[2]) - 543, Number(p[1]) - 1, Number(p[0])).getTime() : 0; };
   sortDesc_(alogs).reverse().forEach(l => {
-    const e = l.event_type || '';
-    if (isDownEvt_(e)) { if (!m[l.asset_name]) m[l.asset_name] = l.timestamp; }
-    else if (isUpEvt_(e)) delete m[l.asset_name];
+    const e = l.event_type || '', n = l.asset_name;
+    if (isDownEvt_(e)) { if (!m[n]) m[n] = l.timestamp; }
+    else if (isUpEvt_(e)) { delete m[n]; delete weak[n]; }
+    else if (/ดัดแปลง|ซ่อม/.test(e) && !m[n]) (weak[n] = weak[n] || []).push(l.timestamp);
+  });
+  Object.keys(m).forEach(n => {
+    const w = (weak[n] || []).find(t => { const g = (iso(m[n]) - iso(t)) / 864e5; return g >= 0 && g <= 60; });
+    if (w) m[n] = w;
   });
   return m;
 }

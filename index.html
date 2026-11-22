@@ -2989,6 +2989,9 @@
     function calIndex() {
       const X = {}, at = iso => X[iso] = X[iso] || { logs: [], rain: [], fuel: [], guards: [], ripe: [], reg: [], rem: [], fin: [], wx: null };
       (gData.notes || []).forEach(n => { const iso = beToISO(n.date); if (iso) (at(iso).notes = at(iso).notes || []).push(n); });
+      // 🚚 เรื่องรถ (22 พ.ย. 69 ผู้ใช้: ชาร์จแบตหน้ายาว ขึ้นปฏิทินด้วยไหม) — ประวัติรถรวมเป็นแถวเดียวต่อคันต่อวัน แตะ = เปิดหน้ารถ · ไม่เอาบันทึกวันหมดภาษี
+      (gData.assetLogs || []).forEach(l => { if (/ทะเบียน|ภาษี/.test(l.event_type || '')) return; const iso = beToISO(String(l.timestamp || '').split(' ')[0]); if (!iso) return;
+        const o = at(iso); o.veh = o.veh || {}; (o.veh[l.asset_name] = o.veh[l.asset_name] || []).push(l); });
       (gData.reminders || []).forEach(r => { const iso = beToISO(r.date); if (!iso) return; at(iso).rem.push(r);
         if (r.repeat === 'สัปดาห์') for (let k = 1; k <= 10; k++) at(isoAdd(iso, 7 * k)).rem.push(r); }); // ทุกวันไม่ใส่จุด (รก) แต่ขึ้นแถวทุกวัน
       (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
@@ -3014,6 +3017,7 @@
       if (o.guards.length) d.push(`<i style="background:${CAL_GUARD}"></i>`);
       if (o.fuel.length) d.push(`<i style="background:${CAL_FUEL}"></i>`);
       if ((o.notes || []).length) d.push(`<i style="background:#0E7490"></i>`);
+      if (o.veh) d.push(`<i style="background:#475569"></i>`);
       if (o.rem.length) d.push(`<i class="o" style="border-color:#D97706;border-width:2px"></i>`);
       if (o.ripe.length) d.push(`<i class="o" style="border-color:${DS_COL['ตัดอ้อย']}"></i>`);
       if (o.reg.length) d.push(`<i class="o" style="border-color:#B54708"></i>`);
@@ -3080,6 +3084,12 @@
         out.push(djRow({ icon: n.kind === 'idea' ? '💭' : '🏠', what: esc(n.text), amt: num(n.amount) ? `${baht(num(n.amount))} บ.` : '', who: esc(n.workers || ''), where: esc(n.cat || 'นอกไร่') + (n.shop ? ' · ' + esc(n.shop) : '') + (n.photo_ids ? ' · 📷' : ''), cls: 'rem-r',
           attrs: ` data-note="${esc(n.note_id)}" data-lb="🏠 ${esc(n.text)}" onclick="remOpen=remOpen==='n${qa(n.note_id)}'?'':'n${qa(n.note_id)}';render()"`,
           inner: op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${n.photo_ids ? `<button type="button" onclick="noteDo('photo','${qa(n.note_id)}')">ดูรูป</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="noteDo('del','${qa(n.note_id)}',this)">ลบ</button></div>` : '' })); });
+      Object.keys(o.veh || {}).forEach(nm => { const a = (gData.assets || []).find(x => x.name === nm) || {}, ls = o.veh[nm].slice().reverse();
+        const ICON = { Truck: '🚛', Tractor: '🚜', Car: '🚚', Home: '🚗', Moto: '🛵', Pump: '🐍', Worker: '👷' };
+        const txt = l => { const t = vehClean(l.detail), e = String(l.event_type || ''); return /🛒/.test(e) ? (/^ซื้อแล้ว/.test(l.parts_or_battery || '') ? 'ซื้อ ' : 'ต้องซื้อ ') + t : /รับรถกลับ|ซ่อมเสร็จ/.test(e) ? 'รับรถกลับ' : isDown(e) ? 'อยู่ร้าน' + (t ? ': ' + t : '') : t || e.replace(/^[^\p{L}]+/u, ''); };
+        const shop = ls.map(l => vehShop(l.detail)).find(Boolean);
+        out.push(djRow({ icon: ICON[a.category] || '🔧', what: esc(eqS(nm)), where: shop ? 'ร้าน' + esc(shop.replace(/^ร้าน/, '')) : '', extra: ls.map(l => esc(txt(l))).filter(Boolean).join(' · '),
+          attrs: a.category && a.category !== 'Worker' ? ` onclick="openAssetHist('${qa(nm)}')" style="cursor:pointer"` : '' })); });
       (o.fuel || []).forEach(f => { const pump = f.team.length === 1 && f.team[0] === PUMP;
         out.push(djRow({ icon: '⛽', what: pump ? 'เติมเบนซิน เครื่องสูบน้ำ' : 'ให้น้ำมัน เบนซิน + 2T', amt: `${r1(f.qty)} ลิตร`, who: pump ? '' : esc(f.team.join(' + ')), attrs: f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ${pump ? 'เครื่องสูบน้ำ' : esc(f.team.join(' + '))}"` : '' })); });
       (o.guards || []).forEach(g => { const st = guardStat(g), nth = st.future ? 0 : dayDiff(st.s, iso) + 1;

@@ -604,3 +604,67 @@ function getBurnPair(ids, dA, dB) {
   }
   return out;
 }
+
+// ===== 🟥 โซนอ่อนประจำในแปลง (22 พ.ย. 69 ผู้ใช้ขอปรับปุ๋ยรายแปลง) =====
+// NDVI เฉลี่ยรายจุด (10 ม.) ของภาพใสทุกภาพย้อนหลัง 240 วัน → ภาพเทา (ค่า = ความเขียวเฉลี่ย) · หน้าเว็บเทียบกับค่าเฉลี่ยของแปลงเอง
+// จุดที่ต่ำกว่าเพื่อนในแปลงตลอดหลายเดือน = ดิน/น้ำ/ปุ๋ยไม่ดีประจำ (ต่างจากจุดอ่อนภาพเดียวที่อาจเป็นแค่เงา/ช่วงสั้น)
+const WEAK_EVAL_ = `//VERSION=3
+function setup() {
+  return { input: [{ bands: ['B04', 'B08', 'SCL', 'dataMask'] }], output: { bands: 4 }, mosaicking: 'ORBIT' };
+}
+function evaluatePixel(ss) {
+  var s0 = 0, n = 0, any = false;
+  for (var i = 0; i < ss.length; i++) {
+    var s = ss[i]; if (s.dataMask !== 1) continue; any = true;
+    if (s.SCL !== 4 && s.SCL !== 5) continue;
+    var v = (s.B08 - s.B04) / (s.B08 + s.B04 || 1); if (v < -0.2) continue;
+    s0 += v; n++;
+  }
+  if (!any) return [0, 0, 0, 0];
+  if (n < 3) return [0, 0, 0, 0.3];
+  var m = Math.max(0, Math.min(1, s0 / n));
+  return [m, m, m, 1];
+}`;
+const WEAK_DAYS_ = 240, WEAK_MAX_AGE_ = 7 * 864e5;
+function getWeakZones(ids, refresh) {
+  const t0 = Date.now(), cache = CacheService.getScriptCache(), out = {}, need = [];
+  let files = null, bmap = null;
+  const fmap = () => { if (!files) { files = {}; const it = spotFolder_().getFiles(); while (it.hasNext()) { const f = it.next(); files[f.getName()] = f; } } return files; };
+  const bound = id => { if (!bmap) { bmap = {}; readSheet_(SpreadsheetApp.getActiveSpreadsheet(), SH.PLOTS).forEach(p => { bmap[p.plot_id] = p.boundary; }); } return bmap[id] || ''; };
+  const to = new Date(), from = new Date(to.getTime() - WEAK_DAYS_ * 864e5);
+  (ids || []).slice(0, 40).map(String).forEach(id => {
+    if (!refresh) {
+      const hit = cache.get('weak_' + id); if (hit) { out[id] = hit; return; }
+      const f = fmap()['weak_' + id + '.png'];
+      if (f && Date.now() - f.getLastUpdated().getTime() < WEAK_MAX_AGE_) {
+        const img = 'data:image/png;base64,' + Utilities.base64Encode(f.getBlob().getBytes());
+        out[id] = img; try { cache.put('weak_' + id, img, 21600); } catch (e) {} return;
+      }
+    }
+    const pts = parsePath_(bound(id)); if (pts.length < 3) { out[id] = ''; return; }
+    const body = satImgBody_(pts, to.toISOString().slice(0, 10), 0);
+    body.input.data[0].dataFilter = { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: 80 };
+    delete body.input.data[0].processing;
+    body.evalscript = WEAK_EVAL_;
+    need.push({ id, body });
+  });
+  if (need.length) {
+    const token = satToken_(), folder = spotFolder_();
+    for (let i = 0; i < need.length; i += 6) {
+      const part = need.slice(i, i + 6);
+      if (Date.now() - t0 > 200000) { part.forEach(n => { out[n.id] = ''; }); continue; }
+      const res = UrlFetchApp.fetchAll(part.map(n => ({ url: SAT_PROC_URL_, method: 'post', contentType: 'application/json',
+        headers: { Authorization: 'Bearer ' + token, Accept: 'image/png' }, payload: JSON.stringify(n.body), muteHttpExceptions: true })));
+      part.forEach((n, j) => {
+        const r = res[j];
+        if (r.getResponseCode() !== 200) { out[n.id] = ''; console.warn('weak ' + n.id + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 160)); return; }
+        const blob = r.getBlob().setName('weak_' + n.id + '.png');
+        const old = fmap()['weak_' + n.id + '.png']; if (old) old.setTrashed(true);
+        folder.createFile(blob);
+        const img = 'data:image/png;base64,' + Utilities.base64Encode(blob.getBytes());
+        out[n.id] = img; try { cache.put('weak_' + n.id, img, 21600); } catch (e) {}
+      });
+    }
+  }
+  return out;
+}

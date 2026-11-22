@@ -668,6 +668,14 @@
     .vh-tg.o{background:#FCE3CF;color:#9A4A0C}.vh-tg.g{background:#E3EFE6;color:#1F5E3B}.vh-tg.b{background:#E4ECF7;color:#1F4E8C}
     .vh-act{display:flex;gap:14px;margin-top:3px;font-size:14px}
     .vh-q textarea{width:100%;font-size:16px;border:1px solid #D3D1C6;border-radius:12px;padding:8px 10px;margin-top:6px;resize:none;font-family:inherit;background:#FCFCFA}
+    .vh-foot{display:block;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #E2E0D6}
+    .vh-foot:empty{display:none}
+    .vh-foot>*{margin:0!important;width:100%}.vh-foot .vh-qc{justify-content:flex-start;margin-top:0!important}.vh-foot .vh-qb{margin-top:8px!important}
+    .vh-qb{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
+    .vh-qb textarea{flex:1;font-size:16px;border:1px solid #D3D1C6;border-radius:20px;padding:9px 14px;resize:none;font-family:inherit;background:#FCFCFA;max-height:120px;line-height:1.35}
+    .vh-qb .ch-send{flex:none}
+    .vh-dp{position:relative;overflow:hidden;cursor:pointer}
+    .vh-dp input{position:absolute;inset:0;opacity:0;-webkit-appearance:none;appearance:none;min-width:0;width:100%;height:100%}
     .vh-qc{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
     .vh-chip{font:inherit;font-size:14px;font-weight:600;border:1.5px solid #D3D1C6;background:#fff;color:#4A544E;border-radius:20px;padding:4px 12px}
     .vh-chip.on{background:#1F5E3B;border-color:#1F5E3B;color:#fff}
@@ -1512,6 +1520,7 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody" id="ahBody"></div>
+        <div class="modal-footer vh-foot" id="ahFoot"></div>
       </div>
     </div>
   </div>
@@ -4420,6 +4429,7 @@
     function openAssetHist(name) {
       const a = (gData.assets || []).find(x => x.name === name) || {};
       if (a.category && a.category !== 'Worker') return vehOpen(name);
+      $('ahFoot').innerHTML = '';
       const logs = (gData.assetLogs || []).filter(l => l.asset_name === name);
       let down = null, downDays = 0, breaks = 0;
       [...logs].reverse().forEach(l => {
@@ -4516,14 +4526,15 @@
       const name = vehCur, m = t.match(/(?:ร้าน|อู่)\s*(\S+)/);
       const fut = vehQDate > todayISO() ? vehQDate : /พรุ่งนี้/.test(t) ? isoAdd(todayISO(), 1) : /มะรืน/.test(t) ? isoAdd(todayISO(), 2) : '';
       if (fut) { // แผนวันข้างหน้า = นัด/เตือน (ขึ้นในไลน์เช้า "พรุ่งนี้" + "วันนี้") ยังไม่ลงประวัติรถ
-        const btn = $('vhSave'); btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+        const btn = $('vhSave'); btn.disabled = true; btn.textContent = '…';
         const txt = name + ' · ' + t.replace(/\s*(พรุ่งนี้|มะรืนนี้|มะรืน)\s*/g, ' ').trim();
         return callApi('remOp', [{ fn: 'add', id: 'R' + Date.now() + 'v', p: { text: txt, date: fut, time: '', repeat: '', lead_days: 0 } }])
           .then(d => { gData.reminders = d.reminders || []; vehDraft = ''; vehQDate = ''; vehQShop = false; render(); vehRender(); })
           .catch(e => { alert('❌ ' + e.message); vehRender(); });
       }
       const op = { fn: 'asset', asset: name, event: vehQShop ? 'ซ่อม' : 'บันทึก', detail: t, shop: vehQShop && m ? m[1] : '', place: '', date: isoToBE(vehQDate || todayISO()), plates: [], photo_ids: [], state: vehQShop ? 'at_shop' : '' };
-      call('chatApply', [[op], 'VQ' + Date.now()], d => { vehDraft = ''; vehQDate = ''; vehQShop = false; init(d); vehRender(); }, $('vhSave'));
+      $('vhSave').disabled = true; $('vhSave').textContent = '…';
+      call('chatApply', [[op], 'VQ' + Date.now()], d => { vehDraft = ''; vehQDate = ''; vehQShop = false; init(d); vehRender(); });
     }
     function vehOpen(name) { if (vehCur !== name) { vehEdit = false; vehDraft = ''; vehQDate = ''; vehQShop = false; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
     function vehEditTgl() { vehEdit = !vehEdit; vehRender(); }
@@ -4549,12 +4560,12 @@
       h += `<div class="vh-tiles">${tile('ภาษีหมด', ri ? dShort(beToISO(a.reg_expire)) + ' ' + vehYY(beToISO(a.reg_expire)) : '—', ri ? (ri.d < 0 ? '#A3271B' : ri.d <= 90 ? '#B35C00' : '') : '#8A918C')}${tile(a.category === 'Tractor' ? 'ชม./ไมล์ล่าสุด' : 'ไมล์ล่าสุด', mile ? mile.toLocaleString('en-US') : 'ยังไม่จด', mile ? '' : '#8A918C')}${tile('ค่าซ่อมปีนี้', cost ? baht(cost) + ' บ.' : '0 บ.', cost ? '' : '#8A918C')}</div>`;
       if (hasBat) { const bd = calcDays(a.battery_date); h += `<div class="vh-note">🔋 แบต ${esc(a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : 'ยังไม่ระบุ')}${bd !== null ? ` · ใช้มา ${bd} วัน` : ''}</div>`; }
       // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
-      h += `<div class="vh-cd vh-q"><div class="vh-k">จดเรื่องคันนี้</div>
-        <textarea id="vhTxt" rows="2" placeholder="เช่น ชาร์จแบต · พรุ่งนี้เอาไปเช็คร้านช่างนุ" oninput="vehDraft=this.value">${esc(vehDraft)}</textarea>
-        <div class="vh-qc">${[[isoAdd(todayISO(), -1), 'เมื่อวาน'], ['', 'วันนี้'], [isoAdd(todayISO(), 1), 'พรุ่งนี้ (นัด)']].map(([d, l]) => `<button type="button" class="vh-chip${vehQDate === d ? ' on' : ''}" onclick="vehQDate='${d}';vehRender()">${l}</button>`).join('')}
-          ${a.category !== 'Pump' ? `<button type="button" class="vh-chip${vehQShop ? ' on' : ''}" onclick="vehQShop=!vehQShop;vehRender()">${vehQShop ? '✓ ' : ''}รถเข้าร้านแล้ว</button>` : ''}</div>
-        <button type="button" class="bigbtn bigbtn-main" id="vhSave" onclick="vehQuick()">บันทึก</button>
-        <div class="vh-s">เรื่องวันนี้/เมื่อวาน = ลงประวัติ · มีคำว่า "พรุ่งนี้" หรือแตะพรุ่งนี้ = เป็นนัด เตือนในไลน์เช้า · มีรูป/บิล ส่งในแท็บบันทึกงาน</div></div>`;
+      const qd = vehQDate || todayISO(), qn = dayDiff(todayISO(), qd);
+      $('ahFoot').innerHTML = `<div class="vh-qc">
+          <button type="button" class="vh-chip${!vehQDate ? ' on' : ''}" onclick="vehQDate='';vehRender()">วันนี้</button>
+          <label class="vh-chip vh-dp${vehQDate ? ' on' : ''}">📅 ${vehQDate ? dShort(qd) + (qn === 1 ? ' (พรุ่งนี้)' : qn === -1 ? ' (เมื่อวาน)' : '') + (qn > 0 ? ' · นัด' : '') : 'เลือกวัน'}<input type="date" value="${qd}" onchange="vehQDate=this.value===todayISO()?'':this.value;vehRender()"></label>
+          ${a.category !== 'Pump' && qn <= 0 ? `<button type="button" class="vh-chip${vehQShop ? ' on' : ''}" onclick="vehQShop=!vehQShop;vehRender()">${vehQShop ? '✓ ' : ''}รถเข้าร้านแล้ว</button>` : ''}</div>
+        <div class="vh-qb"><textarea id="vhTxt" rows="1" placeholder="${qn > 0 ? 'นัดอะไร เช่น ไปเช็คร้านช่างนุ' : 'จดเรื่องคันนี้ เช่น ชาร์จแบต'}" oninput="vehDraft=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'">${esc(vehDraft)}</textarea><button type="button" class="ch-send" id="vhSave" aria-label="บันทึก" onclick="vehQuick()">➤</button></div>`;
       // นัดของคันนี้ (ไม่ซ้ำ) — ถึงวันแล้วกด "ไปแล้ว" = ลงประวัติ + ปิดนัด
       const appts = vehRems(a).filter(r => !r.repeat).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
       if (appts.length) h += `<div class="vh-cd warn"><div class="vh-k">นัด / เตือน คันนี้</div>${appts.map(r => {
@@ -4599,7 +4610,7 @@
           <div class="vh-k">${v.shop ? esc(v.shop) : 'ไม่ระบุร้าน'}</div><div class="vh-ti${v.open ? ' o' : v.end ? ' g' : ''}">${ttl}</div>
           <div class="vh-rows">${rows}</div>
           ${amt ? `<div class="vh-f"><span>ค่าใช้จ่ายรวม</span><b>${baht(amt)} บ.</b></div>` : ''}
-          ${v.open ? `<div class="vh-2b"><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehChat('${qa(name)}',1)">📷 ส่งรูปบิล</button></div><div class="vh-s">ช่างโทรบอกอะไรเพิ่ม พิมพ์ในแชตได้เลย จะต่อท้ายใบนี้</div>` : ''}
+          ${v.open ? `<div class="vh-2b"><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehChat('${qa(name)}',1)">📷 ส่งรูปบิล</button></div><div class="vh-s">ช่างโทรบอกอะไรเพิ่ม พิมพ์ในช่องจดด้านล่าง จะต่อท้ายใบนี้</div>` : ''}
         </div>`;
       }).join('');
       h += `<div class="vh-btns">${hasBat ? `<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button>` : ''}<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openAssetEdit('${qa(name)}')">แก้สถานะ</button>${vis.length ? `<button type="button" class="bigbtn bigbtn-out" onclick="vehEditTgl()">${vehEdit ? 'เสร็จ' : 'ลบที่จดผิด'}</button>` : ''}</div>`;

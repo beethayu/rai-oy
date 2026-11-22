@@ -495,6 +495,17 @@ function deleteAssetLog(logId) {
   });
 }
 
+// ✏️ แก้ข้อความประวัติรถ (22 พ.ย. 69 จดผิด ตัวแม่ → ตัวลูก) · issue = แก้ "อาการ/ทำอะไร" ของรถที่ยังอยู่ร้านด้วย (ว่าง = ไม่แก้)
+function editAssetLog(logId, detail, issue) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ALOG), d = sh.getDataRange().getDisplayValues();
+    const r = d.findIndex((x, i) => i > 0 && x[0] === String(logId)); if (r < 1) throw new Error('ไม่พบรายการ');
+    sh.getRange(r + 1, 6).setNumberFormat('@').setValue(String(detail || '-').slice(0, 300));
+    if (issue) { const aSh = ss.getSheetByName(SH.ASSET), ad = aSh.getDataRange().getDisplayValues(), ar = ad.findIndex((x, i) => i > 0 && x[2] === d[r][2]); if (ar > 0) aSh.getRange(ar + 1, 5).setNumberFormat('@').setValue(String(issue).slice(0, 200)); }
+    return readAll_(ss);
+  });
+}
+
 // 📅 ลากงานในปฏิทินไปวันอื่น (16 พ.ย. 69): เปลี่ยนวันที่ของงานชุดนั้น + ประวัติตัดสต็อกของงาน แล้วคำนวณสถานะแปลงใหม่
 // iso = YYYY-MM-DD · ห้ามวันข้างหน้า · ห้ามงานตัดอ้อย (ผังเริ่มฤดูใหม่ตามวันตัด) · ส่งซ้ำได้ไม่เบิ้ล (ตั้งค่าวันเดิมซ้ำ)
 function moveActivities(logIds, iso) {

@@ -2154,6 +2154,7 @@
       const open = [...document.querySelectorAll('.modal.show')].map(m => m.id).filter(x => x && x !== id);
       const par = open[open.length - 1] || (Date.now() - mProg.t < 1200 && mProg.id !== id ? mProg.id : '');
       if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
+      if (id === 'satModal') return setTimeout(satHdr, 0);
       const hd = e.target.querySelector('.modal-header'); if (!hd) return;
       let b = hd.querySelector('.mb-back');
       if (mPar[id]) { if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; b.onclick = () => hideModal(id); hd.prepend(b); } }
@@ -6769,7 +6770,7 @@ Export.table.toDrive({
       call('getSatData', [], d => { satData = d || { sat: [], radar: [] }; satBuild(); done(); }, null, '⏳ กำลังโหลดข้อมูลดาวเทียม...');
     }
     function openSat(key) {
-      satSelK = null;
+      satSelK = null; satFromList = false;
       $('sat-body').innerHTML = '<div class="empty"><b>กำลังโหลด…</b></div>';
       showM('satModal');
       satEnsure(() => key ? satOpen(key) : satList());
@@ -7848,7 +7849,7 @@ Export.table.toDrive({
       satImg(x, x.last.d, x.st === 'bad', img => { const e = $(el); if (e && img) e.innerHTML = `<img src="${img}" alt="">`; });
     }
     function satList() {
-      satSelK = null;
+      satSelK = null; setTimeout(satHdr, 0);
       if (!(satData.sat || []).length) { $('sat-body').innerHTML = '<div class="empty"><b>ยังไม่มีข้อมูลดาวเทียม</b>ให้รัน logSatelliteBackfill ใน Apps Script ก่อน</div>'; return; }
       const it = satInfo.items, plots = it.filter(x => !x.land), by = st => plots.filter(x => x.st === st).sort((a, b) => a.name.localeCompare(b.name, 'th'));
       const bad = by('bad'), ok = by('ok'), none = by('none'), lands = it.filter(x => x.land);
@@ -7856,7 +7857,7 @@ Export.table.toDrive({
       const row = (x, i) => {
         const v = x.last ? x.last.ndvi : null;
         const say = x.st === 'bad' ? x.flags.join(' · ') : x.st === 'none' ? (x.last ? `ภาพใสล่าสุด ${satDs(x.last.d)} (เมฆบังช่วงนี้)` : 'ยังไม่มีภาพใส') : x.land ? `เขียว ${v.toFixed(2)} · ${satLevel(v)}` : `เขียว ${v.toFixed(2)} · ${satLevel(v)}`;
-        return `<button type="button" class="sat-it" onclick="satOpen('${qa(x.key)}')"><span class="th" id="satTh${i}"></span>
+        return `<button type="button" class="sat-it" onclick="satOpen('${qa(x.key)}',true)"><span class="th" id="satTh${i}"></span>
           <span class="t"><b>${esc(x.name)}</b><span>${esc(say)}</span></span><span class="st">${x.st === 'bad' ? '⚠️' : x.st === 'ok' ? '✅' : '☁️'}</span></button>`;
       };
       const all = bad.concat(ok, none, lands);
@@ -7870,11 +7871,24 @@ Export.table.toDrive({
         ${lands.length ? '<div class="sat-h">ที่ดินที่จะเช่า</div>' + lands.map(x => row(x, all.indexOf(x))).join('') : ''}`;
       all.forEach((x, i) => satThumb(x, 'satTh' + i));
     }
-    function satOpen(key) {
+    // ‹ ในหัวหน้าดาวเทียม (22 พ.ย. 69 ผู้ใช้: เข้าจากรายการ "ควรไปดู" → แปลง → ย้อน แล้วเด้งไปแผนที่รวม "กดย้อนหลายครั้งชักมึน")
+    // = ย้อนทีละชั้นแบบ iPhone: หน้าแปลงที่เปิดจากรายการ → กลับรายการ · หน้าแปลงที่เปิดจากแผนที่ / หน้ารายการ → กลับหน้าที่เปิดมา (ถ้ามี)
+    let satFromList = false;
+    function satBack() { if (satSelK && (satFromList || !mPar.satModal)) { satFromList = false; satList(); const mb = $('sat-body').closest('.modal-body'); if (mb) mb.scrollTop = satListY; } else hideModal('satModal'); }
+    let satListY = 0;
+    function satHdr() {
+      const hd = $('satModal').querySelector('.modal-header'); if (!hd) return;
+      let b = hd.querySelector('.mb-back'); const need = !!satSelK || !!mPar.satModal;
+      if (need && !b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; hd.prepend(b); }
+      if (b) { if (!need) b.remove(); else b.onclick = satBack; }
+      const t = hd.querySelector('.modal-title'); if (t) t.textContent = satSelK ? '🛰️ ' + ((satInfo.items.find(i => i.key === satSelK) || {}).name || 'ดาวเทียม') : '🛰️ ดาวเทียมรายแปลง';
+    }
+    function satOpen(key, fromList) {
+      if (fromList) { satFromList = true; const mb = $('sat-body').closest('.modal-body'); satListY = mb ? mb.scrollTop : 0; } else if (fromList === undefined && !satSelK) satFromList = false;
       const x = satInfo.items.find(i => i.key === key);
       if (!x) return satList();
       satSelK = key; satSelD = x.last ? x.last.d : null; satMode = x.st === 'bad' ? 'w' : 'n';
-      satDetail();
+      satDetail(); satHdr();
       const mb = $('sat-body').closest('.modal-body'); if (mb) mb.scrollTop = 0;
     }
     function satPick(d) { satSelD = d; satDetail(); }
@@ -7965,7 +7979,7 @@ Export.table.toDrive({
         years = `<div class="sat-h">เรดาร์ย้อนหลัง: เห็นน้ำขังกี่ครั้ง</div><div class="sat-card">${ys.length ? ys.map(y => `<div class="d-flex justify-content-between"><span>ปี ${+y + 543}</span><b>${byY[y].w} จาก ${byY[y].n} ภาพ</b></div>`).join('') : '<small>ยังไม่มีข้อมูลเรดาร์</small>'}<small class="d-block mt-1">เห็นเฉพาะน้ำบนดินโล่ง ใต้พืชสูงมองไม่เห็น</small></div>`;
       }
       $('sat-body').innerHTML = `
-        <div class="d-flex justify-content-between align-items-center"><button type="button" class="btn btn-link px-0 fw-bold" style="color:var(--green);text-decoration:none" onclick="satList()">‹ ทุกแปลง</button>
+        <div class="d-flex justify-content-between align-items-center"><button type="button" class="btn btn-link px-0 fw-bold" style="color:var(--green);text-decoration:none" onclick="satFromList=false;satList()">ทุกแปลง</button>
           <button type="button" class="btn btn-sm btn-outline-success fw-bold" style="border-radius:10px" onclick="satToMap('${qa(x.key)}')">🗺️ บนแผนที่</button></div>
         <div class="d-flex justify-content-between align-items-start gap-2"><div><h5 class="mb-0 fw-bold">${esc(x.name)}</h5><small class="text-muted">${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}${cur ? ' · ภาพ ' + satD(cur.d) : ''}</small></div>
           ${cur ? `<div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div>` : ''}</div>

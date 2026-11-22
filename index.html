@@ -682,6 +682,7 @@
     .vh-pv{display:flex;gap:6px;margin-bottom:6px!important}.vh-pv span{position:relative}.vh-pv img{width:54px;height:54px;object-fit:cover;border-radius:8px}
     .vh-pv button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:11px;border:0;background:#333;color:#fff;font-size:12px;line-height:22px;padding:0}
     .vh-qb .ch-cam{flex:none}
+    .vh-batr{display:flex;align-items:center;gap:6px}.vh-batt{flex:1;min-width:0}.vh-batr .vh-chip{padding:3px 12px;font-size:13px}
     .vh-batb{display:block;width:calc(100% - 4px);text-align:left;border:0;background:none;font:inherit;padding:0}.vh-batb span{color:#1F5E3B;font-weight:700;margin-left:6px}
     .vh-back{border:0;background:none;color:#fff;font-size:28px;line-height:1;padding:0 8px 0 0;vertical-align:-3px}
     .vh-sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -4610,7 +4611,7 @@
         const bd = calcDays(a.battery_date), bn = a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : '';
         h += vehBatEd ? `<div class="vh-cd"><div class="vh-k">แบตเตอรี่คันนี้</div><div class="vh-form" style="margin-top:6px"><div class="vh-fr"><span>แบตลูกไหน</span><input id="vhBat" class="vh-in" value="${esc(bn)}" placeholder="เช่น แบตลูกที่ 1 (GS 120A)"></div><div class="vh-fr"><span>วันที่ใส่</span><input id="vhBatD" class="vh-in" type="date" value="${beToISO(a.battery_date) || ''}"></div></div>
             <div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" id="vhBatSv" onclick="vehBatSave()">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBatEd=false;vehRender()">ยกเลิก</button></div></div>`
-          : `<button type="button" class="vh-note vh-batb" onclick="vehBatEd=true;vehRender()">🔋 แบต ${esc(bn || 'ยังไม่ระบุ')}${bd !== null && bn ? ` · ใช้มา ${bd} วัน` : ''} <span>แก้</span></button>`;
+          : `<div class="vh-note vh-batr"><span class="vh-batt">🔋 แบต ${esc(bn || 'ยังไม่ระบุ')}${bd !== null && bn ? ` · ใช้มา ${bd} วัน` : ''}</span><button type="button" class="vh-chip" onclick="vehBatEd=true;vehRender()">แก้</button><button type="button" class="vh-chip" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button></div>`;
       }
       // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
       const qd = vehQDate || todayISO(), qn = dayDiff(todayISO(), qd);
@@ -4673,7 +4674,6 @@
           ${v.open ? `<div class="vh-2b"><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBill()">🧾 ส่งรูปบิล</button></div><div class="vh-s">ช่างโทรบอกอะไรเพิ่ม พิมพ์ในช่องจดด้านล่าง จะต่อท้ายใบนี้</div>` : ''}
         </div>`;
       }).join('');
-      h += `<div class="vh-btns">${hasBat ? `<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button>` : ''}</div>`;
       $('ahBody').innerHTML = h;
     }
 

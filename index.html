@@ -3866,6 +3866,112 @@
       if (/ไถ|ผาน/.test(d)) return 'ไถ';
       return '';
     }
+    // ===== 🔬 วิเคราะห์แปลงนี้ (22 พ.ย. 69): น้ำในดิน (ET) · ความเขียวเทียบแปลงอายุใกล้กัน (ดัชนีผลผลิต) · โซนอ่อนประจำ · ปุ๋ยรายแปลง =====
+    const wzMemo = {};
+    function weakZone(pid, cb) {
+      if (wzMemo[pid] !== undefined) return cb(wzMemo[pid]);
+      callApi('getWeakZones', [[pid]]).then(r => wzProc(pid, (r || {})[pid] || '', cb)).catch(() => cb(null));
+    }
+    // ภาพเทา (ค่า = NDVI เฉลี่ย 240 วัน) → ตัดขอบแปลง ~1 ช่องดาวเทียม (ขอบปนถนน/คันนา ทำให้ดูอ่อนเกินจริง) → เทียบค่าเฉลี่ยของแปลงเอง → ระบายสี
+    function wzProc(pid, src, cb) {
+      if (!src) { wzMemo[pid] = null; return cb(null); }
+      const im = new Image(); im.onload = () => {
+        try {
+          const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H;
+          const g = c.getContext('2d'); g.drawImage(im, 0, 0); const id = g.getImageData(0, 0, W, H), d = id.data;
+          let m = new Uint8Array(W * H); for (let i = 0; i < W * H; i++) m[i] = d[i * 4 + 3] > 200 ? 1 : 0;
+          const R = Math.max(2, Math.round(Math.min(W, H) / 25));
+          let e = m; for (let k = 0; k < R; k++) { const n = new Uint8Array(W * H); for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; n[i] = e[i] && e[i - 1] && e[i + 1] && e[i - W] && e[i + W] ? 1 : 0; } e = n; }
+          let s = 0, n = 0; for (let i = 0; i < W * H; i++) if (e[i]) { s += d[i * 4] / 255; n++; }
+          if (n < 30) { wzMemo[pid] = null; return cb(null); }
+          const mean = s / n; let w1 = 0, w2 = 0;
+          for (let i = 0; i < W * H; i++) {
+            const o = i * 4; if (!m[i]) { d[o + 3] = 0; continue; }
+            const v = d[o] / 255 - mean;
+            if (!e[i]) { d[o] = 230; d[o + 1] = 228; d[o + 2] = 215; d[o + 3] = 255; continue; }
+            if (v <= -0.08) { w2++; d[o] = 200; d[o + 1] = 40; d[o + 2] = 30; } else if (v <= -0.04) { w1++; d[o] = 245; d[o + 1] = 140; d[o + 2] = 50; }
+            else if (v >= 0.04) { d[o] = 46; d[o + 1] = 140; d[o + 2] = 56; } else { d[o] = 237; d[o + 1] = 230; d[o + 2] = 184; }
+            d[o + 3] = 255;
+          }
+          g.putImageData(id, 0, 0);
+          const p = (gData.plots || []).find(q => q.plot_id === pid), rai = num(p && p.area_rai);
+          wzMemo[pid] = { img: c.toDataURL(), mean, pct: (w1 + w2) / n, pct2: w2 / n, rai: rai * (w1 + w2) / n };
+        } catch (er) { wzMemo[pid] = null; }
+        cb(wzMemo[pid]);
+      };
+      im.onerror = () => { wzMemo[pid] = null; cb(null); }; im.src = src;
+    }
+    function plotStart(p) { let st = ''; try { const i = flInfo(p); if (i && i.start && !i.pre) st = i.start; } catch (e) {} return st || beToISO(p.plant_date) || ''; }
+    // ความเขียวเฉลี่ยตั้งแต่เริ่มฤดู (ภาพใส) เทียบแปลงประเภทเดียวกันที่อายุใกล้กัน (±45 วัน) — ใช้เป็นดัชนีผลผลิตจนกว่าจะมีตันจริงพอทำโมเดล
+    function plotGreen(p) {
+      if (!satInfo) return null;
+      const one = q => { const x = satInfo.items.find(i => i.id === q.plot_id && !i.land), st = plotStart(q); if (!x || !st) return null;
+        const g = x.good.filter(o => o.d >= st); if (g.length < 3) return null;
+        return { mean: g.reduce((a, o) => a + o.ndvi, 0) / g.length, last: g[g.length - 1].ndvi, age: dayDiff(st, todayISO()), n: g.length }; };
+      const me = one(p); if (!me) return null;
+      const peers = (gData.plots || []).filter(q => q.plot_id !== p.plot_id && satType(q) === satType(p)).map(q => ({ q, r: one(q) })).filter(o => o.r && Math.abs(o.r.age - me.age) <= 45);
+      if (peers.length < 2) return { me, peers: [], rank: null };
+      const arr = peers.map(o => o.r.mean).concat(me.mean).sort((a, b) => b - a);
+      return { me, peers, rank: arr.indexOf(me.mean) + 1, of: arr.length, med: satMed(peers.map(o => o.r.mean)) };
+    }
+    function plotFert(p) { // กระสอบ/ไร่ ตั้งแต่เริ่มฤดู เทียบเฉลี่ยทั้งไร่ (แปลงประเภทเดียวกัน)
+      const per = q => { const st = plotStart(q), rai = num(q.area_rai); if (!rai) return null; let b = 0, k = 0;
+        (gData.activities || []).forEach(a => { if (a.plot_id !== q.plot_id || a.activity_group !== 'ใส่ปุ๋ย' || /ถาก|ซ่อม|ตัดพันธุ์|ขุด|ปลูกอ้อย/.test(a.activity_detail || '')) return;
+          const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (st && iso < st) return; const m = String(a.quantity || '').match(/([\d.]+)\s*กระสอบ/); if (m) { b += num(m[1]); k++; } });
+        return { b, k, pr: b / rai }; };
+      const me = per(p); if (!me) return null;
+      const all = (gData.plots || []).filter(q => satType(q) === satType(p)).map(per).filter(o => o && o.k);
+      return { me, avg: all.length ? all.reduce((a, o) => a + o.pr, 0) / all.length : null, n: all.length };
+    }
+    function dsAnaFill(pid) {
+      const el = $('dsAna'); if (!el) return;
+      const p = (gData.plots || []).find(q => q.plot_id === pid); if (!p) return;
+      const sc = (() => { try { return soilWx ? soilCalc(p) : null; } catch (e) { return null; } })();
+      const gr = plotGreen(p), fe = plotFert(p), wz = wzMemo[pid];
+      const yl = (gData.yields || []).filter(y => num(y.tons) > 0).length;
+      let h = '';
+      // 1) น้ำในดิน (ฝน + ขึ้นน้ำ − ET0 × ค่าตามอายุอ้อย)
+      if (sc) { const pc = Math.round(sc.pct * 100), st = SOIL_ST[sc.st] || ['', '#1F2A23'];
+        h += `<div class="vh-row pd-r"><div class="vh-dt"><b>💧</b></div><div class="vh-tx"><div class="vh-k" style="font-size:12px">น้ำในดิน (คิดจากฝน + แดด/ลมจริง)</div><div class="vh-main" style="color:${st[1]}">${st[0]} · ~${pc}%</div><div class="vh-sub">${sc.mode === 'norm' && sc.st !== 'wet' ? (sc.pct >= 0.5 ? `ฝนไม่ตก อยู่ได้อีก ~${Math.max(0, sc.left)} วันก่อนต่ำกว่าครึ่ง` : 'ต่ำกว่าครึ่งแล้ว อ้อยเริ่มเครียดน้ำ') + ` · อ้อยใช้น้ำวันนี้ ~${r1(sc.etNow)} มม.` : ''}</div></div></div>`; }
+      else h += `<div class="vh-row pd-r"><div class="vh-dt"><b>💧</b></div><div class="vh-tx"><div class="vh-sub">กำลังคำนวณน้ำในดิน…</div></div></div>`;
+      // 2) ความเขียวเทียบเพื่อน = ดัชนีผลผลิต
+      if (gr && gr.rank) { const df = gr.me.mean - gr.med, good = df >= 0.03, bad = df <= -0.03;
+        h += `<div class="vh-row pd-r"><div class="vh-dt"><b>🌿</b></div><div class="vh-tx"><div class="vh-k" style="font-size:12px">ความเขียวสะสมฤดูนี้ (ดัชนีผลผลิต)</div><div class="vh-main" style="color:${good ? '#1F7A3D' : bad ? '#C2410C' : '#1F2A23'}">อันดับ ${gr.rank}/${gr.of} ของ${esc(satType(p))}อายุใกล้กัน</div>
+          <div class="vh-sub">เฉลี่ย ${gr.me.mean.toFixed(2)} · กลุ่มนี้ ${gr.med.toFixed(2)} (${df >= 0 ? '+' : ''}${df.toFixed(2)}) · จาก ${gr.me.n} ภาพ</div><div class="vh-sub" style="font-size:12px;color:#8A918C">${yl >= 5 ? '' : `แปลงเป็นตัน/ไร่ได้เมื่อจดผลผลิตส่งโรงงานครบ 5 แปลงขึ้นไป (ตอนนี้ ${yl})`}</div></div></div>`; }
+      else if (satInfo) h += `<div class="vh-row pd-r"><div class="vh-dt"><b>🌿</b></div><div class="vh-tx"><div class="vh-sub">ความเขียวสะสม: ภาพใสฤดูนี้ยังน้อย หรือไม่มีแปลงอายุใกล้กันให้เทียบ</div></div></div>`;
+      // 3) โซนอ่อนประจำ
+      if (wz) h += `<div class="vh-row pd-r"><div class="vh-dt"><img src="${wz.img}" alt="" style="width:54px;border-radius:6px;image-rendering:pixelated"></div><div class="vh-tx"><div class="vh-k" style="font-size:12px">โซนอ่อนประจำ (เฉลี่ย 8 เดือน)</div>
+        <div class="vh-main" style="color:${wz.pct >= 0.1 ? '#C2410C' : '#1F7A3D'}">${wz.pct >= 0.03 ? `อ่อนประจำ ~${r1(wz.rai)} ไร่ (${Math.round(wz.pct * 100)}%)` : '✓ สม่ำเสมอทั้งแปลง'}</div>
+        <div class="vh-sub">แดง/ส้ม = เขียวน้อยกว่าส่วนอื่นของแปลงเกือบตลอด · ไม่นับขอบแปลง</div><button type="button" class="vh-ph" onclick="wzBig('${qa(pid)}')">ดูภาพใหญ่</button></div></div>`;
+      else if (wz === undefined) h += `<div class="vh-row pd-r"><div class="vh-dt"><b>🟥</b></div><div class="vh-tx"><div class="vh-sub">กำลังหาโซนอ่อนประจำ…</div></div></div>`;
+      // 4) ปุ๋ยรายแปลง (ทิศทาง ไม่ใช่อัตรา — อัตราใช้ตามฉลาก)
+      if (fe) { const hi = fe.avg !== null && fe.me.pr > fe.avg * 1.15, lo = fe.avg !== null && fe.me.pr < fe.avg * 0.85;
+        const gd = gr && gr.rank ? gr.me.mean - gr.med : null, G = gd !== null && gd >= 0.03, B = gd !== null && gd <= -0.03;
+        const tip = !fe.me.k ? 'ยังไม่มีบันทึกใส่ปุ๋ยฤดูนี้' : B && lo ? 'อ้อยอ่อนกว่าเพื่อน และได้ปุ๋ยน้อยกว่าเฉลี่ย → ปุ๋ยน่าจะเป็นสาเหตุ ลองเพิ่มรอบหน้า (ตามอัตราฉลาก)'
+          : B && !lo ? 'ได้ปุ๋ยพอ ๆ เฉลี่ยแต่ยังอ่อนกว่าเพื่อน → น่าจะเป็นน้ำ/ดิน/หญ้า มากกว่าปุ๋ย เช็กน้ำในดินกับโซนอ่อนก่อนเพิ่มปุ๋ย'
+          : G && hi ? 'อ้อยดีกว่าเพื่อน และใส่มากกว่าเฉลี่ย → รอบหน้าลองลดเฉพาะแปลงนี้ แล้วดูความเขียวเทียบ'
+          : G ? 'อ้อยดีกว่าเพื่อนด้วยปุ๋ยไม่เกินเฉลี่ย → ใส่แบบเดิมได้' : 'ใกล้เคียงเพื่อน → ใส่แบบเดิม';
+        const zone = wz && wz.pct >= 0.1 ? ` · มีโซนอ่อนประจำ ~${r1(wz.rai)} ไร่ → ตรวจดิน/เติมเฉพาะตรงนั้น คุ้มกว่าเพิ่มทั้งแปลง` : '';
+        h += `<div class="vh-row pd-r"><div class="vh-dt"><b>🌱</b></div><div class="vh-tx"><div class="vh-k" style="font-size:12px">ปุ๋ยรายแปลง (ฤดูนี้)</div><div class="vh-main">${fe.me.k ? `${r1(fe.me.pr)} กระสอบ/ไร่` : 'ยังไม่ใส่'}${fe.avg !== null && fe.me.k ? ` <span style="font-weight:500;color:#6B736E;font-size:13px">· เฉลี่ย${esc(satType(p))} ${r1(fe.avg)}</span>` : ''}</div>
+          <div class="vh-sub" style="color:#1F2A23">${tip}${zone}</div><div class="vh-sub" style="font-size:12px;color:#8A918C">แนะนำทิศทางจากความเขียวเทียบเพื่อน · อัตราต่อไร่ยึดฉลากปุ๋ย</div></div></div>`; }
+      el.innerHTML = `<div class="vh-k">วิเคราะห์แปลงนี้</div><div class="vh-rows">${h}</div>`;
+    }
+    function dsAnaLoad(pid) {
+      dsAnaFill(pid);
+      const again = () => { if (mDsPid === pid) dsAnaFill(pid); };
+      try { soilLoad(again); } catch (e) {}
+      try { satEnsure(again); } catch (e) {}
+      if (wzMemo[pid] === undefined) weakZone(pid, again);
+    }
+    function wzBig(pid) {
+      const z = wzMemo[pid]; if (!z) return;
+      let o = $('vhShop'); if (!o) { o = document.createElement('div'); o.id = 'vhShop'; document.body.appendChild(o); }
+      const p = (gData.plots || []).find(q => q.plot_id === pid) || {};
+      o.innerHTML = `<div class="vs-hd"><span>โซนอ่อนประจำ · ${esc(p.plot_name || '')}</span><button type="button" aria-label="ปิด" onclick="$('vhShop').remove()">✕</button></div>
+        <img src="${z.img}" alt="" style="width:100%;image-rendering:pixelated;border-radius:10px">
+        <div class="sat-key1" style="margin-top:10px"><span><i style="background:#C8281E"></i>อ่อนมาก</span><span><i style="background:#F58C32"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>
+        <p style="font-size:15px;margin-top:12px;line-height:1.5">เทียบความเขียวเฉลี่ยของทุกภาพใส 8 เดือนที่ผ่านมา กับค่าเฉลี่ยของแปลงเอง · จุดแดง/ส้ม = อ่อนกว่าเพื่อนในแปลงเกือบตลอด (ดินไม่ดี/น้ำไม่ถึง/ขาดปุ๋ย/หญ้า) ไม่ใช่แค่ภาพเดียว · ขอบแปลง (สีเทาอ่อน) ไม่นับ เพราะปนถนน/คันนา · ภาพทิศเหนืออยู่บน</p>`;
+    }
     function openDossier(pid) {
       mDsPid = pid;
       let p = gData.plots.find(x => x.plot_id === pid);
@@ -3928,6 +4034,7 @@
       if (tags.length) html += `<div class="vh-note">${tags.includes(TAG_SAND) ? '<span class="chip chip-sand">ดินทราย แห้งง่าย</span> ' : ''}${tags.includes('น้ำขังง่าย') ? '<span class="sw-pr" style="font-size:13px">💧 น้ำขังง่าย</span>' : ''}</div>`;
       html += `<div class="vh-tiles">${tile(p.cane_type === 'อ้อยใหม่' ? 'อายุจากปลูก' : 'อายุตอ', ageM !== null ? (ageM ? ageM + ' เดือน' : ageD + ' วัน') : '—', ageM === null ? '#8A918C' : '')}${tile('น้ำล่าสุด', wD !== null ? (wD === 0 ? 'วันนี้' : wD + ' วันก่อน') : 'ยังไม่มี', wD === null ? '#8A918C' : '')}${tile('ฉีดยารวม', totalSprayTanks ? r1(totalSprayTanks) + ' ถัง' : '0', totalSprayTanks ? '' : '#8A918C')}</div>`;
       if (an.next) html += `<div class="vh-cd ${an.nextCls === 'urgent' ? 'warn' : ''}"><div class="vh-k">ถัดไป</div><div class="vh-ti ${an.nextCls === 'urgent' ? 'o' : 'g'}" style="font-size:16px">${esc(String(an.next).replace(/^[^\p{L}\d]+/u, ''))}</div></div>`;
+      html += `<div class="vh-cd" id="dsAna"></div>`;
       html += `<div class="vh-2b" style="margin-bottom:10px"><button type="button" class="bigbtn bigbtn-main" onclick="dsLeave('${p.plot_id}');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ จดงานแปลงนี้</button><button type="button" class="bigbtn bigbtn-out" onclick="dsLeave('${p.plot_id}');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? '🗺️ ดูบนแผนที่' : '📍 วาดแนวแปลง'}</button></div>`;
       if (p.boundary && num(p.map_rai)) html += `<div class="vh-s" style="margin:-4px 4px 10px">วัดจากแนวบนแผนที่ได้ ${fmtRai(num(p.map_rai) * 1600)}</div>`;
       // 1) เตรียมดิน / ปลูก / บำรุงด้วยรถ — ทีละขั้น ✓ ทำแล้ว / ○ ยังไม่มี
@@ -3983,7 +4090,7 @@
           <div class="vh-s" style="margin:6px 2px">ดินทราย = ป้ายบอกเฉย ๆ · น้ำขังง่าย = หน้าน้ำในดินจะเตือนแปลงนี้ก่อน</div>
           <button type="button" class="bigbtn bigbtn-main" style="width:100%;height:46px" id="btnPlotSave" onclick="savePlotProfile('${p.plot_id}')">บันทึกข้อมูลแปลง</button>
         </details>`;
-      $('dosBody').innerHTML = html; dsOpen = {}; dsHist(pid);
+      $('dosBody').innerHTML = html; dsOpen = {}; dsHist(pid); try { dsAnaLoad(pid); } catch (e) {}
       bootstrap.Modal.getOrCreateInstance($('dossierModal')).show();
     }
 

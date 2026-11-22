@@ -503,6 +503,33 @@ function vehSave(op, pics, rid) {
   return chatApply([op], rid);
 }
 
+// 🛒 อะไหล่ที่ช่างให้ไปซื้อ (22 พ.ย. 69) — เก็บใน AssetLogs: event "🛒 อะไหล่" · detail = รายการ (ซื้อแล้ว + " · ค่า N บ.") · parts_or_battery = "รอซื้อ" | "ซื้อแล้ว dd/MM/yyyy"
+// op = {fn:'add', asset, items:[..], date, pics:[b64]} | {fn:'buy', id, price} | {fn:'unbuy', id} | {fn:'model', asset, model}
+function partOp(op) {
+  const ids = [];
+  if (op.fn === 'add' && (op.pics || []).length) { const folder = chatFolder_(), st = Date.now(); op.pics.slice(0, 4).forEach((p, i) => ids.push(folder.createFile(Utilities.newBlob(Utilities.base64Decode(p), 'image/jpeg', 'tmp_' + st + '_p' + (i + 1) + '.jpg')).getId())); }
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ALOG), pc = headCol_(sh, 'photo_id');
+    if (op.fn === 'add') {
+      const aSh = ss.getSheetByName(SH.ASSET), ad = aSh.getDataRange().getDisplayValues(), ar = ad.find((x, i) => i > 0 && x[2] === op.asset); if (!ar) throw new Error('ไม่พบรถ');
+      const d = op.date || getTodayStr(), base = Date.now();
+      const rows = (op.items || []).map(x => String(x || '').trim()).filter(Boolean).slice(0, 30).map((x, k) => { const r = ['AL' + (base + k) + 'P', d, op.asset, ar[1] || '-', '🛒 อะไหล่', x.slice(0, 200), 'รอซื้อ', '-']; while (r.length < pc) r.push(''); r[pc - 1] = k === 0 ? ids.join(',') : ''; return r; });
+      if (!rows.length && ids.length) { const r = ['AL' + base + 'P', d, op.asset, ar[1] || '-', '🛒 อะไหล่', 'รูปรายการอะไหล่', 'รอซื้อ', '-']; while (r.length < pc) r.push(''); r[pc - 1] = ids.join(','); rows.push(r); }
+      if (rows.length) appendRows_(sh, rows);
+      if (ids.length) nameChatPhotos_(ids, 'อะไหล่_' + op.asset, d, 'รถ', op.asset);
+    } else if (op.fn === 'model') {
+      const aSh = ss.getSheetByName(SH.ASSET), c = headCol_(aSh, 'model'), ad = aSh.getDataRange().getDisplayValues(), r = ad.findIndex((x, i) => i > 0 && x[2] === op.asset);
+      if (r > 0) aSh.getRange(r + 1, c).setNumberFormat('@').setValue(String(op.model || '').slice(0, 120));
+    } else {
+      const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((x, i) => i > 0 && x[0] === String(op.id)); if (r < 1) throw new Error('ไม่พบรายการ');
+      let det = String(d[r][5] || '').replace(/\s*·\s*ค่า\s*[\d,]+\s*บ\.?/, '');
+      if (op.fn === 'buy') { const pr = Math.round(Number(op.price) || 0); if (pr > 0) det += ' · ค่า ' + pr.toLocaleString('en-US') + ' บ.'; sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'ซื้อแล้ว ' + getTodayStr()]]); }
+      else if (op.fn === 'unbuy') sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'รอซื้อ']]);
+    }
+    return readAll_(ss);
+  });
+}
+
 // ✏️ แก้ข้อความประวัติรถ (22 พ.ย. 69 จดผิด ตัวแม่ → ตัวลูก) · issue = แก้ "อาการ/ทำอะไร" ของรถที่ยังอยู่ร้านด้วย (ว่าง = ไม่แก้)
 function editAssetLog(logId, detail, issue) {
   return withLock_(() => {

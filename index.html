@@ -695,6 +695,17 @@
     .vh-in{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:16px;text-align:right;padding:8px 0;color:#1F2A23;-webkit-appearance:none;appearance:none}
     .vh-in:focus{outline:none}
     .vh-fr.col{flex-direction:column;align-items:stretch;gap:0;padding:10px 12px 6px}.vh-fr.col span{width:auto;font-size:13px}.vh-fr.col .vh-in{text-align:left;resize:none;padding:4px 0;line-height:1.4}
+    .vh-foot .vh-qc{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;align-items:center}.vh-foot .vh-qc::-webkit-scrollbar{display:none}
+    .vh-qh{font-size:12px;color:#8A918C}
+    .vh-ck{width:30px;height:30px;border-radius:8px;border:2px solid #B9B6A8;background:#fff;color:#fff;font-weight:700;font-size:16px;line-height:1;padding:0}
+    .vh-pt .vh-ck:active,.vh-ck:not(:empty){background:#1F5E3B;border-color:#1F5E3B}
+    #vhShop{position:fixed;inset:0;z-index:3000;background:#fff;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 10px) 20px 40px;color:#111}
+    #vhShop .vs-hd{display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:700;color:#555;margin-bottom:10px}
+    #vhShop .vs-hd button{border:0;background:#EEE;border-radius:20px;width:40px;height:40px;font-size:18px}
+    #vhShop .vs-car{border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:12px}
+    #vhShop .vs-n{font-size:26px;font-weight:700;line-height:1.3}#vhShop .vs-p{font-size:22px;font-weight:600;margin-top:2px}#vhShop .vs-w{font-size:14px;color:#B35C00;margin-top:4px}
+    #vhShop .vs-l{font-size:24px;font-weight:600;line-height:1.45;padding-left:34px;margin:0}#vhShop .vs-l li{padding:8px 0;border-bottom:1px solid #DDD}
+    #vhShop .vs-ph{margin-top:16px;width:100%;height:52px;border-radius:14px;border:1.5px solid #1F5E3B;background:#fff;color:#1F5E3B;font:inherit;font-size:17px;font-weight:600}
     .vh-foot:empty{display:none}
     .vh-foot>*{margin:0!important;width:100%}.vh-foot .vh-qc{justify-content:flex-start;margin-top:0!important}.vh-foot .vh-qb{margin-top:8px!important}
     .vh-qb{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
@@ -4503,6 +4514,7 @@
       const line = l => ({ raw: l.detail || '', date: l.timestamp, ev: l.event_type || '', txt: l.bill ? `🧾 บิล ${l.shop || ''} · ${l.n} รายการ` : vehClean(l.detail), bill: l.bill, total: l.total || 0, amt: vehAmt(l.detail), photo: l.photo_id || '', id: l.log_id, parts: l.parts_or_battery && l.parts_or_battery !== '-' && !/^\S+ \S+/.test('') ? l.parts_or_battery : '' });
       logs.forEach(l => {
         const e = l.event_type || '', iso = beToISO(l.timestamp), shop = vehShop(l.detail) || (l.bill ? l.shop : '');
+        if (/🛒/.test(e) && !/^ซื้อแล้ว/.test(l.parts_or_battery || '')) return;
         if (/ทะเบียน|ภาษี/.test(e)) { out.push({ kind: 'reg', start: l.timestamp, lines: [line(l)] }); return; }
         if (isDown(e)) {
           if (!open) {
@@ -4578,7 +4590,7 @@
       if (vehPics.length) call('vehSave', [op, vehPics.map(p => p.b64), 'VQ' + Date.now()], done, null, '⏳ กำลังส่งรูป...');
       else call('chatApply', [[op], 'VQ' + Date.now()], done);
     }
-    function vehOpen(name) { vehBatEd = false; if (vehCur !== name) { vehRowOpen = vehRowEdit = ''; vehDraft = ''; vehQDate = ''; vehQShop = false; vehPics = []; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
+    function vehOpen(name) { vehBatEd = false; vehModelEd = false; vehBuyOpen = ''; if (vehCur !== name) { vehQPart = false; vehRowOpen = vehRowEdit = ''; vehDraft = ''; vehQDate = ''; vehQShop = false; vehPics = []; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
     function vehChat(name, cam) {
       hideModal('assetHistModal'); calLog(todayISO()); const t = $('chatIn'); t.value = eqS(name) + ' '; t.dispatchEvent(new Event('input'));
       if (cam) chatCam();
@@ -4590,6 +4602,44 @@
       const bat = String($('vhBat').value || '').trim() || '-', bd = isoToBE($('vhBatD').value) || '-';
       call('saveAssetEvent', [{ asset_name: a.name, category: a.category, status: a.status, issue_detail: dash(a.issue_detail) || '-', parts_needed: dash(a.parts_needed) || '-',
         battery_info: bat, battery_date: bd, event_type: '🔋 ข้อมูลแบต', log_detail: bat + (bd !== '-' ? ' · ใส่ ' + bd : '') }], d => { vehBatEd = false; init(d); vehRender(); }, $('vhBatSv'));
+    }
+    // ===== 🛒 อะไหล่ที่ต้องซื้อ + หน้าโชว์ร้าน (22 พ.ย. 69) =====
+    let vehQPart = false, vehModelEd = false, vehBuyOpen = '';
+    const vehParts = name => (gData.assetLogs || []).filter(l => l.asset_name === name && /🛒/.test(l.event_type || '') && !/^ซื้อแล้ว/.test(l.parts_or_battery || '')).reverse();
+    function vehPartAdd() {
+      const items = String(vehDraft || '').split(/\n+/).map(x => x.replace(/^\s*[-•\d.)]+\s*/, '').trim()).filter(Boolean);
+      if (!items.length && !vehPics.length) return alert('พิมพ์รายการอะไหล่ก่อน (บรรทัดละ 1 อย่าง)');
+      $('vhSave').disabled = true; $('vhSave').textContent = '…';
+      call('partOp', [{ fn: 'add', asset: vehCur, items, date: isoToBE(todayISO()), pics: vehPics.map(p => p.b64) }], d => { vehDraft = ''; vehPics = []; vehQPart = false; init(d); vehRender(); }, null, vehPics.length ? '⏳ กำลังส่งรูป...' : null);
+    }
+    function vehBuy(id) { const v = $('vhPr'), pr = v ? num(String(v.value).replace(/,/g, '')) : 0; call('partOp', [{ fn: 'buy', id, price: pr }], d => { vehBuyOpen = ''; init(d); vehRender(); }, $('vhBuySv')); }
+    function vehModelSave() { call('partOp', [{ fn: 'model', asset: vehCur, model: String($('vhModel').value || '').trim() }], d => { vehModelEd = false; init(d); vehRender(); }, $('vhModelSv')); }
+    function vehPartsCard(a) {
+      const ps = vehParts(a.name); if (!ps.length) return '';
+      const pics = ps.map(l => l.photo_id).filter(Boolean).join(',');
+      return `<div class="vh-cd vh-pt"><div class="vh-k">อะไหล่ที่ต้องซื้อ</div><div class="vh-ti o">ยังไม่ได้ซื้อ ${ps.length} รายการ</div><div class="vh-rows">${ps.map(l => {
+        const op = vehBuyOpen === l.log_id;
+        return `<div class="vh-row"><div class="vh-dt"><button type="button" class="vh-ck" aria-label="ซื้อแล้ว" onclick="vehBuyOpen=vehBuyOpen==='${qa(l.log_id)}'?'':'${qa(l.log_id)}';vehRender()">${op ? '✓' : ''}</button></div><div class="vh-tx"><div class="vh-main">${esc(l.detail)}</div><div class="vh-sub">${dShort(beToISO(l.timestamp))} ${vehYY(beToISO(l.timestamp))}</div></div>${`<button type="button" class="vh-dots${vehRowOpen === l.log_id ? ' on' : ''}" aria-label="ตัวเลือก" onclick="vehRow('${qa(l.log_id)}')">⋯</button>`}
+          ${op ? `<div class="vh-op"><input id="vhPr" class="vh-in" style="text-align:left;background:#fff;border-radius:10px;padding:8px 10px;flex:1 1 100%" inputmode="numeric" placeholder="ราคา (บาท) ไม่ใส่ก็ได้"><button type="button" class="bigbtn bigbtn-main" id="vhBuySv" onclick="vehBuy('${qa(l.log_id)}')">ซื้อแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBuyOpen='';vehRender()">ยกเลิก</button></div>` : ''}
+          ${vehRowOpen === l.log_id ? `<div class="vh-op">${vehRowEdit === l.log_id ? `<textarea id="vhEd" class="vh-ed" rows="2">${esc(l.detail)}</textarea><button type="button" class="bigbtn bigbtn-main" onclick="vehRowSave('${qa(l.log_id)}')">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehRow('${qa(l.log_id)}')">ยกเลิก</button>` : `<button type="button" class="bigbtn bigbtn-out" onclick="vehRowEd('${qa(l.log_id)}')">✏️ แก้</button><button type="button" class="bigbtn bigbtn-out vh-del" onclick="delAssetLog('${qa(l.log_id)}','${qa(a.name)}')">🗑 ลบ</button>`}</div>` : ''}</div>`;
+      }).join('')}</div>
+        ${pics ? `<button type="button" class="vh-ph" onclick="viewPhotos('อะไหล่ ${qa(eqS(a.name))}','${qa(pics)}')">📷 รูปที่ช่างให้ (${pics.split(',').length})</button>` : ''}
+        <div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" onclick="vehShopShow()">เปิดให้ร้านดู</button><button type="button" class="bigbtn bigbtn-out" onclick="vehPartShare()">แชร์ไลน์</button></div>
+        <div class="vh-s">แตะ ☐ เมื่อซื้อได้แล้ว (ใส่ราคาได้) · ซื้อแล้วจะไปอยู่ในประวัติ + นับค่าซ่อม</div></div>`;
+    }
+    function vehPartText(a) {
+      const ps = vehParts(a.name);
+      return `🛒 อะไหล่ที่ต้องซื้อ\n🚚 ${eqS(a.name)}${dash(a.model) ? ' · ' + a.model : ''}${dash(a.plate) ? '\nทะเบียน ' + a.plate : ''}\n` + ps.map((l, i) => `${i + 1}. ${l.detail}`).join('\n');
+    }
+    function vehPartShare() { const a = (gData.assets || []).find(x => x.name === vehCur); if (a) regShareText(vehPartText(a)); }
+    function vehShopShow() {
+      const a = (gData.assets || []).find(x => x.name === vehCur); if (!a) return;
+      const ps = vehParts(a.name), pics = ps.map(l => l.photo_id).filter(Boolean).join(',');
+      let o = $('vhShop'); if (!o) { o = document.createElement('div'); o.id = 'vhShop'; document.body.appendChild(o); }
+      o.innerHTML = `<div class="vs-hd"><span>รายการอะไหล่</span><button type="button" aria-label="ปิด" onclick="$('vhShop').remove()">✕</button></div>
+        <div class="vs-car"><div class="vs-n">${esc(dash(a.model) || eqS(a.name))}</div>${dash(a.plate) ? `<div class="vs-p">ทะเบียน ${esc(a.plate)}${dash(a.trailer_plate) ? ' · พ่วง ' + esc(a.trailer_plate) : ''}</div>` : ''}${!dash(a.model) ? '<div class="vs-w">ยังไม่ได้ใส่ยี่ห้อ/รุ่น/ปี (ใส่ได้ที่หน้ารถ)</div>' : ''}</div>
+        <ol class="vs-l">${ps.map(l => `<li>${esc(l.detail)}</li>`).join('')}</ol>
+        ${pics ? `<button type="button" class="vs-ph" onclick="$('photoModal').style.zIndex=3100;viewPhotos('อะไหล่ ${qa(eqS(a.name))}','${qa(pics)}')">📷 ดูรูปที่ช่างให้ (${pics.split(',').length})</button>` : ''}`;
     }
     function vehRender() {
       const name = vehCur, a = (gData.assets || []).find(x => x.name === name); if (!a) return;
@@ -4606,6 +4656,8 @@
       const plate = [dash(a.plate) ? esc(a.plate) : '', dash(a.trailer_plate) ? 'พ่วง ' + esc(a.trailer_plate) : ''].filter(Boolean).join(' + ');
       const hasBat = a.category === 'Tractor' || a.category === 'Truck';
       let h = `<div class="vh-top"><div class="vh-pl">${plate || '<span style="color:#8A918C">ไม่มีทะเบียน</span>'}</div>${isOk ? '<span class="pill pill-normal">ว่าง</span>' : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`}</div>`;
+      h += vehModelEd ? `<div class="vh-cd"><div class="vh-k">ยี่ห้อ / รุ่น / ปี (ไว้โชว์ร้านอะไหล่)</div><div class="vh-form" style="margin-top:6px"><div class="vh-fr"><input id="vhModel" class="vh-in" style="text-align:left" value="${esc(dash(a.model))}" placeholder="เช่น Isuzu FXZ 360 ปี 2015"></div></div><div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" id="vhModelSv" onclick="vehModelSave()">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehModelEd=false;vehRender()">ยกเลิก</button></div></div>`
+        : `<div class="vh-note vh-batr"><span class="vh-batt">${dash(a.model) ? '🚚 ' + esc(a.model) : '<span style="color:#8A918C">ยังไม่ได้ใส่ยี่ห้อ/รุ่น/ปี</span>'}</span><button type="button" class="vh-chip" onclick="vehModelEd=true;vehRender()">${dash(a.model) ? 'แก้' : '+ ใส่'}</button></div>`;
       h += `<div class="vh-tiles">${tile('ภาษีหมด', ri ? dShort(beToISO(a.reg_expire)) + ' ' + vehYY(beToISO(a.reg_expire)) : '—', ri ? (ri.d < 0 ? '#A3271B' : ri.d <= 90 ? '#B35C00' : '') : '#8A918C')}${tile(a.category === 'Tractor' ? 'ชม./ไมล์ล่าสุด' : 'ไมล์ล่าสุด', mile ? mile.toLocaleString('en-US') : 'ยังไม่จด', mile ? '' : '#8A918C')}${tile('ค่าซ่อมปีนี้', cost ? baht(cost) + ' บ.' : '0 บ.', cost ? '' : '#8A918C')}</div>`;
       if (hasBat) {
         const bd = calcDays(a.battery_date), bn = a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : '';
@@ -4615,14 +4667,16 @@
       }
       // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
       const qd = vehQDate || todayISO(), qn = dayDiff(todayISO(), qd);
-      $('ahFoot').innerHTML = (vehPics.length ? `<div class="vh-pv">${vehPics.map((p, i) => `<span><img src="data:image/jpeg;base64,${p.th}" alt="รูปรอส่ง"><button type="button" aria-label="เอารูปออก" onclick="vehPics.splice(${i},1);vehRender()">✕</button></span>`).join('')}</div>` : '') + `<div class="vh-qc">
+      $('ahFoot').innerHTML = (vehPics.length ? `<div class="vh-pv">${vehPics.map((p, i) => `<span><img src="data:image/jpeg;base64,${p.th}" alt="รูปรอส่ง"><button type="button" aria-label="เอารูปออก" onclick="vehPics.splice(${i},1);vehRender()">✕</button></span>`).join('')}</div>` : '') + `<div class="vh-qc">${vehQPart ? `<button type="button" class="vh-chip on" onclick="vehQPart=false;vehRender()">✓ 🛒 อะไหล่ต้องซื้อ</button><span class="vh-qh">บรรทัดละ 1 อย่าง · แตะอีกทีเพื่อกลับ</span>` : `
           <button type="button" class="vh-chip${!vehQDate ? ' on' : ''}" onclick="vehQDate='';vehRender()">วันนี้</button>
           <label class="vh-chip vh-dp${vehQDate ? ' on' : ''}">📅 ${vehQDate ? dShort(qd) + (qn === 1 ? ' (พรุ่งนี้)' : qn === -1 ? ' (เมื่อวาน)' : '') + (qn > 0 ? ' · นัด' : '') : 'เลือกวัน'}<input type="date" value="${qd}" onchange="vehQDate=this.value===todayISO()?'':this.value;vehRender()"></label>
-          ${a.category !== 'Pump' && qn <= 0 ? `<button type="button" class="vh-chip${vehQShop ? ' on' : ''}" onclick="vehQShop=!vehQShop;vehRender()">${vehQShop ? '✓ ' : ''}รถเข้าร้านแล้ว</button>` : ''}</div>
-        <div class="vh-qb">${qn <= 0 ? '<button type="button" class="ch-cam" aria-label="ถ่ายรูปหรือเลือกรูป" onclick="vehCam()">📷</button>' : ''}<textarea id="vhTxt" rows="1" placeholder="${qn > 0 ? 'นัดอะไร เช่น ไปเช็คร้านช่างนุ' : 'จดเรื่องคันนี้ เช่น ชาร์จแบต'}" oninput="vehDraft=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'">${esc(vehDraft)}</textarea><button type="button" class="ch-send" id="vhSave" aria-label="บันทึก" onclick="vehQuick()">➤</button></div>`;
+          ${a.category !== 'Pump' && qn <= 0 ? `<button type="button" class="vh-chip${vehQShop ? ' on' : ''}" onclick="vehQShop=!vehQShop;vehRender()">${vehQShop ? '✓ ' : ''}รถเข้าร้านแล้ว</button>` : ''}
+          ${a.category !== 'Pump' && qn <= 0 ? `<button type="button" class="vh-chip" onclick="vehQPart=true;vehQShop=false;vehRender()">🛒 อะไหล่ต้องซื้อ</button>` : ''}`}</div>
+        <div class="vh-qb">${qn <= 0 || vehQPart ? '<button type="button" class="ch-cam" aria-label="ถ่ายรูปหรือเลือกรูป" onclick="vehCam()">📷</button>' : ''}<textarea id="vhTxt" rows="1" placeholder="${vehQPart ? 'เช่น ลูกหมากปีกนก 2 ตัว' : qn > 0 ? 'นัดอะไร เช่น ไปเช็คร้านช่างนุ' : 'จดเรื่องคันนี้ เช่น ชาร์จแบต'}" oninput="vehDraft=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'">${esc(vehDraft)}</textarea><button type="button" class="ch-send" id="vhSave" aria-label="บันทึก" onclick="vehQPart?vehPartAdd():vehQuick()">➤</button></div>`;
       const ACT = (id, body) => vehRowOpen === id ? `<div class="vh-op">${body}</div>` : '';
       const dots = id => `<button type="button" class="vh-dots${vehRowOpen === id ? ' on' : ''}" aria-label="ตัวเลือก" onclick="vehRow('${qa(id)}')">⋯</button>`;
       // นัดของคันนี้ (ไม่ซ้ำ) — ถึงวันแล้วกด "ไปแล้ว" = ลงประวัติ + ปิดนัด
+      h += vehPartsCard(a);
       const appts = vehRems(a).filter(r => !r.repeat).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
       if (appts.length) h += `<div class="vh-cd warn"><div class="vh-k">นัด / เตือน คันนี้</div>${appts.map(r => {
         const iso = beToISO(r.date), n = dayDiff(todayISO(), iso), txt = String(r.text).replace(new RegExp('^\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*·?\\s*', 'i'), '');
@@ -4645,7 +4699,7 @@
       const jobsV = vis.filter(v => v.kind === 'job');
       h += `<div class="vh-gh"><span>ประวัติคันนี้ (เข้าร้าน / ซ่อม / จดไว้)</span><span>${jobsV.length} รายการ</span></div>`;
       if (!jobsV.length) h += `<div class="vh-cd" style="color:#6B736E">ยังไม่มีประวัติ · จดในช่อง "จดเรื่องคันนี้" ด้านบนได้เลย</div>`;
-      const tagOf = (x, k, v) => x.bill ? ['บิล', 'b'] : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(x.ev) ? ['รับรถกลับ', 'g'] : k === 0 && (v.open || v.end) ? ['ส่งเข้าร้าน', 'o'] : isDown(x.ev) ? ['อัปเดต', 'o'] : /บันทึก/.test(x.ev) ? ['จดไว้', 'n'] : /บำรุง/.test(x.ev) ? ['บำรุง', 'g'] : /ดัดแปลง/.test(x.ev) ? ['ดัดแปลง', 'n'] : /แบต/.test(x.ev) ? ['แบต', 'n'] : /ตรวจ|ถ่ายรูป/.test(x.ev) ? ['ตรวจ', 'n'] : ['ซ่อม', 'n'];
+      const tagOf = (x, k, v) => x.bill ? ['บิล', 'b'] : /🛒/.test(x.ev) ? ['ซื้ออะไหล่', 'g'] : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(x.ev) ? ['รับรถกลับ', 'g'] : k === 0 && (v.open || v.end) ? ['ส่งเข้าร้าน', 'o'] : isDown(x.ev) ? ['อัปเดต', 'o'] : /บันทึก/.test(x.ev) ? ['จดไว้', 'n'] : /บำรุง/.test(x.ev) ? ['บำรุง', 'g'] : /ดัดแปลง/.test(x.ev) ? ['ดัดแปลง', 'n'] : /แบต/.test(x.ev) ? ['แบต', 'n'] : /ตรวจ|ถ่ายรูป/.test(x.ev) ? ['ตรวจ', 'n'] : ['ซ่อม', 'n'];
       h += jobsV.map(v => {
         const amt = v.lines.reduce((t, x) => t + x.amt + (x.bill ? x.total : 0), 0);
         const days = v.end ? Math.max(0, dayDiff(beToISO(v.start), beToISO(v.end))) : 0;
@@ -5479,7 +5533,7 @@
       $('phTitle').innerText = '📷 ' + title;
       const draw = () => { $('phBody').innerHTML = ids.map(id => !(id in photoCache) ? '<div class="text-muted p-3">⏳ กำลังโหลดรูป…</div>'
         : photoCache[id] ? `<img class="w-100 rounded mb-2" src="data:image/jpeg;base64,${photoCache[id]}" alt="รูปหน้างาน">` : '<div class="text-muted p-3">ไม่พบรูป (อาจถูกลบจาก Drive)</div>').join(''); };
-      draw(); bootstrap.Modal.getOrCreateInstance($('photoModal')).show();
+      draw(); const pm = $('photoModal'); if (!$('vhShop')) pm.style.zIndex = ''; bootstrap.Modal.getOrCreateInstance(pm).show();
       setTimeout(() => { const bd = document.querySelectorAll('.modal-backdrop'); if (bd.length) bd[bd.length - 1].style.zIndex = 1070; }, 60); // เปิดซ้อนบนหน้าประวัติรถ ต้องอยู่เหนือหน้านั้น
       const need = ids.filter(id => !(id in photoCache));
       if (need.length) callApi('chatPhotos', [need]).then(r => { need.forEach(id => { photoCache[id] = (r || {})[id] || ''; }); draw(); })

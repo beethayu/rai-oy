@@ -644,6 +644,24 @@
     .pk-row input { width: 22px; height: 22px; flex-shrink: 0; accent-color: #1F5E3B; }
     .pk-row.on { background: #EEF5F0; }
     /* หน้าต่างแบบใหม่ (ฝนตก แบต ตั้งค่า) ให้หน้าตาเดียวกับแท็บอื่น */
+    .vh-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.vh-pl{font-size:17px;font-weight:700}
+    .vh-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+    .vh-t{background:#fff;border:1px solid #E2E0D6;border-radius:12px;padding:8px}.vh-t i{font-style:normal;font-size:12px;color:#6B736E;display:block}.vh-t b{font-size:15px}
+    .vh-note{font-size:14px;color:#4A544E;margin:-4px 2px 10px}
+    .vh-cd{background:#fff;border:1px solid #E2E0D6;border-radius:16px;padding:12px 14px;margin-bottom:10px}
+    .vh-cd.warn{background:#FFF4EA;border-color:#F2C9A5}.vh-cd.bad{background:#FDECEA;border-color:#F0B8B0}
+    .vh-k{font-size:13px;color:#6B736E;font-weight:600}.vh-ti{font-size:17px;font-weight:700;margin:2px 0 4px}.vh-ti.g{color:#1F5E3B}.vh-ti.o{color:#B35C00}.vh-ti.r{color:#A3271B}
+    .vh-mi{display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEECE4;align-items:center}
+    .vh-ic{width:34px;height:34px;flex:none;border-radius:10px;background:#E3EFE6;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .vh-x{flex:1;min-width:0}.vh-x b{font-size:15px}.vh-x div{font-size:13px;color:#6B736E}
+    .vh-bar{height:6px;background:#EEECE4;border-radius:4px;margin-top:5px}.vh-bar i{display:block;height:6px;border-radius:4px}
+    .vh-gh{display:flex;justify-content:space-between;font-weight:700;color:#1F5E3B;font-size:16px;margin:14px 4px 6px}.vh-gh span+span{font-weight:500;color:#6B736E;font-size:14px}
+    .vh-ro{position:relative;padding-left:20px}.vh-ro:before{content:'';position:absolute;left:6px;top:6px;bottom:0;width:2px;background:#D3D1C6}
+    .vh-dot{position:absolute;left:0;top:14px;width:14px;height:14px;border-radius:50%;border:3px solid #F4F3EC}
+    .vh-li{font-size:14.5px;padding:2px 0}.vh-d{font-size:12px;color:#8A918C}.vh-s{font-size:12px;color:#8A918C;margin:4px 0 2px}
+    .vh-f{display:flex;justify-content:space-between;font-size:14px;margin-top:6px}.vh-f span{color:#6B736E}
+    #ahBody .bigbtn{width:100%;height:46px;margin-top:8px;font-size:15px}
+    .vh-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.vh-btns .bigbtn{flex:1;min-width:30%;font-size:14px}
     .mhd { background: #1F5E3B; color: #fff; }
     .mhd .modal-title { font-weight: 700; font-size: 17px; }
     .msub { font-size: 15px; color: #6B736E; margin-bottom: 10px; }
@@ -1475,13 +1493,13 @@
   </div>
 
   <div class="modal fade" id="assetHistModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-dark text-white py-2">
-          <h6 class="modal-title fw-bold" id="ahTitle">📜 ประวัติซ่อม</h6>
+        <div class="modal-header mhd py-2">
+          <h6 class="modal-title" id="ahTitle">📜 ประวัติซ่อม</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3" id="ahBody"></div>
+        <div class="modal-body p-3 mbody" id="ahBody"></div>
       </div>
     </div>
   </div>
@@ -2964,7 +2982,7 @@
     let remOpen = '', chatRemId = '';
     function remRowHtml(r, iso, inToday) {
       const t0 = todayISO(), d = beToISO(r.date), op = remOpen === r.rem_id + (inToday ? 't' : ''), due = d <= t0;
-      const sub = [r.time ? r.time + ' น.' : '', r.repeat ? 'ทุก' + r.repeat : '', inToday && d < t0 && r.repeat !== 'วัน' ? `เลยมา ${dayDiff(d, t0)} วัน` : ''].filter(Boolean).join(' · ');
+      const sub = [r.time ? r.time + ' น.' : '', r.repeat ? repTxt(r.repeat) : '', inToday && d < t0 && r.repeat !== 'วัน' ? `เลยมา ${dayDiff(d, t0)} วัน` : ''].filter(Boolean).join(' · ');
       return `<div class="rc-j dj rem-r"${inToday ? '' : ` data-rem="${esc(r.rem_id)}" data-lb="🔔 ${esc(r.text)}"`} onclick="remOpen=remOpen==='${qa(r.rem_id + (inToday ? 't' : ''))}'?'':'${qa(r.rem_id + (inToday ? 't' : ''))}';render()"><span class="dj-i">🔔</span><div class="dj-b"><div class="dj-t">${esc(r.text)}</div>${sub ? `<div class="dj-x">${esc(sub)}</div>` : ''}
         ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${due ? `<button type="button" class="go" onclick="remToLog('${qa(r.rem_id)}')">ทำแล้ว → จดเป็นงาน</button><button type="button" onclick="remDo('done','${qa(r.rem_id)}',this)">ทำแล้ว</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="remDo('del','${qa(r.rem_id)}',this)">ลบ</button></div>` : ''}</div></div>`;
     }
@@ -4166,7 +4184,7 @@
       const activeMap = getActiveDeployments(), dm = downMap();
       const assets = gData.assets || [];
       const by = c => assets.filter(a => a.category === c);
-      const pumps = by('Pump'), trucks = by('Truck'), tractors = by('Tractor'), workers = by('Worker');
+      const pumps = by('Pump'), trucks = by('Truck'), tractors = by('Tractor'), workers = by('Worker'), cars = by('Car'), homes = by('Home'), motos = by('Moto');
       const countFree = l => l.filter(a => okSt(a) && !activeMap[a.name]).length;
       const issues = assets.filter(a => !okSt(a));
       const mIssue = issues.filter(a => a.category !== 'Worker').length, wIssue = issues.length - mIssue;
@@ -4191,11 +4209,17 @@
           if (!/^แบต/.test(bi)) bi = 'แบต ' + bi;
           subs.push(`${esc(bi)}${bd !== null ? ' (' + bd + ' วัน)' : ''}`);
         }
+        if (a.category !== 'Worker') {
+          const ov = !isOk ? vehVisits(a.name).find(v => v.open) : null;
+          if (ov && ov.shop) subs.push(esc(ov.shop));
+          const mn = vehMaint(a).filter(m => m.next).sort((x, y) => x.left - y.left)[0];
+          if (mn) subs.push(`<span style="color:${mn.st === 'late' ? '#A3271B' : mn.st === 'soon' ? '#B35C00' : 'inherit'}">${esc(mn.item)} ${mn.left < 0 ? 'เลยรอบ ' + (-mn.left) + ' วัน' : 'อีก ' + regMD(isoToBE(mn.next))}</span>`);
+        }
         if (spend[a.name]) subs.push(`ค่าซ่อมรวม ${baht(spend[a.name])} บ.`);
         const last = (gData.assetLogs || []).find(l => l.asset_name === a.name);
         if (!subs.length && last) subs.push(`ล่าสุด ${esc(last.timestamp)} · ${esc(last.event_type)}`);
         return `<div class="srow ${!isOk ? 'srow-bad' : ''} ${open ? 'open' : ''}">
-          <button type="button" class="srow-main" onclick="tglFleet('${qa(a.name)}')">
+          <button type="button" class="srow-main" onclick="${a.category === 'Worker' ? 'tglFleet' : 'openAssetHist'}('${qa(a.name)}')">
             <span class="srow-l"><span class="srow-n">${icon} ${esc(eqS(a.name))}${dash(a.trailer_plate) ? ' <span style="font-size:13px;font-weight:600;color:#1F5E3B;white-space:nowrap">· พ่วง</span>' : ''}</span>${eqS(a.name) !== a.name ? `<span class="srow-s">${esc(a.name)}</span>` : ''}${dash(a.trailer_plate) ? `<span class="srow-s" style="color:#1F2A23"><span style="white-space:nowrap">แม่ <b>${esc(dash(a.plate) || '?')}</b></span> + <span style="white-space:nowrap">ลูก <b>${esc(dash(a.trailer_plate))}</b></span></span>` : dash(a.plate) ? `<span class="srow-s">ทะเบียน ${esc(a.plate)}</span>` : ''}${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
             ${pill}
           </button>
@@ -4224,7 +4248,7 @@
       } else if (fleetPane === 'work') {
         html += grp('คนงาน', workers, '👤') + `<div class="bg-white p-3 rounded border mt-3" id="wsum-box">${workSumHtml()}</div>`;
       } else {
-        html += grp('พญานาค', pumps, '🐍') + grp('รถไถ', tractors, '🚜') + grp('สิบล้อ', trucks, '🚛');
+        html += grp('สิบล้อ', trucks, '🚛') + grp('รถไถ', tractors, '🚜') + grp('หกล้อ / กระบะ (ใช้ในไร่)', cars, '🚚') + grp('พญานาค', pumps, '🐍') + grp('รถที่บ้าน', homes, '🚗') + grp('มอเตอร์ไซค์', motos, '🛵');
         const logs = groupAssetLogs((gData.assetLogs || []).filter(l => { const a = assets.find(x => x.name === l.asset_name); return !a || a.category !== 'Worker'; }));
         html += `<div class="d-flex gap-2 mt-3">
             <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="tglFleetLog()">${fleetLogOpen ? 'ซ่อน' : 'ดู'}ประวัติซ่อม / บำรุงทั้งหมด</button>
@@ -4383,6 +4407,7 @@
     // ประวัติซ่อมรายคัน + สถิติ
     function openAssetHist(name) {
       const a = (gData.assets || []).find(x => x.name === name) || {};
+      if (a.category && a.category !== 'Worker') return vehOpen(name);
       const logs = (gData.assetLogs || []).filter(l => l.asset_name === name);
       let down = null, downDays = 0, breaks = 0;
       [...logs].reverse().forEach(l => {
@@ -4407,6 +4432,119 @@
         </div>
         <div class="srow-box">${groupAssetLogs(logs).map(l => logRow(l, false)).join('') || '<div class="p-3 text-muted">ยังไม่มีประวัติ</div>'}</div>`;
       bootstrap.Modal.getOrCreateInstance($('assetHistModal')).show();
+    }
+
+    // ===== 🚗 หน้ารถ 1 คัน แบบสมุดศูนย์ (22 พ.ย. 69) — บำรุงตามระยะ (จากนัด/เตือนที่มีชื่อรถ) + ใบซ่อมทีละครั้ง (เข้าร้าน→รับรถกลับ รวมเป็นใบเดียว) =====
+    const vehYY = iso => String((Number(String(iso).slice(0, 4)) + 543) % 100).padStart(2, '0');
+    const repTxt = r => /^\d/.test(r) ? 'ทุก ' + r : 'ทุก' + r;
+    function chNoteVeh(txt) { // เรื่อง "นอกไร่" ที่จริงเป็นรถในรายการ (แจ๊ส Isuzu ฯลฯ) → ลงประวัติรถแทน
+      const t = String(txt || '').toLowerCase(); if (!t) return null;
+      return (gData.assets || []).filter(a => a.category && a.category !== 'Worker').find(a => {
+        const n = String(a.name).toLowerCase(), w = n.split(/\s+/)[0];
+        return t.includes(n) || t.includes(eqS(a.name).toLowerCase()) || (/^[a-z]{4,}$/.test(w) && t.includes(w)) || (n === 'jazz' && /แจ๊?ส|แจ๊ซ/.test(t));
+      }) || null;
+    }
+    const vehShop = d => { const m = String(d || '').match(/ร้าน\s*([^·]+)/); return m ? m[1].trim() : ''; };
+    const vehClean = d => String(d || '').split('·').map(x => x.trim()).filter(x => x && x !== '-' && !/^ร้าน\s/.test(x) && !/^ไมล์\s/.test(x) && !/^ค่า\s[\d,]+\s*บ/.test(x) && !/^ที่\s/.test(x)).join(' · ');
+    const vehAmt = d => { const m = String(d || '').match(/ค่า\s*([\d,]+)\s*บ/); return m ? num(m[1].replace(/,/g, '')) : 0; };
+    const vehMile = d => { const m = String(d || '').match(/ไมล์\s*([\d,]+)/); return m ? num(m[1].replace(/,/g, '')) : 0; };
+    function vehVisits(name) {
+      const logs = groupAssetLogs((gData.assetLogs || []).filter(l => l.asset_name === name)).reverse(); // เก่า → ใหม่
+      const out = []; let open = null, pend = null;
+      const line = l => ({ date: l.timestamp, ev: l.event_type || '', txt: l.bill ? `🧾 บิล ${l.shop || ''} · ${l.n} รายการ` : vehClean(l.detail), bill: l.bill, total: l.total || 0, amt: vehAmt(l.detail), photo: l.photo_id || '', id: l.log_id, parts: l.parts_or_battery && l.parts_or_battery !== '-' && !/^\S+ \S+/.test('') ? l.parts_or_battery : '' });
+      logs.forEach(l => {
+        const e = l.event_type || '', iso = beToISO(l.timestamp), shop = vehShop(l.detail) || (l.bill ? l.shop : '');
+        if (/ทะเบียน|ภาษี/.test(e)) { out.push({ kind: 'reg', start: l.timestamp, lines: [line(l)] }); return; }
+        if (isDown(e)) {
+          if (!open) {
+            if (pend && !pend.closed && (new Date(iso) - new Date(beToISO(pend.start))) / 864e5 <= 60) { open = pend; out.splice(out.indexOf(pend), 1); }
+            else open = { kind: 'job', start: l.timestamp, lines: [] };
+            open.open = true; open.shop = open.shop || shop; out.push(open);
+          }
+          open.lines.push(line(l)); if (shop) open.shop = shop; return;
+        }
+        if (isUp(e)) {
+          if (open) { open.lines.push(line(l)); open.open = false; open.end = l.timestamp; open.closed = true; open = null; pend = null; }
+          else out.push({ kind: 'job', start: l.timestamp, lines: [line(l)], closed: true, shop });
+          return;
+        }
+        if (open) { open.lines.push(line(l)); if (shop && !open.shop) open.shop = shop; return; }
+        const prev = out[out.length - 1];
+        if (prev && prev.kind === 'job' && !prev.closed && prev.start === l.timestamp) { prev.lines.push(line(l)); if (shop && !prev.shop) prev.shop = shop; return; }
+        pend = { kind: 'job', start: l.timestamp, lines: [line(l)], shop }; out.push(pend);
+      });
+      return out.reverse(); // ใหม่ → เก่า
+    }
+    function vehMaint(a) {
+      const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()];
+      const t0 = todayISO();
+      return (gData.reminders || []).filter(r => r.status !== 'done' && keys.some(k => k && String(r.text || '').toLowerCase().includes(k))).map(r => {
+        const next = beToISO(r.date), nm = /^(\d{1,2}) เดือน$/.exec(r.repeat || ''), mo = nm ? Number(nm[1]) : r.repeat === 'เดือน' ? 1 : r.repeat === 'ปี' ? 12 : 0;
+        let last = '';
+        if (mo && next) { const d = new Date(next + 'T00:00:00'); d.setMonth(d.getMonth() - mo); last = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+        const left = next ? dayDiff(t0, next) : 0, span = last ? dayDiff(last, next) : 0;
+        const item = String(r.text || '').replace(new RegExp('\\s*(' + keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*', 'i'), ' ').trim();
+        return { r, item: item || r.text, next, last, left, mo, pct: span ? Math.max(0, Math.min(100, (1 - left / span) * 100)) : 0, st: left < 0 ? 'late' : left <= Math.max(14, Number(r.lead_days) || 0) ? 'soon' : 'ok' };
+      });
+    }
+    let vehCur = '', vehEdit = false;
+    function vehOpen(name) { if (vehCur !== name) vehEdit = false; vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
+    function vehEditTgl() { vehEdit = !vehEdit; vehRender(); }
+    function vehChat(name, cam) {
+      hideModal('assetHistModal'); calLog(todayISO()); const t = $('chatIn'); t.value = eqS(name) + ' '; t.dispatchEvent(new Event('input'));
+      if (cam) chatCam();
+    }
+    function vehRender() {
+      const name = vehCur, a = (gData.assets || []).find(x => x.name === name); if (!a) return;
+      const isOk = okSt(a), dm = downMap(), since = !isOk && dm[name] ? calcDays(dm[name]) : null;
+      const vis = vehVisits(name), mt = vehMaint(a), yr = todayISO().slice(0, 4);
+      const CAT = { Truck: 'สิบล้อ', Tractor: 'รถไถ', Car: 'รถใช้ในไร่', Home: 'รถที่บ้าน', Moto: 'มอเตอร์ไซค์', Pump: 'เครื่องสูบน้ำ' };
+      const ICON = { Truck: '🚛', Tractor: '🚜', Car: '🚚', Home: '🚗', Moto: '🛵', Pump: '🐍' };
+      $('ahTitle').innerHTML = `${ICON[a.category] || '🔧'} ${esc(eqS(a.name))} <span style="font-weight:500;font-size:14px;opacity:.85">· ${esc(CAT[a.category] || '')}</span>`;
+      const cost = (gData.expenses || []).filter(e => e.asset === name && beToISO(e.timestamp).slice(0, 4) === yr).reduce((t, e) => t + num(e.amount), 0)
+        + (gData.assetLogs || []).filter(l => l.asset_name === name && beToISO(l.timestamp).slice(0, 4) === yr).reduce((t, l) => t + vehAmt(l.detail), 0);
+      const mile = (gData.assetLogs || []).filter(l => l.asset_name === name).map(l => vehMile(l.detail)).find(Boolean);
+      const ri = a.reg_expire && a.reg_expire !== '-' ? regInfo(a.reg_expire) : null;
+      const tile = (k, v, col) => `<div class="vh-t"><i>${k}</i><b${col ? ` style="color:${col}"` : ''}>${v}</b></div>`;
+      const plate = [dash(a.plate) ? esc(a.plate) : '', dash(a.trailer_plate) ? 'พ่วง ' + esc(a.trailer_plate) : ''].filter(Boolean).join(' + ');
+      const hasBat = a.category === 'Tractor' || a.category === 'Truck';
+      let h = `<div class="vh-top"><div class="vh-pl">${plate || '<span style="color:#8A918C">ไม่มีทะเบียน</span>'}</div>${isOk ? '<span class="pill pill-normal">ว่าง</span>' : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`}</div>`;
+      h += `<div class="vh-tiles">${tile('ภาษีหมด', ri ? dShort(beToISO(a.reg_expire)) + ' ' + vehYY(beToISO(a.reg_expire)) : '—', ri ? (ri.d < 0 ? '#A3271B' : ri.d <= 90 ? '#B35C00' : '') : '#8A918C')}${tile(a.category === 'Tractor' ? 'ชม./ไมล์ล่าสุด' : 'ไมล์ล่าสุด', mile ? mile.toLocaleString('en-US') : 'ยังไม่จด', mile ? '' : '#8A918C')}${tile('ค่าซ่อมปีนี้', cost ? baht(cost) + ' บ.' : '0 บ.', cost ? '' : '#8A918C')}</div>`;
+      if (hasBat) { const bd = calcDays(a.battery_date); h += `<div class="vh-note">🔋 แบต ${esc(a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : 'ยังไม่ระบุ')}${bd !== null ? ` · ใช้มา ${bd} วัน` : ''}</div>`; }
+      // บำรุงตามระยะ
+      const worst = mt.some(m => m.st === 'late') ? 'late' : mt.some(m => m.st === 'soon') ? 'soon' : 'ok';
+      const sug = a.category === 'Pump' ? [] : ['น้ำมันเครื่อง'].filter(k => !mt.some(m => m.item.includes(k)));
+      const lastOf = k => (gData.assetLogs || []).find(l => l.asset_name === name && String(l.detail || '').includes(k));
+      h += `<div class="cd vh-cd${worst === 'late' ? ' bad' : worst === 'soon' ? ' warn' : ''}"><div class="vh-k">บำรุงตามระยะ</div>
+        <div class="vh-ti ${worst === 'late' ? 'r' : worst === 'soon' ? 'o' : 'g'}">${!mt.length ? 'ยังไม่ได้ตั้งรอบ' : worst === 'late' ? 'เลยรอบแล้ว' : worst === 'soon' ? 'ใกล้ถึงรอบ' : 'ยังไม่ถึงรอบ'}</div>
+        ${mt.sort((x, y) => x.left - y.left).map(m => `<div class="vh-mi"><div class="vh-ic">${/น้ำมันเครื่อง/.test(m.item) ? '🛢️' : /กรอง/.test(m.item) ? '🧽' : /ยาง/.test(m.item) ? '🛞' : /แบต/.test(m.item) ? '🔋' : '🔧'}</div><div class="vh-x"><b>${esc(m.item)}${m.r.repeat ? ' · ' + repTxt(m.r.repeat) : ''}</b>
+          <div>${m.last ? `เปลี่ยน ${dShort(m.last)} → ` : ''}ครั้งหน้า <b style="color:${m.st === 'late' ? '#A3271B' : m.st === 'soon' ? '#B35C00' : '#1F2A23'}">${dShort(m.next)}</b> (${m.left < 0 ? 'เลยมา ' + regMD(isoToBE(m.next)) : m.left === 0 ? 'วันนี้' : 'อีก ' + regMD(isoToBE(m.next))})</div>
+          ${m.last ? `<div class="vh-bar"><i style="width:${Math.max(3, m.pct)}%;background:${m.st === 'late' ? '#C0392B' : m.st === 'soon' ? '#E07B24' : '#2E8B57'}"></i></div>` : ''}</div></div>`).join('')}
+        ${sug.map(k => { const l = lastOf(k); return `<div class="vh-mi"><div class="vh-ic" style="background:#EEE">🛢️</div><div class="vh-x"><b style="color:#6B736E">${k}</b><div>${l ? `จดล่าสุด ${dShort(beToISO(l.timestamp))} · ยังไม่ได้ตั้งรอบ` : 'ยังไม่เคยจด'} · พิมพ์ในแชต "${esc(eqS(a.name))} เปลี่ยน${k} ไมล์ … ทุก 6 เดือน เตือนด้วย"</div></div></div>`; }).join('')}
+      </div>`;
+      // ใบซ่อม
+      const jobs = vis.filter(v => v.kind === 'job').length;
+      h += `<div class="vh-gh"><span>ประวัติเข้าร้าน / ซ่อมบำรุง</span><span>${jobs} ครั้ง</span></div>`;
+      if (!vis.length) h += `<div class="cd vh-cd" style="color:#6B736E">ยังไม่มีประวัติ · จดในแชตได้ เช่น "${esc(eqS(a.name))} เปลี่ยนน้ำมันเครื่อง ร้าน… 1,200 บาท"</div>`;
+      h += vis.map(v => {
+        const ev = v.lines[0].ev.replace(/^[^\p{L}]+/u, '');
+        const amt = v.lines.reduce((t, x) => t + x.amt + (x.bill ? x.total : 0), 0);
+        const ttl = v.kind === 'reg' ? '🪪 ต่อภาษี' : v.open ? `กำลังซ่อม · อยู่ร้าน ${calcDays(v.start)} วัน` : v.end ? `ซ่อมเสร็จ รับรถกลับ (${Math.max(0, (calcDays(v.start) || 0) - (calcDays(v.end) || 0))} วัน)` : /บำรุง/.test(ev) ? 'บำรุงตามระยะ' : /ดัดแปลง/.test(ev) ? 'ดัดแปลง' : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(ev) ? 'ซ่อมเสร็จ' : /แบต/.test(ev) ? 'แบตเตอรี่' : /ตรวจ|ถ่ายรูป/.test(ev) ? 'ตรวจ / ถ่ายรูป' : 'ซ่อม';
+        const hd = `${dShort(beToISO(v.start))} ${vehYY(beToISO(v.start))}${v.open ? ' → ยังไม่รับรถ' : v.end && v.end !== v.start ? ' – ' + dShort(beToISO(v.end)) : ''}${v.shop ? ' · ' + esc(v.shop) : ''}`;
+        const ln = v.lines.slice().sort((x, y) => (/^อาการ/.test(y.txt) ? 1 : 0) - (/^อาการ/.test(x.txt) ? 1 : 0)).map(x => {
+          const t = x.txt || (/รับรถกลับ|ซ่อมเสร็จ/.test(x.ev) ? 'รับรถกลับ' : x.ev.replace(/^[^\p{L}]+/u, ''));
+          if (!t && !x.photo) return '';
+          return `<div class="vh-li">• ${x.bill ? `<button type="button" class="linkbtn" onclick="openBillView('${qa(x.bill)}')">${esc(t)} · ${baht(x.total)} บ.</button>` : esc(t)}${x.date !== v.start ? ` <span class="vh-d">${dShort(beToISO(x.date))}</span>` : ''}${x.photo ? ` <button type="button" class="linkbtn" onclick="viewPhotos('${qa(name)}','${qa(x.photo)}')">📷 ${String(x.photo).split(',').filter(Boolean).length}</button>` : ''}${vehEdit && !x.bill ? ` <button type="button" class="linkbtn muted" style="color:#A3271B" onclick="delAssetLog('${qa(x.id)}','${qa(name)}')">ลบ</button>` : ''}</div>`;
+        }).join('');
+        return `<div class="vh-ro"><span class="vh-dot" style="background:${v.open ? '#E07B24' : v.kind === 'reg' ? '#8A918C' : '#1F5E3B'}"></span><div class="cd vh-cd${v.open ? ' warn' : ''}">
+          <div class="vh-k">${hd}</div><div class="vh-ti${v.open ? ' o' : ''}">${ttl}</div>${ln}
+          ${amt ? `<div class="vh-f"><span>ค่าใช้จ่าย</span><b>${baht(amt)} บ.</b></div>` : v.open ? '<div class="vh-f"><span>ค่าใช้จ่าย</span><b style="color:#8A918C">ยังไม่จด</b></div>' : ''}
+          ${v.open ? `<div class="vh-s">ช่างบอกอะไรเพิ่ม พิมพ์ในแชตได้เลย จะต่อท้ายใบนี้</div><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehChat('${qa(name)}',1)">📷 ส่งรูปบิล</button>` : ''}
+        </div></div>`;
+      }).join('');
+      h += `<button type="button" class="bigbtn bigbtn-main" style="margin-top:6px" onclick="vehChat('${qa(name)}')">+ จดซ่อม / บำรุงคันนี้</button>
+        <div class="vh-btns">${hasBat ? `<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button>` : ''}<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openAssetEdit('${qa(name)}')">แก้สถานะ</button>${vis.length ? `<button type="button" class="bigbtn bigbtn-out" onclick="vehEditTgl()">${vehEdit ? 'เสร็จ' : 'ลบที่จดผิด'}</button>` : ''}</div>`;
+      $('ahBody').innerHTML = h;
     }
 
     function openAssetEdit(name) {
@@ -5486,6 +5624,7 @@
       ph = ph || [];
       if (Array.isArray(it.plots)) it.plots = it.plots.filter(chPlot);
       it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
+      if (it.type === 'note' && !(it.workers || []).length) { const va = chNoteVeh(it.text); if (va) Object.assign(it, { type: 'asset_note', asset: va.name, event: /เปลี่ยน(น้ำมัน|ถ่ายน้ำมัน)|กรอง|เช็คระยะ|ถ่ายน้ำมัน/.test(it.text) ? 'บำรุง' : 'ซ่อม', detail: it.text, place: '', plates: [], amount: it.amount, state: /ทิ้งรถ|ฝากรถ|จอดไว้|รอซ่อม|ทิ้งไว้/.test(it.text) ? 'at_shop' : '' }); }
       if (it.type === 'asset_status') { it.known = !!chAsset(it.asset); it.date = it.date || todayISO(); return it.asset && ['at_shop', 'done'].includes(it.state) ? it : null; }
       if (it.type === 'asset_reg') {
         const ra = chAsset(it.asset); it.known = !!ra && REG_CATS.includes(ra.category);
@@ -5538,7 +5677,7 @@
       }
       if (it.type === 'rem_done') { const r = (gData.reminders || []).find(x => x.rem_id === it.id); if (!r) return null; it.text = r.text; return it; }
       if (it.type === 'reminder') {
-        it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'].includes(it.repeat) ? it.repeat : '';
+        it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = String(it.repeat || '').trim().replace(/^(\d{1,2})\s*เดือน$/, '$1 เดือน'); if (it.repeat === '1 เดือน') it.repeat = 'เดือน'; it.repeat = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'].includes(it.repeat) || /^\d{1,2} เดือน$/.test(it.repeat) ? it.repeat : '';
         it.lead_days = Math.max(0, Math.round(num(it.lead_days))); it.rid = it.rid || 'R' + Date.now() + Math.random().toString(36).slice(2, 5);
         return it.text && /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') ? it : null;
       }
@@ -5630,7 +5769,7 @@
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
-          date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [], state: a.state || '' }); }
+          date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [], state: a.state || '', mileage: Number(a.mileage) || 0, amount: Number(a.amount) || 0 }); }
         else if (a.type === 'asset_status') { if (a.known) ops.push({ fn: 'astatus', asset: a.asset.trim(), state: a.state, detail: a.detail || '', shop: a.shop || '', date: isoToBE(a.date || todayISO()) }); }
         else if (a.type === 'asset_reg') { const nw = !a.known && a.newCat; if (nw) ops.push({ fn: 'opt', category: a.newCat, name: a.asset.trim() }); if (a.known || nw) ops.push({ fn: 'reg', asset: a.asset.trim(), plate: a.plate || undefined, trailer_plate: a.trailer_plate || undefined,
           expire: a.expire ? isoToBE(a.expire) : undefined, trailer_expire: a.trailer_expire ? isoToBE(a.trailer_expire) : undefined }); }
@@ -5690,7 +5829,7 @@
         h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
       } else if (it.type === 'reminder') {
         h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))
-          + row('เวลา', it.time ? it.time + ' น.' : '') + row('ซ้ำ', it.repeat ? 'ทุก' + it.repeat : '') + row('เตือนล่วงหน้า', it.lead_days ? leadTxt(it.lead_days) : '')
+          + row('เวลา', it.time ? it.time + ' น.' : '') + row('ซ้ำ', it.repeat ? repTxt(it.repeat) : '') + row('เตือนล่วงหน้า', it.lead_days ? leadTxt(it.lead_days) : '')
           + (it.date < todayISO() ? `<div class="ch-warn">วันที่นี้ผ่านไปแล้ว — ถ้าทำไปแล้วให้จดเป็นงานแทน</div>` : '');
       } else if (it.type === 'fuel_give') {
         const iv = invItem(it.item) || {}, after = num(iv.stock) - it.qty;
@@ -5736,9 +5875,10 @@
           .filter(([o, n]) => o && n && o.replace(/\s/g, '') !== String(n.plate).replace(/\s/g, '')) : [];
         h = `<div class="ch-t">🚛 ${esc(it.event || 'ลงประวัติรถ')} · ${esc(it.asset)}${un('asset') ? ' <span class="ch-guess">?</span>' : ''}</div>` + thImgs(shown)
           + row('ทำอะไร', it.detail, 'detail') + row('ร้าน/ที่', [it.shop, it.place].filter(Boolean).join(' · '), 'shop') + row('วันที่', dt(it.date), 'date')
+          + (Number(it.mileage) > 0 ? row('เลขไมล์', Number(it.mileage).toLocaleString('en-US')) : '') + (Number(it.amount) > 0 ? row('ค่าใช้จ่าย', baht(it.amount) + ' บ.') : '')
           + (it.state ? row('สถานะรถ', it.state === 'at_shop' ? 'อยู่ร้านช่าง (แท็บรถจะขึ้นไม่ว่าง)' : 'รับรถกลับแล้ว → พร้อมใช้') : '')
           + it.plates.map(x => row('ทะเบียน' + (x.role ? ' ' + x.role : ''), x.plate, 'plates')).join('')
-          + (!it.plates.length ? `<div class="ch-warn">${un('plates') ? 'อ่านทะเบียนจากรูปไม่ชัด — พิมพ์บอกทะเบียนได้เลย' : 'ไม่เห็นทะเบียนในรูป'} (ไม่ใส่ก็บันทึกประวัติได้)</div>` : '')
+          + (!it.plates.length && shown.length ? `<div class="ch-warn">${un('plates') ? 'อ่านทะเบียนจากรูปไม่ชัด — พิมพ์บอกทะเบียนได้เลย' : 'ไม่เห็นทะเบียนในรูป'} (ไม่ใส่ก็บันทึกประวัติได้)</div>` : '')
           + oldP.map(([o, n]) => `<div class="ch-warn">ทะเบียนเดิมในข้อมูลรถ ${esc(o)} → จะเปลี่ยนเป็น ${esc(n.plate)} ถ้าไม่ใช่ ให้พิมพ์แก้</div>`).join('')
           + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — รายการนี้จะไม่ถูกบันทึก (พิมพ์แก้ชื่อรถ หรือเพิ่มรถก่อน)</div>` : '');
       } else if (it.type === 'asset_status') {

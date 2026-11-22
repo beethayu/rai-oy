@@ -2,6 +2,8 @@
 // date = dd/MM/yyyy พ.ศ. · time = "09:00" ว่างได้ · repeat = '' | 'วัน' | 'สัปดาห์' | 'เดือน' | 'ปี' (วัน/สัปดาห์ เพิ่ม 16 พ.ย. 09:00 ผู้ใช้ขอ) · lead_days = เตือนล่วงหน้ากี่วัน (0 = วันจริง+พรุ่งนี้)
 // status open/done · ทำแล้ว: ซ้ำ = เลื่อนไปรอบถัดไป · ไม่ซ้ำ = done · id สร้างฝั่งเว็บ (R...) ส่งซ้ำไม่เบิ้ล
 const REM_REP_ = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'];
+// '6 เดือน' (ตัวเลข+เดือน) = ทุก N เดือน (22 พ.ย. 69 บำรุงรถตามระยะ เช่น กรองโซล่าทุก 6 เดือน) · ทำแล้ว = นับรอบใหม่จากวันที่ทำจริง
+const remRepOk_ = r => REM_REP_.indexOf(r) !== -1 || /^\d{1,2} เดือน$/.test(r);
 const REM_H_ = ['rem_id', 'created', 'date', 'time', 'text', 'repeat', 'lead_days', 'status', 'done_at'];
 const remSheet_ = ss => getOrCreate_(ss, 'Reminders', REM_H_);
 const remBE_ = iso => { const p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + (Number(p[0]) + 543) : getTodayStr(); };
@@ -10,7 +12,7 @@ function remFind_(sh, id) { const d = sh.getDataRange().getDisplayValues(); retu
 function remAdd_(ss, p, id) {
   const sh = remSheet_(ss);
   if (remFind_(sh, id).r > 0) return false;
-  const rep = REM_REP_.indexOf(p.repeat) !== -1 ? p.repeat : '';
+  const rep = remRepOk_(String(p.repeat || '').trim()) ? String(p.repeat).trim() : '';
   appendRows_(sh, [[String(id), getTodayStr(), remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '']]);
   return true;
 }
@@ -18,7 +20,12 @@ function remSet_(sh, r, col, v) { sh.getRange(r + 1, REM_H_.indexOf(col) + 1).se
 function remDone_(ss, id) {
   const sh = remSheet_(ss), f = remFind_(sh, id); if (f.r < 1) return false;
   const row = f.d[f.r], rep = row[REM_H_.indexOf('repeat')];
-  if (REM_REP_.indexOf(rep) !== -1) {
+  const nm = /^(\d{1,2}) เดือน$/.exec(rep);
+  if (nm) {
+    const now = new Date(), d = new Date(now.getFullYear(), now.getMonth() + Number(nm[1]), 1);
+    d.setDate(Math.min(now.getDate(), new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+    remSet_(sh, f.r, 'date', Utilities.formatDate(d, 'Asia/Bangkok', 'dd/MM/') + (d.getFullYear() + 543));
+  } else if (REM_REP_.indexOf(rep) !== -1) {
     const d = remDate_(row[REM_H_.indexOf('date')]), day = d.getDate(), now = new Date(), t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     if (rep === 'วัน') { if (d < t0) d.setTime(t0.getTime()); d.setDate(d.getDate() + 1); }
     else if (rep === 'สัปดาห์') { do d.setDate(d.getDate() + 7); while (d <= t0); }
@@ -38,6 +45,7 @@ function remOp(op) {
     else if (op.fn === 'done') remDone_(ss, op.id);
     else if (op.fn === 'del') remDel_(ss, op.id);
     else if (op.fn === 'move') remMove_(ss, op.id, op.date);
+    else if (op.fn === 'repeat') { const sh = remSheet_(ss), f = remFind_(sh, op.id); if (f.r > 0 && (remRepOk_(op.repeat) || op.repeat === '')) remSet_(sh, f.r, 'repeat', op.repeat); }
     return { reminders: readRem_(ss) };
   });
 }

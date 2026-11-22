@@ -495,6 +495,14 @@ function deleteAssetLog(logId) {
   });
 }
 
+// 📷 จดเรื่องรถพร้อมรูปจากหน้ารถ (22 พ.ย. 69) — เก็บรูปก่อน (นอก lock) แล้วลงประวัติด้วย op asset เดิม (ตั้งชื่อ/ย้ายเข้าโฟลเดอร์รถ)
+function vehSave(op, pics, rid) {
+  const folder = chatFolder_(), st = Date.now(), ids = [];
+  (pics || []).slice(0, 4).forEach((p, i) => ids.push(folder.createFile(Utilities.newBlob(Utilities.base64Decode(p), 'image/jpeg', 'tmp_' + st + '_v' + (i + 1) + '.jpg')).getId()));
+  op.photo_ids = ids;
+  return chatApply([op], rid);
+}
+
 // ✏️ แก้ข้อความประวัติรถ (22 พ.ย. 69 จดผิด ตัวแม่ → ตัวลูก) · issue = แก้ "อาการ/ทำอะไร" ของรถที่ยังอยู่ร้านด้วย (ว่าง = ไม่แก้)
 function editAssetLog(logId, detail, issue) {
   return withLock_(() => {

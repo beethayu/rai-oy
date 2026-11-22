@@ -330,9 +330,11 @@ function satProbe(id, fromISO, toISO, radar) {
 const SAT_PROC_URL_ = 'https://sh.dataspace.copernicus.eu/process/v1';
 const SAT_IMG_EVAL_ = `//VERSION=3
 function setup() {
-  return { input: [{ bands: ['B03', 'B04', 'B08', 'B11', 'SCL', 'dataMask'] }], output: { bands: 4 } };
+  return { input: [{ bands: ['B02', 'B03', 'B04', 'B08', 'B11', 'SCL', 'dataMask'] }], output: { bands: 4 } };
 }
 var ST = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85];
+// ดัชนีตามอายุอ้อย (22 พ.ย. 69 ผู้ใช้ให้ทำตามแอป TraceTerra): REF = -1 → MSAVI (อ้อยเล็ก หักสีดิน) · REF = -2 → EVI (อ้อยใบหนา NDVI ตัน)
+var ST_M = [0.05, 0.12, 0.2, 0.3, 0.42, 0.55], ST_E = [0.12, 0.25, 0.35, 0.45, 0.55, 0.68];
 var CO = [[0.55, 0.38, 0.22], [0.80, 0.55, 0.25], [0.95, 0.85, 0.30], [0.62, 0.80, 0.30], [0.25, 0.62, 0.22], [0.08, 0.40, 0.12]];
 function ramp(v) {
   if (v <= ST[0]) return CO[0];
@@ -348,7 +350,13 @@ function evaluatePixel(s) {
   if (mn > 0 && s.SCL !== 8 && s.SCL !== 9 && s.SCL !== 10) return [0.20, 0.45, 0.85, 1];      // น้ำบนผิว
   if ([0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0) return [0.78, 0.78, 0.78, 1];              // เมฆ/เงา
   var v = (s.B08 - s.B04) / (s.B08 + s.B04 || 1);
-  if (REF > 0) {                                                  // โหมดเทียบในแปลง: สีบอกว่าตรงนี้ดี/แย่กว่าค่าเฉลี่ยของแปลงเอง
+  if (REF === -1 || REF === -2) {
+    var w = REF === -1 ? (2 * s.B08 + 1 - Math.sqrt(Math.max(0, (2 * s.B08 + 1) * (2 * s.B08 + 1) - 8 * (s.B08 - s.B04)))) / 2
+      : 2.5 * (s.B08 - s.B04) / (s.B08 + 6 * s.B04 - 7.5 * s.B02 + 1);
+    var S = REF === -1 ? ST_M : ST_E;              // แปลงสเกลของดัชนีให้ใช้สีชุดเดียวกับ NDVI
+    for (var i = 1; i < S.length; i++) if (w <= S[i]) { v = ST[i - 1] + (ST[i] - ST[i - 1]) * Math.max(0, (w - S[i - 1]) / (S[i] - S[i - 1])); break; }
+    if (w > S[S.length - 1]) v = 0.9; if (w <= S[0]) v = 0.05;
+  } else if (REF > 0) {                                                  // โหมดเทียบในแปลง: สีบอกว่าตรงนี้ดี/แย่กว่าค่าเฉลี่ยของแปลงเอง
     var d = v - REF;
     if (d <= -0.15) return [0.80, 0.15, 0.12, 1];
     if (d <= -0.07) return [0.96, 0.55, 0.20, 1];
@@ -382,10 +390,10 @@ function getSatImages(reqs) {
   };
   (reqs || []).slice(0, 40).forEach(q => {
     const id = String(q[0] || ''), d = String(q[1] || '');
-    let ref = Math.round((Number(q[2]) || 0) * 1000) / 1000; if (!(ref > 0 && ref < 1)) ref = 0;
+    let ref = Math.round((Number(q[2]) || 0) * 1000) / 1000; if (!(ref > 0 && ref < 1) && ref !== -1 && ref !== -2) ref = 0;
     const key = id + '|' + d + '|' + ref;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { out[key] = ''; return; }
-    const hit = cache.get('satimg2_' + key);
+    const hit = cache.get('satimg3_' + key);
     if (hit) { out[key] = hit; return; }
     const pts = parsePath_(bound(id));
     if (pts.length < 3) { out[key] = ''; return; }
@@ -405,7 +413,7 @@ function getSatImages(reqs) {
         if (r.getResponseCode() !== 200) { out[n.key] = ''; console.warn('satimg ' + n.key + ' ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 120)); return; }
         const img = 'data:image/png;base64,' + Utilities.base64Encode(r.getBlob().getBytes());
         out[n.key] = img;
-        try { cache.put('satimg2_' + n.key, img, 21600); } catch (e) {}   // เกิน 100KB = ไม่แคช
+        try { cache.put('satimg3_' + n.key, img, 21600); } catch (e) {}   // เกิน 100KB = ไม่แคช
       });
     }
   }

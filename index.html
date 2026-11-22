@@ -7833,8 +7833,23 @@ Export.table.toDrive({
     }
     // ภาพสีแปลงจาก Apps Script: รวมคำขอที่เข้ามาใกล้ๆ กันเป็นก้อนเดียว (getSatImages) · ภาพเดียวกันขอครั้งเดียว · weak = โหมดหาจุดอ่อน
     const satWait = {}; let satBatch = [], satTimer = null;
+    // ดัชนีตามอายุอ้อย ณ วันที่ภาพ (22 พ.ย. 69): < 90 วัน MSAVI (หักสีดิน) · ≥ 150 วัน EVI (ใบหนา NDVI ตัน) · ระหว่างนั้น NDVI · ใช้กับ "สีปกติ" เท่านั้น จุดอ่อน/สถิติยังเป็น NDVI (เกณฑ์ปรับกับของจริงแล้ว)
+    function satIdx(x, d) {
+      if (!x || x.land) return 0; const p = (gData.plots || []).find(o => o.plot_id === x.id); if (!p) return 0;
+      let st = ''; try { const i = flInfo(p); if (i && i.start && !i.pre) st = i.start; } catch (e) {} if (!st) st = beToISO(p.plant_date); if (!st || !d) return 0;
+      const a = dayDiff(st, d); return a < 0 ? 0 : a < 90 ? -1 : a >= 150 ? -2 : 0;
+    }
+    const satIdxTxt = c => c === -1 ? 'MSAVI · อ้อยเล็ก หักสีดินออก' : c === -2 ? 'EVI · อ้อยใบหนา เห็นต่างชัดกว่า NDVI' : 'NDVI · อ้อยช่วงกลาง';
+    // รอบดาวเทียมรอบหน้า: ดูจากวันที่มีภาพจริงช่วง 40 วัน (รอบ 5 วันต่อดวง หลายดวงเหลื่อมกัน) → วันแรกที่ตรงรอบ
+    function satNextPass() {
+      const ds = [...new Set((satData && satData.sat || []).map(r => r[0]))].sort(), last = ds[ds.length - 1]; if (!last) return null;
+      const dn = iso => Math.round(Date.parse(iso + 'T00:00:00Z') / 864e5), t0 = todayISO(), rec = ds.filter(d => dn(t0) - dn(d) <= 40), res = new Set(rec.map(d => ((dn(d) % 5) + 5) % 5));
+      for (let k = 0; k <= 6; k++) { const d = isoAdd(t0, k); if (d > last && res.has(((dn(d) % 5) + 5) % 5)) return { d, k }; }
+      return null;
+    }
+    const satNextTxt = () => { const n = satNextPass(); return n ? ` · รอบหน้า ~${satDs(n.d)}${n.k === 0 ? ' (วันนี้ ภาพลงพรุ่งนี้เช้า)' : n.k === 1 ? ' (พรุ่งนี้)' : ` (อีก ${n.k} วัน)`}` : ''; };
     function satImg(x, d, weak, cb) {
-      const q = x.good.find(o => o.d === d), ref = weak && q ? Math.round(q.ndvi * 1000) / 1000 : 0, ck = x.id + '|' + d + '|' + ref;
+      const q = x.good.find(o => o.d === d), ref = weak && q ? Math.round(q.ndvi * 1000) / 1000 : weak ? 0 : satIdx(x, d), ck = x.id + '|' + d + '|' + ref;
       if (satImgCache[ck] !== undefined) return cb(satImgCache[ck] || null);
       if (satWait[ck]) return satWait[ck].push(cb);
       satWait[ck] = [cb]; satBatch.push([x.id, d, ref]);
@@ -7866,7 +7881,7 @@ Export.table.toDrive({
       const all = bad.concat(ok, none, lands);
       $('sat-body').innerHTML = `
         <div class="sat-cnt"><div><b style="color:#2E7D32">${ok.length}</b>ปกติ</div><div><b style="color:var(--urg)">${bad.length}</b>ควรไปดู</div><div><b style="color:#8A8F8B">${none.length}</b>ไม่มีภาพใหม่</div></div>
-        <div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted">ภาพล่าสุด ${latest ? satD(latest) : '-'} · ลงเองทุกเช้า</small>
+        <div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted">ภาพล่าสุด ${latest ? satD(latest) : '-'}${satNextTxt()} · ถ้าไม่มีเมฆ</small>
           <button type="button" class="btn btn-sm btn-outline-success fw-bold" style="border-radius:10px" onclick="satToMap()">🗺️ ดูบนแผนที่</button></div>
         ${bad.length ? '<div class="sat-h">⚠️ ควรไปดู</div>' + bad.map(x => row(x, all.indexOf(x))).join('') : ''}
         ${ok.length ? '<div class="sat-h">✅ ปกติ</div>' + ok.map(x => row(x, all.indexOf(x))).join('') : ''}
@@ -7972,7 +7987,7 @@ Export.table.toDrive({
         </div>`;
       }
       const key = W ? `<div class="sat-key2"><span><i style="background:#CC261F"></i>อ่อนกว่ามาก</span><span><i style="background:#F58C33"></i>อ่อนกว่าเล็กน้อย</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่าส่วนอื่น</span></div>`
-        : `<div class="sat-legend"></div><div class="d-flex justify-content-between"><small class="text-muted">ดินโล่ง</small><small class="text-muted">กำลังโต</small><small class="text-muted">เขียวเต็ม</small></div>`;
+        : `<div class="sat-legend"></div><div class="d-flex justify-content-between"><small class="text-muted">ดินโล่ง</small><small class="text-muted">กำลังโต</small><small class="text-muted">เขียวเต็ม</small></div><small class="text-muted d-block mt-1">สีใช้ดัชนี ${satIdxTxt(satIdx(x, cur && cur.d))}</small>`;
       const chips = dates.map(q => `<button type="button" class="${cur && q.d === cur.d ? 'on' : ''}" onclick="satPick('${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('');
       let years = '';
       if (x.land) {
@@ -8050,7 +8065,7 @@ Export.table.toDrive({
         ${(gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;try{localStorage.setItem('raioy_dmgshow',fmDmgShow?'1':'0')}catch(e){};fmRender();fmSatBarHtml()"><span>🔥 แสดงรอยเสียหายที่วาดไว้</span><span class="fm-sw ${fmDmgShow ? 'on' : ''}"></span></button>` : ''}
         ${fmSatMode === 'b' ? burnBarHtml() : F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
         : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
-          : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div></div>`}<div class="fm-attr">ภาพพื้นหลัง © Esri · Leaflet</div>`;
+          : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div><small style="color:#6B736E;font-size:12px">สีเลือกดัชนีตามอายุอ้อยให้เอง: อ้อยเล็ก &lt; 3 เดือน MSAVI (หักสีดิน) · 3–5 เดือน NDVI · &gt; 5 เดือน EVI (ใบหนา)${satNextTxt()}</small></div>`}<div class="fm-attr">ภาพพื้นหลัง © Esri · Leaflet</div>`;
     }
     function fmSatDraw() {
       if (!fmMap || !fmSatOn || !satInfo) return;

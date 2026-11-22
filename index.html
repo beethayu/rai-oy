@@ -7944,9 +7944,9 @@ Export.table.toDrive({
     function satIdx(x, d) {
       if (!x || x.land) return 0; const p = (gData.plots || []).find(o => o.plot_id === x.id); if (!p) return 0;
       let st = ''; try { const i = flInfo(p); if (i && i.start && !i.pre) st = i.start; } catch (e) {} if (!st) st = beToISO(p.plant_date); if (!st || !d) return 0;
-      const a = dayDiff(st, d); return a < 0 ? 0 : a < 90 ? -1 : a >= 150 ? -2 : 0;
+      const a = dayDiff(st, d); return a < 0 ? 0 : a < 90 ? -1 : 0; // EVI (-2) เลิกใช้ 22 พ.ย. 69: ใช้แสงสีฟ้า โดนหมอกควันหน้าเผาอ้อยหลอก → สำนักแจง (ซ้ายใน) 16 พ.ย. ขึ้นจุดน้ำตาลปลอม ที่ NDVI ไม่มี + อ้อยใบเต็มเขียวเข้มทั้งแปลง
     }
-    const satIdxTxt = c => c === -1 ? 'MSAVI · อ้อยเล็ก หักสีดินออก' : c === -2 ? 'EVI · อ้อยใบหนา เห็นต่างชัดกว่า NDVI' : 'NDVI · อ้อยช่วงกลาง';
+    const satIdxTxt = c => c === -1 ? 'MSAVI · อ้อยเล็ก หักสีดินออก' : 'NDVI';
     // รอบดาวเทียมรอบหน้า: ดูจากวันที่มีภาพจริงช่วง 40 วัน (รอบ 5 วันต่อดวง หลายดวงเหลื่อมกัน) → วันแรกที่ตรงรอบ
     function satNextPass() {
       const ds = [...new Set((satData && satData.sat || []).map(r => r[0]))].sort(), last = ds[ds.length - 1]; if (!last) return null;
@@ -8172,7 +8172,7 @@ Export.table.toDrive({
         ${(gData.damages || []).some(x => pPath(x.boundary).length >= 3) ? `<button type="button" class="fm-dmgtg" onclick="fmDmgShow=!fmDmgShow;try{localStorage.setItem('raioy_dmgshow',fmDmgShow?'1':'0')}catch(e){};fmRender();fmSatBarHtml()"><span>🔥 แสดงรอยเสียหายที่วาดไว้</span><span class="fm-sw ${fmDmgShow ? 'on' : ''}"></span></button>` : ''}
         ${fmSatMode === 'b' ? burnBarHtml() : F ? `<div class="sat-key1"><span><i style="background:#9ECCFF"></i>เห็นน้ำ 1 ครั้ง</span><span><i style="background:#5A9EF2"></i>2</span><span><i style="background:#1F6BD9"></i>3–4</span><span><i style="background:#0D3A9E"></i>5+</span><span><i style="background:#8C8C8C"></i>ข้อมูลน้อย</span></div><small style="color:#6B736E;font-size:12px">นับเฉพาะตอนอ้อยเล็ก/หลังตัด (ใต้อ้อยสูงมองไม่เห็นน้ำ) · สีเข้ม = แอ่งน้ำขังบ่อย</small>`
         : W ? `<div class="sat-key1"><span><i style="background:#CC261F"></i>อ่อนมาก</span><span><i style="background:#F58C33"></i>อ่อนกว่า</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่า</span></div>`
-          : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div><small style="color:#6B736E;font-size:12px">สีเลือกดัชนีตามอายุอ้อยให้เอง: อ้อยเล็ก &lt; 3 เดือน MSAVI (หักสีดิน) · 3–5 เดือน NDVI · &gt; 5 เดือน EVI (ใบหนา)${satNextTxt()}</small></div>`}<div class="fm-attr">ภาพพื้นหลัง © Esri · Leaflet</div>`;
+          : `<div><div class="sat-legend" style="margin-top:0"></div><div class="fm-rrow"><small>ดินโล่ง</small><small>กำลังโต</small><small>เขียวเต็ม</small></div><small style="color:#6B736E;font-size:12px">สีเลือกดัชนีตามอายุอ้อยให้เอง: อ้อยเล็ก &lt; 3 เดือน MSAVI (หักสีดิน) · โตกว่านั้น NDVI${satNextTxt()}</small></div>`}<div class="fm-attr">ภาพพื้นหลัง © Esri · Leaflet</div>`;
     }
     function fmSatDraw() {
       if (!fmMap || !fmSatOn || !satInfo) return;

@@ -140,7 +140,7 @@ function importBoundaries(items) {
 
 // ===== พื้นที่เสียหายในแปลง (14 พ.ย. 69 ไฟไหม้หนองบวบหอม): ไฟไหม้ / น้ำท่วม / อื่น ๆ วาดบนแผนที่ (เดินปักหมุด GPS) =====
 const DMG_H_ = ['dmg_id', 'created', 'plot_id', 'date', 'type', 'note', 'boundary', 'map_rai', 'center_lat', 'center_lng'];
-const DMG_T_ = ['ไฟไหม้', 'น้ำท่วม', 'สัตว์/ขโมย', 'อื่น ๆ'];
+const DMG_T_ = ['ไฟไหม้', 'น้ำท่วม', 'สัตว์/ขโมย', 'อื่น ๆ', 'อ้อยเก่าค้าง'];
 function saveDamage(o) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = getOrCreate_(ss, 'Damages', DMG_H_);

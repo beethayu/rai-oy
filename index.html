@@ -3884,10 +3884,19 @@
           let e = m; for (let k = 0; k < R; k++) { const n = new Uint8Array(W * H); for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; n[i] = e[i] && e[i - 1] && e[i + 1] && e[i - W] && e[i + W] ? 1 : 0; } e = n; }
           let s = 0, n = 0; for (let i = 0; i < W * H; i++) if (e[i]) { s += d[i * 4] / 255; n++; }
           if (n < 30) { wzMemo[pid] = null; return cb(null); }
+          const pl = (gData.plots || []).find(q => q.plot_id === pid), ppts = pl ? pPath(pl.boundary) : [], olds = (gData.damages || []).filter(x => x.plot_id === pid && x.type === 'อ้อยเก่าค้าง').map(x => pPath(x.boundary)).filter(a => a.length >= 3);
+          if (olds.length && ppts.length >= 3) { // ตัดพื้นที่อ้อยเก่าค้างออก (ไม่นับทั้งค่าเฉลี่ยและโซนอ่อน)
+            const la = ppts.map(q => q[0]), lo = ppts.map(q => q[1]), N = Math.max(...la), S0 = Math.min(...la), Wl = Math.min(...lo), E0 = Math.max(...lo);
+            const inP = (pt, poly) => { let c = false; for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) { const [ya, xa] = poly[a], [yb, xb] = poly[b]; if ((ya > pt[0]) !== (yb > pt[0]) && pt[1] < (xb - xa) * (pt[0] - ya) / (yb - ya) + xa) c = !c; } return c; };
+            s = 0; n = 0;
+            for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x; if (!m[i]) continue; const ll = [N - (y + 0.5) / H * (N - S0), Wl + (x + 0.5) / W * (E0 - Wl)]; if (olds.some(o => inP(ll, o))) { e[i] = 0; m[i] = 2; } else if (e[i]) { s += d[i * 4] / 255; n++; } }
+            if (n < 30) { wzMemo[pid] = null; return cb(null); }
+          }
           const mean = s / n; let w1 = 0, w2 = 0;
           for (let i = 0; i < W * H; i++) {
             const o = i * 4; if (!m[i]) { d[o + 3] = 0; continue; }
             const v = d[o] / 255 - mean;
+            if (m[i] === 2) { d[o] = 214; d[o + 1] = 196; d[o + 2] = 140; d[o + 3] = 255; continue; } // อ้อยเก่าค้าง
             if (!e[i]) { d[o] = 230; d[o + 1] = 228; d[o + 2] = 215; d[o + 3] = 255; continue; }
             if (v <= -0.08) { w2++; d[o] = 200; d[o + 1] = 40; d[o + 2] = 30; } else if (v <= -0.04) { w1++; d[o] = 245; d[o + 1] = 140; d[o + 2] = 50; }
             else if (v >= 0.04) { d[o] = 46; d[o + 1] = 140; d[o + 2] = 56; } else { d[o] = 237; d[o + 1] = 230; d[o + 2] = 184; }
@@ -3959,7 +3968,7 @@
       // 3) โซนอ่อนประจำ
       if (wz) h += `<div class="vh-row pd-r"><div class="vh-dt"><img src="${wz.img}" alt="" style="width:54px;border-radius:6px;image-rendering:pixelated"></div><div class="vh-tx"><div class="vh-k" style="font-size:12px">โซนอ่อนประจำ (เฉลี่ย 8 เดือน)</div>
         <div class="vh-main" style="color:${wz.pct >= 0.1 ? '#C2410C' : '#1F7A3D'}">${wz.pct >= 0.03 ? `อ่อนประจำ ~${r1(wz.rai)} ไร่ (${Math.round(wz.pct * 100)}%)` : '✓ สม่ำเสมอทั้งแปลง'}</div>
-        <div class="vh-sub">แดง/ส้ม = เขียวน้อยกว่าส่วนอื่นของแปลงเกือบตลอด · ไม่นับขอบแปลง</div><button type="button" class="vh-ph" onclick="wzBig('${qa(pid)}')">ดูภาพใหญ่</button></div></div>`;
+        <div class="vh-sub">แดง/ส้ม = เขียวน้อยกว่าส่วนอื่นของแปลงเกือบตลอด · ไม่นับขอบแปลง${(gData.damages || []).some(x => x.plot_id === pid && x.type === 'อ้อยเก่าค้าง') ? ' และส่วนอ้อยเก่าค้าง (สีกากี)' : ''}</div><button type="button" class="vh-ph" onclick="wzBig('${qa(pid)}')">ดูภาพใหญ่</button></div></div>`;
       else if (wz === undefined) h += `<div class="vh-row pd-r"><div class="vh-dt"><b>🟥</b></div><div class="vh-tx"><div class="vh-sub">กำลังหาโซนอ่อนประจำ…</div></div></div>`;
       // 4) ปุ๋ยรายแปลง (ทิศทาง ไม่ใช่อัตรา — อัตราใช้ตามฉลาก)
       if (fe) { const hi = fe.avg !== null && fe.me.pr > fe.avg * 1.15, lo = fe.avg !== null && fe.me.pr < fe.avg * 0.85;
@@ -3983,7 +3992,7 @@
         const nRep = (gData.activities || []).filter(a => a.plot_id === p.plot_id && /ซ่อมอ้อย/.test(a.activity_detail || '') && (!st0 || beToISO(String(a.timestamp || '').split(' ')[0]) >= st0)).length;
         if (tg.includes('น้ำขังง่าย')) ev.push('น้ำขังง่าย'); if (tg.includes(TAG_SAND)) ev.push('ดินทราย'); if (nRep) ev.push(`ซ่อมอ้อยฤดูนี้ ${nRep} ครั้ง (กอขาด/ไม่งอก)`);
         try { const sx = satInfo.items.find(i => i.id === p.plot_id); if (sx && sx.wetSeen && sx.wetSeen.length) ev.push('ดาวเทียมเคยเห็นน้ำบนแปลง'); } catch (e) {}
-        if (tg.includes('มีอ้อยเก่าค้างปน') && (lf.k === 'fade' || lf.k === 'nfert')) { T[0] = 'ใบซีดกว่าเพื่อน — มีอ้อยเก่าค้างปนในแปลง'; T[1] = '#6B736E'; T[2] = 'อ้อยเก่าใบแก่ซีดเอง ค่านี้ใช้ตัดสินเรื่องปุ๋ยแปลงนี้ไม่ได้'; }
+        if ((tg.includes('มีอ้อยเก่าค้างปน') || (gData.damages || []).some(x => x.plot_id === p.plot_id && x.type === 'อ้อยเก่าค้าง')) && (lf.k === 'fade' || lf.k === 'nfert')) { T[0] = 'ใบซีดกว่าเพื่อน — มีอ้อยเก่าค้างปนในแปลง'; T[1] = '#6B736E'; T[2] = 'อ้อยเก่าใบแก่ซีดเอง ค่านี้ใช้ตัดสินเรื่องปุ๋ยแปลงนี้ไม่ได้'; }
         else if (lf.k === 'other' && ev.length) T[2] = 'น่าจะมาจาก: ' + ev.join(' · ');
         h += `<div class="vh-row pd-r"><div class="vh-dt"><b>🍃</b></div><div class="vh-tx"><div class="vh-k" style="font-size:12px">ใบเข้มพอไหม (คลอโรฟิลล์ จากแสง red-edge)</div><div class="vh-main" style="color:${T[1]}">${T[0]}</div>
           <div class="vh-sub" style="color:#1F2A23">${T[2]}</div><div class="vh-sub">ภาพ ${satDs(lf.d)} · ปริมาณใบ ${lf.dN >= 0 ? '+' : ''}${lf.dN.toFixed(2)} เทียบ${esc(satType(p))}อายุใกล้กัน ${lf.n} แปลง · ความเข้มใบ ${lf.dR >= 0 ? '+' : ''}${lf.dR.toFixed(3)} เทียบแปลงที่ใบเท่ากัน</div></div></div>`; }
@@ -4104,7 +4113,8 @@
             ${X.map(x => `<div>• <b>${esc(x.date)}</b> ${dmgT(x.type)[1]} ${esc(x.type)} ≈ ${fmtRai(num(x.map_rai) * 1600)}${x.note ? ' · ' + esc(x.note) : ''}</div>`).join('')}
             ${X.filter(x => !x.boundary).map(x => `<button type="button" class="btn btn-sm btn-outline-danger fw-bold mt-2 me-1" onclick="dmgDraw('${qa(x.dmg_id)}')">📍 วาดแนวบนแผนที่ (${esc(x.date)})</button>`).join('')}
             <div class="srow-s mt-1">${X.some(x => !x.boundary) ? 'ยังไม่ได้วาดแนว = ไร่ที่ประมาณไว้ · ' : ''}ดู/แก้แนวได้ที่ 🗺️ แผนที่ไร่</div>
-          </div></div>` : '')((gData.damages || []).filter(x => x.plot_id === pid))}
+          </div></div>` : '')((gData.damages || []).filter(x => x.plot_id === pid && x.type !== 'อ้อยเก่าค้าง'))}
+          ${(O => O.length ? `<div class="col-12"><div class="vh-cd" style="margin:0"><div class="vh-k">🌾 อ้อยเก่าค้าง (ไม่ได้ตัดปีก่อน)</div><div class="vh-ti" style="color:#9A7B1F;font-size:16px">~${fmtRai(O.reduce((s, x) => s + num(x.map_rai), 0) * 1600)}</div>${O.map(x => `<div class="vh-sub">${esc(x.note || '')}</div>`).join('')}<div class="vh-sub" style="font-size:12px;color:#8A918C">ตัดส่วนนี้ออกตอนหาโซนอ่อนประจำ · ดู/แก้แนวที่ 🗺️ แผนที่ไร่</div></div></div>` : '')((gData.damages || []).filter(x => x.plot_id === pid && x.type === 'อ้อยเก่าค้าง'))}
           ${(H => H.length ? `<div class="col-12"><div class="dossier-stat" style="border-color:#E9C48F">
             <div class="fw-bold mb-1" style="color:#8A4A06">🤝 รถจ้าง · รวม ${baht(H.reduce((s, x) => s + num(x.h.a), 0))} บาท</div>
             ${H.map(x => `<div>• <b>${esc(x.l.timestamp)}</b> ${esc(x.l.activity_detail)} · ${esc(hireTxt(x.h).replace('🤝 ', ''))}</div>`).join('')}
@@ -8907,7 +8917,7 @@ Export.table.toDrive({
     }
 
     // ===== พื้นที่เสียหาย (ไฟไหม้/น้ำท่วม) =====
-    const DMG_T = [['ไฟไหม้', '🔥', '#E4572E'], ['น้ำท่วม', '🌊', '#2F7FD8'], ['สัตว์/ขโมย', '🐾', '#8A5A2B'], ['อื่น ๆ', '⚠️', '#8A6D00']];
+    const DMG_T = [['ไฟไหม้', '🔥', '#E4572E'], ['น้ำท่วม', '🌊', '#2F7FD8'], ['สัตว์/ขโมย', '🐾', '#8A5A2B'], ['อื่น ๆ', '⚠️', '#8A6D00'], ['อ้อยเก่าค้าง', '🌾', '#9A7B1F']]; // อ้อยเก่าค้าง (22 พ.ย. 69) = ส่วนที่ไม่ได้ตัดปีก่อน ไม่ใช่ความเสียหาย · ตัดออกจากโซนอ่อน/ความเข้มใบ
     const dmgT = t => DMG_T.find(x => x[0] === t) || DMG_T[3];
     function dmgDraw(id) { // จากหน้าดูแปลง → แผนที่ไร่ เริ่มวาดแนวของรายการที่จดจากแชต
       const x = (gData.damages || []).find(o => o.dmg_id === id); if (!x) return;

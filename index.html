@@ -8242,7 +8242,7 @@ Export.table.toDrive({
       const hit = L.filter(o => o.r.rai >= 0.2).sort((a, b) => b.r.rai - a.r.rai);
       return `<div class="sat-key1"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>`
         + `<button type="button" class="burn-min" onclick="burnMin=!burnMin;fmSatBarHtml()">${burnMin ? `▴ รายการ (${hit.length})` : '▾ ย่อ'}</button>`
-        + (burnMin ? '' : `<div class="burn-list">${!L.length ? 'กำลังเทียบภาพก่อน–หลัง…' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> เสียหาย ~${r1(o.r.dmg || o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
+        + (burnMin ? '' : `<div class="burn-list">${(() => { const tot = (satInfo ? satInfo.items : []).filter(x => !x.land && burnPairOf(x)).length; return L.length < tot ? `<div style="color:#6B736E;font-size:13px">⏳ กำลังเทียบภาพ ${L.length}/${tot} แปลง…</div>` : `<div style="color:#6B736E;font-size:13px">เทียบครบ ${tot} แปลง · ป้ายบนแผนที่บอกผลแต่ละแปลง</div>`; })()}${!L.length ? '' : !hit.length ? `ไม่เห็นจุดที่เขียวกลายเป็นแห้งในภาพล่าสุด (เทียบ ${L.length} แปลง)` : hit.map(o => `<div onclick="burnGo('${qa(o.x.key)}')"><b>${esc(o.x.name)}</b> เสียหาย ~${r1(o.r.dmg || o.r.rai)} ไร่ <span>(${satDs(o.r.A)} → ${satDs(o.r.B)})</span><br><small>${esc(o.r.cause)}</small></div>`).join('')}</div>`
         + (burnMin ? '' : `<small style="color:#6B736E;font-size:12px">จุดที่เขียวกลายเป็นแห้ง (ไฟ ยาฆ่าหญ้า ตัด อ้อยล้ม ดาวเทียมแยกไม่ได้ ดูสาเหตุจากบันทึก) · เทียบภาพใสสองภาพล่าสุดของแต่ละแปลง · ไร่ = ก้อนสีแดงในจุดอ่อนที่ทับจุดที่เพิ่งแห้งลง (คลาด ~20–30%) · แตะชื่อแปลงเพื่อซูม · ต้องไปดูหน้างาน</small>`));
     }
     const fmSatCur = x => x.good.find(q => q.d === fmSatDate[x.key]) || x.last;
@@ -8529,6 +8529,11 @@ Export.table.toDrive({
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3 || editing(p.plot_id)) return;
           const sx = fmSatOn && fmSatItem('plot', p.plot_id);
           const sq = sx && sx.last && fmSatCur(sx), old = sq && sq.d !== sx.last.d;
+          if (sx && fmSatMode === 'b') { // โหมดแห้งลง (22 พ.ย. 69 ผู้ใช้: แปลงไม่มีสีอะไรเลย "รูปโหลดรึยัง") → ป้ายบอกผลของแปลงนั้นตรง ๆ
+            const pr = burnPairOf(sx), r = pr && burnRes[sx.id + '|' + pr.A + '|' + pr.B];
+            const t = !pr ? '<span style="color:#8A918C">ไม่มีภาพเทียบ</span>' : !r ? '<span style="color:#8A918C">กำลังเทียบ…</span>' : r.cloud ? '<span style="color:#8A918C">เมฆบัง เทียบไม่ได้</span>' : r.rai >= 0.2 ? `<span style="color:#C2410C">แห้ง ~${r1(r.dmg || r.rai)} ไร่</span>` : '<span style="color:#1F7A3D">✓ ไม่พบจุดแห้ง</span>';
+            return lbl(center(pts), `${esc(p.plot_name)} ${t}`, 'fm-tag');
+          }
           lbl(center(pts), sq ? `${sx.st === 'bad' && !old ? '⚠️ ' : ''}${esc(p.plot_name)} <span style="color:${satColor(sq.ndvi)}">${sq.ndvi.toFixed(2)}</span>${old ? ` <span>· ${satDs(sq.d)}</span>` : ''}` : `${esc(p.plot_name)} <span>· ${r1(num(p.area_rai))} ไร่</span>`, 'fm-tag'); });
         (gData.lands || []).forEach(l => { const pts = pPath(l.boundary); if (pts.length >= 3 && !editing(l.land_id) && fmLandVisible(l)) lbl(center(pts), esc(l.name), 'fm-tag fm-tag-land'); });
         return guardLbl(); // ป้ายเฝ้าวางหลังป้ายแปลง (ขยับหลบเอง)

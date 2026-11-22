@@ -2143,17 +2143,19 @@
     document.addEventListener('show.bs.modal', e => dbg('เปิด ' + (e.target.id || 'หน้าต่าง')));
     document.addEventListener('hidden.bs.modal', e => { if (e.target.id === 'actModal') pkSavedReset = false; });
     // กลับหน้าก่อนหน้า: เปิดหน้าต่างลูกจากหน้าดูแปลง/ผัง แล้วกดปิด → กลับมาหน้าเดิมที่ตำแหน่งเดิม (เดิมเด้งออกไปหน้าหลัก)
-    let backFn = null;
+    let backFn = null, backT = 0, bfOwn = {}; // backFn ผูกกับหน้าต่างที่เปิดต่อจริง (22 พ.ย. 69: เคยค้างไว้แล้วไปทำงานตอนหน้าต่างอื่นปิด → ย้อนจากดาวเทียมแล้วเด้งไปหน้าแปลงแทนแผนที่)
     // ย้อนกลับทั่วไป (16 พ.ย. 69 ผู้ใช้: "เวลาปิดชอบเด้งหายไปเลย"): หน้าต่าง B เปิดจากหน้าต่าง A → B มีปุ่ม ‹ บนหัว · ปิด B (‹ หรือ ✕) = กลับ A
     // จับคู่เฉพาะตอนแอปปิด A เอง (hideModal) แล้วเปิด B ภายใน 1.2 วิ หรือ A ยังเปิดค้าง · ผู้ใช้ปิด A เองแล้วไปเปิด B จากหน้าหลัก = ไม่ผูก
-    let mProg = { id: '', t: 0 }, mPar = {};
+    let mProg = { id: '', t: 0 }, mPar = {}, mBackTo = '';
     const M_REOPEN = { dossierModal: () => { const pid = mDsPid; if (pid) openDossier(pid); else showM('dossierModal'); }, flowModal: () => { showM('flowModal'); try { flRender(); } catch (e) {} } };
     let mDsPid = '';
     document.addEventListener('show.bs.modal', e => {
       const id = e.target.id; if (!id || !/Modal$/.test(id)) return;
+      if (backFn) { if (Date.now() - backT < 1500) bfOwn[id] = backFn; backFn = null; }
       const open = [...document.querySelectorAll('.modal.show')].map(m => m.id).filter(x => x && x !== id);
       const par = open[open.length - 1] || (Date.now() - mProg.t < 1200 && mProg.id !== id ? mProg.id : '');
-      if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
+      if (mBackTo === id) mBackTo = ''; // กลับมาหน้าเดิมด้วยปุ่มย้อน = คงหน้าแม่เดิมไว้ (ไม่ให้หน้าที่เพิ่งปิดกลายเป็นแม่ → ย้อนวน)
+      else if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
       if (id === 'satModal') return setTimeout(satHdr, 0);
       const hd = e.target.querySelector('.modal-header'); if (!hd) return;
       let b = hd.querySelector('.mb-back');
@@ -2162,15 +2164,16 @@
     });
     document.addEventListener('hidden.bs.modal', e => {
       const id = e.target.id, par = mPar[id]; if (!par) return;
-      const hadBack = !!backFn;
+      const hadBack = !!bfOwn[id];
       setTimeout(() => {
         if (hadBack || document.querySelector('.modal.show')) return; // มีที่ไปแล้ว (เปิดหน้าต่างอื่นต่อ / backFn เดิมพากลับแล้ว)
-        delete mPar[id]; try { (M_REOPEN[par] || (() => showM(par)))(); } catch (er) {}
+        delete mPar[id]; mBackTo = par; try { (M_REOPEN[par] || (() => showM(par)))(); } catch (er) {}
       }, 450);
     });
-    function dsLeave(pid) { const b = document.querySelector('#dossierModal .modal-body'), y = b ? b.scrollTop : 0; backFn = () => { openDossier(pid); const put = () => { const n = document.querySelector('#dossierModal .modal-body'); if (n) n.scrollTop = y; }; put(); setTimeout(put, 60); setTimeout(put, 400); }; hideModal('dossierModal'); }
-    function flLeave() { backFn = () => { showM('flowModal'); flRender(); }; hideModal('flowModal'); }
-    document.addEventListener('hidden.bs.modal', () => { if (!backFn) return; setTimeout(() => { if (!backFn || document.querySelector('.modal.show')) return; const f = backFn; backFn = null; try { f(); } catch (e) {} }, 380); });
+    function dsLeave(pid) { const b = document.querySelector('#dossierModal .modal-body'), y = b ? b.scrollTop : 0; backT = Date.now(); backFn = () => { openDossier(pid); const put = () => { const n = document.querySelector('#dossierModal .modal-body'); if (n) n.scrollTop = y; }; put(); setTimeout(put, 60); setTimeout(put, 400); }; hideModal('dossierModal'); }
+    function flLeave() { backT = Date.now(); backFn = () => { showM('flowModal'); flRender(); }; hideModal('flowModal'); }
+    document.addEventListener('hidden.bs.modal', e => { const id = e.target.id, f = bfOwn[id]; if (!f) return; delete bfOwn[id];
+      setTimeout(() => { if (document.querySelector('.modal.show')) { if (!bfOwn[id]) bfOwn[id] = f; return; } try { f(); } catch (er) {} }, 400); });
     ['click', 'touchend', 'pointerup'].forEach(ev => document.addEventListener(ev, e => {
       if (Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
     }, true));

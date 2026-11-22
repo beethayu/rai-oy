@@ -711,7 +711,7 @@ function saveAssetEvent(payload) {
       }
     }
     appendRows_(logSheet, [['AL' + Date.now(), actDate, payload.asset_name, payload.category || '-',
-      payload.event_type || payload.status, payload.issue_detail || '-',
+      payload.event_type || payload.status, payload.log_detail || payload.issue_detail || '-',
       payload.parts_needed || payload.battery_info || '-', payload.ref_plot || '-']]);
     return readAll_(ss);
   });

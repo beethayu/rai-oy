@@ -4487,10 +4487,14 @@
       });
       return out.reverse(); // ใหม่ → เก่า
     }
+    function vehRems(a) {
+      const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()].filter(Boolean);
+      return (gData.reminders || []).filter(r => r.status !== 'done' && keys.some(k => String(r.text || '').toLowerCase().includes(k)));
+    }
     function vehMaint(a) {
       const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()];
       const t0 = todayISO();
-      return (gData.reminders || []).filter(r => r.status !== 'done' && keys.some(k => k && String(r.text || '').toLowerCase().includes(k))).map(r => {
+      return vehRems(a).filter(r => r.repeat).map(r => {
         const next = beToISO(r.date), nm = /^(\d{1,2}) เดือน$/.exec(r.repeat || ''), mo = nm ? Number(nm[1]) : r.repeat === 'เดือน' ? 1 : r.repeat === 'ปี' ? 12 : 0;
         let last = '';
         if (mo && next) { const d = new Date(next + 'T00:00:00'); d.setMonth(d.getMonth() - mo); last = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -4500,9 +4504,24 @@
       });
     }
     let vehCur = '', vehEdit = false, vehDraft = '', vehQDate = '', vehQShop = false;
+    function vehApptDone(id, went) {
+      const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
+      if (!went) { if (!confirm('ยกเลิกนัดนี้?')) return; return remDo('del', id).then(vehRender); }
+      const txt = String(r.text).split(' · ').slice(1).join(' · ') || r.text, shopy = /ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt), m = txt.match(/(?:ร้าน|อู่)\s*(\S+)/);
+      const op = { fn: 'asset', asset: vehCur, event: shopy ? 'ซ่อม' : 'บันทึก', detail: txt.replace(/^เอา(รถ)?ไป/, ''), shop: shopy && m ? m[1] : '', place: '', date: isoToBE(todayISO()), plates: [], photo_ids: [], state: shopy ? 'at_shop' : '' };
+      call('chatApply', [[op, { fn: 'remdone', id }], 'VA' + Date.now()], d => { init(d); vehRender(); });
+    }
     function vehQuick() {
       const t = String(vehDraft || '').trim(); if (!t) return alert('พิมพ์ก่อนว่าคันนี้มีเรื่องอะไรครับ');
       const name = vehCur, m = t.match(/(?:ร้าน|อู่)\s*(\S+)/);
+      const fut = vehQDate > todayISO() ? vehQDate : /พรุ่งนี้/.test(t) ? isoAdd(todayISO(), 1) : /มะรืน/.test(t) ? isoAdd(todayISO(), 2) : '';
+      if (fut) { // แผนวันข้างหน้า = นัด/เตือน (ขึ้นในไลน์เช้า "พรุ่งนี้" + "วันนี้") ยังไม่ลงประวัติรถ
+        const btn = $('vhSave'); btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+        const txt = name + ' · ' + t.replace(/\s*(พรุ่งนี้|มะรืนนี้|มะรืน)\s*/g, ' ').trim();
+        return callApi('remOp', [{ fn: 'add', id: 'R' + Date.now() + 'v', p: { text: txt, date: fut, time: '', repeat: '', lead_days: 0 } }])
+          .then(d => { gData.reminders = d.reminders || []; vehDraft = ''; vehQDate = ''; vehQShop = false; render(); vehRender(); })
+          .catch(e => { alert('❌ ' + e.message); vehRender(); });
+      }
       const op = { fn: 'asset', asset: name, event: vehQShop ? 'ซ่อม' : 'บันทึก', detail: t, shop: vehQShop && m ? m[1] : '', place: '', date: isoToBE(vehQDate || todayISO()), plates: [], photo_ids: [], state: vehQShop ? 'at_shop' : '' };
       call('chatApply', [[op], 'VQ' + Date.now()], d => { vehDraft = ''; vehQDate = ''; vehQShop = false; init(d); vehRender(); }, $('vhSave'));
     }
@@ -4531,11 +4550,18 @@
       if (hasBat) { const bd = calcDays(a.battery_date); h += `<div class="vh-note">🔋 แบต ${esc(a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : 'ยังไม่ระบุ')}${bd !== null ? ` · ใช้มา ${bd} วัน` : ''}</div>`; }
       // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
       h += `<div class="vh-cd vh-q"><div class="vh-k">จดเรื่องคันนี้</div>
-        <textarea id="vhTxt" rows="2" placeholder="เช่น กำลังชาร์จแบต · เตรียมเอาไปเช็คร้านช่างนุ" oninput="vehDraft=this.value">${esc(vehDraft)}</textarea>
-        <div class="vh-qc">${[['', 'วันนี้'], [isoAdd(todayISO(), -1), 'เมื่อวาน']].map(([d, l]) => `<button type="button" class="vh-chip${vehQDate === d ? ' on' : ''}" onclick="vehQDate='${d}';vehRender()">${l}</button>`).join('')}
+        <textarea id="vhTxt" rows="2" placeholder="เช่น ชาร์จแบต · พรุ่งนี้เอาไปเช็คร้านช่างนุ" oninput="vehDraft=this.value">${esc(vehDraft)}</textarea>
+        <div class="vh-qc">${[[isoAdd(todayISO(), -1), 'เมื่อวาน'], ['', 'วันนี้'], [isoAdd(todayISO(), 1), 'พรุ่งนี้ (นัด)']].map(([d, l]) => `<button type="button" class="vh-chip${vehQDate === d ? ' on' : ''}" onclick="vehQDate='${d}';vehRender()">${l}</button>`).join('')}
           ${a.category !== 'Pump' ? `<button type="button" class="vh-chip${vehQShop ? ' on' : ''}" onclick="vehQShop=!vehQShop;vehRender()">${vehQShop ? '✓ ' : ''}รถเข้าร้านแล้ว</button>` : ''}</div>
         <button type="button" class="bigbtn bigbtn-main" id="vhSave" onclick="vehQuick()">บันทึก</button>
-        <div class="vh-s">งานที่มีรูป/บิล หรือหลายเรื่องพร้อมกัน ใช้ "+ จดซ่อม / บำรุงคันนี้" (แชต)</div></div>`;
+        <div class="vh-s">เรื่องวันนี้/เมื่อวาน = ลงประวัติ · มีคำว่า "พรุ่งนี้" หรือแตะพรุ่งนี้ = เป็นนัด เตือนในไลน์เช้า · มีรูป/บิล ใช้ "+ จดซ่อม / บำรุงคันนี้" (แชต)</div></div>`;
+      // นัดของคันนี้ (ไม่ซ้ำ) — ถึงวันแล้วกด "ไปแล้ว" = ลงประวัติ + ปิดนัด
+      const appts = vehRems(a).filter(r => !r.repeat).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
+      if (appts.length) h += `<div class="vh-cd warn"><div class="vh-k">นัด / เตือน คันนี้</div>${appts.map(r => {
+        const iso = beToISO(r.date), n = dayDiff(todayISO(), iso), txt = String(r.text).replace(new RegExp('^\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*·?\\s*', 'i'), '');
+        return `<div class="vh-row"><div class="vh-dt"><b>${dShort(iso)}</b><small>${n === 0 ? 'วันนี้' : n === 1 ? 'พรุ่งนี้' : n < 0 ? 'เลย ' + (-n) + ' วัน' : 'อีก ' + n + ' วัน'}</small></div><div class="vh-tx"><div class="vh-main">${esc(txt)}</div>
+          ${n <= 0 ? `<div class="vh-2b" style="margin-top:6px"><button type="button" class="bigbtn bigbtn-main" style="height:40px;margin:0" onclick="vehApptDone('${qa(r.rem_id)}',1)">${/ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt) ? 'ไปแล้ว รถอยู่ร้าน' : 'ทำแล้ว'}</button><button type="button" class="bigbtn bigbtn-out" style="height:40px;margin:0" onclick="vehApptDone('${qa(r.rem_id)}',0)">ยกเลิกนัด</button></div>` : `<div class="vh-act"><button type="button" class="linkbtn" style="color:#A3271B" onclick="vehApptDone('${qa(r.rem_id)}',0)">ยกเลิกนัด</button></div>`}
+        </div></div>`; }).join('')}</div>`;
       // บำรุงตามระยะ
       const worst = mt.some(m => m.st === 'late') ? 'late' : mt.some(m => m.st === 'soon') ? 'soon' : 'ok';
       const sug = a.category === 'Pump' ? [] : ['น้ำมันเครื่อง'].filter(k => !mt.some(m => m.item.includes(k)));

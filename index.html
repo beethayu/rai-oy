@@ -715,6 +715,11 @@
     .db-sh{display:flex;justify-content:space-between;margin-top:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,0,0,.08);font-size:15px}
     .vh-pay{font:inherit;font-size:13px;font-weight:700;border:1.5px solid #1F5E3B;color:#1F5E3B;background:#fff;border-radius:10px;padding:4px 6px;align-self:start;white-space:nowrap}
     .vh-row:has(.vh-pay){grid-template-columns:58px 1fr auto!important}
+    .vh-row.pd-r{grid-template-columns:58px 1fr!important}.ds-q{color:#1F2A23;font-weight:700}
+    .ds-more summary{list-style:none;font-size:14px;font-weight:700;color:#1F5E3B;padding:8px 0 2px;cursor:pointer}.ds-more summary::-webkit-details-marker{display:none}
+    .ds-more[open] summary{display:none}
+    .ds-edit summary{list-style:none;font-weight:700;font-size:16px;color:#1F5E3B;cursor:pointer}.ds-edit summary::-webkit-details-marker{display:none}.ds-edit summary span{display:block;font-size:12px;color:#8A918C;font-weight:500}
+    .ds-edit select.vh-in{text-align-last:right}
     .vh-foot:empty{display:none}
     .vh-foot>*{margin:0!important;width:100%}.vh-foot .vh-qc{justify-content:flex-start;margin-top:0!important}.vh-foot .vh-qb{margin-top:8px!important}
     .vh-qb{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
@@ -1398,13 +1403,13 @@
 
   
   <div class="modal fade" id="dossierModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header text-white py-2" style="background:#1F5E3B">
           <h6 class="modal-title fw-bold" id="dosTitle">📓 แฟ้มประวัติแปลงแบบละเอียด</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3" id="dosBody"></div>
+        <div class="modal-body p-3 mbody" id="dosBody"></div>
       </div>
     </div>
   </div>
@@ -3879,7 +3884,7 @@
         } else if (g === 'ขึ้นน้ำ' || g === 'ฝนตก') {
           waterDates.push(`${dt} (${g === 'ฝนตก' ? '🌧️ ฝนตก' : '💧 ' + (l.equipment && l.equipment !== '-' ? eqS(l.equipment) : 'ขึ้นน้ำ')})`);
         } else if (g === 'ฉีดยา') {
-          sprayList.push(`<b>${dt}</b>: ${d} [${q}] โดย ${l.operator}`);
+          sprayList.push({ d: dt, t: d, q: q !== '-' ? q : '', who: l.operator && l.operator !== '-' ? l.operator : '' });
           let m = q.match(/(\d+(\.\d+)?)/); if (m) totalSprayTanks += parseFloat(m[1]);
         } else if (g === 'ใส่ปุ๋ย') {
           if (d.includes('ปลูก')) plant.push(`${dt} (${d})`);
@@ -3887,11 +3892,11 @@
           // งานคน (ไม่ใช่ปุ๋ย): ถากหญ้า ซ่อมอ้อย ตัดพันธุ์ ขุดร่อง → แยกการ์ด ไม่ปนกับกระสอบปุ๋ย
           if (/ถากหญ้า|ดายหญ้า|ซ่อมอ้อย|ตัดพันธุ์|ขุด/.test(d) && !/ปุ๋ย/.test(d)) labor.push({ k: /หญ้า/.test(d) ? 'ถากหญ้า' : /ซ่อม/.test(d) ? 'ซ่อมอ้อย' : d, v: `<b>${dt}</b>: ${d}${q && q !== '-' ? ` [${q}]` : ''}${who}` });
           else {
-            fertList.push(`<b>${dt}</b>: ${d} [${q}]${who}`);
+            fertList.push({ d: dt, t: d, q: q !== '-' ? q : '', who: l.operator && l.operator !== '-' ? l.operator : '' });
             let m = q.match(/(\d+(\.\d+)?)/); if (m) totalFertBags += parseFloat(m[1]);
           }
         } else if (g === 'ตัดอ้อย') {
-          harvList.push(`<b>${dt}</b>: ${d} | 🚛 ${eqS(l.equipment)} | จำนวน: <b>${q}</b>`);
+          harvList.push({ d: dt, t: d, q: q !== '-' ? q : '', who: l.equipment && l.equipment !== '-' ? '🚛 ' + eqS(l.equipment) : '' });
           let mTon = q.match(/(\d+(\.\d+)?)\s*ตัน/), mTrip = q.match(/(\d+)\s*เที่ยว/);
           if (mTon) totalTons += parseFloat(mTon[1]);
           if (mTrip) totalTrips += parseInt(mTrip[1], 10);
@@ -3903,74 +3908,53 @@
       (gData.stockLogs || []).forEach(s => { if (s.plot_id === pid && num(s.change_qty) < 0) used[s.item_name] = (used[s.item_name] || 0) - num(s.change_qty); });
       const usedHtml = Object.keys(used).map(n => `<span class="badge bg-light text-dark border me-1 mb-1 fw-normal">${n}: <b>${fmtQty(invItem(n) || { unit: '' }, used[n])}</b></span>`).join('') || '<span class="text-muted">ยังไม่มี (เริ่มนับตั้งแต่ V7.0)</span>';
 
-      $('dosTitle').innerText = `${p.plot_name} · ${p.area_rai} ไร่`;
-      let none = '<span class="text-muted">ยังไม่มีบันทึก</span>';
-      let html = `
-        <div class="p-2 bg-light rounded border mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold text-success">📌 1. ข้อมูลประจำแปลง</span>
-            <button class="btn btn-sm btn-success fw-bold py-0" id="btnPlotSave" onclick="savePlotProfile('${p.plot_id}')">💾 บันทึกข้อมูลแปลง</button>
-          </div>
-          <div class="row g-2 small">
-            <div class="col-6 col-md-3"><label class="fw-bold">ชื่อแปลง:</label><input type="text" class="form-control form-control-sm" id="dp_name" value="${p.plot_name || ''}"></div>
-            <div class="col-6 col-md-2"><label class="fw-bold">พื้นที่ (ไร่):</label><input type="number" step="0.1" class="form-control form-control-sm" id="dp_rai" value="${p.area_rai || ''}"></div>
-            <div class="col-6 col-md-2"><label class="fw-bold">ประเภทอ้อย:</label>
-              <select class="form-select form-select-sm" id="dp_type">
-                <option value="อ้อยใหม่" ${p.cane_type === 'อ้อยใหม่' ? 'selected' : ''}>🌱 อ้อยใหม่</option>
-                <option value="อ้อยตอ" ${p.cane_type !== 'อ้อยใหม่' ? 'selected' : ''}>🌿 อ้อยตอ</option>
-              </select></div>
-            <div class="col-6 col-md-2"><label class="fw-bold">พันธุ์อ้อย:</label><input type="text" class="form-control form-control-sm" id="dp_var" value="${p.cane_variety && p.cane_variety !== 'nan' ? p.cane_variety : 'ขอนแก่น 3'}"></div>
-            <div class="col-12 col-md-3"><label class="fw-bold">วันปลูก / วันเริ่มบำรุงตอ:</label><input type="date" class="form-control form-control-sm" id="dp_date" value="${beToISO(p.plant_date)}"></div>
-            <div class="col-12"><label class="d-flex align-items-center gap-2 fw-bold" style="cursor:pointer;">
-              <input type="checkbox" class="form-check-input m-0" id="dp_sand" ${plotTags(p).includes(TAG_SAND) ? 'checked' : ''}>
-              <span class="chip chip-sand">ดินทราย แห้งง่าย</span>
-              <span class="text-muted fw-normal">(ป้ายบอกเฉย ๆ ไม่เปลี่ยนคิวน้ำ)</span></label></div>
-            <div class="col-12"><label class="d-flex align-items-center gap-2 fw-bold" style="cursor:pointer;">
-              <input type="checkbox" class="form-check-input m-0" id="dp_wet" ${plotTags(p).includes('น้ำขังง่าย') ? 'checked' : ''}>
-              <span class="sw-pr" style="font-size:13px">💧 น้ำขังง่าย</span>
-              <span class="text-muted fw-normal">(หน้าน้ำในดินจะเตือนแปลงนี้ก่อน)</span></label></div>
-          </div>
-        </div>
-
-        <button type="button" class="btn btn-outline-success w-100 fw-bold mb-3" onclick="dsLeave('${p.plot_id}');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? `ดูบนแผนที่ · วัดได้ ${fmtRai(num(p.map_rai) * 1600)}` : 'วาดขอบแปลงบนแผนที่'}</button>
-        ${(() => { const pp = (gData.plotPhotos || []).filter(x => x.plot_id === p.plot_id); return pp.length ? `<div class="p-2 bg-light rounded border mb-3"><div class="fw-bold text-success mb-1">📷 รูปหน้างาน (${pp.length})</div>
-          ${pp.slice(0, 8).map(x => `<button type="button" class="hrow" onclick="viewPhotos('${qa(p.plot_name)}','${qa(x.file_ids)}')"><span class="hrow-d">${esc(x.timestamp)}</span><span class="hrow-b">${esc(x.diagnosis || 'รูปสภาพแปลง')}<span class="hrow-s">${esc(x.note || '')}${x.note ? ' · ' : ''}แตะดูรูป</span></span></button>`).join('')}</div>` : ''; })()}
-        ${dossierYieldHtml(p)}
-        <h6 class="fw-bold text-dark mb-2">📊 2. สรุปกิจกรรมสะสมตั้งแต่เริ่มฤดูกาล</h6>
-        <div class="row g-2 mb-3 small">
-          <div class="col-12 col-md-6"><div class="dossier-stat">
-            <div class="fw-bold text-secondary mb-1">🚜 งานเตรียมดิน / รถไถ / อุ้มร่อง</div>
-            ${(p.cane_type === 'อ้อยตอ' ? ['ริปเปอร์', 'ครูดร่อง', 'อุ้มร่อง'] : ['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ครูดร่อง', 'อุ้มร่อง', 'ริปเปอร์', 'ผาน 4', 'ผาน 7', 'ชักร่อง'].includes(k)))
-              .map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []); return `<div>• <b>${TRAC_LBL[k] || k}:</b> ${a.length ? dRange(a).join(', ') : k === 'ชักร่อง' && p.plant_date ? p.plant_date : none}</div>`; }).join('')}
-            <div>• <b>ฝังปุ๋ย:</b> ${subFert.length ? dRange(subFert).join(', ') : none}</div>
-            ${weed.length ? `<div>• <b>สับหญ้า/อื่น ๆ (รถ):</b> ${weed.join(', ')}</div>` : ''}
-          </div></div>
-          <div class="col-12 col-md-6"><div class="dossier-stat">
-            <div class="fw-bold text-primary mb-1">💧 ประวัติการขึ้นน้ำ & ฝนตก (รวม ${dRange(waterDates).length} รอบ)</div>
-            <div>• <b>วันน้ำล่าสุด:</b> <span class="badge bg-primary">${p.last_water_date || '-'}</span></div>
-            <div class="mt-1" style="max-height:95px;overflow-y:auto;">${waterDates.length ? dRange(waterDates).map((w, i) => `<div>รอบที่ ${i + 1}: ${w}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการให้น้ำ</span>'}</div>
-          </div></div>
-          <div class="col-12 col-md-6"><div class="dossier-stat">
-            <div class="fw-bold text-success mb-1">🌱 ประวัติการใส่ปุ๋ย/บำรุง ${totalFertBags > 0 ? `(รวม ~${totalFertBags} กระสอบ)` : ''}</div>
-            <div style="max-height:95px;overflow-y:auto;">${fertList.length ? fertList.map(f => `<div>• ${f}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติใส่ปุ๋ย</span>'}</div>
-          </div></div>
-          <div class="col-12 col-md-6"><div class="dossier-stat">
-            <div class="fw-bold mb-1" style="color:#8A5A12">👷 งานคน: ถากหญ้า / ซ่อมอ้อย ${labor.length ? `(${['ถากหญ้า', 'ซ่อมอ้อย'].map(t => { const n = labor.filter(x => x.k === t).length; return n ? t + ' ' + n + ' ครั้ง' : ''; }).filter(Boolean).join(' · ') || labor.length + ' ครั้ง'})` : ''}</div>
-            <div style="max-height:95px;overflow-y:auto;">${labor.length ? labor.map(x => `<div>• ${x.v}</div>`).join('') : '<span class="text-muted">ยังไม่มีบันทึก (ลงได้ที่ ปุ๋ย / บำรุง → ถากหญ้า)</span>'}</div>
-          </div></div>
-          <div class="col-12 col-md-6"><div class="dossier-stat">
-            <div class="fw-bold text-dark mb-1">🔫 ประวัติฉีดยาคุมหญ้า ${totalSprayTanks > 0 ? `(รวม ${totalSprayTanks} ถัง 200L)` : ''}</div>
-            <div style="max-height:95px;overflow-y:auto;">${sprayList.length ? sprayList.map(s => `<div>• ${s}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติฉีดยา</span>'}</div>
-          </div></div>
-          <div class="col-12"><div class="dossier-stat border-success">
-            <div class="fw-bold text-success mb-1">📦 ยอดใช้ยา/ปุ๋ยจริงของแปลงนี้ (จากระบบตัดสต็อก)</div>
-            <div>${usedHtml}</div>
-          </div></div>
-          <div class="col-12"><div class="dossier-stat border-danger">
-            <div class="fw-bold text-danger mb-1">🌾 สรุปการตัดอ้อย & ขนส่งหน้าหีบ ${totalTons > 0 ? `(รวม ${totalTons} ตัน | เฉลี่ย ${(totalTons / parseFloat(p.area_rai || 1)).toFixed(2)} ตัน/ไร่)` : ''} ${totalTrips > 0 ? `[${totalTrips} เที่ยว]` : ''}</div>
-            <div>${harvList.length ? harvList.map(h => `<div>• ${h}</div>`).join('') : '<span class="text-muted">ยังไม่มีประวัติการตัดอ้อยในฤดูกาลนี้</span>'}</div>
-          </div></div>
-          ${(X => X.length ? `<div class="col-12"><div class="dossier-stat" style="border-color:#E9A69B">
+      $('dosTitle').innerHTML = `${esc(p.plot_name)} <span style="font-weight:500;font-size:14px;opacity:.85">· ${esc(p.area_rai)} ไร่</span>`;
+      // 22 พ.ย. 69 ผู้ใช้: "หน้าดูแปลงยังยาก" → แบบเดียวกับหน้ารถ: สรุปบนสุด → การ์ดทีละเรื่อง (วันที่ซ้าย | งาน) → ประวัติงาน → แก้ข้อมูลแปลง (พับไว้ล่างสุด)
+      const an = (() => { try { return analyze(p); } catch (e) { return {}; } })();
+      const ageD = (() => { try { return plotAgeD(p); } catch (e) { return null; } })(), ageM = ageD !== null && ageD >= 0 ? Math.floor(ageD / 30.4) : null;
+      const wD = calcDays(p.last_water_date), tags = plotTags(p);
+      const dd = v => { const m = String(v).match(/^(\d\d)\/(\d\d)\/(\d{4})/); if (!m) return { b: esc(String(v).slice(0, 10)), y: '' }; const iso = beToISO(m[0]); return { b: dShort(iso), y: vehYY(iso) }; };
+      const rowH = (dt, main, sub, tg) => { const x = dt ? dd(dt) : null; return `<div class="vh-row pd-r"><div class="vh-dt">${x ? `<b>${x.b}</b><small>${x.y}</small>` : '<b style="color:#B9B6A8">—</b>'}</div><div class="vh-tx">${tg ? `<span class="vh-tg ${tg[1]}">${tg[0]}</span>` : ''}<div class="vh-main">${main}</div>${sub ? `<div class="vh-sub">${sub}</div>` : ''}</div></div>`; };
+      const thR = v => String(v).replace(/(\d\d)\/(\d\d)\/(\d{4})/g, m => dShort(beToISO(m))).replace(/(\d\d)\/(\d\d)–/g, (m, d, mo) => +d + ' ' + TH_MON[+mo - 1] + '–');
+      const more = (rows, n) => rows.length <= n ? rows.join('') : rows.slice(0, n).join('') + `<details class="ds-more"><summary>ดูทั้งหมด (${rows.length})</summary>${rows.slice(n).join('')}</details>`;
+      const card = (k, ti, col, body, cls) => `<div class="vh-cd ${cls || ''}"><div class="vh-k">${k}</div>${ti ? `<div class="vh-ti" style="color:${body ? col || '#1F2A23' : '#8A918C'};${body ? '' : 'font-size:15px;margin:0'}">${ti}</div>` : ''}${body ? `<div class="vh-rows">${body}</div>` : ''}</div>`;
+      const tile = (k, v, col) => `<div class="vh-t"><i>${k}</i><b${col ? ` style="color:${col}"` : ''}>${v}</b></div>`;
+      const lastD = arr => arr.length ? arr[arr.length - 1].d : '';
+      let html = `<div class="vh-top"><div class="vh-pl">${p.cane_type === 'อ้อยใหม่' ? '🌱' : '🌿'} ${esc(p.cane_type || '')}${p.cane_variety && p.cane_variety !== 'nan' ? ' · พันธุ์ ' + esc(p.cane_variety) : ''}</div>${an.isHarvested ? '<span class="pill pill-normal">ตัดแล้ว</span>' : an.isOngoing ? '<span class="pill pill-normal">กำลังทำ</span>' : an.isUrg ? '<span class="pill pill-urgent">ถึงคิว</span>' : '<span class="pill pill-normal">ปกติ</span>'}</div>`;
+      if (tags.length) html += `<div class="vh-note">${tags.includes(TAG_SAND) ? '<span class="chip chip-sand">ดินทราย แห้งง่าย</span> ' : ''}${tags.includes('น้ำขังง่าย') ? '<span class="sw-pr" style="font-size:13px">💧 น้ำขังง่าย</span>' : ''}</div>`;
+      html += `<div class="vh-tiles">${tile(p.cane_type === 'อ้อยใหม่' ? 'อายุจากปลูก' : 'อายุตอ', ageM !== null ? (ageM ? ageM + ' เดือน' : ageD + ' วัน') : '—', ageM === null ? '#8A918C' : '')}${tile('น้ำล่าสุด', wD !== null ? (wD === 0 ? 'วันนี้' : wD + ' วันก่อน') : 'ยังไม่มี', wD === null ? '#8A918C' : '')}${tile('ฉีดยารวม', totalSprayTanks ? r1(totalSprayTanks) + ' ถัง' : '0', totalSprayTanks ? '' : '#8A918C')}</div>`;
+      if (an.next) html += `<div class="vh-cd ${an.nextCls === 'urgent' ? 'warn' : ''}"><div class="vh-k">ถัดไป</div><div class="vh-ti ${an.nextCls === 'urgent' ? 'o' : 'g'}" style="font-size:16px">${esc(String(an.next).replace(/^[^\p{L}\d]+/u, ''))}</div></div>`;
+      html += `<div class="vh-2b" style="margin-bottom:10px"><button type="button" class="bigbtn bigbtn-main" onclick="dsLeave('${p.plot_id}');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ จดงานแปลงนี้</button><button type="button" class="bigbtn bigbtn-out" onclick="dsLeave('${p.plot_id}');setTimeout(()=>openFarmMap('${p.plot_id}', ${p.boundary ? 'false' : 'true'}),300)">${p.boundary ? '🗺️ ดูบนแผนที่' : '📍 วาดแนวแปลง'}</button></div>`;
+      if (p.boundary && num(p.map_rai)) html += `<div class="vh-s" style="margin:-4px 4px 10px">วัดจากแนวบนแผนที่ได้ ${fmtRai(num(p.map_rai) * 1600)}</div>`;
+      // 1) เตรียมดิน / ปลูก / บำรุงด้วยรถ — ทีละขั้น ✓ ทำแล้ว / ○ ยังไม่มี
+      const steps = (p.cane_type === 'อ้อยตอ' ? ['ริปเปอร์', 'ครูดร่อง', 'อุ้มร่อง'] : ['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง']).concat(Object.keys(trac).filter(k => !['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง', 'ครูดร่อง'].includes(k)));
+      const stRows = steps.map(k => { const a = k === 'ชักร่อง' ? plant : (trac[k] || []), r = dRange(a);
+        return a.length ? rowH(a[a.length - 1], esc(TRAC_LBL[k] || k), esc(thR(r.join(', '))), ['ทำแล้ว', 'g']) : k === 'ชักร่อง' && p.plant_date ? rowH(p.plant_date, esc(TRAC_LBL[k] || k), 'จากวันปลูก', ['ทำแล้ว', 'g']) : rowH('', `<span style="color:#8A918C">${esc(TRAC_LBL[k] || k)}</span>`, 'ยังไม่มีบันทึก'); });
+      stRows.push(subFert.length ? rowH(subFert[subFert.length - 1], 'ฝังปุ๋ย', esc(thR(dRange(subFert).join(', '))), ['ทำแล้ว', 'g']) : rowH('', '<span style="color:#8A918C">ฝังปุ๋ย</span>', 'ยังไม่มีบันทึก'));
+      if (weed.length) stRows.push(...weed.map(w => { const m = String(w).match(/^(\S+): (.*)$/); return rowH(m ? m[1] : '', esc(m ? m[2] : w), '', ['รถ', 'n']); }));
+      const nDone = steps.filter(k => (k === 'ชักร่อง' ? plant.length || p.plant_date : (trac[k] || []).length)).length;
+      html += card('เตรียมดิน / ปลูก / รถบำรุง', `ทำแล้ว ${nDone}/${steps.length} ขั้น`, '#1F5E3B', stRows.join(''));
+      // 2) น้ำ
+      const wr = dRange(waterDates).reverse();
+      html += card('น้ำ & ฝน', wr.length ? `${wr.length} รอบ · ล่าสุด ${p.last_water_date ? dShort(beToISO(p.last_water_date)) : '-'}` : 'ยังไม่มีประวัติ', '#1D6FB8',
+        more(wr.map((w, i) => { const m = String(w).match(/^(.*?)\s*\((.*)\)$/) || [w, w, ''], rg = String(m[1]).split('–'), end = rg[rg.length - 1], st = rg.length > 1 ? rg[0] + end.slice(5) : end;
+          return rowH(st, esc(String(m[2]).replace(/^[^\p{L}]+/u, '')) || 'ขึ้นน้ำ', rg.length > 1 ? 'ถึง ' + esc(dShort(beToISO(end))) : '', [`รอบ ${wr.length - i}`, /ฝน/.test(m[2]) ? 'n' : 'b']); }), 4));
+      // 3) ปุ๋ย 4) ฉีดยา 5) งานคน
+      const lst = (arr, unit) => more(arr.slice().reverse().map(x => rowH(x.d, esc(x.t) + (x.q ? ` <b class="ds-q">${esc(x.q)}</b>` : ''), x.who ? esc(x.who) : '')), 4);
+      html += card('ใส่ปุ๋ย / บำรุง', fertList.length ? `${fertList.length} ครั้ง${totalFertBags ? ` · รวม ~${r1(totalFertBags)} กระสอบ` : ''}` : 'ยังไม่มีประวัติ', '#6B4E16', fertList.length ? lst(fertList) : '');
+      html += card('ฉีดยาคุมหญ้า', sprayList.length ? `${sprayList.length} ครั้ง · รวม ${r1(totalSprayTanks)} ถัง` : 'ยังไม่มีประวัติ', '#B42318', sprayList.length ? lst(sprayList) : '');
+      if (labor.length) html += card('งานคน: ถากหญ้า / ซ่อมอ้อย', ['ถากหญ้า', 'ซ่อมอ้อย'].map(t => { const n = labor.filter(x => x.k === t).length; return n ? `${t} ${n} ครั้ง` : ''; }).filter(Boolean).join(' · ') || `${labor.length} ครั้ง`, '#1F7A45',
+        more(labor.slice().reverse().map(x => { const v = String(x.v).replace(/<[^>]+>/g, ''), m = v.match(/^(\d\d\/\d\d\/\d{4})\s*:?\s*(.*)$/), t = (m ? m[2] : v).split(/\s+โดย\s+/); return rowH(m ? m[1] : '', esc(t[0] || x.k), t[1] ? esc(t[1]) : ''); }), 4));
+      // 6) ยา/ปุ๋ยที่ใช้จริง
+      const uk = Object.keys(used);
+      if (uk.length) html += card('ยา / ปุ๋ย ที่ใช้จริง (จากสต็อก)', '', '', uk.map(n => `<div class="vh-row pd-r" style="grid-template-columns:1fr auto!important"><div class="vh-main">${esc(n)}</div><b>${fmtQty(invItem(n) || { unit: '' }, used[n])}</b></div>`).join(''));
+      // 7) ตัดอ้อย + ผลผลิต
+      html += card('ตัดอ้อย & ส่งโรงงาน', harvList.length ? `${totalTons ? r1(totalTons) + ' ตัน · ' + (totalTons / parseFloat(p.area_rai || 1)).toFixed(1) + ' ตัน/ไร่' : harvList.length + ' ครั้ง'}${totalTrips ? ' · ' + totalTrips + ' เที่ยว' : ''}` : 'ยังไม่ตัดฤดูนี้', '#7A2E0E', harvList.length ? lst(harvList) : '');
+      html += dossierYieldHtml(p);
+      // 8) รูป เสียหาย รถจ้าง
+      html += `${(() => { const pp = (gData.plotPhotos || []).filter(x => x.plot_id === p.plot_id); return pp.length ? `<div class="vh-cd"><div class="vh-k" style="margin-bottom:4px">รูปหน้างาน (${pp.length})</div>
+          ${pp.slice(0, 8).map(x => `<button type="button" class="hrow" onclick="viewPhotos('${qa(p.plot_name)}','${qa(x.file_ids)}')"><span class="hrow-d">${esc(x.timestamp)}</span><span class="hrow-b">${esc(x.diagnosis || 'รูปสภาพแปลง')}<span class="hrow-s">${esc(x.note || '')}${x.note ? ' · ' : ''}แตะดูรูป</span></span></button>`).join('')}</div>` : ''; })()}`;
+      html += `<div class="row g-2 small mb-2">          ${(X => X.length ? `<div class="col-12"><div class="dossier-stat" style="border-color:#E9A69B">
             <div class="fw-bold mb-1" style="color:#9A2B1E">🔥 พื้นที่เสียหาย · รวม ${fmtRai(X.reduce((s, x) => s + num(x.map_rai), 0) * 1600)}</div>
             ${X.map(x => `<div>• <b>${esc(x.date)}</b> ${dmgT(x.type)[1]} ${esc(x.type)} ≈ ${fmtRai(num(x.map_rai) * 1600)}${x.note ? ' · ' + esc(x.note) : ''}</div>`).join('')}
             ${X.filter(x => !x.boundary).map(x => `<button type="button" class="btn btn-sm btn-outline-danger fw-bold mt-2 me-1" onclick="dmgDraw('${qa(x.dmg_id)}')">📍 วาดแนวบนแผนที่ (${esc(x.date)})</button>`).join('')}
@@ -3980,13 +3964,21 @@
             <div class="fw-bold mb-1" style="color:#8A4A06">🤝 รถจ้าง · รวม ${baht(H.reduce((s, x) => s + num(x.h.a), 0))} บาท</div>
             ${H.map(x => `<div>• <b>${esc(x.l.timestamp)}</b> ${esc(x.l.activity_detail)} · ${esc(hireTxt(x.h).replace('🤝 ', ''))}</div>`).join('')}
           </div></div>` : '')(logs.map(l => ({ l, h: hireOf(l) })).filter(x => x.h))}
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="fw-bold text-dark m-0">🕒 3. ประวัติงาน</h6>
-          <button class="btn btn-sm btn-success fw-bold py-0" onclick="dsLeave('${p.plot_id}');openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ เพิ่มงานใหม่</button>
-        </div>
-        <div id="dsHist"></div>`;
+</div>`;
+      html += `<div class="vh-gh"><span>ประวัติงาน</span></div><div id="dsHist"></div>
+        <details class="vh-cd ds-edit"><summary>✏️ แก้ข้อมูลแปลง <span>ชื่อ · ไร่ · พันธุ์ · วันปลูก · ป้าย</span></summary>
+          <div class="vh-form" style="margin-top:8px">
+            <div class="vh-fr"><span>ชื่อแปลง</span><input class="vh-in" id="dp_name" value="${esc(p.plot_name || '')}"></div>
+            <div class="vh-fr"><span>พื้นที่ (ไร่)</span><input class="vh-in" type="number" step="0.1" inputmode="decimal" id="dp_rai" value="${esc(p.area_rai || '')}"></div>
+            <div class="vh-fr"><span>ประเภท</span><select class="vh-in" id="dp_type"><option value="อ้อยใหม่" ${p.cane_type === 'อ้อยใหม่' ? 'selected' : ''}>🌱 อ้อยใหม่</option><option value="อ้อยตอ" ${p.cane_type !== 'อ้อยใหม่' ? 'selected' : ''}>🌿 อ้อยตอ</option></select></div>
+            <div class="vh-fr"><span>พันธุ์</span><input class="vh-in" id="dp_var" value="${esc(p.cane_variety && p.cane_variety !== 'nan' ? p.cane_variety : '')}" placeholder="เช่น ขอนแก่น 3"></div>
+            <div class="vh-fr"><span>${p.cane_type === 'อ้อยตอ' ? 'วันเริ่มบำรุงตอ' : 'วันปลูก'}</span><input class="vh-in" type="date" id="dp_date" value="${beToISO(p.plant_date)}"></div>
+            <label class="vh-fr"><span>ดินทราย แห้งง่าย</span><input type="checkbox" class="form-check-input m-0 ms-auto" id="dp_sand" ${tags.includes(TAG_SAND) ? 'checked' : ''}></label>
+            <label class="vh-fr"><span>น้ำขังง่าย</span><input type="checkbox" class="form-check-input m-0 ms-auto" id="dp_wet" ${tags.includes('น้ำขังง่าย') ? 'checked' : ''}></label>
+          </div>
+          <div class="vh-s" style="margin:6px 2px">ดินทราย = ป้ายบอกเฉย ๆ · น้ำขังง่าย = หน้าน้ำในดินจะเตือนแปลงนี้ก่อน</div>
+          <button type="button" class="bigbtn bigbtn-main" style="width:100%;height:46px" id="btnPlotSave" onclick="savePlotProfile('${p.plot_id}')">บันทึกข้อมูลแปลง</button>
+        </details>`;
       $('dosBody').innerHTML = html; dsOpen = {}; dsHist(pid);
       bootstrap.Modal.getOrCreateInstance($('dossierModal')).show();
     }

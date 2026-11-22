@@ -60,7 +60,7 @@ function apiRun_(fn, args, k, rid) {
 // → คำขอที่มี rid (แชต/อ่านบิล) เก็บผลไว้ 10 นาที · กลับเข้าแอปแล้วหน้าเว็บมาเอาผลด้วย getResult (ไม่เรียก Gemini ซ้ำ ไม่อัปรูปซ้ำ)
 function apiKeep_(rid, out) {
   if (!rid || !/^[a-z0-9]{6,24}$/.test(String(rid))) return;
-  try { const s = JSON.stringify(out); if (s.length < 95000) CacheService.getScriptCache().put('rr_' + rid, s, 600); } catch (e) {}
+  try { const s = JSON.stringify(out); CacheService.getScriptCache().put('rr_' + rid, s.length < 95000 ? s : JSON.stringify({ ok: true, big: true }), 600); } catch (e) {} // ผลใหญ่ (ข้อมูลทั้งหมดหลังบันทึก) เก็บแค่ว่าเสร็จแล้ว หน้าเว็บโหลดข้อมูลใหม่เอง
 }
 function getResult(rid) {
   if (!/^[a-z0-9]{6,24}$/.test(String(rid || ''))) return null;

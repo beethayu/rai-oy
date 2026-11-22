@@ -36,7 +36,7 @@
     const API_BG = /^(get[A-Z]\w*|weatherForecast|soilWeather|rainDaily|rainClimate|rockThumbs|chatPhotos)$/; // อ่านเบื้องหลัง ไม่กันการอัปเดต (บันทึก/AI กัน)
     // สลับแอประหว่างรอ AI (19 พ.ย. 69): iOS พักหน้าเว็บ คำขอหลุด แต่ Apps Script ทำต่อจนเสร็จและเก็บผลตาม rid → กลับมาแล้วไปเอาผล (getResult) ไม่ขึ้น "เชื่อมต่อไม่ได้"
     let pageHidAt = 0; document.addEventListener('visibilitychange', () => { if (document.hidden) pageHidAt = Date.now(); });
-    const API_KEEP = /^(chatParse|chatBillRead|readBill)$/;
+    const API_KEEP = /^(chatParse|chatBillRead|readBill|chatApply|vehSave|partOp)$/;
     const waitVisible = () => new Promise(ok => { if (!document.hidden) return ok(); const f = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', f); ok(); } }; document.addEventListener('visibilitychange', f); });
     function callApi(fn, args, _again) {
       const keep = API_KEEP.test(fn), rid = keep ? Date.now().toString(36) + Math.random().toString(36).slice(2, 8) : '', t0 = Date.now();
@@ -44,6 +44,7 @@
         if (!keep || !e.net || (pageHidAt < t0 && !document.hidden)) throw e; // หลุดเองตอนอยู่หน้าแอป = แจ้งเหมือนเดิม
         return waitVisible().then(() => new Promise((ok, bad) => {
           const poll = () => callApi1('getResult', [rid]).then(j => {
+            if (j && j.ok && j.big) return callApi1('getInitialData', []).then(ok, bad); // ผลใหญ่ (ข้อมูลทั้งหมด) ไม่ได้เก็บ = บันทึกแล้ว โหลดข้อมูลใหม่แทน
             if (j && j.ok) return ok(j.result);
             if (j && !j.ok) return bad(new Error(j.error || 'เกิดข้อผิดพลาด'));
             if (Date.now() - t0 < 150000) return setTimeout(poll, 2500);
@@ -57,7 +58,7 @@
     function callApi1(fn, args, rid) {
       const bg = API_BG.test(fn); if (!bg) apiBusy++;
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' ? 120000 : fn === 'getWaterSpots' ? 300000 : 60000);
+      const timer = setTimeout(() => ctrl.abort(), fn === 'readBill' || fn === 'chatBillRead' ? 150000 : fn === 'chatParse' || fn === 'vehSave' || fn === 'partOp' ? 120000 : fn === 'getWaterSpots' ? 300000 : 60000);
       return fetch(API_URL, {
         method: 'POST', redirect: 'follow', signal: ctrl.signal,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2088,14 +2089,14 @@
     const hideModal = id => { mProg = { id, t: Date.now() }; const m = bootstrap.Modal.getInstance($(id)); if (m) m.hide(); };
 
     
-    function call(fn, args, ok, btn, toastMsg) {
+    function call(fn, args, ok, btn, toastMsg, fail) {
       const t = $('syncToast');
       t.innerText = toastMsg || '⏳ กำลังบันทึก...'; t.style.display = 'block';
       if (btn) { btn.disabled = true; btn.dataset.lbl = btn.innerHTML; btn.innerHTML = '⏳ กำลังบันทึก...'; }
       const done = () => { t.style.display = 'none'; if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.lbl; } };
       google.script.run
         .withSuccessHandler(d => { done(); if (ok) ok(d); })
-        .withFailureHandler(e => { done(); alert('❌ เกิดข้อผิดพลาด: ' + (e && e.message ? e.message : e)); })[fn](...args);
+        .withFailureHandler(e => { done(); alert('❌ เกิดข้อผิดพลาด: ' + (e && e.message ? e.message : e)); if (fail) fail(e); })[fn](...args);
     }
 
     function beToISO(s) { if (!s || s === '-') return ''; const p = String(s).trim().split('/'); if (p.length !== 3) return ''; let y = parseInt(p[2], 10); if (y > 2400) y -= 543; return `${y}-${pad(+p[1])}-${pad(+p[0])}`; }
@@ -2175,7 +2176,7 @@
     document.addEventListener('hidden.bs.modal', e => { const id = e.target.id, f = bfOwn[id]; if (!f) return; delete bfOwn[id];
       setTimeout(() => { if (document.querySelector('.modal.show')) { if (!bfOwn[id]) bfOwn[id] = f; return; } try { f(); } catch (er) {} }, 400); });
     ['click', 'touchend', 'pointerup'].forEach(ev => document.addEventListener(ev, e => {
-      if (Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
+      if (e.isTrusted && Date.now() < ghostUntil && !(e.target.closest && e.target.closest('.modal'))) { e.preventDefault(); e.stopPropagation(); }
     }, true));
 
     // จำหน้าที่เปิดล่าสุด (iOS ชอบปิดแอปเบื้องหลัง เปิดใหม่จะได้กลับหน้าเดิม ภายใน 6 ชม.)
@@ -4778,12 +4779,14 @@
       Promise.all(files.map(f => Promise.all([shrinkImage(f), rockThumb(f)]).then(([b64, th]) => ({ b64, th })))).then(a => { vehPics = vehPics.concat(a); vehRender(); }).catch(e => alert('❌ ' + e.message));
     }
     function vehBill() { billFor = vehCur; hideModal('assetHistModal'); pickBill(false); }
+    // ปิดตัวเลือกรูปโดยไม่เลือก (iOS 16.4+ ส่ง cancel) = กลับหน้ารถเดิม ไม่ค้างหน้าหลัก
+    document.addEventListener('DOMContentLoaded', () => { const f = $('billFile'); if (f) f.addEventListener('cancel', () => { if (billFor && !billDraft) { const b = billFor; billFor = ''; setTimeout(() => vehOpen(b), 350); } }); });
     function vehApptDone(id, went) {
       const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
       if (!went) { if (!confirm('ยกเลิกนัดนี้?')) return; return remDo('del', id).then(vehRender); }
       const txt = String(r.text).split(' · ').slice(1).join(' · ') || r.text, shopy = /ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt), m = txt.match(/(?:ร้าน|อู่)\s*(\S+)/);
       const op = { fn: 'asset', asset: vehCur, event: shopy ? 'ซ่อม' : 'บันทึก', detail: txt.replace(/^เอา(รถ)?ไป/, ''), shop: shopy && m ? m[1] : '', place: '', date: isoToBE(todayISO()), plates: [], photo_ids: [], state: shopy ? 'at_shop' : '' };
-      call('chatApply', [[op, { fn: 'remdone', id }], 'VA' + Date.now()], d => { init(d); vehRender(); });
+      call('chatApply', [[op, { fn: 'remdone', id }], 'VA' + Date.now()], d => { init(d); vehRender(); }, null, null, () => vehRender());
     }
     function vehQuick() {
       const t = String(vehDraft || '').trim(); if (!t && !vehPics.length) return alert('พิมพ์ก่อนว่าคันนี้มีเรื่องอะไรครับ');
@@ -4800,8 +4803,9 @@
       const op = { fn: 'asset', asset: name, event: vehQShop ? 'ซ่อม' : /เปลี่ยน(น้ำมัน|ถ่ายน้ำมัน|กรอง|ยาง|สายพาน)|ถ่ายน้ำมัน|อัดจารบี|เช็คระยะ/.test(t) ? 'บำรุง' : t ? 'บันทึก' : 'ตรวจ/ถ่ายรูป', detail: t || 'รูปรถ', shop: vehQShop && m ? m[1] : '', place: '', date: isoToBE(vehQDate || todayISO()), plates: [], photo_ids: [], state: vehQShop ? 'at_shop' : '' };
       $('vhSave').disabled = true; $('vhSave').textContent = '…';
       const done = d => { vehDraft = ''; vehQDate = ''; vehQShop = false; vehPics = []; init(d); vehRender(); };
-      if (vehPics.length) call('vehSave', [op, vehPics.map(p => p.b64), 'VQ' + Date.now()], done, null, '⏳ กำลังส่งรูป...');
-      else call('chatApply', [[op], 'VQ' + Date.now()], done);
+      const rid = 'VQ' + Date.now(), bad = () => vehRender(); // ล้มเหลว = ปุ่มกลับมา ข้อความ/รูปยังอยู่ กดส่งใหม่ได้
+      if (vehPics.length) call('vehSave', [op, vehPics.map(p => p.b64), rid], done, null, '⏳ กำลังส่งรูป...', bad);
+      else call('chatApply', [[op], rid], done, null, null, bad);
     }
     function vehOpen(name) { vehBatEd = false; vehModelEd = false; vehBuyOpen = ''; if (vehCur !== name) { vehQPart = false; vehRowOpen = vehRowEdit = ''; vehDraft = ''; vehQDate = ''; vehQShop = false; vehPics = []; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
     function vehChat(name, cam) {
@@ -4823,7 +4827,7 @@
       const items = String(vehDraft || '').split(/\n+/).map(x => x.replace(/^\s*[-•\d.)]+\s*/, '').trim()).filter(Boolean);
       if (!items.length && !vehPics.length) return alert('พิมพ์รายการอะไหล่ก่อน (บรรทัดละ 1 อย่าง)');
       $('vhSave').disabled = true; $('vhSave').textContent = '…';
-      call('partOp', [{ fn: 'add', asset: vehCur, items, date: isoToBE(todayISO()), pics: vehPics.map(p => p.b64) }], d => { vehDraft = ''; vehPics = []; vehQPart = false; init(d); vehRender(); }, null, vehPics.length ? '⏳ กำลังส่งรูป...' : null);
+      call('partOp', [{ fn: 'add', asset: vehCur, items, date: isoToBE(todayISO()), pics: vehPics.map(p => p.b64) }], d => { vehDraft = ''; vehPics = []; vehQPart = false; init(d); vehRender(); }, null, vehPics.length ? '⏳ กำลังส่งรูป...' : null, () => vehRender());
     }
     let vehCredit = false, vehLastShop = '', vehLastPr = '';
     function vehKeepBuy() { if ($('vhPs')) vehLastShop = $('vhPs').value; if ($('vhPr')) vehLastPr = $('vhPr').value; }
@@ -10201,7 +10205,7 @@ Export.table.toDrive({
     const SUGAR_SEASONS = [['61/62', 12.55, 700], ['62/63', 13.25, 750], ['63/64', 16.0, 920], ['64/65', 20.05, 1070],
       ['65/66', 20.15, 1080], ['66/67', 27.35, 1420], ['67/68', 21.8, 1160], ['68/69', 15.2, 890]];
     const SUGAR_TTL = 60 * 60000;
-    let sugar = null, sugarLoading = false, sugarErr = '';
+    let sugar = null, sugarLoading = false, sugarErr = '', sugarErrAt = 0;
     try { sugar = JSON.parse(lsGet('raioy_sugar') || 'null'); } catch (e) { sugar = null; }
     // เส้นตรง least squares: อ้อย = a × น้ำตาล + b
     const sugarFit = (() => {
@@ -10213,12 +10217,12 @@ Export.table.toDrive({
     const canePrice = c => Math.round((sugarFit.a * c + sugarFit.b) / 10) * 10;
 
     function sugarLoad(force) {
-      if (sugarLoading || (!force && sugar && Date.now() - sugar.got < SUGAR_TTL)) return;
+      if (sugarLoading || (!force && sugar && Date.now() - sugar.got < SUGAR_TTL) || (!force && sugarErr && Date.now() - sugarErrAt < 120000)) return;
       sugarLoading = true; sugarErr = '';
       callApi('getSugar', [!!force]).then(d => {
         if (!d || !d.price) throw new Error('ไม่มีราคา');
         sugar = Object.assign(d, { got: Date.now() }); lsSet('raioy_sugar', JSON.stringify(sugar));
-      }).catch(e => { sugarErr = e.message || 'โหลดไม่ได้'; })
+      }).catch(e => { sugarErr = e.message || 'โหลดไม่ได้'; sugarErrAt = Date.now(); })
         .finally(() => { sugarLoading = false; if (curTab === 'urgent') render(); if ($('sugarModal').classList.contains('show')) sugarRender(); });
     }
 

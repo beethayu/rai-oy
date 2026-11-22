@@ -660,6 +660,14 @@
     .vh-dot{position:absolute;left:0;top:14px;width:14px;height:14px;border-radius:50%;border:3px solid #F4F3EC}
     .vh-li{font-size:14.5px;padding:2px 0}.vh-d{font-size:12px;color:#8A918C}.vh-s{font-size:12px;color:#8A918C;margin:4px 0 2px}
     .vh-f{display:flex;justify-content:space-between;font-size:14px;margin-top:6px}.vh-f span{color:#6B736E}
+    .vh-rows{margin-top:6px;border-top:1px solid rgba(0,0,0,.07)}
+    .vh-row{display:grid;grid-template-columns:58px 1fr;gap:8px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.07)}
+    .vh-dt b{display:block;font-size:15px;line-height:1.2}.vh-dt small{font-size:12px;color:#8A918C}
+    .vh-tx{min-width:0}.vh-main{font-size:15px;font-weight:600;line-height:1.4}.vh-sub{font-size:14px;color:#4A544E;line-height:1.4}
+    .vh-tg{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:8px;margin-bottom:3px;background:#EEECE4;color:#4A544E}
+    .vh-tg.o{background:#FCE3CF;color:#9A4A0C}.vh-tg.g{background:#E3EFE6;color:#1F5E3B}.vh-tg.b{background:#E4ECF7;color:#1F4E8C}
+    .vh-act{display:flex;gap:14px;margin-top:3px;font-size:14px}
+    .vh-2b{display:flex;gap:8px}.vh-2b .bigbtn{flex:1}
     #ahBody .bigbtn{width:100%;height:46px;margin-top:8px;font-size:15px}
     .vh-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.vh-btns .bigbtn{flex:1;min-width:30%;font-size:14px}
     .mhd { background: #1F5E3B; color: #fff; }
@@ -4522,25 +4530,34 @@
           ${m.last ? `<div class="vh-bar"><i style="width:${Math.max(3, m.pct)}%;background:${m.st === 'late' ? '#C0392B' : m.st === 'soon' ? '#E07B24' : '#2E8B57'}"></i></div>` : ''}</div></div>`).join('')}
         ${sug.map(k => { const l = lastOf(k); return `<div class="vh-mi"><div class="vh-ic" style="background:#EEE">🛢️</div><div class="vh-x"><b style="color:#6B736E">${k}</b><div>${l ? `จดล่าสุด ${dShort(beToISO(l.timestamp))} · ยังไม่ได้ตั้งรอบ` : 'ยังไม่เคยจด'} · พิมพ์ในแชต "${esc(eqS(a.name))} เปลี่ยน${k} ไมล์ … ทุก 6 เดือน เตือนด้วย"</div></div></div>`; }).join('')}
       </div>`;
-      // ใบซ่อม
-      const jobs = vis.filter(v => v.kind === 'job').length;
-      h += `<div class="vh-gh"><span>ประวัติเข้าร้าน / ซ่อมบำรุง</span><span>${jobs} ครั้ง</span></div>`;
-      if (!vis.length) h += `<div class="cd vh-cd" style="color:#6B736E">ยังไม่มีประวัติ · จดในแชตได้ เช่น "${esc(eqS(a.name))} เปลี่ยนน้ำมันเครื่อง ร้าน… 1,200 บาท"</div>`;
-      h += vis.map(v => {
-        const ev = v.lines[0].ev.replace(/^[^\p{L}]+/u, '');
+      // ใบซ่อม (22 พ.ย. 69 แบบ 2: วันที่ซ้ายทุกบรรทัด + ป้ายว่าทำอะไร · ไม่เอาบันทึกทะเบียนมาปน เพราะแค่จดวันหมด ไม่ใช่ไปต่อ)
+      const jobsV = vis.filter(v => v.kind === 'job');
+      h += `<div class="vh-gh"><span>ประวัติเข้าร้าน / ซ่อมบำรุง</span><span>${jobsV.length} ครั้ง</span></div>`;
+      if (!jobsV.length) h += `<div class="vh-cd" style="color:#6B736E">ยังไม่มีประวัติ · จดในแชตได้ เช่น "${esc(eqS(a.name))} เปลี่ยนน้ำมันเครื่อง ร้าน… 1,200 บาท"</div>`;
+      const tagOf = (x, k, v) => x.bill ? ['บิล', 'b'] : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(x.ev) ? ['รับรถกลับ', 'g'] : k === 0 && (v.open || v.end) ? ['ส่งเข้าร้าน', 'o'] : isDown(x.ev) ? ['อัปเดต', 'o'] : /บำรุง/.test(x.ev) ? ['บำรุง', 'g'] : /ดัดแปลง/.test(x.ev) ? ['ดัดแปลง', 'n'] : /แบต/.test(x.ev) ? ['แบต', 'n'] : /ตรวจ|ถ่ายรูป/.test(x.ev) ? ['ตรวจ', 'n'] : ['ซ่อม', 'n'];
+      h += jobsV.map(v => {
         const amt = v.lines.reduce((t, x) => t + x.amt + (x.bill ? x.total : 0), 0);
-        const ttl = v.kind === 'reg' ? '🪪 ต่อภาษี' : v.open ? `กำลังซ่อม · อยู่ร้าน ${calcDays(v.start)} วัน` : v.end ? `ซ่อมเสร็จ รับรถกลับ (${Math.max(0, (calcDays(v.start) || 0) - (calcDays(v.end) || 0))} วัน)` : /บำรุง/.test(ev) ? 'บำรุงตามระยะ' : /ดัดแปลง/.test(ev) ? 'ดัดแปลง' : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(ev) ? 'ซ่อมเสร็จ' : /แบต/.test(ev) ? 'แบตเตอรี่' : /ตรวจ|ถ่ายรูป/.test(ev) ? 'ตรวจ / ถ่ายรูป' : 'ซ่อม';
-        const hd = `${dShort(beToISO(v.start))} ${vehYY(beToISO(v.start))}${v.open ? ' → ยังไม่รับรถ' : v.end && v.end !== v.start ? ' – ' + dShort(beToISO(v.end)) : ''}${v.shop ? ' · ' + esc(v.shop) : ''}`;
-        const ln = v.lines.slice().sort((x, y) => (/^อาการ/.test(y.txt) ? 1 : 0) - (/^อาการ/.test(x.txt) ? 1 : 0)).map(x => {
-          const t = x.txt || (/รับรถกลับ|ซ่อมเสร็จ/.test(x.ev) ? 'รับรถกลับ' : x.ev.replace(/^[^\p{L}]+/u, ''));
-          if (!t && !x.photo) return '';
-          return `<div class="vh-li">• ${x.bill ? `<button type="button" class="linkbtn" onclick="openBillView('${qa(x.bill)}')">${esc(t)} · ${baht(x.total)} บ.</button>` : esc(t)}${x.date !== v.start ? ` <span class="vh-d">${dShort(beToISO(x.date))}</span>` : ''}${x.photo ? ` <button type="button" class="linkbtn" onclick="viewPhotos('${qa(name)}','${qa(x.photo)}')">📷 ${String(x.photo).split(',').filter(Boolean).length}</button>` : ''}${vehEdit && !x.bill ? ` <button type="button" class="linkbtn muted" style="color:#A3271B" onclick="delAssetLog('${qa(x.id)}','${qa(name)}')">ลบ</button>` : ''}</div>`;
+        const days = v.end ? Math.max(0, dayDiff(beToISO(v.start), beToISO(v.end))) : 0;
+        const ev0 = v.lines[0].ev;
+        const ttl = v.open ? `กำลังซ่อม · อยู่ร้าน ${calcDays(v.start)} วัน` : v.end ? `เสร็จ รับรถกลับแล้ว${days ? ` (อยู่ร้าน ${days} วัน)` : ''}` : /บำรุง/.test(ev0) ? 'บำรุงตามระยะ' : /ดัดแปลง/.test(ev0) ? 'ดัดแปลง' : /ตรวจ|ถ่ายรูป/.test(ev0) ? 'ตรวจ / ถ่ายรูป' : 'ซ่อม';
+        const lines = v.lines.slice().sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)) || ((/^อาการ/.test(y.txt) ? 1 : 0) - (/^อาการ/.test(x.txt) ? 1 : 0)));
+        let prevD = '';
+        const rows = lines.map((x, k) => {
+          const parts = x.bill ? [`🧾 บิล ${x.txt.replace(/^🧾 บิล\s*/, '')} · ${baht(x.total)} บ.`] : String(x.txt || '').split(/\s+·\s+/).filter(Boolean);
+          const [tg, tc] = tagOf(x, k, v);
+          if (!parts.length && tg !== 'รับรถกลับ' && !x.photo) return '';
+          const iso = beToISO(x.date), same = iso === prevD; prevD = iso;
+          return `<div class="vh-row"><div class="vh-dt">${same ? '' : `<b>${dShort(iso)}</b><small>${vehYY(iso)}</small>`}</div><div class="vh-tx">
+            <span class="vh-tg ${tc}">${tg}</span>${parts.map((t, i) => `<div class="${i ? 'vh-sub' : 'vh-main'}">${x.bill ? `<button type="button" class="linkbtn" onclick="openBillView('${qa(x.bill)}')">${esc(t)}</button>` : esc(t)}</div>`).join('')}
+            ${x.photo || (vehEdit && !x.bill) ? `<div class="vh-act">${x.photo ? `<button type="button" class="linkbtn" onclick="viewPhotos('${qa(name)}','${qa(x.photo)}')">📷 ดูรูป ${String(x.photo).split(',').filter(Boolean).length} รูป</button>` : ''}${vehEdit && !x.bill ? `<button type="button" class="linkbtn" style="color:#A3271B" onclick="delAssetLog('${qa(x.id)}','${qa(name)}')">ลบบรรทัดนี้</button>` : ''}</div>` : ''}
+          </div></div>`;
         }).join('');
-        return `<div class="vh-ro"><span class="vh-dot" style="background:${v.open ? '#E07B24' : v.kind === 'reg' ? '#8A918C' : '#1F5E3B'}"></span><div class="cd vh-cd${v.open ? ' warn' : ''}">
-          <div class="vh-k">${hd}</div><div class="vh-ti${v.open ? ' o' : ''}">${ttl}</div>${ln}
-          ${amt ? `<div class="vh-f"><span>ค่าใช้จ่าย</span><b>${baht(amt)} บ.</b></div>` : v.open ? '<div class="vh-f"><span>ค่าใช้จ่าย</span><b style="color:#8A918C">ยังไม่จด</b></div>' : ''}
-          ${v.open ? `<div class="vh-s">ช่างบอกอะไรเพิ่ม พิมพ์ในแชตได้เลย จะต่อท้ายใบนี้</div><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehChat('${qa(name)}',1)">📷 ส่งรูปบิล</button>` : ''}
-        </div></div>`;
+        return `<div class="vh-cd${v.open ? ' warn' : ''}">
+          <div class="vh-k">${v.shop ? esc(v.shop) : 'ไม่ระบุร้าน'}</div><div class="vh-ti${v.open ? ' o' : v.end ? ' g' : ''}">${ttl}</div>
+          <div class="vh-rows">${rows}</div>
+          ${amt ? `<div class="vh-f"><span>ค่าใช้จ่ายรวม</span><b>${baht(amt)} บ.</b></div>` : ''}
+          ${v.open ? `<div class="vh-2b"><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehChat('${qa(name)}',1)">📷 ส่งรูปบิล</button></div><div class="vh-s">ช่างโทรบอกอะไรเพิ่ม พิมพ์ในแชตได้เลย จะต่อท้ายใบนี้</div>` : ''}
+        </div>`;
       }).join('');
       h += `<button type="button" class="bigbtn bigbtn-main" style="margin-top:6px" onclick="vehChat('${qa(name)}')">+ จดซ่อม / บำรุงคันนี้</button>
         <div class="vh-btns">${hasBat ? `<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button>` : ''}<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openAssetEdit('${qa(name)}')">แก้สถานะ</button>${vis.length ? `<button type="button" class="bigbtn bigbtn-out" onclick="vehEditTgl()">${vehEdit ? 'เสร็จ' : 'ลบที่จดผิด'}</button>` : ''}</div>`;

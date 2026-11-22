@@ -8066,6 +8066,21 @@ Export.table.toDrive({
     }
     // วางภาพของแปลงเดียว ตามวันที่ที่เลือกไว้ (ไม่เลือก = ภาพล่าสุด) · เปลี่ยนวันที่ = เปลี่ยนเฉพาะแปลงนั้นทันที
     const spotWait = {}, spotHave = {}; let spotQ = [], spotT = null, spotBusy = 0;
+    // ผลน้ำขังต่อแปลง (22 พ.ย. 69 ผู้ใช้: โหมดน้ำขังก็ให้ป้ายบอกผลแบบแห้งลง) — นับพิกเซลที่มีสีในภาพ × พื้นที่ต่อพิกเซล
+    const spotStat = {};
+    function spotStatSet(id, v) {
+      if (v === null) { spotStat[id] = { st: 'err' }; return fmLabelsSoon(); }
+      if (!v) { spotStat[id] = { st: 'none', rai: 0 }; return fmLabelsSoon(); }
+      const x = satInfo && satInfo.items.find(i => i.id === id); if (!x) return;
+      const im = new Image(); im.onload = () => { try {
+        const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 40) n++;
+        const b = L.latLngBounds(x.pts), m = 111320, w = (b.getEast() - b.getWest()) * m * Math.cos(b.getCenter().lat * Math.PI / 180), h = (b.getNorth() - b.getSouth()) * m;
+        spotStat[id] = { st: 'ok', rai: n * (w * h / (c.width * c.height)) / 1600 };
+      } catch (e) { spotStat[id] = { st: 'ok', rai: null }; } fmLabelsSoon(); };
+      im.onerror = () => { spotStat[id] = { st: 'err' }; fmLabelsSoon(); }; im.src = v;
+    }
+    let fmLblT = 0; function fmLabelsSoon() { clearTimeout(fmLblT); fmLblT = setTimeout(() => { try { if (fmMap && fmSatOn) fmLabels(); } catch (e) {} }, 150); }
     function spotImg(id, cb) {
       if (spotHave[id] !== undefined) return cb(spotHave[id]);
       (spotWait[id] = spotWait[id] || []).push(cb); if (spotWait[id].length > 1) return;
@@ -8074,7 +8089,7 @@ Export.table.toDrive({
     function spotFlush() {
       const ids = spotQ.splice(0); if (!ids.length) return;
       spotBusy++; if ($('fmSatBar') && fmSatMode === 'f') fmSatBarHtml();
-      const done = r => { spotBusy--; ids.forEach(id => { const v = (r && r[id]) || ''; if (v) spotHave[id] = v; const w = spotWait[id] || []; delete spotWait[id]; w.forEach(f => f(v)); }); if ($('fmSatBar') && fmSatMode === 'f') fmSatBarHtml(); };
+      const done = r => { spotBusy--; ids.forEach(id => { const v = (r && r[id]) || ''; if (v) spotHave[id] = v; spotStatSet(id, r ? v : null); const w = spotWait[id] || []; delete spotWait[id]; w.forEach(f => f(v)); }); if ($('fmSatBar') && fmSatMode === 'f') fmSatBarHtml(); };
       callApi('getWaterSpots', [ids]).then(done).catch(() => done(null));
     }
     function fmSatOne(x) {
@@ -8529,6 +8544,15 @@ Export.table.toDrive({
         gData.plots.forEach(p => { const pts = pPath(p.boundary); if (pts.length < 3 || editing(p.plot_id)) return;
           const sx = fmSatOn && fmSatItem('plot', p.plot_id);
           const sq = sx && sx.last && fmSatCur(sx), old = sq && sq.d !== sx.last.d;
+          if (sx && fmSatMode === 'f') {
+            const k = spotStat[p.plot_id];
+            const t = !k ? '<span style="color:#8A918C">กำลังโหลด…</span>' : k.st === 'err' ? '<span style="color:#8A918C">โหลดไม่ได้</span>' : k.rai === null ? '<span style="color:#1D6FB8">💧 มีจุดน้ำ</span>' : k.rai < 0.05 ? '<span style="color:#1F7A3D">✓ ไม่เห็นน้ำขัง</span>' : `<span style="color:#1D6FB8">💧 ~${r1(k.rai)} ไร่</span>`;
+            return lbl(center(pts), `${esc(p.plot_name)} ${t}`, 'fm-tag');
+          }
+          if (sq && fmSatMode === 'w') {
+            const wk = sq.weak !== null && sq.weak !== undefined ? Math.round(sq.weak * 100) : null, bad = wk !== null && satWeakBad(sq);
+            return lbl(center(pts), `${bad ? '⚠️ ' : ''}${esc(p.plot_name)} ${wk === null ? '<span style="color:#8A918C">ไม่มีค่า</span>' : `<span style="color:${bad ? '#C2410C' : '#1F7A3D'}">${bad ? 'อ่อน ' + wk + '%' : '✓ สม่ำเสมอ'}</span>`}${old ? ` <span>· ${satDs(sq.d)}</span>` : ''}`, 'fm-tag');
+          }
           if (sx && fmSatMode === 'b') { // โหมดแห้งลง (22 พ.ย. 69 ผู้ใช้: แปลงไม่มีสีอะไรเลย "รูปโหลดรึยัง") → ป้ายบอกผลของแปลงนั้นตรง ๆ
             const pr = burnPairOf(sx), r = pr && burnRes[sx.id + '|' + pr.A + '|' + pr.B];
             const t = !pr ? '<span style="color:#8A918C">ไม่มีภาพเทียบ</span>' : !r ? '<span style="color:#8A918C">กำลังเทียบ…</span>' : r.cloud ? '<span style="color:#8A918C">เมฆบัง เทียบไม่ได้</span>' : r.rai >= 0.2 ? `<span style="color:#C2410C">แห้ง ~${r1(r.dmg || r.rai)} ไร่</span>` : '<span style="color:#1F7A3D">✓ ไม่พบจุดแห้ง</span>';

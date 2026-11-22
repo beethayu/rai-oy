@@ -5218,6 +5218,13 @@
     const AS_BRAND = { kubota: /คูโบ|kubota/i, 'new holland': /นิวฮอล|ฮอลแลนด์|new holland/i, 'john deere': /จอห์น|deere/i, yanmar: /ยันม่าร์|yanmar/i, isuzu: /อีซูซุ|isuzu/i, hino: /ฮีโน่|hino/i };
     // 19 พ.ย. 69: "รถหกล้อ…อีแอ๋ว" + รูปป้ายภาษี → AI ใส่ "เพิ่มสิบล้อ" (Truck = หมวดสิบล้อ ทั้งคันที่ใช้ในไร่และขนหิน · หกล้อ/กระบะ = Car รถใช้ในไร่) ซ้ำกับรายการต่อทะเบียนที่เพิ่มรถใหม่ให้อยู่แล้ว
     function chAddGuard(items, txt) {
+      // ปิดเตือนบำรุงรถได้เฉพาะเรื่องเดียวกับที่จด (AI เคยปิด "กรองโซล่า" ตอนจดเปลี่ยนน้ำมันเครื่อง)
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i]; if (it.type !== 'rem_done') continue;
+        const r = (gData.reminders || []).find(x => x.rem_id === it.id), va = r && chNoteVeh(r.text); if (!va) continue;
+        const key = String(r.text).replace(new RegExp(va.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '').replace(/เปลี่ยน|ถ่าย|เช็ค/g, '').trim();
+        if (key && !items.some(x => x.type === 'asset_note' && String(x.detail || '').includes(key)) && !String(txt || '').includes(key)) items.splice(i, 1);
+      }
       const t = String(txt || ''), six = /หกล้อ|6\s*ล้อ|กระบะ|ปิกอัพ|ปิคอัพ/.test(t) && !/สิบล้อ|10\s*ล้อ/.test(t);
       for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (!it || it.type !== 'add' || !['Truck', 'Car', 'Home', 'Moto', 'Tractor'].includes(it.category)) continue;
         if (items.some(o => o && o.type === 'asset_reg' && String(o.asset || '').trim() === String(it.name || '').trim())) { items.splice(i, 1); continue; } // ต่อทะเบียนเพิ่มรถใหม่ให้เอง (เลือกรถส่วนตัว/รถใช้ในไร่)

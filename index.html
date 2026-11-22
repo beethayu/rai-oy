@@ -667,6 +667,10 @@
     .vh-tg{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:8px;margin-bottom:3px;background:#EEECE4;color:#4A544E}
     .vh-tg.o{background:#FCE3CF;color:#9A4A0C}.vh-tg.g{background:#E3EFE6;color:#1F5E3B}.vh-tg.b{background:#E4ECF7;color:#1F4E8C}
     .vh-act{display:flex;gap:14px;margin-top:3px;font-size:14px}
+    .vh-q textarea{width:100%;font-size:16px;border:1px solid #D3D1C6;border-radius:12px;padding:8px 10px;margin-top:6px;resize:none;font-family:inherit;background:#FCFCFA}
+    .vh-qc{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+    .vh-chip{font:inherit;font-size:14px;font-weight:600;border:1.5px solid #D3D1C6;background:#fff;color:#4A544E;border-radius:20px;padding:4px 12px}
+    .vh-chip.on{background:#1F5E3B;border-color:#1F5E3B;color:#fff}
     .vh-2b{display:flex;gap:8px}.vh-2b .bigbtn{flex:1}
     #ahBody .bigbtn{width:100%;height:46px;margin-top:8px;font-size:15px}
     .vh-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.vh-btns .bigbtn{flex:1;min-width:30%;font-size:14px}
@@ -4495,8 +4499,14 @@
         return { r, item: item || r.text, next, last, left, mo, pct: span ? Math.max(0, Math.min(100, (1 - left / span) * 100)) : 0, st: left < 0 ? 'late' : left <= Math.max(14, Number(r.lead_days) || 0) ? 'soon' : 'ok' };
       });
     }
-    let vehCur = '', vehEdit = false;
-    function vehOpen(name) { if (vehCur !== name) vehEdit = false; vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
+    let vehCur = '', vehEdit = false, vehDraft = '', vehQDate = '', vehQShop = false;
+    function vehQuick() {
+      const t = String(vehDraft || '').trim(); if (!t) return alert('พิมพ์ก่อนว่าคันนี้มีเรื่องอะไรครับ');
+      const name = vehCur, m = t.match(/(?:ร้าน|อู่)\s*(\S+)/);
+      const op = { fn: 'asset', asset: name, event: vehQShop ? 'ซ่อม' : 'บันทึก', detail: t, shop: vehQShop && m ? m[1] : '', place: '', date: isoToBE(vehQDate || todayISO()), plates: [], photo_ids: [], state: vehQShop ? 'at_shop' : '' };
+      call('chatApply', [[op], 'VQ' + Date.now()], d => { vehDraft = ''; vehQDate = ''; vehQShop = false; init(d); vehRender(); }, $('vhSave'));
+    }
+    function vehOpen(name) { if (vehCur !== name) { vehEdit = false; vehDraft = ''; vehQDate = ''; vehQShop = false; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
     function vehEditTgl() { vehEdit = !vehEdit; vehRender(); }
     function vehChat(name, cam) {
       hideModal('assetHistModal'); calLog(todayISO()); const t = $('chatIn'); t.value = eqS(name) + ' '; t.dispatchEvent(new Event('input'));
@@ -4519,6 +4529,13 @@
       let h = `<div class="vh-top"><div class="vh-pl">${plate || '<span style="color:#8A918C">ไม่มีทะเบียน</span>'}</div>${isOk ? '<span class="pill pill-normal">ว่าง</span>' : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`}</div>`;
       h += `<div class="vh-tiles">${tile('ภาษีหมด', ri ? dShort(beToISO(a.reg_expire)) + ' ' + vehYY(beToISO(a.reg_expire)) : '—', ri ? (ri.d < 0 ? '#A3271B' : ri.d <= 90 ? '#B35C00' : '') : '#8A918C')}${tile(a.category === 'Tractor' ? 'ชม./ไมล์ล่าสุด' : 'ไมล์ล่าสุด', mile ? mile.toLocaleString('en-US') : 'ยังไม่จด', mile ? '' : '#8A918C')}${tile('ค่าซ่อมปีนี้', cost ? baht(cost) + ' บ.' : '0 บ.', cost ? '' : '#8A918C')}</div>`;
       if (hasBat) { const bd = calcDays(a.battery_date); h += `<div class="vh-note">🔋 แบต ${esc(a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : 'ยังไม่ระบุ')}${bd !== null ? ` · ใช้มา ${bd} วัน` : ''}</div>`; }
+      // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
+      h += `<div class="vh-cd vh-q"><div class="vh-k">จดเรื่องคันนี้</div>
+        <textarea id="vhTxt" rows="2" placeholder="เช่น กำลังชาร์จแบต · เตรียมเอาไปเช็คร้านช่างนุ" oninput="vehDraft=this.value">${esc(vehDraft)}</textarea>
+        <div class="vh-qc">${[['', 'วันนี้'], [isoAdd(todayISO(), -1), 'เมื่อวาน']].map(([d, l]) => `<button type="button" class="vh-chip${vehQDate === d ? ' on' : ''}" onclick="vehQDate='${d}';vehRender()">${l}</button>`).join('')}
+          ${a.category !== 'Pump' ? `<button type="button" class="vh-chip${vehQShop ? ' on' : ''}" onclick="vehQShop=!vehQShop;vehRender()">${vehQShop ? '✓ ' : ''}รถเข้าร้านแล้ว</button>` : ''}</div>
+        <button type="button" class="bigbtn bigbtn-main" id="vhSave" onclick="vehQuick()">บันทึก</button>
+        <div class="vh-s">งานที่มีรูป/บิล หรือหลายเรื่องพร้อมกัน ใช้ "+ จดซ่อม / บำรุงคันนี้" (แชต)</div></div>`;
       // บำรุงตามระยะ
       const worst = mt.some(m => m.st === 'late') ? 'late' : mt.some(m => m.st === 'soon') ? 'soon' : 'ok';
       const sug = a.category === 'Pump' ? [] : ['น้ำมันเครื่อง'].filter(k => !mt.some(m => m.item.includes(k)));
@@ -4532,14 +4549,14 @@
       </div>`;
       // ใบซ่อม (22 พ.ย. 69 แบบ 2: วันที่ซ้ายทุกบรรทัด + ป้ายว่าทำอะไร · ไม่เอาบันทึกทะเบียนมาปน เพราะแค่จดวันหมด ไม่ใช่ไปต่อ)
       const jobsV = vis.filter(v => v.kind === 'job');
-      h += `<div class="vh-gh"><span>ประวัติเข้าร้าน / ซ่อมบำรุง</span><span>${jobsV.length} ครั้ง</span></div>`;
+      h += `<div class="vh-gh"><span>ประวัติคันนี้ (เข้าร้าน / ซ่อม / จดไว้)</span><span>${jobsV.length} รายการ</span></div>`;
       if (!jobsV.length) h += `<div class="vh-cd" style="color:#6B736E">ยังไม่มีประวัติ · จดในแชตได้ เช่น "${esc(eqS(a.name))} เปลี่ยนน้ำมันเครื่อง ร้าน… 1,200 บาท"</div>`;
-      const tagOf = (x, k, v) => x.bill ? ['บิล', 'b'] : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(x.ev) ? ['รับรถกลับ', 'g'] : k === 0 && (v.open || v.end) ? ['ส่งเข้าร้าน', 'o'] : isDown(x.ev) ? ['อัปเดต', 'o'] : /บำรุง/.test(x.ev) ? ['บำรุง', 'g'] : /ดัดแปลง/.test(x.ev) ? ['ดัดแปลง', 'n'] : /แบต/.test(x.ev) ? ['แบต', 'n'] : /ตรวจ|ถ่ายรูป/.test(x.ev) ? ['ตรวจ', 'n'] : ['ซ่อม', 'n'];
+      const tagOf = (x, k, v) => x.bill ? ['บิล', 'b'] : /รับรถกลับ|ซ่อมเสร็จ|พร้อมใช้/.test(x.ev) ? ['รับรถกลับ', 'g'] : k === 0 && (v.open || v.end) ? ['ส่งเข้าร้าน', 'o'] : isDown(x.ev) ? ['อัปเดต', 'o'] : /บันทึก/.test(x.ev) ? ['จดไว้', 'n'] : /บำรุง/.test(x.ev) ? ['บำรุง', 'g'] : /ดัดแปลง/.test(x.ev) ? ['ดัดแปลง', 'n'] : /แบต/.test(x.ev) ? ['แบต', 'n'] : /ตรวจ|ถ่ายรูป/.test(x.ev) ? ['ตรวจ', 'n'] : ['ซ่อม', 'n'];
       h += jobsV.map(v => {
         const amt = v.lines.reduce((t, x) => t + x.amt + (x.bill ? x.total : 0), 0);
         const days = v.end ? Math.max(0, dayDiff(beToISO(v.start), beToISO(v.end))) : 0;
         const ev0 = v.lines[0].ev;
-        const ttl = v.open ? `กำลังซ่อม · อยู่ร้าน ${calcDays(v.start)} วัน` : v.end ? `เสร็จ รับรถกลับแล้ว${days ? ` (อยู่ร้าน ${days} วัน)` : ''}` : /บำรุง/.test(ev0) ? 'บำรุงตามระยะ' : /ดัดแปลง/.test(ev0) ? 'ดัดแปลง' : /ตรวจ|ถ่ายรูป/.test(ev0) ? 'ตรวจ / ถ่ายรูป' : 'ซ่อม';
+        const ttl = v.open ? `กำลังซ่อม · อยู่ร้าน ${calcDays(v.start)} วัน` : v.end ? `เสร็จ รับรถกลับแล้ว${days ? ` (อยู่ร้าน ${days} วัน)` : ''}` : /บันทึก/.test(ev0) ? 'จดไว้' : /บำรุง/.test(ev0) ? 'บำรุงตามระยะ' : /ดัดแปลง/.test(ev0) ? 'ดัดแปลง' : /ตรวจ|ถ่ายรูป/.test(ev0) ? 'ตรวจ / ถ่ายรูป' : 'ซ่อม';
         const lines = v.lines.slice().sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)) || ((/^อาการ/.test(y.txt) ? 1 : 0) - (/^อาการ/.test(x.txt) ? 1 : 0)));
         let prevD = '';
         const rows = lines.map((x, k) => {

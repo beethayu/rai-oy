@@ -398,7 +398,7 @@ function chatApply(ops, rid) {
           const r4 = aSh.getRange(row, 4, 1, 2); r4.setNumberFormat('@'); r4.setValues([[atShop ? 'อยู่ร้านช่าง' : 'พร้อมใช้', atShop ? detail : '-']]);
           const r9 = aSh.getRange(row, 9); r9.setNumberFormat('@'); r9.setValue(date);
         }
-        const label = op.state === 'at_shop' ? '🔧 จอดอยู่ร้านช่าง (' + evName + ')' : op.state === 'done' ? '✅ ' + evName + 'เสร็จ รับรถกลับ' : evName === 'บำรุง' ? '🛢️ บำรุงตามระยะ' : '🔧 ' + evName;
+        const label = op.state === 'at_shop' ? '🔧 จอดอยู่ร้านช่าง (' + evName + ')' : op.state === 'done' ? '✅ ' + evName + 'เสร็จ รับรถกลับ' : evName === 'บำรุง' ? '🛢️ บำรุงตามระยะ' : evName === 'บันทึก' ? '📝 บันทึก' : '🔧 ' + evName;
         const ids = (op.photo_ids || []).filter(Boolean);
         const pc = headCol_(lSh, 'photo_id'), ld = lSh.getDataRange().getDisplayValues();
         // ซ้ำ (รูปชุดเดียวกัน วันเดียวกัน รถคันเดียวกัน) = ข้าม ไม่ลงแถวซ้ำ

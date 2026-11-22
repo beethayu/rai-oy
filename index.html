@@ -682,6 +682,7 @@
     .vh-pv{display:flex;gap:6px;margin-bottom:6px!important}.vh-pv span{position:relative}.vh-pv img{width:54px;height:54px;object-fit:cover;border-radius:8px}
     .vh-pv button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:11px;border:0;background:#333;color:#fff;font-size:12px;line-height:22px;padding:0}
     .vh-qb .ch-cam{flex:none}
+    .vh-batb{display:block;width:calc(100% - 4px);text-align:left;border:0;background:none;font:inherit;padding:0}.vh-batb span{color:#1F5E3B;font-weight:700;margin-left:6px}
     .vh-back{border:0;background:none;color:#fff;font-size:28px;line-height:1;padding:0 8px 0 0;vertical-align:-3px}
     .vh-sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .vh-sg button{font:inherit;font-size:15px;font-weight:600;color:#1F2A23;background:#fff;border:1.5px solid #E2E0D6;border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -4576,50 +4577,18 @@
       if (vehPics.length) call('vehSave', [op, vehPics.map(p => p.b64), 'VQ' + Date.now()], done, null, '⏳ กำลังส่งรูป...');
       else call('chatApply', [[op], 'VQ' + Date.now()], done);
     }
-    function vehOpen(name) { vehView = ''; vehSt = null; if (vehCur !== name) { vehRowOpen = vehRowEdit = ''; vehDraft = ''; vehQDate = ''; vehQShop = false; vehPics = []; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
+    function vehOpen(name) { vehBatEd = false; if (vehCur !== name) { vehRowOpen = vehRowEdit = ''; vehDraft = ''; vehQDate = ''; vehQShop = false; vehPics = []; } vehCur = name; vehRender(); const m = $('assetHistModal'); bootstrap.Modal.getOrCreateInstance(m).show(); const b = $('ahBody'); if (b && !m.classList.contains('show')) b.scrollTop = 0; }
     function vehChat(name, cam) {
       hideModal('assetHistModal'); calLog(todayISO()); const t = $('chatIn'); t.value = eqS(name) + ' '; t.dispatchEvent(new Event('input'));
       if (cam) chatCam();
     }
-    // ===== 🛠️ แก้สถานะรถ (22 พ.ย. 69 ผู้ใช้: หน้าตั้งค่า/แจ้งซ่อมเดิม "ดูยากสุด ๆ" → ทำใหม่ในหน้ารถ: ปุ่มสถานะใหญ่ 2×2 + แถว ป้ายซ้าย|ช่องขวา) =====
-    let vehView = '', vehSt = null;
-    const VST = [['พร้อมใช้', '✅', 'ว่าง / พร้อมใช้'], ['อยู่ร้านช่าง', '🔧', 'อยู่ร้านช่าง / อู่'], ['เสีย/รอซ่อม', '🔴', 'เสีย / รอซ่อม'], ['จอดบ้าน/รอดัดแปลง', '🅿️', 'จอดรอ / จอดนาน']];
-    function vehStOpen() {
+    // 🔋 แก้ข้อมูลแบตในหน้ารถ (22 พ.ย. 69 ผู้ใช้: หน้า "แก้สถานะ" ปุ่มไม่ต่างกัน ไม่ต้องมี → สถานะมาจาก "รถเข้าร้านแล้ว" / "รับรถกลับแล้ว" เท่านั้น)
+    let vehBatEd = false;
+    function vehBatSave() {
       const a = (gData.assets || []).find(x => x.name === vehCur); if (!a) return;
-      const iss = dash(a.issue_detail), ov = vehVisits(a.name).find(v => v.open), shop = vehShop(iss) || (ov && ov.shop) || '';
-      vehSt = { st: VST.some(v => v[0] === a.status) ? a.status : okSt(a) ? 'พร้อมใช้' : 'เสีย/รอซ่อม', iss: vehClean(iss), shop, parts: dash(a.parts_needed), date: todayISO(),
-        bat: dash(a.battery_info) ? String(a.battery_info).replace('(' + a.name + ')', '').trim() : '', batDate: beToISO(a.battery_date) || '' };
-      vehSt.orig = JSON.stringify([vehSt.st, vehSt.iss, vehSt.shop, vehSt.parts]); vehSt.origBat = JSON.stringify([vehSt.bat, vehSt.batDate]);
-      vehView = 'st'; vehRender(); $('ahBody').scrollTop = 0;
-    }
-    function vehStSet(k, v) { vehSt[k] = v; if (k === 'st') vehRender(); }
-    function vehStHtml(a) {
-      const s = vehSt, ok = s.st === 'พร้อมใช้', hasBat = a.category === 'Tractor' || a.category === 'Truck';
-      const inp = (k, ph, type) => `<input class="vh-in" type="${type || 'text'}" value="${esc(s[k] || '')}" placeholder="${ph}" oninput="vehSt.${k}=this.value" onchange="vehSt.${k}=this.value">`;
-      const row = (l, x) => `<div class="vh-fr"><span>${l}</span>${x}</div>`;
-      let h = `<div class="vh-k" style="margin:0 4px 6px">สถานะตอนนี้</div><div class="vh-sg">${VST.map(([v, ic, l]) => `<button type="button" class="${s.st === v ? 'on' + (v === 'พร้อมใช้' ? ' g' : '') : ''}" onclick="vehStSet('st','${v}')"><b>${ic}</b>${l}</button>`).join('')}</div>`;
-      if (!ok) h += `<div class="vh-k" style="margin:14px 4px 6px">รายละเอียด</div><div class="vh-form"><div class="vh-fr col"><span>อาการ / ทำอะไร</span><textarea class="vh-in" rows="2" placeholder="เช่น เบรครั่ว, ต่อกล่อง" oninput="vehSt.iss=this.value">${esc(s.iss || '')}</textarea></div>${s.st === 'อยู่ร้านช่าง' ? row('ร้าน / อู่', inp('shop', 'เช่น ช่างนุ')) : ''}${row('อะไหล่ที่รอ', inp('parts', 'ไม่มีเว้นว่าง'))}</div>`;
-      h += `<div class="vh-form" style="margin-top:14px">${row(ok && !okSt(a) ? 'วันที่รับรถกลับ' : 'วันที่', inp('date', '', 'date'))}</div>`;
-      if (hasBat) h += `<div class="vh-k" style="margin:14px 4px 6px">แบตเตอรี่</div><div class="vh-form">${row('แบตลูกไหน', inp('bat', 'เช่น แบตลูกที่ 1 (GS 120A)'))}${row('วันที่ใส่', inp('batDate', '', 'date'))}</div>
-        <div class="vh-s" style="margin:6px 4px 0">ย้ายแบตไปคันอื่น ใช้ปุ่ม "สลับแบต" ในหน้ารถ</div>`;
-      h += `<div class="vh-s" style="margin:14px 4px 0">งานบำรุง (น้ำมันเครื่อง กรอง ยาง) จดในช่องจดล่างจอหน้ารถได้เลย</div>`;
-      return h;
-    }
-    function vehStSave() {
-      const a = (gData.assets || []).find(x => x.name === vehCur), s = vehSt; if (!a || !s) return;
-      if (!checkDate(s.date)) return;
-      const ok = s.st === 'พร้อมใช้', wasOk = okSt(a), hasBat = a.category === 'Tractor' || a.category === 'Truck';
-      const iss = ok ? '-' : [s.iss.trim(), s.st === 'อยู่ร้านช่าง' && s.shop.trim() ? 'ร้าน ' + s.shop.trim() : ''].filter(Boolean).join(' · ') || '-';
-      const stChanged = JSON.stringify([s.st, s.iss, s.shop, s.parts]) !== s.orig;
-      const bat = hasBat ? (s.bat.trim() || '-') : undefined, batD = hasBat ? (isoToBE(s.batDate) || '-') : undefined;
-      const batChanged = hasBat && JSON.stringify([s.bat, s.batDate]) !== s.origBat;
-      if (!stChanged && !batChanged) { vehView = ''; return vehRender(); }
-      const lbl = VST.find(v => v[0] === s.st);
-      const p = { asset_name: a.name, category: a.category, status: s.st, issue_detail: iss, parts_needed: ok ? '-' : s.parts.trim() || '-', custom_date: isoToBE(s.date),
-        event_type: !stChanged ? '🔋 ข้อมูลแบต' : ok ? (wasOk ? 'พร้อมใช้' : '✅ ซ่อมเสร็จ/พร้อมใช้') : lbl[1] + ' ' + s.st,
-        log_detail: !stChanged ? bat + (batD !== '-' ? ' · ใส่ ' + batD : '') : ok ? (wasOk ? '-' : 'รับรถกลับ') : iss };
-      if (hasBat) { p.battery_info = bat; p.battery_date = batD; }
-      call('saveAssetEvent', [p], d => { vehView = ''; vehSt = null; init(d); vehRender(); }, $('vhStSave'));
+      const bat = String($('vhBat').value || '').trim() || '-', bd = isoToBE($('vhBatD').value) || '-';
+      call('saveAssetEvent', [{ asset_name: a.name, category: a.category, status: a.status, issue_detail: dash(a.issue_detail) || '-', parts_needed: dash(a.parts_needed) || '-',
+        battery_info: bat, battery_date: bd, event_type: '🔋 ข้อมูลแบต', log_detail: bat + (bd !== '-' ? ' · ใส่ ' + bd : '') }], d => { vehBatEd = false; init(d); vehRender(); }, $('vhBatSv'));
     }
     function vehRender() {
       const name = vehCur, a = (gData.assets || []).find(x => x.name === name); if (!a) return;
@@ -4628,12 +4597,6 @@
       const CAT = { Truck: 'สิบล้อ', Tractor: 'รถไถ', Car: 'รถใช้ในไร่', Home: 'รถที่บ้าน', Moto: 'มอเตอร์ไซค์', Pump: 'เครื่องสูบน้ำ' };
       const ICON = { Truck: '🚛', Tractor: '🚜', Car: '🚚', Home: '🚗', Moto: '🛵', Pump: '🐍' };
       $('ahTitle').innerHTML = `${ICON[a.category] || '🔧'} ${esc(eqS(a.name))} <span style="font-weight:500;font-size:14px;opacity:.85">· ${esc(CAT[a.category] || '')}</span>`;
-      if (vehView === 'st' && vehSt) {
-        $('ahTitle').innerHTML = `<button type="button" class="vh-back" aria-label="กลับ" onclick="vehView='';vehRender()">‹</button> แก้สถานะ · ${esc(eqS(a.name))}`;
-        $('ahBody').innerHTML = vehStHtml(a);
-        $('ahFoot').innerHTML = `<button type="button" class="bigbtn bigbtn-main" id="vhStSave" style="width:100%" onclick="vehStSave()">บันทึก</button>`;
-        return;
-      }
       const cost = (gData.expenses || []).filter(e => e.asset === name && beToISO(e.timestamp).slice(0, 4) === yr).reduce((t, e) => t + num(e.amount), 0)
         + (gData.assetLogs || []).filter(l => l.asset_name === name && beToISO(l.timestamp).slice(0, 4) === yr).reduce((t, l) => t + vehAmt(l.detail), 0);
       const mile = (gData.assetLogs || []).filter(l => l.asset_name === name).map(l => vehMile(l.detail)).find(Boolean);
@@ -4643,7 +4606,12 @@
       const hasBat = a.category === 'Tractor' || a.category === 'Truck';
       let h = `<div class="vh-top"><div class="vh-pl">${plate || '<span style="color:#8A918C">ไม่มีทะเบียน</span>'}</div>${isOk ? '<span class="pill pill-normal">ว่าง</span>' : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`}</div>`;
       h += `<div class="vh-tiles">${tile('ภาษีหมด', ri ? dShort(beToISO(a.reg_expire)) + ' ' + vehYY(beToISO(a.reg_expire)) : '—', ri ? (ri.d < 0 ? '#A3271B' : ri.d <= 90 ? '#B35C00' : '') : '#8A918C')}${tile(a.category === 'Tractor' ? 'ชม./ไมล์ล่าสุด' : 'ไมล์ล่าสุด', mile ? mile.toLocaleString('en-US') : 'ยังไม่จด', mile ? '' : '#8A918C')}${tile('ค่าซ่อมปีนี้', cost ? baht(cost) + ' บ.' : '0 บ.', cost ? '' : '#8A918C')}</div>`;
-      if (hasBat) { const bd = calcDays(a.battery_date); h += `<div class="vh-note">🔋 แบต ${esc(a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : 'ยังไม่ระบุ')}${bd !== null ? ` · ใช้มา ${bd} วัน` : ''}</div>`; }
+      if (hasBat) {
+        const bd = calcDays(a.battery_date), bn = a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : '';
+        h += vehBatEd ? `<div class="vh-cd"><div class="vh-k">แบตเตอรี่คันนี้</div><div class="vh-form" style="margin-top:6px"><div class="vh-fr"><span>แบตลูกไหน</span><input id="vhBat" class="vh-in" value="${esc(bn)}" placeholder="เช่น แบตลูกที่ 1 (GS 120A)"></div><div class="vh-fr"><span>วันที่ใส่</span><input id="vhBatD" class="vh-in" type="date" value="${beToISO(a.battery_date) || ''}"></div></div>
+            <div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" id="vhBatSv" onclick="vehBatSave()">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBatEd=false;vehRender()">ยกเลิก</button></div></div>`
+          : `<button type="button" class="vh-note vh-batb" onclick="vehBatEd=true;vehRender()">🔋 แบต ${esc(bn || 'ยังไม่ระบุ')}${bd !== null && bn ? ` · ใช้มา ${bd} วัน` : ''} <span>แก้</span></button>`;
+      }
       // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
       const qd = vehQDate || todayISO(), qn = dayDiff(todayISO(), qd);
       $('ahFoot').innerHTML = (vehPics.length ? `<div class="vh-pv">${vehPics.map((p, i) => `<span><img src="data:image/jpeg;base64,${p.th}" alt="รูปรอส่ง"><button type="button" aria-label="เอารูปออก" onclick="vehPics.splice(${i},1);vehRender()">✕</button></span>`).join('')}</div>` : '') + `<div class="vh-qc">
@@ -4705,7 +4673,7 @@
           ${v.open ? `<div class="vh-2b"><button type="button" class="bigbtn bigbtn-main" onclick="quickFixAsset('${qa(name)}','${a.category}')">รับรถกลับแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBill()">🧾 ส่งรูปบิล</button></div><div class="vh-s">ช่างโทรบอกอะไรเพิ่ม พิมพ์ในช่องจดด้านล่าง จะต่อท้ายใบนี้</div>` : ''}
         </div>`;
       }).join('');
-      h += `<div class="vh-btns">${hasBat ? `<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button>` : ''}<button type="button" class="bigbtn bigbtn-out" onclick="vehStOpen()">แก้สถานะ</button></div>`;
+      h += `<div class="vh-btns">${hasBat ? `<button type="button" class="bigbtn bigbtn-out" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button>` : ''}</div>`;
       $('ahBody').innerHTML = h;
     }
 

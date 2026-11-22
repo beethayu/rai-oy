@@ -706,6 +706,15 @@
     #vhShop .vs-n{font-size:26px;font-weight:700;line-height:1.3}#vhShop .vs-p{font-size:22px;font-weight:600;margin-top:2px}#vhShop .vs-w{font-size:14px;color:#B35C00;margin-top:4px}
     #vhShop .vs-l{font-size:24px;font-weight:600;line-height:1.45;padding-left:34px;margin:0}#vhShop .vs-l li{padding:8px 0;border-bottom:1px solid #DDD}
     #vhShop .vs-ph{margin-top:16px;width:100%;height:52px;border-radius:14px;border:1.5px solid #1F5E3B;background:#fff;color:#1F5E3B;font:inherit;font-size:17px;font-weight:600}
+    .bl-pay{display:flex;gap:6px;margin:4px 0 10px}.bl-pay button{flex:1;font:inherit;font-size:14px;font-weight:600;border:1.5px solid #D3D1C6;background:#fff;color:#4A544E;border-radius:12px;padding:8px 4px}
+    .bl-pay button.on{border-color:#1F5E3B;background:#E3EFE6;color:#1F5E3B}.bl-pay button.on.o{border-color:#E07B24;background:#FFF4EA;color:#9A4A0C}
+    .bl-ptsum{font-size:13px;background:#FFF4EA;color:#7A3E0A;border-radius:10px;padding:6px 10px;margin-bottom:8px}
+    .bl-pt select{font-weight:600;flex:1;min-width:0;width:auto;max-width:none}.bl-pt.on select{border-color:#1F5E3B;color:#1F5E3B;background-color:#F1F7F2}
+    .bv-pay{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#F1F7F2;color:#1F5E3B;border-radius:10px;padding:8px 10px;margin-bottom:12px;font-weight:600;font-size:14px}.bv-pay.o{background:#FFF4EA;color:#9A4A0C}
+    .vh-in2{text-align:left!important;background:#fff!important;border-radius:10px;padding:8px 10px!important;flex:1 1 100%}
+    .db-sh{display:flex;justify-content:space-between;margin-top:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,0,0,.08);font-size:15px}
+    .vh-pay{font:inherit;font-size:13px;font-weight:700;border:1.5px solid #1F5E3B;color:#1F5E3B;background:#fff;border-radius:10px;padding:4px 6px;align-self:start;white-space:nowrap}
+    .vh-row:has(.vh-pay){grid-template-columns:58px 1fr auto!important}
     .vh-foot:empty{display:none}
     .vh-foot>*{margin:0!important;width:100%}.vh-foot .vh-qc{justify-content:flex-start;margin-top:0!important}.vh-foot .vh-qb{margin-top:8px!important}
     .vh-qb{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
@@ -2358,7 +2367,23 @@
       if (old) items.forEach(it => { it.stock_item = ''; it.stock_qty = 0; });
       billDraft = { pages, date: d.date || '', shop: d.shop || (prev ? prev.shop : ''), photo_id: d.photo_id || '', note: prev ? prev.note : '',
         total: num(d.total), err: d.error || '', oldNoStock: old ? age : 0, items };
+      if (billFor) { billDraft.forAsset = billFor; items.forEach(it => { if (!isDisc(it) && (it.category === 'อะไหล่' || it.category === 'อื่นๆ')) { it.category = 'อะไหล่'; it.asset = it.asset || billFor; } }); billMatch(); }
       renderBill(); showM('billModal');
+    }
+    // 🛒 จับคู่บรรทัดในบิล ↔ "อะไหล่ที่ต้องซื้อ" (22 พ.ย. 69) — เทียบตัวอักษรคู่ (ภาษาไทยไม่มีเว้นวรรค) ตัดตัวเลข/หน่วยออก · ผู้ใช้แก้ได้ในหน้าตรวจบิล
+    let billFor = '';
+    const ptNorm = x => String(x || '').toLowerCase().replace(/\d+(\.\d+)?/g, '').replace(/ตัว|ชุด|ขวด|อัน|ลูก|เส้น|ใบ|คู่|ลิตร|ชิ้น|กล่อง|แกลลอน|ข้าง/g, '').replace(/[\s.,()\-\/×x*#:]/g, '');
+    function ptSim(a, b) {
+      a = ptNorm(a); b = ptNorm(b); if (!a || !b) return 0; if (a.includes(b) || b.includes(a)) return 1;
+      const bg = t => { const m = {}; for (let i = 0; i < t.length - 1; i++) { const k = t.substr(i, 2); m[k] = (m[k] || 0) + 1; } return m; };
+      const A = bg(a), B = bg(b); let n = 0, ta = 0, tb = 0;
+      Object.keys(A).forEach(k => { ta += A[k]; if (B[k]) n += Math.min(A[k], B[k]); }); Object.values(B).forEach(v => { tb += v; });
+      return ta + tb ? 2 * n / (ta + tb) : 0;
+    }
+    function billMatch() {
+      const used = {}, pairs = [];
+      billDraft.items.forEach((it, i) => { if (isDisc(it) || !it.asset) return; vehParts(it.asset).forEach(p => pairs.push([ptSim(it.item, p.detail), i, p.log_id])); });
+      pairs.sort((x, y) => y[0] - x[0]).forEach(([sc, i, id]) => { const it = billDraft.items[i]; if (sc < 0.4 || it.part_id || used[id]) return; it.part_id = id; used[id] = 1; });
     }
 
     const isDisc = it => it.discount || num(it.amount) < 0 || /ส่วนลด/.test(String(it.item || ''));
@@ -2395,7 +2420,7 @@
     function billRowHtml(it, i) {
       if (isDisc(it)) return discRowHtml(it, i);
       const inv = (gData.inventory || []).filter(x => x.category === STOCK_CAT[it.category]);
-      const assets = (gData.assets || []).filter(a => a.category !== 'Worker' && a.category !== 'Home' && a.category !== 'Moto');
+      const assets = (gData.assets || []).filter(a => a.category !== 'Worker');
       const sIt = invItem(it.stock_item);
       const opt = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
       return `<div class="bill-row bl-c">
@@ -2417,6 +2442,7 @@
         ${it._new ? billNewHtml(it, i) : !it.stock_item ? `<button type="button" class="bl-new" onclick="billNewOpen(${i})">📥 + สร้างเป็นรายการสต็อกใหม่ แล้วรับเข้า</button>` : ''}` : ''}
         ${it.category === 'อะไหล่' ? `
         <div class="bl-s bl-a"><span title="ของรถ/เครื่อง">🚜</span><select class="form-select form-select-sm" aria-label="ของรถหรือเครื่องคันไหน" onchange="billSet(${i},'asset',this.value)">${opt('', 'ของรถ/เครื่องคันไหน (ไม่ระบุ)', !it.asset)}${assets.map(a => opt(a.name, eqS(a.name), a.name === it.asset)).join('')}</select></div>` : ''}
+        ${it.asset && vehParts(it.asset).length ? `<div class="bl-s bl-pt${it.part_id ? ' on' : ''}"><span title="ตรงกับรายการอะไหล่ที่ต้องซื้อ">🛒</span><select class="form-select form-select-sm" aria-label="ตรงกับรายการอะไหล่ที่ต้องซื้อ" onchange="billSet(${i},'part_id',this.value,true)">${opt('', '— ไม่ตรงกับรายการที่รอซื้อ —', !it.part_id)}${vehParts(it.asset).map(p => opt(p.log_id, '✓ ตรงกับ: ' + p.detail, it.part_id === p.log_id)).join('')}</select></div>` : ''}
         <div class="bl-inf" id="bl_inf_${i}">${billInfoHtml(it)}</div></div>`;
     }
 
@@ -2442,6 +2468,8 @@
           <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm" id="bl_shop" list="bl_shops" value="${esc(b.shop)}" placeholder="ชื่อร้าน">
             <datalist id="bl_shops">${[...new Set((gData.expenses || []).map(e => e.shop).filter(x => x && x !== '-'))].map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
         </div>
+        <div class="bl-pay"><button type="button" class="${b.pay !== 'ค้างจ่าย' ? 'on' : ''}" onclick="billKeep();billDraft.pay=${"''"};renderBill()">💵 จ่ายแล้ว</button><button type="button" class="${b.pay === 'ค้างจ่าย' ? 'on o' : ''}" onclick="billKeep();billDraft.pay='ค้างจ่าย';renderBill()">📒 ค้างร้าน (จ่ายทีหลัง)</button></div>
+        ${(() => { const pend = [...new Set(b.items.filter(x => x.asset).map(x => x.asset))].reduce((t, n) => t + vehParts(n).length, 0), mt = b.items.filter(x => x.part_id).length; return pend ? `<div class="bl-ptsum">🛒 ตรงกับรายการอะไหล่ที่รอซื้อ <b>${mt}/${pend}</b> รายการ · ตรวจ/แก้ที่ช่อง 🛒 ใต้แต่ละบรรทัด</div>` : ''; })()}
         ${b.items.map(billRowHtml).join('')}
         <div class="d-flex gap-2 mb-3">
           <button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="billAdd()">+ เพิ่มรายการ</button>
@@ -2501,6 +2529,8 @@
       const it = billDraft.items[i]; it[k] = v;
       if (k === 'category') { it.stock_item = ''; it.stock_qty = 0; if (v !== 'อะไหล่') it.asset = ''; }
       if (k === 'stock_item' && !v) it.stock_qty = 0;
+      if (k === 'asset') it.part_id = '';
+      if (k === 'part_id' && v) billDraft.items.forEach((x, j) => { if (j !== i && x.part_id === v) x.part_id = ''; });
       if (rerender) { billKeep(); renderBill(); }
       else if (k === 'amount' || k === 'qty' || k === 'stock_qty' || k === 'unit') billInfo(i);
       if (!rerender && k === 'amount') { const sm = billDraft.items.reduce((t, x) => t + num(x.amount), 0); $('bl_sum').innerText = baht(sm) + ' บาท'; $('bl_chk').innerHTML = billChk(billDraft, sm); }
@@ -2528,32 +2558,54 @@
       const clean = items.map(it => isDisc(it)
         ? { item: /ส่วนลด/.test(it.item) ? it.item : ('ส่วนลด ' + (it.item || '')).trim(), category: mainCat, qty: num(it.qty) || 0, unit: it.unit || '', amount: -Math.abs(num(it.amount)), stock_item: '', stock_qty: 0, asset: '' }
         : { ...it, qty: num(it.qty), amount: num(it.amount), stock_qty: num(it.stock_qty) });
-      const body = { date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: clean };
+      const body = { date: b.date, shop: b.shop, note: b.note, photo_id: b.photo_id, items: clean, pay: b.pay || '' };
       if (b.edit) {
         const id = b.edit;
         return call('updateBill', [id, body], d => { billDraft = null; hideModal('billModal'); init(d); setTimeout(() => openBillView(id), 300); }, $('btnBill'));
       }
       call('saveBill', [body],
-        d => { billDraft = null; stockPane = 'money'; hideModal('billModal'); init(d); alert('บันทึกบิลแล้ว'); }, $('btnBill'));
+        d => { const back = b.forAsset; billDraft = null; billFor = ''; hideModal('billModal'); init(d); if (back) setTimeout(() => vehOpen(back), 350); else { stockPane = 'money'; alert('บันทึกบิลแล้ว'); } }, $('btnBill'));
     }
 
     function cancelBill() {
       if (billDraft && billDraft.edit) { const id = billDraft.edit; billDraft = null; hideModal('billModal'); setTimeout(() => openBillView(id), 300); return; }
       if (billDraft && !confirm('ยกเลิกบิลนี้? (รูปจะถูกลบ)')) return;
       const pid = billDraft && billDraft.photo_id;
-      billDraft = null; hideModal('billModal');
+      const back = billDraft && billDraft.forAsset; billDraft = null; billFor = ''; hideModal('billModal'); if (back) setTimeout(() => vehOpen(back), 350);
       if (pid) google.script.run.withSuccessHandler(() => {}).withFailureHandler(() => {}).discardBillPhoto(pid);
     }
 
     function billsGrouped() {
       const m = {};
       (gData.expenses || []).forEach(e => {
-        const b = m[e.bill_id] || (m[e.bill_id] = { id: e.bill_id, date: e.timestamp, shop: e.shop, photo: e.photo_id, note: e.note, items: [], total: 0 });
+        const b = m[e.bill_id] || (m[e.bill_id] = { id: e.bill_id, date: e.timestamp, shop: e.shop, photo: e.photo_id, note: e.note, pay: e.pay || '', items: [], total: 0 });
         b.items.push(e); b.total += num(e.amount);
       });
       return Object.values(m);
     }
 
+    // ===== 📒 ค้างจ่ายร้าน (22 พ.ย. 69 ผู้ใช้: บางร้านเอาของมาก่อน จ่ายปลายปี) — บิลที่ pay = ค้างจ่าย + อะไหล่ที่ติ๊กซื้อแบบ "ค้างร้าน" =====
+    function debtItems() {
+      const out = [];
+      billsGrouped().filter(b => b.pay === 'ค้างจ่าย').forEach(b => out.push({ kind: 'bill', id: b.id, shop: b.shop && b.shop !== '-' ? b.shop : 'ไม่ระบุร้าน', date: b.date, txt: b.items.filter(i => !isDisc(i)).map(i => i.item).slice(0, 3).join(', ') + (b.items.length > 3 ? ` +${b.items.length - 3}` : ''), amt: b.total }));
+      (gData.assetLogs || []).filter(l => /🛒/.test(l.event_type || '') && / · ค้าง /.test(l.parts_or_battery || '')).forEach(l => {
+        const m = String(l.parts_or_battery).match(/^ซื้อแล้ว (\S+) · ค้าง (.+)$/) || [];
+        out.push({ kind: 'part', id: l.log_id, shop: m[2] || 'ไม่ระบุร้าน', date: m[1] || l.timestamp, txt: vehClean(l.detail) + ' (' + eqS(l.asset_name) + ')', amt: vehAmt(l.detail) });
+      });
+      return out;
+    }
+    function debtPay(kind, id, btn) {
+      if (!confirm('จ่ายเงินรายการนี้แล้ว?')) return;
+      if (kind === 'bill') call('setBillPay', [id, true], init, btn); else call('partOp', [{ fn: 'paid', id }], init, btn);
+    }
+    function debtHtml() {
+      const ds = debtItems(); if (!ds.length) return '';
+      const by = {}; ds.forEach(x => (by[x.shop] = by[x.shop] || []).push(x));
+      const tot = ds.reduce((t, x) => t + x.amt, 0);
+      return `<div class="vh-cd warn" style="margin-bottom:14px"><div class="vh-k">ค้างจ่ายร้าน (เอาของมาก่อน)</div><div class="vh-ti o">รวม ${baht(tot)} บาท · ${Object.keys(by).length} ร้าน</div>
+        ${Object.keys(by).map(sh => `<div class="db-sh"><b>${esc(sh)}</b><span>${baht(by[sh].reduce((t, x) => t + x.amt, 0))} บ.</span></div><div class="vh-rows" style="margin-top:0">${by[sh].map(x => `<div class="vh-row"><div class="vh-dt"><b>${dShort(beToISO(x.date))}</b><small>${vehYY(beToISO(x.date))}</small></div><div class="vh-tx"><div class="vh-main">${esc(x.txt)}</div><div class="vh-sub">${x.amt ? baht(x.amt) + ' บ.' : 'ยังไม่ใส่ราคา'}${x.kind === 'bill' ? ` · <button type="button" class="linkbtn" onclick="openBillView('${qa(x.id)}')">ดูบิล</button>` : ''}</div></div><button type="button" class="vh-pay" onclick="debtPay('${x.kind}','${qa(x.id)}',this)">จ่ายแล้ว</button></div>`).join('')}</div>`).join('')}
+      </div>`;
+    }
     function expenseHtml() {
       const bills = billsGrouped();
       if (!bills.length) return `<div class="small text-muted mb-3">ยังไม่มีบิล ถ่ายรูปบิลอะไหล่ น้ำมัน ปุ๋ย ยา แล้ว AI จะแยกรายการและรับเข้าสต็อกให้</div>`;
@@ -2578,7 +2630,8 @@
       $('billview-body').innerHTML = `<div class="d-flex justify-content-between align-items-baseline"><div class="fw-bold fs-6">${esc(b.shop)}</div><div class="text-muted small">${esc(b.date)}</div></div>${b.note ? `<div class="text-muted small">${esc(b.note)}</div>` : ''}
         <div class="mt-2">${b.items.map(i => `<div class="bv-row"><div class="d-flex justify-content-between gap-2"><span class="fw-semibold">${esc(i.item)} <span class="small text-muted fw-normal">${i.qty ? esc(i.qty) + ' ' + esc(i.unit) : ''}</span></span><b class="text-nowrap">${baht(i.amount)}</b></div>
           <div class="bv-sub"><span class="bv-cat">${esc(i.category)}</span> ${mono(i)}</div></div>`).join('')}</div>
-        <div class="d-flex justify-content-between mt-2 mb-3"><b>รวม</b><span class="bill-total">${baht(b.total)} บาท</span></div>
+        <div class="d-flex justify-content-between mt-2 mb-2"><b>รวม</b><span class="bill-total">${baht(b.total)} บาท</span></div>
+        <div class="bv-pay${b.pay === 'ค้างจ่าย' ? ' o' : ''}">${b.pay === 'ค้างจ่าย' ? `📒 ค้างร้าน ยังไม่จ่าย <button type="button" class="btn btn-sm btn-success fw-bold" onclick="call('setBillPay',['${qa(b.id)}',true],d=>{init(d);openBillView('${qa(b.id)}')},this)">จ่ายแล้ว</button>` : `💵 ${esc(b.pay || 'จ่ายแล้ว')} <button type="button" class="btn btn-sm btn-outline-secondary" onclick="call('setBillPay',['${qa(b.id)}',false],d=>{init(d);openBillView('${qa(b.id)}')},this)">เปลี่ยนเป็นค้างร้าน</button>`}</div>
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-success flex-fill fw-bold" onclick="editBill('${qa(b.id)}')">✏️ แก้ไข</button>
           ${ph.length ? `<button type="button" class="btn btn-outline-success flex-fill" onclick="viewPhotos('${qa(b.shop)} ${qa(b.date)}','${qa(ph.join(','))}')">📷 ดูรูป${ph.length > 1 ? ' (' + ph.length + ')' : ''}</button>` : ''}
@@ -2606,7 +2659,7 @@
     // เปิดฟอร์มตรวจบิลเดิมกับบิลที่บันทึกแล้ว (แก้หมวด/จำนวน/ราคา/รายการ) → updateBill
     function editBill(id) {
       const b = billsGrouped().find(x => x.id === id); if (!b) return;
-      billDraft = { edit: id, pages: [], date: b.date, shop: b.shop === '-' ? '' : b.shop, photo_id: b.photo, note: b.note || '', total: 0, err: '', oldNoStock: 0,
+      billDraft = { edit: id, pay: b.pay || '', pages: [], date: b.date, shop: b.shop === '-' ? '' : b.shop, photo_id: b.photo, note: b.note || '', total: 0, err: '', oldNoStock: 0,
         items: b.items.slice().sort((x, y) => num(String(x.exp_id).split('_').pop()) - num(String(y.exp_id).split('_').pop())).map(e => ({
           item: e.item === '-' ? '' : e.item, category: BILL_CATS.includes(e.category) ? e.category : 'อื่นๆ', qty: num(e.qty), unit: e.unit || '',
           amount: num(e.amount), stock_item: e.stock_item || '', stock_qty: num(e.stock_qty), asset: e.asset || '' })) };
@@ -4511,7 +4564,8 @@
     function vehVisits(name) {
       const logs = groupAssetLogs((gData.assetLogs || []).filter(l => l.asset_name === name)).reverse(); // เก่า → ใหม่
       const out = []; let open = null, pend = null;
-      const line = l => ({ raw: l.detail || '', date: l.timestamp, ev: l.event_type || '', txt: l.bill ? `🧾 บิล ${l.shop || ''} · ${l.n} รายการ` : vehClean(l.detail), bill: l.bill, total: l.total || 0, amt: vehAmt(l.detail), photo: l.photo_id || '', id: l.log_id, parts: l.parts_or_battery && l.parts_or_battery !== '-' && !/^\S+ \S+/.test('') ? l.parts_or_battery : '' });
+      const ptx = l => { const m = /🛒/.test(l.event_type || '') && String(l.parts_or_battery || '').match(/ · (.+)$/); return m ? ' · ' + (/^บิล B\d+\s*/.test(m[1]) ? 'ตามบิล ' + m[1].replace(/^บิล B\d+\s*/, '') : m[1].replace(/^ค้าง /, '📒 ค้าง ')) : ''; };
+      const line = l => ({ raw: l.detail || '', date: l.timestamp, ev: l.event_type || '', txt: l.bill ? `🧾 บิล ${l.shop || ''} · ${l.n} รายการ` : vehClean(l.detail) + ptx(l), bill: l.bill, total: l.total || 0, amt: vehAmt(l.detail), photo: l.photo_id || '', id: l.log_id, parts: l.parts_or_battery && l.parts_or_battery !== '-' && !/^\S+ \S+/.test('') ? l.parts_or_battery : '' });
       logs.forEach(l => {
         const e = l.event_type || '', iso = beToISO(l.timestamp), shop = vehShop(l.detail) || (l.bill ? l.shop : '');
         if (/🛒/.test(e) && !/^ซื้อแล้ว/.test(l.parts_or_battery || '')) return;
@@ -4564,7 +4618,7 @@
       const files = [...(inp.files || [])].slice(0, 4 - vehPics.length); if (!files.length) return;
       Promise.all(files.map(f => Promise.all([shrinkImage(f), rockThumb(f)]).then(([b64, th]) => ({ b64, th })))).then(a => { vehPics = vehPics.concat(a); vehRender(); }).catch(e => alert('❌ ' + e.message));
     }
-    function vehBill() { hideModal('assetHistModal'); pickBill(false); }
+    function vehBill() { billFor = vehCur; hideModal('assetHistModal'); pickBill(false); }
     function vehApptDone(id, went) {
       const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
       if (!went) { if (!confirm('ยกเลิกนัดนี้?')) return; return remDo('del', id).then(vehRender); }
@@ -4612,7 +4666,13 @@
       $('vhSave').disabled = true; $('vhSave').textContent = '…';
       call('partOp', [{ fn: 'add', asset: vehCur, items, date: isoToBE(todayISO()), pics: vehPics.map(p => p.b64) }], d => { vehDraft = ''; vehPics = []; vehQPart = false; init(d); vehRender(); }, null, vehPics.length ? '⏳ กำลังส่งรูป...' : null);
     }
-    function vehBuy(id) { const v = $('vhPr'), pr = v ? num(String(v.value).replace(/,/g, '')) : 0; call('partOp', [{ fn: 'buy', id, price: pr }], d => { vehBuyOpen = ''; init(d); vehRender(); }, $('vhBuySv')); }
+    let vehCredit = false, vehLastShop = '', vehLastPr = '';
+    function vehKeepBuy() { if ($('vhPs')) vehLastShop = $('vhPs').value; if ($('vhPr')) vehLastPr = $('vhPr').value; }
+    function vehBuy(id) {
+      vehKeepBuy(); const pr = num(String(vehLastPr).replace(/,/g, '')), shop = String(vehLastShop || '').trim();
+      if (vehCredit && !shop) return alert('ค้างร้านไหน? ใส่ชื่อร้านด้วย จะได้รวมยอดตอนไปจ่าย');
+      call('partOp', [{ fn: 'buy', id, price: pr, shop, credit: vehCredit }], d => { vehBuyOpen = ''; vehLastPr = ''; init(d); vehRender(); }, $('vhBuySv'));
+    }
     function vehModelSave() { call('partOp', [{ fn: 'model', asset: vehCur, model: String($('vhModel').value || '').trim() }], d => { vehModelEd = false; init(d); vehRender(); }, $('vhModelSv')); }
     function vehPartsCard(a) {
       const ps = vehParts(a.name); if (!ps.length) return '';
@@ -4620,12 +4680,15 @@
       return `<div class="vh-cd vh-pt"><div class="vh-k">อะไหล่ที่ต้องซื้อ</div><div class="vh-ti o">ยังไม่ได้ซื้อ ${ps.length} รายการ</div><div class="vh-rows">${ps.map(l => {
         const op = vehBuyOpen === l.log_id;
         return `<div class="vh-row"><div class="vh-dt"><button type="button" class="vh-ck" aria-label="ซื้อแล้ว" onclick="vehBuyOpen=vehBuyOpen==='${qa(l.log_id)}'?'':'${qa(l.log_id)}';vehRender()">${op ? '✓' : ''}</button></div><div class="vh-tx"><div class="vh-main">${esc(l.detail)}</div><div class="vh-sub">${dShort(beToISO(l.timestamp))} ${vehYY(beToISO(l.timestamp))}</div></div>${`<button type="button" class="vh-dots${vehRowOpen === l.log_id ? ' on' : ''}" aria-label="ตัวเลือก" onclick="vehRow('${qa(l.log_id)}')">⋯</button>`}
-          ${op ? `<div class="vh-op"><input id="vhPr" class="vh-in" style="text-align:left;background:#fff;border-radius:10px;padding:8px 10px;flex:1 1 100%" inputmode="numeric" placeholder="ราคา (บาท) ไม่ใส่ก็ได้"><button type="button" class="bigbtn bigbtn-main" id="vhBuySv" onclick="vehBuy('${qa(l.log_id)}')">ซื้อแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBuyOpen='';vehRender()">ยกเลิก</button></div>` : ''}
+          ${op ? `<div class="vh-op"><input id="vhPr" class="vh-in vh-in2" inputmode="numeric" placeholder="ราคา (บาท) ไม่ใส่ก็ได้" value="${esc(vehLastPr)}"><input id="vhPs" class="vh-in vh-in2" list="bl_shops2" placeholder="ร้าน (ไม่ใส่ก็ได้)" value="${esc(vehLastShop)}"><datalist id="bl_shops2">${[...new Set((gData.expenses || []).map(e => e.shop).filter(x => x && x !== '-'))].map(x => `<option value="${esc(x)}">`).join('')}</datalist>
+            <div class="bl-pay" style="flex:1 1 100%;margin:0"><button type="button" class="${!vehCredit ? 'on' : ''}" onclick="vehCredit=false;vehKeepBuy();vehRender()">💵 จ่ายแล้ว</button><button type="button" class="${vehCredit ? 'on o' : ''}" onclick="vehCredit=true;vehKeepBuy();vehRender()">📒 ค้างร้าน</button></div>
+            <button type="button" class="bigbtn bigbtn-main" id="vhBuySv" onclick="vehBuy('${qa(l.log_id)}')">ซื้อแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBuyOpen='';vehRender()">ยกเลิก</button></div>` : ''}
           ${vehRowOpen === l.log_id ? `<div class="vh-op">${vehRowEdit === l.log_id ? `<textarea id="vhEd" class="vh-ed" rows="2">${esc(l.detail)}</textarea><button type="button" class="bigbtn bigbtn-main" onclick="vehRowSave('${qa(l.log_id)}')">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehRow('${qa(l.log_id)}')">ยกเลิก</button>` : `<button type="button" class="bigbtn bigbtn-out" onclick="vehRowEd('${qa(l.log_id)}')">✏️ แก้</button><button type="button" class="bigbtn bigbtn-out vh-del" onclick="delAssetLog('${qa(l.log_id)}','${qa(a.name)}')">🗑 ลบ</button>`}</div>` : ''}</div>`;
       }).join('')}</div>
         ${pics ? `<button type="button" class="vh-ph" onclick="viewPhotos('อะไหล่ ${qa(eqS(a.name))}','${qa(pics)}')">📷 รูปที่ช่างให้ (${pics.split(',').length})</button>` : ''}
         <div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" onclick="vehShopShow()">เปิดให้ร้านดู</button><button type="button" class="bigbtn bigbtn-out" onclick="vehPartShare()">แชร์ไลน์</button></div>
-        <div class="vh-s">แตะ ☐ เมื่อซื้อได้แล้ว (ใส่ราคาได้) · ซื้อแล้วจะไปอยู่ในประวัติ + นับค่าซ่อม</div></div>`;
+        <button type="button" class="bigbtn bigbtn-out" onclick="vehBill()">🧾 ได้ของแล้ว ถ่ายบิล (ติ๊กให้เอง)</button>
+        <div class="vh-s">มีบิล = ถ่ายบิล แอปจับคู่กับรายการให้ · ไม่มีบิล = แตะ ☐ ใส่ราคา/ร้านเอง · ร้านที่จ่ายทีหลังเลือก "ค้างร้าน" ไปรวมยอดที่ สต็อก → ค่าใช้จ่าย/บิล</div></div>`;
     }
     function vehPartText(a) {
       const ps = vehParts(a.name);
@@ -4880,7 +4943,7 @@
         </div>`;
 
       if (stockPane === 'money') {
-        html += `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-3" style="font-size:18px;border-radius:14px;" onclick="pickBill()">🧾 ถ่ายรูปบิล ให้ AI ลงให้</button>${expenseHtml()}`;
+        html += `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-3" style="font-size:18px;border-radius:14px;" onclick="billFor='';pickBill()">🧾 ถ่ายรูปบิล ให้ AI ลงให้</button>${debtHtml()}${expenseHtml()}`;
         $('stock-view').innerHTML = html;
         return;
       }

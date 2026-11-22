@@ -1077,7 +1077,7 @@ function billAiModels() {
 
 const BILL_CATS_ = ['อะไหล่', 'น้ำมัน', 'ปุ๋ย', 'ยา', 'ค่าแรง', 'อื่นๆ'];
 const EXP_HEADERS_ = ['exp_id', 'timestamp', 'bill_id', 'shop', 'category', 'item', 'qty', 'unit', 'amount',
-  'asset', 'stock_item', 'stock_qty', 'photo_id', 'note', 'created_at'];
+  'asset', 'stock_item', 'stock_qty', 'photo_id', 'note', 'created_at', 'pay']; // pay (22 พ.ย. 69): '' = จ่ายแล้ว (เดิม) · 'ค้างจ่าย' = เอาของมาก่อน จ่ายทีหลัง (ร้านเครดิต) · 'จ่ายแล้ว dd/MM/yyyy'
 
 // รันครั้งเดียวในหน้า Apps Script เพื่อกดอนุญาตสิทธิ์ Drive (เก็บรูปบิล)
 function authorizeBillDrive() {
@@ -1256,6 +1256,21 @@ function addStock_(ss, name, qty, date, ref, note) {
 }
 
 // บันทึกบิลที่ผู้ใช้ตรวจแล้ว: ลงชีต Expenses + รับเข้าสต็อก + ประวัติรถ (อะไหล่)
+// รายการ "อะไหล่ที่ต้องซื้อ" ที่ตรงกับบรรทัดในบิล (it.part_id จากหน้าตรวจบิล) → ซื้อแล้ว (ราคาอยู่ในบิล ไม่ใส่ซ้ำใน detail)
+function partsFromBill_(ss, billId, items, date, shop, pay) {
+  const ids = items.map(it => String(it.part_id || '')).filter(Boolean); if (!ids.length) return;
+  const sh = ss.getSheetByName(SH.ALOG), d = sh.getDataRange().getDisplayValues();
+  for (let i = 1; i < d.length; i++) if (ids.indexOf(d[i][0]) !== -1) sh.getRange(i + 1, 7).setNumberFormat('@').setValue('ซื้อแล้ว ' + date + ' · บิล ' + billId + ' ' + shop);
+}
+// จ่ายเงินบิลที่ค้างร้าน / กลับเป็นค้าง
+function setBillPay(billId, paid) {
+  return withLock_(() => {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName('Expenses'), c = headCol_(sh, 'pay'), d = sh.getDataRange().getDisplayValues();
+    for (let i = 1; i < d.length; i++) if (d[i][2] === billId) sh.getRange(i + 1, c).setNumberFormat('@').setValue(paid ? 'จ่ายแล้ว ' + getTodayStr() : 'ค้างจ่าย');
+    return readAll_(ss);
+  });
+}
+
 function saveBill(b) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1303,7 +1318,7 @@ function unstockBill_(ss, billId) {
 
 // ลงแถวบิลในชีต Expenses + รับเข้าสต็อก + ประวัติรถ (ใช้ทั้งบิลใหม่และบิลที่แก้)
 function writeBill_(ss, billId, b, now, assetLabel) {
-  const sh = getOrCreate_(ss, 'Expenses', EXP_HEADERS_);
+  const sh = getOrCreate_(ss, 'Expenses', EXP_HEADERS_); headCol_(sh, 'pay');
   const items = (b.items || []).filter(it => it && (it.item || Number(it.amount)));
   if (!items.length) throw new Error('ไม่มีรายการในบิล');
   const date = b.date || getTodayStr(), shop = String(b.shop || '').trim() || '-';
@@ -1314,7 +1329,7 @@ function writeBill_(ss, billId, b, now, assetLabel) {
     const cat = BILL_CATS_.indexOf(it.category) !== -1 ? it.category : 'อื่นๆ';
     const sq = it.stock_item ? (Number(it.stock_qty) || 0) : 0;
     rows.push([billId + '_' + i, date, billId, shop, cat, it.item || '-', Number(it.qty) || '', it.unit || '',
-      Number(it.amount) || 0, it.asset || '', it.stock_item || '', sq || '', b.photo_id || '', b.note || '', now]);
+      Number(it.amount) || 0, it.asset || '', it.stock_item || '', sq || '', b.photo_id || '', b.note || '', now, b.pay === 'ค้างจ่าย' ? 'ค้างจ่าย' : String(b.pay || '').indexOf('จ่ายแล้ว') === 0 ? b.pay : '']);
     if (sq > 0) addStock_(ss, it.stock_item, sq, date, billId, '🧾 บิล ' + shop);
     if (it.asset && assetCat[it.asset]) {
       alog.push([billId + '_A' + i, date, it.asset, assetCat[it.asset], assetLabel,
@@ -1327,6 +1342,7 @@ function writeBill_(ss, billId, b, now, assetLabel) {
   [6, 8, 11].forEach(c => sh.getRange(rg.getRow(), c + 1, rows.length, 1).setNumberFormat('#,##0.##'));
   rg.setValues(rows.map(r => r.map((v, c) => [6, 8, 11].indexOf(c) !== -1 ? (v === '' ? '' : Number(v)) : String(v === null || v === undefined ? '' : v))));
   if (alog.length) appendRows_(ss.getSheetByName(SH.ALOG), alog);
+  try { partsFromBill_(ss, billId, items, date, shop, b.pay); } catch (e) {}
   try { learnBillAlias_(ss, items); } catch (e) {}
   nameBillPhotos_(b.photo_id, date, shop);
 }

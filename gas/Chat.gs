@@ -523,7 +523,9 @@ function partOp(op) {
     } else {
       const d = sh.getDataRange().getDisplayValues(), r = d.findIndex((x, i) => i > 0 && x[0] === String(op.id)); if (r < 1) throw new Error('ไม่พบรายการ');
       let det = String(d[r][5] || '').replace(/\s*·\s*ค่า\s*[\d,]+\s*บ\.?/, '');
-      if (op.fn === 'buy') { const pr = Math.round(Number(op.price) || 0); if (pr > 0) det += ' · ค่า ' + pr.toLocaleString('en-US') + ' บ.'; sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'ซื้อแล้ว ' + getTodayStr()]]); }
+      if (op.fn === 'buy') { const pr = Math.round(Number(op.price) || 0); if (pr > 0) det += ' · ค่า ' + pr.toLocaleString('en-US') + ' บ.'; const shop = String(op.shop || '').trim().slice(0, 60);
+        sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'ซื้อแล้ว ' + getTodayStr() + (op.credit ? ' · ค้าง ' + (shop || 'ร้าน') : shop ? ' · ' + shop : '')]]); }
+      else if (op.fn === 'paid') sh.getRange(r + 1, 7).setNumberFormat('@').setValue(String(d[r][6] || '').replace(/ · ค้าง .*$/, '') + ' · จ่าย ' + getTodayStr());
       else if (op.fn === 'unbuy') sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'รอซื้อ']]);
     }
     return readAll_(ss);

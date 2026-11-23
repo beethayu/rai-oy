@@ -2141,6 +2141,75 @@
     #fcx .top-dock { top: -16px; background: #F4F5F1; margin: 0 -12px; padding-left: 14px; padding-right: 14px; }
     #fcx .ico-info { display: inline-flex; align-items: center; justify-content: center; }
     .fc-alt { display: block; text-align: center; margin: 14px 0 4px; color: #5E6A63; font-size: 14px; text-decoration: underline; }
+    /* ===== หน้าวันนี้ แบบ A ของ Gemini (ผู้ใช้เลือก 24 พ.ย. 69) — drafts/today-gemini-A.html · ใช้เฉพาะ #plot-list.tdA (+ หัวเขียวตอนอยู่หน้าวันนี้) ===== */
+    :root { --td-ground: #F4F3EC; --td-card: #FFFFFF; --td-line: #E2E0D6; --td-line2: #D3D1C6; --td-ink: #1C2320; --td-muted: #5A625D; --td-green: #1F5E3B; --td-green-d: #15432A; --td-green-soft: #E3EFE6;
+      --td-urg: #B4410E; --td-urg-ink: #8A300A; --td-urg-soft: #FCEBDD; --td-doing: #1E4FB8; --td-doing-ink: #183F94; --td-doing-soft: #E4ECFB; --td-red: #C62828; --td-warn-bg: #FFF4E0; --td-warn-ink: #8A5A0B; --td-purple: #6D28D9; --td-purple-soft: #F3E8FF; }
+    body.tdA-on .hd { padding: 10px 16px 30px; }
+    body.tdA-on .hd-date { font-size: 13px; color: rgba(255,255,255,.85); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.tdA-on .hd-rai { font-size: 24px; line-height: 1.15; letter-spacing: -.01em; }
+    body.tdA-on .ibtn-ghost { background: rgba(255,255,255,.16); border: 0; }
+    body.tdA-on .ibtn-rain { color: var(--td-green-d); font-size: 14px; }
+    body.tdA-on .wrap { position: relative; margin-top: -18px; border-radius: 18px 18px 0 0; background: var(--td-ground); padding-top: 16px; }
+    body.tdA-on .sec-hd h1 { font-size: 20px; color: var(--td-ink); }
+    .tdA { color: var(--td-ink); font-size: 15px; line-height: 1.45; }
+    .tdA .td-card, .tdA .srow-box { background: var(--td-card); border: 1px solid var(--td-line); border-radius: 14px; overflow: hidden; margin-bottom: 10px; }
+    .tdA .td-card-warn { background: var(--td-warn-bg); border-color: #F2D29B; }
+    .tdA .td-4l { padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; text-align: left; width: 100%; }
+    .tdA .td-4l-k { font-size: 13px; color: var(--td-muted); font-weight: 500; } .tdA .td-4l-h { font-size: 17px; font-weight: 700; line-height: 1.3; }
+    .tdA .td-4l-h.ok { color: var(--td-green); } .tdA .td-4l-h.warn { color: var(--td-urg); } .tdA .td-4l-h.err { color: var(--td-red); }
+    .tdA .td-4l-b { font-size: 14px; color: var(--td-ink); } .tdA .td-4l-n { font-size: 13px; color: var(--td-muted); margin-top: 2px; }
+    .tdA .td-strip-btn { width: 100%; min-height: 56px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; text-align: left; border: 0; background: transparent; color: inherit; }
+    .tdA .td-strip-ic { width: 38px; height: 38px; border-radius: 10px; background: var(--td-ground); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tdA .td-strip-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .tdA .td-strip-t { font-size: 15px; font-weight: 700; color: var(--td-ink); } .tdA .td-strip-s { font-size: 13px; color: var(--td-muted); }
+    .tdA .td-strip-x { font-size: 13px; font-weight: 600; } .tdA .td-strip-x.ok { color: var(--td-green); } .tdA .td-strip-x.no { color: var(--td-warn-ink); }
+    .tdA .td-strip-r { font-size: 14px; font-weight: 700; color: var(--td-green); text-align: right; flex-shrink: 0; white-space: nowrap; }
+    .tdA .td-wx-detail { border-top: 1px solid var(--td-line); padding: 10px 14px 12px; background: #FAFAF6; }
+    .tdA .td-wx-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 10px; }
+    .tdA .td-wx-d { min-height: 60px; padding: 6px 2px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 13px; }
+    .tdA .td-wx-d.on { background: var(--td-green-soft); border-color: var(--td-green); font-weight: 700; } .tdA .td-wx-p { font-size: 12px; color: #1D6FB8; }
+    .tdA .td-wx-sp { font-size: 13px; font-weight: 600; color: var(--td-green); margin-bottom: 6px; } .tdA .td-wx-sp.no { color: var(--td-warn-ink); }
+    .tdA .td-wx-hr { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .tdA .td-wx-h { min-width: 74px; padding: 8px 6px; background: var(--td-card); border: 1px solid var(--td-line); border-radius: 10px; text-align: center; font-size: 13px; flex-shrink: 0; }
+    .tdA .td-wx-h .m { color: var(--td-muted); } .tdA .td-wx-h .t { font-weight: 700; margin: 2px 0; } .tdA .td-wx-h .r { color: #1D6FB8; } .tdA .td-wx-h .w { color: var(--td-muted); font-size: 12px; }
+    .tdA .td-wx-more { width: 100%; margin-top: 10px; }
+    .tdA .td-ask-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--td-line); }
+    .tdA .td-ask-name { font-size: 15px; font-weight: 600; color: var(--td-ink); min-width: 0; } .tdA .td-ask-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .tdA .td-btn-pill { min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--td-line2); background: var(--td-card); font-size: 14px; font-weight: 600; color: var(--td-ink); }
+    .tdA .td-btn-pill:active { background: var(--td-green); border-color: var(--td-green); color: #fff; }
+    .tdA .td-btn-out { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1.5px solid var(--td-line2); background: var(--td-card); color: var(--td-ink); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+    .tdA .td-sec-hd { display: flex; align-items: center; justify-content: space-between; margin: 18px 2px 8px; min-height: 32px; padding: 0; }
+    .tdA .td-sec-title { font-size: 15px; font-weight: 700; color: var(--td-ink); display: inline-flex; align-items: center; gap: 6px; } .tdA .td-sec-cnt { font-size: 14px; font-weight: 600; color: var(--td-muted); }
+    .tdA .wbtn, .tdA .grp-all { min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--td-line2); background: var(--td-card); color: var(--td-ink); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .tdA .td-sec-hd + .srow-s { color: var(--td-muted); font-size: 13px; margin: -4px 2px 8px; padding: 0 !important; }
+    .tdA .srow-main { min-height: 56px; padding: 12px 14px; }
+    .tdA .srow-n { font-size: 15px; font-weight: 700; color: var(--td-ink); } .tdA .srow-s { font-size: 13px; color: var(--td-muted); }
+    .tdA .srow + .srow { border-top: 1px solid var(--td-line); }
+    .tdA .srow.open, .tdA .srow-act { background: #FAFAF6; } .tdA .srow.open .srow-act { border-top: 1px dashed var(--td-line); padding-top: 10px; }
+    .tdA .srow-bad { box-shadow: inset 4px 0 0 var(--td-urg); } .tdA .prow-doing { box-shadow: inset 4px 0 0 var(--td-doing); } .tdA .prow-watchrow { box-shadow: inset 4px 0 0 var(--td-purple); }
+    .tdA .pill { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+    .tdA .pill-urgent, .tdA .td-pill-urg { background: var(--td-urg-soft); color: var(--td-urg-ink); } .tdA .pill-watch { background: var(--td-purple-soft); color: var(--td-purple); }
+    .tdA .td-pill { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; flex-shrink: 0; align-self: center; }
+    .tdA .srow.rem-today { background: var(--td-warn-bg); padding: 12px 14px; } .tdA .rem-today .dj { padding: 0; align-items: center; } .tdA .rem-today .dj-t { font-size: 15px; }
+    .tdA .rem-today .dj-x { font-size: 13px; color: var(--td-muted); }
+    .tdA .bigbtn { min-height: 44px; height: auto; border-radius: 10px; font-size: 14px; } .tdA .bigbtn-out { border: 1.5px solid var(--td-line2); color: var(--td-ink); }
+    /* ปฏิทิน */
+    .tdA .cal-box { padding: 12px 10px 8px; border-bottom: 0; }
+    .tdA .cal-m b { font-size: 16px; color: var(--td-ink); } .tdA .cal-nav { color: var(--td-ink); font-size: 22px; font-weight: 700; width: 44px; height: 44px; border-radius: 10px; }
+    .tdA .cal-w { font-size: 13px; color: var(--td-muted); font-weight: 600; } .tdA .cal-g { gap: 2px; }
+    .tdA .cal-c { min-height: 44px; border-radius: 10px; border: 2px solid transparent; justify-content: center; gap: 3px; padding: 2px 0; }
+    .tdA .cal-n { width: 26px; height: 26px; font-size: 14px; border: 0; }
+    .tdA .cal-c.td .cal-n { background: var(--td-green); color: #fff; } .tdA .cal-c.sel { border-color: var(--td-green); background: var(--td-green-soft); } .tdA .cal-c.td.sel .cal-n { box-shadow: none; }
+    .tdA .cal-c.drop { background: var(--td-doing-soft); border-color: var(--td-doing); } .tdA .cal-c.drop .cal-n { transform: none; box-shadow: none; background: var(--td-doing); border: 0; }
+    .tdA .cal-dots { height: 6px; margin-top: 0; }
+    .tdA .cal-day { border-top: 1px solid var(--td-line); padding: 12px 14px 14px; background: #FAFAF6; }
+    .tdA .cal-sl { font-size: 15px; font-weight: 700; color: var(--td-ink); margin-bottom: 8px; }
+    .tdA .cal-day .dj { background: var(--td-card); border: 1px solid var(--td-line); border-radius: 10px; padding: 10px 12px; margin: 0 0 8px; }
+    .tdA .cal-day .dj + .dj { border-top: 1px solid var(--td-line); } .tdA .cal-day .rc-j + .rc-j { margin-top: 0; }
+    .tdA .cal-day .dj-t { font-size: 15px; } .tdA .cal-day .dj-w, .tdA .cal-day .dj-x { font-size: 13px; color: var(--td-muted); } .tdA .cal-day .dj-w b { color: var(--td-ink); }
+    .tdA .cal-hint { font-size: 13px; color: var(--td-muted); margin: 6px 0 10px; }
+    .tdA .cal-add { min-height: 44px; border-radius: 10px; border: 1.5px dashed var(--td-green); background: var(--td-card); color: var(--td-green); font-size: 14px; font-weight: 700; margin-top: 4px; }
+    .tdA .cal-ghost { background: var(--td-green); color: #fff; border: 0; }
   </style>
 </head>
 <body>
@@ -3368,6 +3437,7 @@
       const limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
       const sMin = num(S('SPRAY_DAY_MIN')) || 6, sMax = num(S('SPRAY_DAY_MAX')) || 13;
       const rn = lastRain(p), rt = rn ? `🌧 ฝนตก${rn.mm ? ` ~${rn.mm} มม.` : ''}` : '';
+      if (wDays >= sMin && wDays <= sMax && wDays < limit && flSprayDue(p)) return { c: 'urg', t: `${rn ? 'หลังฝน' : 'หลังน้ำ'} ${wDays} วัน · ดินหมาด ฉีดยาได้` }; // ตรงกับ analyze (เดิมฝนมาก่อน = ไม่ขึ้นฉีดยา)
       if (rn && wDays < limit) return { c: wDays < sMin ? 'blue' : 'ok', t: wDays < sMin ? `${rt} ${wDays ? wDays + ' วันก่อน' : 'วันนี้'} · ข้ามขึ้นน้ำได้` : `${rt} ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
       if (wDays >= limit) return { c: 'red', t: `ขาดน้ำ ${wDays} วัน (ครบ ${limit} ว.)${rn ? ' · ล่าสุดเป็นฝน' : ''}` };
       if (wDays >= sMin && wDays <= sMax && flSprayDue(p)) return { c: 'urg', t: `หลังน้ำ ${wDays} วัน · ดินหมาด ฉีดยาได้` };
@@ -3856,9 +3926,9 @@
       if (!wtSel.size) return alert('เลือกแปลงก่อนครับ');
       call('addWatch', [[...wtSel], wtReason, $('wt_note').value.trim()], d => { hideModal('watchModal'); init(d); }, $('btnWatch'));
     }
-    function doneWatch(id) {
+    function doneWatch(id, btn) {
       if (!confirm('ดูแล้ว / ทำแล้ว เอาออกจากฝากดู?')) return;
-      call('closeWatch', [id], d => init(d));
+      call('closeWatch', [id], d => init(d), btn); // ปุ่มล็อกระหว่างส่ง (เดิมกดซ้ำได้)
     }
     function cancelWatchUi(id) {
       if (!confirm('ยกเลิกฝากดูนี้? (ลงผิด/ไม่ต้องดูแล้ว · ลบทิ้ง ไม่เก็บเป็นประวัติ)')) return;
@@ -4173,20 +4243,20 @@
     let remOpen = '', chatRemId = '';
     function remRowHtml(r, iso, inToday) {
       const t0 = todayISO(), d = beToISO(r.date), op = remOpen === r.rem_id + (inToday ? 't' : ''), due = d <= t0;
-      const sub = [r.time ? r.time + ' น.' : '', r.repeat ? repTxt(r.repeat) : '', inToday && d < t0 && r.repeat !== 'วัน' ? `เลยมา ${dayDiff(d, t0)} วัน` : ''].filter(Boolean).join(' · ');
+      const sub = [inToday ? (d < t0 && r.repeat !== 'วัน' ? `เลยมา ${dayDiff(d, t0)} วัน` : 'นัดวันนี้') : '', r.time ? r.time + ' น.' : '', r.repeat ? repTxt(r.repeat) : '', inToday && !op ? 'แตะเพื่อจัดการ' : ''].filter(Boolean).join(' · ');
       return `<div class="rc-j dj rem-r"${inToday ? '' : ` data-rem="${esc(r.rem_id)}" data-lb="🔔 ${esc(r.text)}"`} onclick="remOpen=remOpen==='${qa(r.rem_id + (inToday ? 't' : ''))}'?'':'${qa(r.rem_id + (inToday ? 't' : ''))}';render()"><span class="dj-i">🔔</span><div class="dj-b"><div class="dj-t">${esc(r.text)}</div>${sub ? `<div class="dj-x">${esc(sub)}</div>` : ''}
-        ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${due ? `<button type="button" class="go" onclick="remToLog('${qa(r.rem_id)}')">ทำแล้ว → จดเป็นงาน</button><button type="button" onclick="remDo('done','${qa(r.rem_id)}',this)">ทำแล้ว</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="remDo('del','${qa(r.rem_id)}',this)">ลบ</button></div>` : ''}</div></div>`;
+        ${op ? `<div class="cal-mvb" onclick="event.stopPropagation()">${due ? `<button type="button" class="go" onclick="remToLog('${qa(r.rem_id)}')">ทำแล้ว → จดเป็นงาน</button><button type="button" onclick="remDo('done','${qa(r.rem_id)}',this)">ทำแล้ว</button>` : ''}<button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="remDo('del','${qa(r.rem_id)}',this)">ลบ</button></div>` : ''}</div>${inToday && !op ? '<span class="td-pill td-pill-urg">นัด</span>' : ''}</div>`;
     }
     function remDo(fn, id, btn, date) {
       if (btn) { btn.disabled = true; btn.textContent = '…'; }
-      return callApi('remOp', [{ fn, id, date }]).then(d => { gData.reminders = d.reminders || []; remOpen = ''; render(); })
-        .catch(e => { alert('❌ ' + e.message); render(); });
+      return callApi('remOp', [{ fn, id, date }]).then(d => { gData.reminders = d.reminders || []; remOpen = ''; render(); return true; })
+        .catch(e => { alert('❌ ' + e.message); render(); return false; });
     }
     function noteDo(fn, id, btn, date) {
       const n = (gData.notes || []).find(x => x.note_id === id);
       if (fn === 'photo') { return viewPhotos('🏠 ' + n.text, String(n.photo_ids).split(',').filter(Boolean)); }
       if (btn) { btn.disabled = true; btn.textContent = '…'; }
-      return callApi('noteOp', [{ fn, id, date }]).then(d => { gData.notes = d.notes || []; remOpen = ''; render(); }).catch(e => { alert('❌ ' + e.message); render(); });
+      return callApi('noteOp', [{ fn, id, date }]).then(d => { gData.notes = d.notes || []; remOpen = ''; render(); return true; }).catch(e => { alert('❌ ' + e.message); render(); return false; });
     }
     function remToLog(id) {
       const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
@@ -4299,7 +4369,7 @@
     }
     function calDragMove(x, y) {
       const D = calDrag; D.gh.style.transform = `translate(${Math.max(8, Math.min(innerWidth - 296, x - 140))}px, ${y - 96}px)`; // ลอยเหนือนิ้ว ไม่บังวันที่จะวาง
-      if (y < 110) window.scrollBy(0, -12); else if (y > innerHeight - 150) window.scrollBy(0, 12);
+      if (y < 110) $('app').scrollBy(0, -12); else if (y > innerHeight - 150) $('app').scrollBy(0, 12); // หน้าเลื่อนที่ #app (window ไม่เลื่อน — เดิมลากถึงขอบแล้วไม่เลื่อนตาม)
       D.gh.style.display = 'none'; const el = document.elementFromPoint(x, y); D.gh.style.display = '';
       const c = el && el.closest('.cal-c'), iso = c ? c.dataset.iso : '';
       document.querySelectorAll('.cal-c.drop,.cal-c.nodrop').forEach(e => e.classList.remove('drop', 'nodrop'));
@@ -4317,8 +4387,9 @@
     function calMoveGo(btn) {
       const M = calMv; if (!M || !M.ids) return;
       btn.disabled = true; btn.textContent = 'กำลังย้าย…';
-      if (M.note) return noteDo('move', M.note, null, M.to).then(() => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); render(); });
-      if (M.rem) return remDo('move', M.rem, null, M.to).then(() => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); render(); });
+      const went = ok => { if (!ok) { calMv = null; return render(); } calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); render(); }; // ย้ายไม่สำเร็จ = อยู่วันเดิม
+      if (M.note) return noteDo('move', M.note, null, M.to).then(went);
+      if (M.rem) return remDo('move', M.rem, null, M.to).then(went);
       callApi('moveActivities', [M.ids, M.to]).then(d => { calMv = null; calSel = M.to; calYM = M.to.slice(0, 7); init(d); })
         .catch(e => { calMv = { err: 'ย้ายไม่สำเร็จ: ' + e.message }; render(); });
     }
@@ -4363,15 +4434,15 @@
           <span class="srow-s"${cut ? ' style="color:#8A5A0B;font-weight:600"' : ''}>${cut ? 'แปลงตัดครบแล้ว — กดเลิกเฝ้าได้' : 'เฝ้าจนกว่าจะตัด หรือกดเลิกเฝ้า'}</span></span>
           <span class="pill pill-watch">เฝ้าอยู่</span></button>
           ${open ? `<div class="srow-act"><div class="srow-s" style="padding:0 2px 8px">${ids.length} แปลง: ${P.map(p => esc(p.plot_name)).join(', ')}${g.note ? ' · ' + esc(g.note) : ''}</div><div class="pq-btns">
-            <button type="button" class="bigbtn bigbtn-main" onclick="guardEnd('${qa(g.guard_id)}')">เลิกเฝ้าวันนี้</button>
+            <button type="button" class="bigbtn bigbtn-main" onclick="guardEnd('${qa(g.guard_id)}',this)">เลิกเฝ้าวันนี้</button>
             <button type="button" class="bigbtn bigbtn-out" style="color:#B3261E" onclick="guardDel('${qa(g.guard_id)}')">ลบ (ลงผิด)</button></div></div>` : ''}</div>`;
       }).join('')}</div>`;
     }
-    function guardEnd(id) {
+    function guardEnd(id, btn) {
       const g = (gData.guards || []).find(x => x.guard_id === id); if (!g) return;
       const st = guardStat(g);
       if (!confirm(`เลิกเฝ้า ${guardWhere(g)} วันนี้?\n${g.workers || ''}\nรวมค้าง ${st.nights} คืน (${st.days} วัน)`)) return;
-      call('endGuard', [id, isoToBE(todayISO())], d => { gData.guards = d.guards; saveCache(gData); todayOpen = ''; render(); });
+      call('endGuard', [id, isoToBE(todayISO())], d => { gData.guards = d.guards; saveCache(gData); todayOpen = ''; render(); }, btn);
     }
     function guardDel(id) {
       if (!confirm('ลบรายการเฝ้าไร่นี้? (ลงผิด · ไม่เก็บเป็นประวัติ)')) return;
@@ -4488,7 +4559,7 @@
           </button>
           ${open ? `<div class="srow-act"><div class="pq-btns">${btns}</div></div>` : ''}</div>`;
       };
-      const head = (t, n, extra) => `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:center;padding-right:2px;"><span>${t}${n ? ` <span style="font-weight:500;color:#6B736E;font-size:14px;">${n}</span>` : ''}</span>${extra || ''}</div>`;
+      const head = (t, n, extra) => `<div class="srow-h td-sec-hd"><span class="td-sec-title">${t}${n ? ` <span class="td-sec-cnt">${n}</span>` : ''}</span>${extra || ''}</div>`; // แบบ A: หัวหมวดดำ ตัวเลขเทา
       const none = t => `<div class="srow-s" style="padding:2px 4px 4px;">${t}</div>`;
 
       let h = wxStripHtml() + sugarStripHtml() + wxRainAskHtml();
@@ -4504,7 +4575,7 @@
           ? `<button type="button" class="bigbtn bigbtn-main" onclick="actFromWatch('${p.plot_id}','${qa(w.reason)}')">+ บันทึก${esc(w.reason === 'น้ำขัง สูบออก' ? 'สูบน้ำ' : w.reason)}</button>`
           : `<button type="button" class="bigbtn bigbtn-main" onclick="openAct('${p.plot_id}','${pn(p)}','new')">+ บันทึกงาน</button>`;
         return row('w:' + w.watch_id, 'prow-watchrow', p, sub, `<span class="pill pill-watch">${esc(w.reason)}</span>`,
-          act + `<button type="button" class="bigbtn bigbtn-out" onclick="doneWatch('${qa(w.watch_id)}')">ดูแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button><button type="button" class="bigbtn bigbtn-out" style="color:#8A1C1C;border-color:#E9B8B8" onclick="cancelWatchUi('${qa(w.watch_id)}')">ยกเลิก</button>`);
+          act + `<button type="button" class="bigbtn bigbtn-out" onclick="doneWatch('${qa(w.watch_id)}',this)">ดูแล้ว</button><button type="button" class="bigbtn bigbtn-out" onclick="openDossier('${p.plot_id}')">ดูแปลง</button><button type="button" class="bigbtn bigbtn-out" style="color:#8A1C1C;border-color:#E9B8B8" onclick="cancelWatchUi('${qa(w.watch_id)}')">ยกเลิก</button>`);
       });
       h += ws.length ? `<div class="srow-box">${wsRows.join('')}</div>` : none('ยังไม่มี · กด "+ ฝากดู" เมื่อเห็นแปลงที่ต้องกลับไปดู เช่น อ้อยไม่สวย น้ำท่วมขัง');
 
@@ -4618,9 +4689,9 @@
     }
     function dqHtml(head, L) {
       const what = 'บันทึกซ้ำ · งานค้างนาน · ลงวันข้างหน้า · น้ำมันไม่มีงานฉีด · สต็อกติดลบ · ดาวเทียมแห้งลงไม่มีบันทึก';
-      if (!L.length) return head('ตรวจข้อมูล', '') + `<div class="srow-box"><div class="srow"><div class="srow-main" style="cursor:default"><span class="srow-l">
-        <span class="srow-n" style="color:#1F7A3D">✓ ไม่พบจุดผิด</span><span class="srow-s" style="color:#1F2A23">ตรวจ ${DQ_DAYS} วันล่าสุดอัตโนมัติทุกครั้งที่เปิดหน้านี้</span>
-        <span class="srow-s" style="font-size:12px">${what.split(' · ').map(w => `<span style="white-space:nowrap">${w}</span>`).join(' · ')}</span></span></div></div></div>`;
+      if (!L.length) return head('ตรวจข้อมูล', '') + `<div class="td-card"><div class="td-4l"><div class="td-4l-k">ตรวจอัตโนมัติทุกครั้งที่เปิดหน้านี้</div>
+        <div class="td-4l-h ok">✓ ไม่พบจุดผิด</div><div class="td-4l-b">ตรวจ ${DQ_DAYS} วันล่าสุดเรียบร้อย</div>
+        <div class="td-4l-n">${what.split(' · ').map(w => `<span style="white-space:nowrap">${w}</span>`).join(' · ')}</div></div></div>`;
       return head('ตรวจข้อมูล', `<span style="color:#B45309;font-weight:700">ควรเช็ก ${L.length}</span>`) + `<div class="srow-box">${L.map(o => {
         const open = dqOpen === o.k, go = o.iso ? `<button type="button" class="bigbtn bigbtn-main" onclick="dqGo('${esc(qa(o.k))}')">ดูในปฏิทิน ${esc(dShort(o.iso))}</button>`
           : o.stock ? `<button type="button" class="bigbtn bigbtn-main" onclick="switchTab('stock')">ไปหน้าสต็อก</button>` : o.pid ? `<button type="button" class="bigbtn bigbtn-main" onclick="dqBurnMap('${qa(o.pid)}')">ดูจุดแห้งบนแผนที่</button>` : '';
@@ -4737,9 +4808,9 @@
 
       chkHtml = rainListHtml();
 
-      $('plot-list').innerHTML = html;
+      $('plot-list').innerHTML = html; $('plot-list').classList.toggle('tdA', curTab === 'urgent' && !!HOME_V); document.body.classList.toggle('tdA-on', curTab === 'urgent'); // หน้าวันนี้แบบ A (Gemini 24 พ.ย. 69)
       $('chk-list').innerHTML = chkHtml; rainSync();
-      const total = nUrg + nDoing + (gData.watches || []).length;
+      const total = nUrg + nDoing + (gData.watches || []).length + (gData.reminders || []).filter(r => { const d = beToISO(r.date); return r.status !== 'done' && d && d <= todayISO() && dayDiff(d, todayISO()) <= 30; }).length; // นับนัดด้วย ให้ตรงกับหัว "ต้องทำวันนี้"
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
       $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
       const none = !nUrg && !nDoing, hideT = curTab === 'urgent' || curTab === 'log'; $('tiles').dataset.none = none ? '1' : '';
@@ -4763,6 +4834,7 @@
     }
 
     function switchTab(t, keep) {
+      document.body.classList.toggle('tdA-on', t === 'urgent'); // หัว/ขอบมนแบบ A เฉพาะหน้าวันนี้
       if (t !== curTab) {
         const st = (new Error().stack || '').split('\n').slice(2, 4).map(x => x.trim().replace(/^at /, '').replace(/\(.*\)|@.*$/, '').trim()).filter(Boolean).join(' < ');
         dbg(`หน้า ${curTab} → ${t} (${st || '?'})`);
@@ -6755,7 +6827,7 @@
     }
     const leadTxt = n => n % 30 === 0 ? `${n / 30} เดือน` : n % 7 === 0 ? `${n / 7} สัปดาห์` : `${n} วัน`;
     const CH_ICON = { 'ขึ้นน้ำ': '💧', 'ฉีดยา': '🧪', 'ใส่ปุ๋ย': '🌱', 'รถไถเตรียมดิน/บำรุง': '🚜', 'ตัดอ้อย': '🌾', 'ฝนตก': '🌧️' };
-    const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว' };
+    const CH_CAT = { Worker: 'คนงาน', Tractor: 'รถไถ', Truck: 'สิบล้อ', Pump: 'พญานาค', Car: 'รถอื่นในไร่', Home: 'รถส่วนตัว', Moto: 'มอเตอร์ไซค์' };
     const REG_CATS = ['Truck', 'Tractor', 'Car', 'Home', 'Moto']; // Moto = มอเตอร์ไซค์ที่บ้าน (19 พ.ย. 69) จดภาษีเหมือนรถส่วนตัว ไม่ปนงานไร่
     function chatSave() {
       chat.msgs = chat.msgs.slice(-30);
@@ -7020,7 +7092,7 @@
         return;
       }
       const imgs = pics.map(p => p.b64);
-      (needSoil ? new Promise(res => { if (soilBusy) return res(); let done = false; const t = setTimeout(() => { done = true; res(); }, 8000); soilLoad(() => { if (!done) { clearTimeout(t); res(); } }); }) : Promise.resolve())
+      (needSoil ? new Promise(res => { if (soilBusy) { const w0 = Date.now(), f = () => !soilBusy || Date.now() - w0 > 8000 ? res() : setTimeout(f, 300); return f(); } /* กำลังโหลดอยู่ = รอ (เดิมไปเลย แชตตอบว่าไม่มีข้อมูลฝน) */ let done = false; const t = setTimeout(() => { done = true; res(); }, 8000); soilLoad(() => { if (!done) { clearTimeout(t); res(); } }); }) : Promise.resolve())
         .then(() => { if (needSoil) ctx.soil = chatSoil(); return callApi('chatParse', [txt, withStats ? { ...ctx, stats: chatStats() } : ctx, imgs, reuse ? reuse.ids : null]); })
         // ถามเรื่องประวัติแต่ยังไม่ได้ส่งสรุปไป → ส่งซ้ำพร้อมสรุป (รูปที่อัปโหลดแล้วใช้ id เดิม)
         .then(r => r.need_history && !withStats
@@ -7068,7 +7140,7 @@
     }
     // 23 พ.ย. 69 ทดสอบแชตด้วยข้อความจริง 15 ข้อ AI พลาด 3 แบบ → ด่านนี้แก้ให้แน่นอน (ไม่พึ่งกฎ prompt อย่างเดียว)
     function chJobGuard(items, txt, r) {
-      const t = String(txt || ''), hist = chat.msgs.slice(-6).map(m => m.t || '').join(' ');
+      const t = String(txt || ''), hist = chat.msgs.slice(-3).map(m => m.t || '').join(' '); // เฉพาะที่เพิ่งคุย (เดิม 6 ข้อความ เรื่องเก่าที่เอ่ยชื่อพื้นที่ทำให้ไม่ถาม)
       const pn = id => (gData.plots.find(p => p.plot_id === id) || {}).plot_name || id;
       // 1) "ขวาใน/ขวาถนน" มีทั้งสำนักแจงและหนองกระทู้ ไม่บอกพื้นที่ (ในข้อความหรือที่เพิ่งคุย) = ถาม ไม่เดา
       ['ขวาใน', 'ขวาถนน'].forEach(w => {
@@ -7147,8 +7219,9 @@
     }
     // คำตอบชิป "ผสมฟอร์ซาซินด้วยไหม?" ในข้อความล่าสุด 6 ข้อความ: 'yes' / 'no' / ''
     function chForxa() {
-      const t = chat.msgs.slice(-6).filter(m => m.me).map(m => m.t || '').join('\n');
-      return /→\s*กลูโฟอย่างเดียว/.test(t) ? 'no' : /→\s*ผสมฟอร์ซาซินด้วย/.test(t) ? 'yes' : '';
+      for (const m of chat.msgs.slice(-6).filter(m => m.me).reverse()) { const t = m.t || ''; // คำตอบล่าสุดชนะ (เดิมเจอ "กลูโฟอย่างเดียว" ที่ไหนก็ได้ = no เสมอ)
+        if (/→\s*กลูโฟอย่างเดียว/.test(t)) return 'no'; if (/→\s*ผสมฟอร์ซาซินด้วย/.test(t)) return 'yes'; }
+      return '';
     }
     // E4: ฉีดรอบไร่ + พิมพ์ชื่อพื้นที่ (เช่น "ยายเวียน") โดยไม่ระบุแปลงย่อย = ทุกแปลงในพื้นที่ (ลงชุดเดียว ถัง/ยานับครั้งเดียว)
     function chArea(items, txt) {
@@ -7167,7 +7240,7 @@
       });
     }
     function chatDropPlot(mi, i, k) { const it = chat.msgs[mi].items[i]; if ((it.plots || []).length < 2) return; it.plots.splice(k, 1); chSpray(it); chatSave(); chatRender(); }
-    function chatDropChem(mi, i, k) { const it = chat.msgs[mi].items[i], u = { name: (it.chemList || [])[k] }; if (!u) return; it.dropChem = (it.dropChem || []).concat(u.name); chSpray(it); chatSave(); chatRender(); }
+    function chatDropChem(mi, i, k) { const it = chat.msgs[mi].items[i], u = { name: (it.chemList || [])[k] }; if (!u.name) return; it.dropChem = (it.dropChem || []).concat(u.name); chSpray(it); chatSave(); chatRender(); }
     function chatNorm(it, ph) {
       if (!it || !it.type) return null;
       ph = ph || [];
@@ -7200,12 +7273,12 @@
         it.plates = (Array.isArray(it.plates) ? it.plates : []).filter(x => x && String(x.plate || '').trim());
         it.date = it.date || todayISO(); it.known = !!chAsset(it.asset); it.state = ['at_shop', 'done'].includes(it.state) ? it.state : ''; return it;
       }
-      if (it.type === 'rain_pick') { it.date = it.date || todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
+      if (it.type === 'rain_pick') { it.date = /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') ? it.date : todayISO(); it.areas = chatRainAreas(it.date); it.sel = it.areas.filter(a => a.mm >= 10).map(a => a.loc); return it; }
       if (it.type === 'add') return it.name && CH_CAT[it.category] ? it : null;
       if (it.type === 'guard') {
         it.action = it.action === 'stop' ? 'stop' : 'start'; it.date = it.date || todayISO(); it.part = it.part === 'เช้า' ? 'เช้า' : 'เย็น';
         it.workers = (Array.isArray(it.workers) ? it.workers : []).map(x => String(x).trim()).filter(Boolean); it.area = String(it.area || '').trim();
-        if (it.area && it.action === 'start') { const all = (gData.plots || []).filter(p => plotLoc(p.plot_name) === it.area).map(p => p.plot_id); if (all.length) it.plots = all; } // บอกชื่อพื้นที่ = ทุกแปลงของพื้นที่ (ไม่เชื่อ AI อย่างเดียว)
+        if (it.area && it.action === 'start' && !(it.plots || []).length) { const all = (gData.plots || []).filter(p => plotLoc(p.plot_name) === it.area).map(p => p.plot_id); if (all.length) it.plots = all; } // บอกชื่อพื้นที่ = ทุกแปลงของพื้นที่ (ไม่เชื่อ AI อย่างเดียว)
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
@@ -7221,6 +7294,11 @@
         try { const r = soilWx && it.plots[0] ? soilCalc(chPlot(it.plots[0])) : null; it.model_pct = r ? Math.round(r.pct * 100) : undefined; } catch (e) {}
         return it.state && (it.area || it.plots.length) ? it : null;
       }
+      // 💭 ไอเดีย/สิ่งที่อ่าน/บทเรียน (Chat.gs กฎ 19) — เดิมหน้าเว็บไม่รู้จัก ถูกทิ้งเงียบตั้งแต่ 17 พ.ย. (24 พ.ย. 69) → Notes kind idea
+      if (it.type === 'thought') { it.text = String(it.text || '').trim(); it.cat = String(it.cat || '').trim() || 'ไอเดีย/อ่าน';
+        it.tags = (Array.isArray(it.tags) ? it.tags : []).map(x => String(x).replace(/^#/, '').trim()).filter(Boolean).slice(0, 3);
+        it.date = /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') && it.date <= todayISO() ? it.date : todayISO(); it.nid = it.nid || 'I' + Date.now() + Math.random().toString(36).slice(2, 5);
+        return it.text ? it : null; }
       if (it.type === 'note') {
         let idx = (Array.isArray(it.photos) ? it.photos : []).filter(k => ph[k]); if (!idx.length) idx = ph.map((_, k) => k);
         it.photos = idx; it.photo_ids = idx.map(k => ph[k]); it.text = String(it.text || '').trim(); it.amount = num(it.amount); it.date = it.date || todayISO();
@@ -7368,6 +7446,7 @@
         }
         else if (a.type === 'stock_count' || a.type === 'stock_in') ops[a.type === 'stock_count' ? 'unshift' : 'push']({ fn: 'stock', mode: a.type === 'stock_count' ? 'set' : 'in', name: a.name, qty: Math.round(a.packs * a.ps * 100) / 100, date: a.date, note: a.type === 'stock_count' ? 'ยอดเหลือจริง (แชต)' : 'ซื้อเพิ่ม (แชต)' });
         else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
+        else if (a.type === 'thought') ops.push({ fn: 'note', id: a.nid, p: { text: a.text, cat: a.cat, kind: 'idea', tags: a.tags, date: a.date } });
         else if (a.type === 'note' && (a.replace && ops.push({ fn: 'notedel', id: a.replace }), true)) for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
         else if (a.type === 'reminder') { if (!remDupOf(a)) ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days, on_event: a.on_pickup ? 'รับรถ:' + a.on_pickup : undefined } }); }
@@ -7407,7 +7486,7 @@
         if (u && iv.name && num(iv.stock) - u.qty < 0) low.push(`${esc(n)} เหลือ ${esc(qtyPk(Math.max(0, num(iv.stock)), n))}`);
         return `<div class="ch-chem"><span class="${g ? 'ch-guess' : ''}">${esc(n)}</span><b>${u ? esc(qtyPk(u.qty, n)) : ''}</b>${live ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropChem(${mi},${i},${k})">✕</button>` : ''}</div>`; }).join('')
         + (low.length ? `<div class="ch-warn">สต็อกไม่พอ: ${low.join(' · ')} — บันทึกแล้วจะติดลบ (ยังบันทึกได้)</div>` : '');
-      const area = (it.areaAll || []).length ? `<div class="ch-cn" style="color:#8A5A0B">ใส่ทุกแปลงใน${esc(it.areaAll.join(', '))}ไว้ก่อน — แปลงไหนไม่ได้ฉีดรอบ แตะ ✕ ออก · ถังและยานับครั้งเดียว</div>` : '';
+      const area = (it.areaAll || []).length && (it.plots || []).length > 1 ? `<div class="ch-cn" style="color:#8A5A0B">ใส่ทุกแปลงใน${esc(it.areaAll.join(', '))}ไว้ก่อน — แปลงไหนไม่ได้ฉีดรอบ แตะ ✕ ออก · ถังและยานับครั้งเดียว</div>` : '';
       const pl = (it.areaAll || []).length && live ? `<div class="ch-row"><span>แปลงที่ฉีดรอบ</span><b></b></div><div class="ch-chems">${area}${(it.plots || []).map((id, k) =>
         `<div class="ch-chem"><span class="ch-guess">${esc((chPlot(id) || {}).plot_name || id)}</span>${it.plots.length > 1 ? `<button type="button" class="ch-cx" aria-label="เอาออก" onclick="chatDropPlot(${mi},${i},${k})">✕</button>` : ''}</div>`).join('')}</div>` : '';
       const note = !t ? 'ใส่จำนวนถังก่อน แล้วจะคิดยาให้' : it.chemSrc === 'user' ? '' : `ตามสูตร${esc(it.chemFt)} · ${r1(t)} ถัง${g ? ' · เดาจากชนิดอ้อย ตรวจก่อนบันทึก' : ''}`;
@@ -7437,6 +7516,9 @@
       } else if (it.type === 'soil_check') {
         h = `<div class="ch-t">🟫 ผลดูดินหน้างาน</div>` + row('พื้นที่', it.area || pn(it.plots)) + row('สภาพ', it.state) + row('วันที่', dt(it.date))
           + (it.model_pct !== undefined ? `<div class="ch-cn">แอปคำนวณไว้ ~${it.model_pct}% · จดไว้ใช้ปรับตัวคิด และแชตจะเชื่อผลหน้างานนี้ 3 วัน (ถ้าไม่มีฝนเพิ่ม)</div>` : '');
+      } else if (it.type === 'thought') {
+        h = `<div class="ch-t">💭 จดความคิด / สิ่งที่อ่าน</div>` + row('ข้อความ', it.text) + row('แท็ก', it.tags.map(x => '#' + x).join(' ')) + row('วันที่', dt(it.date))
+          + '<div class="ch-cn">ลงปฏิทินวันนั้น (💭) ไม่ลงบัญชีไร่</div>';
       } else if (it.type === 'note') {
         h = `<div class="ch-t">🏠 นอกไร่ (ไม่ลงบัญชีไร่)</div>` + row('เรื่อง', it.text) + row('คน', it.workers.join(' + ')) + row('เงิน', it.amount ? baht(it.amount) + ' บาท' : '') + row('ร้าน/ที่', it.shop)
           + row('วันที่', it.date_to ? `${dt(it.date)} – ${dt(it.date_to)} (${dayDiff(it.date, it.date_to) + 1} วัน)` : dt(it.date)) + (it.replace ? `<div class="ch-cn" style="color:#B26A00">แทนบันทึกเดิมวันเดียวกัน: "${esc(it.replace_text)}" (ไม่ลงซ้ำ)</div>` : '') + (it.workers.length ? '<div class="ch-cn">นับวันทำงานในสรุปคนงาน (ก๊อปส่ง LINE)</div>' : '');
@@ -7458,13 +7540,13 @@
           + row('วันที่', dt(it.date)) + `<div class="ch-cn" style="margin-top:4px">ใช้ ${r1(fuelL())} ลิตร/ถัง → พอฉีด ≈ ${r1(it.qty / fuelL())} ถัง (ค่าประมาณ)</div>`;
       } else if (it.type === 'finish') {
         h = `<div class="ch-t">✅ งานเสร็จ</div>` + it.plots.map(pid => { const og = chOg(pid);
-          return og ? row(esc(chPlot(pid).plot_name), `${og.activity_group} · ${og.activity_detail} (เริ่ม ${og.timestamp})`) : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีงานที่กำลังทำ</div>`; }).join('')
+          return og ? row(esc((chPlot(pid) || {}).plot_name || pid), `${og.activity_group} · ${og.activity_detail} (เริ่ม ${og.timestamp})`) : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีงานที่กำลังทำ</div>`; }).join('')
           + row('วันที่เสร็จ', dt(it.date));
       } else if (it.type === 'cancel') {
         if (it.which === 'watch') h = `<div class="ch-t">🗑️ ยกเลิกฝากดู</div>` + it.plots.map(pid => { const ws = chCancelWatch(pid, it.reason);
-          return ws.length ? ws.map(w => row(esc(chPlot(pid).plot_name), esc(w.reason) + (w.note ? ' · ' + esc(w.note) : ''))).join('') : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีฝากดู${it.reason ? 'เรื่อง' + esc(it.reason) : ''}</div>`; }).join('');
+          return ws.length ? ws.map(w => row(esc((chPlot(pid) || {}).plot_name || pid), w.reason + (w.note ? ' · ' + w.note : ''))).join('') : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มีฝากดู${it.reason ? 'เรื่อง' + esc(it.reason) : ''}</div>`; }).join('');
         else h = `<div class="ch-t">🗑️ ยกเลิก (ลบออกจากประวัติ)</div>` + it.plots.map(pid => { const ls = chCancelLogs(pid, it.which, it);
-          return ls.length ? ls.map(l => row(esc(chPlot(pid).plot_name), `${esc(l.activity_group)} · ${esc(l.activity_detail)} (${esc(l.timestamp)})`)).join('')
+          return ls.length ? ls.map(l => row(esc((chPlot(pid) || {}).plot_name || pid), `${l.activity_group} · ${l.activity_detail} (${l.timestamp})`)).join('')
             : `<div class="ch-warn">${esc(chPlot(pid).plot_name)} ไม่มี${it.which === 'last' ? 'รายการ' : 'งานที่กำลังทำ'}ให้ยกเลิก</div>`; }).join('')
           + `<div class="ch-warn" style="background:#FDECEC;color:#8A1C1C">ลบแล้วกู้คืนไม่ได้ · ยาที่ตัดสต็อกไปจะคืนให้</div>`;
       } else if (it.type === 'damage') {
@@ -7546,7 +7628,7 @@
             <span class="nm">${esc(a.loc)}<small>${a.plots.length} แปลง</small></span><span class="mm">${a.mm == null ? '–' : a.mm + ' มม.'}</span></label>`).join('')
           : `<div class="ch-warn">ยังโหลดพยากรณ์ฝนไม่ได้ กด "เลือกรายแปลง" แทน</div>`;
         h += `<div class="ch-row"><span>ลงฝนตก</span><b>${n} แปลง</b></div>`;
-        if (live) h += `<button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="openRain(chatRainPlots(chat.msgs[${mi}].items[${i}]),'${it.date}')">เลือกรายแปลง…</button>`;
+        if (live) h += `<button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="openRain(chatRainPlots(chat.msgs[${mi}].items[${i}]),'${esc(it.date)}')">เลือกรายแปลง…</button>`;
       }
       return `<div class="ch-it">${live ? `<button type="button" class="ch-x" aria-label="เอาออก" onclick="chatDrop(${mi},${i})">✕</button>` : ''}${h}</div>`;
     }
@@ -7558,7 +7640,7 @@
           'ที่ผ่านมา อ้อยใหม่กับอ้อยตอที่ไร่ มีงานต่างกันยังไง', 'เดือนนี้หำทำกี่วัน', 'ขึ้นน้ำกี่รอบแล้ว แปลงไหนนานสุด'];
         h = `<div class="ch-ai">เล่ามาได้เลยครับ วันนี้ใครทำอะไร แปลงไหน รถคันไหน — ผมจะ<b>สรุปให้ตรวจก่อน</b> กดบันทึกแล้วค่อยลง
           <small>📷 ส่งรูปหน้างานได้ (รถ ทะเบียน แปลงอ้อย) ผมอ่านให้ แล้วจดลงประวัติรถ/แปลง · ถามย้อนหลังได้ เช่น "เดือนนี้ใครทำกี่วัน"</small>
-          <small>ไมค์บนคีย์บอร์ด iPhone พูดแทนพิมพ์ได้ · ตอนนี้ยังไม่ตัดสต็อกยา/ปุ๋ย (ใช้ "กดเลือกงาน" ถ้าต้องตัดสต็อก)</small></div>
+          <small>ไมค์บนคีย์บอร์ด iPhone พูดแทนพิมพ์ได้ · ฉีดยาจากแชตตัดสต็อกยาให้เลย (ไม่ต้องลงซ้ำในฟอร์ม) · บอกซื้อยา/ยอดเหลือจริงได้</small></div>
           <div class="ch-card"><div class="ch-hd"><span>ตัวอย่าง · แตะเพื่อเติมในช่องพิมพ์</span></div>${ex.map(t => `<button type="button" class="ch-ex" data-t="${esc(t)}" onclick="chatFill(this)">${esc(t)}</button>`).join('')}</div>`;
       } else h += `<div class="text-end mb-2"><button type="button" class="linkbtn" onclick="chatClear()">ล้างแชต</button></div>`;
       const lastI = chat.msgs.length - 1;
@@ -10251,10 +10333,9 @@ Export.table.toDrive({
       const G = {};
       gData.plots.forEach(p => { let q = []; try { q = flAsks(p); } catch (e) {} q.forEach(x => { const k = flCtx(p).i.type + '|' + x.s.id; (G[k] = G[k] || { s: x.s, type: flCtx(p).i.type, ps: [] }).ps.push(p); }); });
       const L = Object.values(G); if (!L.length) return '';
-      return `<div class="fl-ask-card"><div class="srow-s" style="color:#6B2E86;font-weight:700">❓ ถามรายแปลง · ใช้เลือกขั้นตอนต่อไป</div>${L.map(g => `
-        <div class="fl-ask-q">${esc(g.s.q || g.s.n)} <span>${esc(g.s.n)} · ${esc(g.type)}</span></div>
-        ${g.ps.map(p => `<div class="fl-ask-r"><span>${esc(p.plot_name)}${flPrevAns(p, g.s)}</span><span class="fl-abs">${g.s.o.map(o => `<button type="button" class="fl-ab" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</span></div>`).join('')}`).join('')}
-        <div class="srow-s mt-1">ตอบแล้วแก้ได้ในเมนูแปลง › 📋 ขั้นตอน</div></div>`;
+      return L.map(g => `<div class="td-card"><div class="td-4l"><div class="td-4l-k">ถามรายแปลง · ใช้เลือกขั้นตอนต่อไป</div>
+        <div class="td-4l-h" style="color:var(--td-purple)">${esc(g.s.q || g.s.n)}</div><div class="td-4l-n">${esc(g.s.n)} · ${esc(g.type)} · ตอบแล้วแก้ได้ในเมนูแปลง › ขั้นตอน</div></div>
+        ${g.ps.map(p => `<div class="td-ask-row"><span class="td-ask-name">${esc(p.plot_name)}${flPrevAns(p, g.s)}</span><span class="td-ask-btns">${g.s.o.map(o => `<button type="button" class="td-btn-pill" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</span></div>`).join('')}</div>`).join(''); // แบบ A (Gemini)
     }
     // ===== ฝนรายวันย้อนหลัง + จำลองการขึ้นน้ำทีละปี =====
     const climDaily = {}, climDErr = {}, climDBusy = {};
@@ -10419,7 +10500,7 @@ Export.table.toDrive({
       if (r.st === 'wet') ln.push(`3 วันที่ผ่านมา ฝนเกินที่ดินรับได้ราว <b>${mm(r.over3)} มม.</b> ส่วนเกินไหลออกหรือซึมลึก ตรงไหนเป็นแอ่งจะขัง`);
       if (r.mode === 'stop') ln.push(`<b>ช่วงงดน้ำ 2 เดือนก่อนตัด</b> (พ.ย.–ธ.ค.) ดินแห้งลงเป็นเรื่องปกติ ช่วยให้อ้อยสะสมความหวาน ไม่ต้องขึ้นน้ำ · ที่ต้องระวังคือฝนหนักจนน้ำขัง`);
       else if (r.mode === 'cut') ln.push('ตัดแล้ว รออ้อยตองอกสักระยะก่อนค่อยขึ้นน้ำ (ตามวิธีของไร่)');
-      else if (r.pct >= 0.5) ln.push(`ถ้าฝนไม่ตก ดินยังชื้นพอ <b>อีก ~${r.left} วัน</b>${r.left >= 1 ? ` (ถึงราว ${f(new Date(Date.now() + r.left * 864e5).toISOString().slice(0, 10))})` : ''} แล้วเริ่มควรขึ้นน้ำ`);
+      else if (r.pct >= 0.5) ln.push(`ถ้าฝนไม่ตก ดินยังชื้นพอ <b>อีก ~${r.left} วัน</b>${r.left >= 1 ? ` (ถึงราว ${f(isoAdd(todayISO(), r.left))})` : ''} แล้วเริ่มควรขึ้นน้ำ`);
       else ln.push(`น้ำในดินต่ำกว่าครึ่ง อ้อยเริ่มดึงน้ำได้ยาก${r.rainF >= 15 ? ' (พยากรณ์มีฝน รอดูก่อนได้)' : ' ถึงเวลาขึ้นน้ำ'}`);
       ln.push(`7 วันที่ผ่านมา ฝนราว ${mm(r.rain7)} มม. · พยากรณ์ 7 วันข้างหน้า ${mm(r.rainF)} มม.${r.lastIrr ? ' · ขึ้นน้ำล่าสุด ' + f(r.lastIrr.t) : ''}`);
       if (r.overF >= 10) ln.push(`⚠️ ถ้าฝนตกตามพยากรณ์ 3 วันนี้ น้ำจะเกินที่ดินรับได้ราว ${mm(r.overF)} มม.`);
@@ -10771,7 +10852,7 @@ Export.table.toDrive({
       const x = satInfo && satInfo.items.find(i => i.id === id); if (!x) return;
       const im = new Image(); im.onload = () => { try {
         const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
-        const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 40) n++;
+        const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 40 && d[i - 1] > d[i - 3] + 20) n++; // นับเฉพาะสีฟ้า (เทา "ข้อมูลน้อย" เคยถูกนับเป็นน้ำขัง)
         const b = L.latLngBounds(x.pts), m = 111320, w = (b.getEast() - b.getWest()) * m * Math.cos(b.getCenter().lat * Math.PI / 180), h = (b.getNorth() - b.getSouth()) * m;
         spotStat[id] = { st: 'ok', rai: n * (w * h / (c.width * c.height)) / 1600 };
       } catch (e) { spotStat[id] = { st: 'ok', rai: null }; } fmLabelsSoon(); };
@@ -11044,6 +11125,7 @@ Export.table.toDrive({
             $('fmRes').style.display = 'none';
             if (kmItems) return;
             if (lyOpen === 'fm') return lyToggle('fm');
+            if (fmEdit && fmEdit.step === 'info') return; // กำลังกรอกรายละเอียด แตะแผนที่ไม่เพิ่มหมุด/ไม่วาดทับฟอร์ม
             if (fmEdit) { fmEdit.pts.push(fmSnap(e.latlng)); fmDrawEdit(); }
             else if (fmSpot) spotClose();
             else if (fmSel) { fmSel = null; fmRender(); }
@@ -11090,13 +11172,15 @@ Export.table.toDrive({
     function fmPinHere() {
       if (!fmEdit || fmPinBusy) return;
       if (!navigator.geolocation) return alert('มือถือนี้หาตำแหน่งไม่ได้');
-      fmPinBusy = true; const B = $('btnFmPin'), R = fmPinBuf = [], t0 = Date.now();
+      fmPinBusy = true; const B = $('btnFmPin'), R = fmPinBuf = [], t0 = Date.now(), E = fmEdit; // จำว่ากำลังวาดอันไหน
       const show = t => { if (B) B.innerHTML = t; };
       show('⏳ กำลังอ่าน GPS…');
       // เริ่มติดตามตำแหน่งใหม่แบบไม่ใช้ค่าเก่า (ตัวเดียวกับจุดฟ้า) ค่าที่เข้ามาระหว่างนี้ลง fmPinBuf
       if (fmWatch !== null) navigator.geolocation.clearWatch(fmWatch); fmWatch = null; fmStartWatch(0);
       const fin = () => {
         fmPinBusy = false; fmPinBuf = null;
+        if (fmWatch !== null) { navigator.geolocation.clearWatch(fmWatch); fmWatch = null; fmStartWatch(); } // กลับเป็นปกติ (ไม่อ่าน GPS ถี่ตลอด เปลืองแบต)
+        if (fmEdit !== E || !fmEdit) return; // ปิดแผนที่/ออกจากโหมดวาด/เปลี่ยนแปลงระหว่างรอ = ไม่ปัก (เดิมพังหรือปักผิดแปลง)
         if (!R.length) { show('📍 ปักตรงที่ยืน'); return alert('ยังจับ GPS ไม่ได้ · ออกไปที่โล่ง แล้วลองใหม่'); }
         const best = Math.min(...R.map(r => r.acc)), use = R.filter(r => r.acc <= best * 1.5 + 1);
         const lat = use.reduce((a, r) => a + r.lat, 0) / use.length, lng = use.reduce((a, r) => a + r.lng, 0) / use.length;
@@ -11385,6 +11469,7 @@ Export.table.toDrive({
       const nav = (la, ln) => `<a class="btn btn-outline-success flex-fill" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>`;
       if (fmSel && fmSel.kind === 'plot') {
         const p = gData.plots.find(x => x.plot_id === fmSel.id);
+        if (!p) { fmSel = null; return fmPanel(still); } // แปลงหายหลังโหลดใหม่
         const diff = num(p.area_rai) ? ` · ในระบบ ${num(p.area_rai)} ไร่` : '';
         const sx = fmSatOn && fmSatItem('plot', p.plot_id);
         if (sx && sx.last) {
@@ -11428,6 +11513,7 @@ Export.table.toDrive({
       }
       if (fmSel && fmSel.kind === 'land') {
         const l = (gData.lands || []).find(x => x.land_id === fmSel.id);
+        if (!l) { fmSel = null; return fmPanel(still); }
         const lx = fmSatOn && fmSatItem('land', l.land_id);
         if (lx && lx.last) {
           P.innerHTML = fmSatSheet(lx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('land|${l.land_id}'),300)">กราฟ + น้ำขังย้อนหลัง</button>${nav(l.center_lat, l.center_lng)}`, still) + `<div class="mt-2">${wpBtnHtml('land', l.land_id)}${spotBtn(l.center_lat, l.center_lng)}</div>`;
@@ -11461,7 +11547,7 @@ Export.table.toDrive({
       if (l) return { kind: 'land', l, name: l.name, area: l.name };
       return { kind: 'none', name: 'นอกแปลง', area: '' };
     }
-    function spotBtn(lat, lng) { return `<button type="button" class="btn btn-outline-success fw-bold w-100 mt-2" onclick="spotOpen(fmTap||{lat:${+lat},lng:${+lng}},fmTap?'จุดที่แตะ':'กลางแปลง')">🚜 ${'ตรงที่แตะ รถเข้าได้ไหม'}</button>`; }
+    function spotBtn(lat, lng) { if (!hasXY(lat, lng)) return ''; /* ยังไม่มีพิกัดกลาง = ไม่มีปุ่ม (เดิมได้ 0,0 กลางทะเล) */ return `<button type="button" class="btn btn-outline-success fw-bold w-100 mt-2" onclick="spotOpen(fmTap||{lat:${+lat},lng:${+lng}},fmTap?'จุดที่แตะ':'กลางแปลง')">🚜 ${'ตรงที่แตะ รถเข้าได้ไหม'}</button>`; }
     function spotHere() {
       if (rkLastPos && Date.now() - rkLastPos.t < 120000) return spotOpen(rkLastPos, 'ตรงที่ยืน');
       if (!navigator.geolocation) return alert('มือถือนี้หาตำแหน่งไม่ได้');
@@ -12568,7 +12654,7 @@ Export.table.toDrive({
 
     // ================= พยากรณ์อากาศ (Open-Meteo) เน้นฝนและลม =================
     // จุด = จุดกลางขอบแปลง จัดกลุ่มตามพื้นที่ · ยังไม่มีขอบแปลง → WX_LAT/WX_LNG (ตั้งจากตำแหน่งมือถือ)
-    const WX_H = 'precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code';
+    const WX_H = 'temperature_2m,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code';
     const WX_D = 'precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,weather_code,temperature_2m_max,temperature_2m_min';
     const WX_STORE = 'raioy_wx', WX_TTL = 45 * 60000;
     // เกณฑ์ฉีดยา: ลมเฉลี่ย ≤ 10 กม./ชม. กระโชก ≤ 20, 4 ชม.ข้างหน้าโอกาสฝน ≤ 30% และฝนรวม < 0.3 มม. ช่วง 06–18 น.
@@ -12599,11 +12685,13 @@ Export.table.toDrive({
     }
     const wxKey = locs => locs.map(l => l.lat + ',' + l.lng).join(';');
 
+    let wxErrAt = 0;
     function wxLoad(force) {
       const locs = wxLocs();
       if (!locs.length || wxLoading) return;
       const key = wxKey(locs);
       if (!force && wxData && wxData.key === key && Date.now() - wxData.t < WX_TTL) return;
+      if (!force && wxErr && Date.now() - wxErrAt < 120000) return; // เน็ตหลุด: พัก 2 นาที (เดิม render → wxLoad วนไม่หยุด)
       wxLoading = true; wxErr = '';
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${locs.map(l => l.lat).join(',')}&longitude=${locs.map(l => l.lng).join(',')}&hourly=${WX_H}&daily=${WX_D}&timezone=Asia%2FBangkok&wind_speed_unit=kmh&forecast_days=7&past_days=1`;
       fetch(url).then(r => r.json()).then(j => { if (j && j.error) throw new Error(j.reason); return Array.isArray(j) ? j : [j]; })
@@ -12612,7 +12700,7 @@ Export.table.toDrive({
           if (!Array.isArray(res) || !res.length || !res[0].daily || !res[0].hourly) throw new Error('ข้อมูลพยากรณ์ไม่ครบ');
           wxData = { t: Date.now(), key, res };
           lsSet(WX_STORE, JSON.stringify(wxData)); wxPushMaybe(locs, res);
-        }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; })
+        }).catch(e => { wxErr = e.message || 'โหลดไม่ได้'; wxErrAt = Date.now(); })
         .finally(() => { wxLoading = false; if (curTab === 'urgent') render(); if (curTab === 'log' && logMode === 'chat') chatRender(); if ($('wxModal').classList.contains('show')) wxRender(); if (fmRain && $('farmMapModal').classList.contains('show')) fmRainRender(); });
     }
 
@@ -12665,12 +12753,25 @@ Export.table.toDrive({
     }
     const sprayTxt = w => w.map(x => `${pad(x.a)}–${pad(x.b)} น.`).join(', ');
 
+    // ===== แถบอากาศ/น้ำตาล แบบ A ของ Gemini (24 พ.ย. 69) — การ์ดขาว ไอคอนในกล่อง · แตะ = กาง 7 วัน + รายชม.ในที่ (ไม่เด้ง) · "ดูทั้งหมด ›" = หน้าต่างเดิม (รายพื้นที่/กราฟ)
+    const TDA_IC = {
+      rain: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 15a4 4 0 1 1 .8-7.9A5.5 5.5 0 0 1 18.5 9a3.5 3.5 0 0 1-.5 6.95H7z" fill="#1D6FB8"/><path d="M9 18l-1 3M13 18l-1 3M17 18l-1 3" stroke="#1D6FB8" stroke-width="2" stroke-linecap="round"/></svg>',
+      sun: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="#E69A15"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1" stroke="#E69A15" stroke-width="2" stroke-linecap="round"/></svg>',
+      part: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="4" fill="#E69A15"/><path d="M8 18a4 4 0 0 1 0-8h.4A4.5 4.5 0 0 1 17 11.5a3 3 0 0 1-.5 6.5H8z" fill="#8AA6B8"/></svg>',
+      cloud: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 10a4 4 0 0 1-.5 8H7z" fill="#8AA6B8"/></svg>',
+      sugar: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8" stroke="#1F5E3B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h5v5" stroke="#1F5E3B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    };
+    const tdaCode = (code, mm) => code >= 51 && code < 61 && mm < 0.5 ? 3 : code; // ฝนปรอยแต่ไม่ถึง 0.5 มม. = เมฆมาก (ไม่ขึ้นไอคอนฝนตอนโอกาส 2%)
+    const tdaWxIc = (code, mm) => (code = tdaCode(code, mm)) >= 95 ? TDA_IC.rain : (code >= 61 || mm >= 5) ? TDA_IC.rain : (code >= 51 || mm >= 0.5) ? TDA_IC.rain : code >= 3 ? TDA_IC.cloud : code >= 1 ? TDA_IC.part : TDA_IC.sun;
+    const tdaWxWord = (code, mm, tmax) => (code = tdaCode(code, mm)) >= 95 ? 'พายุฝนฟ้าคะนอง' : (code >= 61 || mm >= 5) ? 'ฝนตก' : (code >= 51 || mm >= 0.5) ? 'ฝนปรอย' : code >= 3 ? 'เมฆมาก' : code >= 1 ? 'มีเมฆบางส่วน' : tmax >= 33 ? 'แดดจัด' : 'ท้องฟ้าโปร่ง';
+    let wxInline = false, wxDayI = 0, sgInline = false;
+    const tdaStrip = (onclick, ic, t, sub, r, body, x) => `<div class="td-card"><button type="button" class="td-strip-btn" onclick="${onclick}"><span class="td-strip-ic">${ic}</span>
+      <span class="td-strip-mid"><span class="td-strip-t">${t}</span><span class="td-strip-s">${sub}</span>${x || ''}</span><span class="td-strip-r">${r}</span></button>${body || ''}</div>`;
     function wxStripHtml() {
       const locs = wxLocs();
-      if (!locs.length) return `<button type="button" class="wx-strip" onclick="wxUseMyLoc()"><span class="wx-ic">🌦️</span>
-        <span class="wx-l"><b>ดูพยากรณ์ฝน/ลม</b><span class="srow-s d-block">แตะเพื่อใช้ตำแหน่งมือถือ (หรือวาดขอบแปลงในแผนที่ไร่)</span></span></button>`;
+      if (!locs.length) return tdaStrip('wxUseMyLoc()', TDA_IC.part, 'ดูพยากรณ์ฝน/ลม', 'แตะเพื่อใช้ตำแหน่งมือถือ (หรือวาดขอบแปลงในแผนที่ไร่)', '›');
       wxLoad();
-      if (!wxData || wxData.key !== wxKey(locs)) return `<button type="button" class="wx-strip" onclick="openWx()"><span class="wx-ic">🌦️</span><span class="wx-l"><b>พยากรณ์อากาศ</b><span class="srow-s d-block">${wxErr ? 'โหลดไม่ได้ · แตะเพื่อลองใหม่' : 'กำลังโหลด…'}</span></span></button>`;
+      if (!wxData || wxData.key !== wxKey(locs)) return tdaStrip(wxErr ? 'wxLoad(true);render()' : 'openWx()', TDA_IC.part, 'พยากรณ์อากาศ 7 วัน', wxErr ? 'โหลดไม่ได้ · แตะเพื่อลองใหม่' : 'กำลังโหลด…', '');
       const today = todayISO();
       let best = null;
       wxData.res.forEach((r, i) => {
@@ -12679,12 +12780,23 @@ Export.table.toDrive({
         if (!best || o.pop > best.pop) best = o;
       });
       if (!best) return '';
-      const D = best.r.daily, k = best.k;
+      const D = best.r.daily, k = best.k, H = best.r.hourly || {};
+      const tmax = Math.round(num((D.temperature_2m_max || [])[k])), sp = sprayWhen(best.r);
       const multi = wxData.res.length > 1 ? ` · ${esc(locs[best.i].loc)}` : '';
-      return `<button type="button" class="wx-strip" onclick="openWx(${best.i})"><span class="wx-ic">${wxIcon(D.weather_code[k], best.mm)}</span>
-        <span class="wx-l"><b>วันนี้ ฝน ${best.pop}%${best.mm >= 0.1 ? ` · ~${r1x(best.mm)} มม.` : ''}</b>${multi}
-          <span class="srow-s d-block">ลม ${Math.round(D.wind_speed_10m_max[k])} กระโชก ${Math.round(D.wind_gusts_10m_max[k])} กม./ชม. · ${(w => `<span class="wx-${w.ok ? 'ok' : 'no'}">${w.t}</span>`)(sprayWhen(best.r))}</span></span>
-        <span class="srow-s">7 วัน ›</span></button>`;
+      const sub = `${tdaWxWord(D.weather_code[k], best.mm, tmax)}${tmax ? ' ' + tmax + '°' : ''} · ฝน ${best.pop}%${best.mm >= 0.1 ? ` ~${r1x(best.mm)} มม.` : ''} · ลม ${Math.round(D.wind_speed_10m_max[k])} กม./ชม.${multi}`;
+      const x = wxInline ? '' : `<span class="td-strip-x ${sp.ok ? 'ok' : 'no'}">${esc(sp.t)}</span>`;
+      let body = '';
+      if (wxInline) {
+        const days = []; for (let j = k; j < D.time.length && days.length < 7; j++) days.push(j);
+        const di = days[Math.min(wxDayI, days.length - 1)], iso = D.time[di];
+        const hrs = [6, 9, 12, 15, 18].map(h => (H.time || []).indexOf(`${iso}T${pad(h)}:00`)).filter(j => j >= 0);
+        body = `<div class="td-wx-detail"><div class="td-wx-days">${days.map((j, n) => { const dd = new Date(D.time[j] + 'T00:00:00');
+          return `<button type="button" class="td-wx-d ${j === di ? 'on' : ''}" onclick="wxDayI=${n};render()"><span>${TH_DAY[dd.getDay()]}${dd.getDate()}</span>${tdaWxIc(D.weather_code[j], num(D.precipitation_sum[j]))}<b>${Math.round(num((D.temperature_2m_max || [])[j]))}°</b><span class="td-wx-p">${Math.round(num(D.precipitation_probability_max[j]))}%</span></button>`; }).join('')}</div>
+          <div class="td-wx-sp ${sp.ok ? '' : 'no'}">${esc(sp.t)}</div>
+          ${hrs.length ? `<div class="td-wx-hr">${hrs.map(j => `<div class="td-wx-h"><div class="m">${H.time[j].slice(11, 16)}</div>${H.temperature_2m ? `<div class="t">${Math.round(num(H.temperature_2m[j]))}°</div>` : ''}<div class="r">ฝน ${Math.round(num(H.precipitation_probability[j]))}%${num(H.precipitation[j]) >= 0.1 ? ` · ${r1x(num(H.precipitation[j]))} มม.` : ''}</div><div class="w">ลม ${Math.round(num(H.wind_speed_10m[j]))} กม.</div></div>`).join('')}</div>` : ''}
+          <button type="button" class="td-btn-out td-wx-more" onclick="openWx(${best.i})">ดูทั้งหมด · รายพื้นที่ ›</button></div>`;
+      }
+      return tdaStrip('wxInline=!wxInline;render()', tdaWxIc(D.weather_code[k], best.mm), 'พยากรณ์อากาศ 7 วัน', sub, wxInline ? 'ย่อ ▴' : 'รายชม. ▾', body, x);
     }
 
     // ฝนหนัก (≥ 10 มม.) เมื่อวาน + วันนี้ → การ์ดเดียวต่อวัน ถามว่าตกจริงไหม (6 พ.ย. 69: เดิมถามแค่เมื่อวาน การ์ดละพื้นที่)
@@ -12830,12 +12942,13 @@ Export.table.toDrive({
     const SUGAR_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>';
     function sugarStripHtml() {
       sugarLoad();
-      if (!sugar) return `<button type="button" class="sg-strip" onclick="openSugar()"><span class="sg-ic">${SUGAR_ICON}</span><span class="flex-fill"><b>ราคาน้ำตาลโลก</b><span class="srow-s d-block">${sugarErr ? 'โหลดไม่ได้ · แตะเพื่อลองใหม่' : 'กำลังโหลด…'}</span></span></button>`;
-      const up = sugar.chg >= 0;
-      return `<button type="button" class="sg-strip" onclick="openSugar()"><span class="sg-ic">${SUGAR_ICON}</span>
-        <span class="flex-fill" style="min-width:0"><b>น้ำตาลโลก ${sugar.price} ¢</b> <span class="${up ? 'sg-up' : 'sg-dn'}">${up ? '+' : ''}${sugar.pct}%</span>
-          <span class="srow-s d-block">คาดราคาอ้อยขั้นต้น ~${canePrice(sugar.price).toLocaleString()} บาท/ตัน</span></span>
-        <span class="srow-s">กราฟ ›</span></button>`;
+      if (!sugar) return tdaStrip(sugarErr ? 'sugarLoad(true);render()' : 'openSugar()', TDA_IC.sugar, 'ราคาน้ำตาลโลก · คาดอ้อย', sugarErr ? 'โหลดไม่ได้ · แตะเพื่อลองใหม่' : 'กำลังโหลด…', '');
+      const up = sugar.chg >= 0, cp = canePrice(sugar.price).toLocaleString();
+      const body = sgInline ? `<div class="td-wx-detail"><div class="td-4l" style="padding:0"><div class="td-4l-k">ICE Sugar No.11 (ตลาดโลก)</div>
+        <div class="td-4l-h ${up ? 'ok' : 'warn'}">${sugar.price} ¢/ปอนด์ (${up ? '+' : ''}${num(sugar.chg).toFixed(2)} · ${up ? '+' : ''}${sugar.pct}%)</div>
+        <div class="td-4l-b">คาดราคาอ้อยขั้นต้น <b>≈ ${cp} บาท/ตัน</b></div><div class="td-4l-n">คิดจากราคาน้ำตาลวันนี้ · ราคาจริงใช้ราคาช่วงกำหนดราคา (ค่าประมาณ)</div></div>
+        <button type="button" class="td-btn-out td-wx-more" onclick="openSugar()">กราฟ · ย้อนหลัง ›</button></div>` : '';
+      return tdaStrip('sgInline=!sgInline;render()', TDA_IC.sugar, 'ราคาน้ำตาลโลก · คาดอ้อย', `${sugar.price} ¢/lb · คาด ≈ ${cp} บ./ตัน`, `<span class="${up ? 'sg-up' : 'sg-dn'}">${up ? '+' : ''}${num(sugar.chg).toFixed(2)}</span>`, body);
     }
     function openSugar() { sugarRender(); showM('sugarModal'); sugarLoad(); }
 

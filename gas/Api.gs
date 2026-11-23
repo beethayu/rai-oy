@@ -2,7 +2,7 @@
 // ต้นฉบับอยู่ที่ GitHub beethayu/rai-oy โฟลเดอร์ gas/ — ห้ามแก้ในหน้า Apps Script ตรง ๆ (deploy อัตโนมัติจาก GitHub)
 // รหัสผ่านเก็บใน: ตั้งค่าโปรเจกต์ (รูปเฟือง) > คุณสมบัติของสคริปต์ > API_KEY
 // ถ้ายังไม่ได้ตั้ง API_KEY ระบบจะเปิดให้ใช้ได้เหมือนเดิม
-const API_BLOCK_ = ['doGet', 'doPost', 'doGetOld', 'setupV7'];
+const API_BLOCK_ = ['doGet', 'doPost', 'doGetOld', 'setupV7', 'cleanBillPhotos', 'renameAllBillPhotos', 'dailyScheduler', 'authorizeFetch', 'sendMorningBrief', 'sendEveningBrief']; // ฟังก์ชันระบบ/บำรุงรักษา ไม่ให้เรียกผ่านลิงก์
 
 function doGet(e) {
   const p = (e && e.parameter) || {};

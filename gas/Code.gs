@@ -331,7 +331,7 @@ function masterOpt_(ss, category, action, value) {
       const assetSheet = ss.getSheetByName(SH.ASSET);
       if (assetSheet) {
         const aData = assetSheet.getDataRange().getDisplayValues();
-        for (let r = aData.length - 1; r >= 1; r--) if (aData[r][2] === value) assetSheet.deleteRow(r + 1);
+        for (let r = aData.length - 1; r >= 1; r--) if (aData[r][2] === value && aData[r][1] === category) assetSheet.deleteRow(r + 1); // ชื่อซ้ำข้ามหมวดไม่ลบผิด
       }
     }
     const maxRows = Math.max(sheet.getLastRow(), colValues.length + 1);
@@ -477,8 +477,12 @@ function saveActivities(payload) {
     const pid0 = payload.plotIds[0];
 
     if (payload.edit_log_id) {
+      // 24 พ.ย. 69 (รีวิว Gemini): งานถูกลบจากอีกเครื่องแล้ว = หยุด (เดิมยังตัดสต็อกทั้งที่ไม่มีแถวงาน) · ย้ายแปลง = คำนวณสถานะแปลงเดิมด้วย
+      const ids = sh.getRange(1, 1, sh.getLastRow(), 3).getDisplayValues();
+      const at = ids.findIndex((r, i) => i > 0 && r[0] === String(payload.edit_log_id));
+      if (at < 1) throw new Error('ไม่พบงานที่จะแก้ (อาจถูกลบไปแล้ว) — ดึงข้อมูลใหม่แล้วลองอีกครั้ง');
+      const oldPid = ids[at][2];
       splitUsage_(ss, [String(payload.edit_log_id)]); // แก้แปลงที่ 2+ ของชุด: เดิมไม่คืนของเก่าแต่ตัดใหม่ = ตัดซ้ำ (แตกก่อนแก้แถว ใช้แปลงเดิมคิดสัดส่วน)
-      const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues();
       for (let i = ids.length - 1; i >= 1; i--) {
         if (ids[i][0] === String(payload.edit_log_id)) {
           const rg = sh.getRange(i + 1, 2, 1, 8);
@@ -491,7 +495,7 @@ function saveActivities(payload) {
       }
       reverseUsage_(ss, payload.edit_log_id);
       applyUsage_(ss, payload.usage, payload.edit_log_id, pid0, date, g);
-      syncPlots_(ss, [pid0]);
+      syncPlots_(ss, oldPid && oldPid !== pid0 ? [oldPid, pid0] : [pid0]);
       return readAll_(ss);
     }
 
@@ -665,7 +669,7 @@ function splitUsage_(ss, logIds) {
     }
   });
   if (!del.length) return;
-  del.reverse().forEach(r => slog.deleteRow(r));
+  del.sort((a, b) => b - a).forEach(r => slog.deleteRow(r)); // หลายชุดพร้อมกัน: เลขแถวไม่เรียง → เรียงมากไปน้อยก่อนลบ (เดิมลบผิดแถว)
   appendRows_(slog, add);
 }
 
@@ -678,7 +682,8 @@ function receiveStock(p) {
     const c = invCols_(d[0]);
     const r = d.findIndex((row, i) => i > 0 && String(row[c.name]) === p.name);
     if (r < 1) throw new Error('ไม่พบรายการ ' + p.name);
-    const cur = Number(d[r][c.stock]) || 0, q = Number(p.qty) || 0;
+    if (p.qty === '' || p.qty == null || !isFinite(Number(p.qty))) throw new Error('ระบุจำนวนไม่ถูกต้อง'); // ยอดว่างห้ามทับเป็น 0
+    const cur = Number(d[r][c.stock]) || 0, q = Number(p.qty);
     const nv = round_(p.mode === 'set' ? q : cur + q);
     sh.getRange(r + 1, c.stock + 1).setValue(nv);
     sh.getRange(r + 1, c.upd + 1).setNumberFormat('@').setValue(getTodayStr());
@@ -714,9 +719,11 @@ function saveStockItem_(ss, p) {
       h.forEach((k, i) => { if (textCols.includes(k)) sh.getRange(r + 1, i + 1).setNumberFormat('@'); });
       sh.getRange(r + 1, 1, 1, h.length).setValues([h.map(k => k in vals ? vals[k] : (k === 'updated_at' ? getTodayStr() : (p[k] !== undefined ? p[k] : '')))]);
     } else {
+      const oldName = d[r][h.indexOf('name')];
+      if (p.name !== undefined && String(p.name).trim() && p.name !== oldName) renameStock_(ss, oldName, p.name);
       fields.forEach(f => {
         const ci = h.indexOf(f);
-        if (ci === -1) return;
+        if (ci === -1 || p[f] === undefined) return; // ส่งมาแค่บางช่อง = ไม่ล้างช่องอื่น
         const cell = sh.getRange(r + 1, ci + 1);
         if (textCols.includes(f)) cell.setNumberFormat('@');
         cell.setValue(p[f]);
@@ -724,6 +731,17 @@ function saveStockItem_(ss, p) {
       sh.getRange(r + 1, h.indexOf('updated_at') + 1).setNumberFormat('@').setValue(getTodayStr());
     }
   }
+}
+
+// เปลี่ยนชื่อสินค้า: ชื่อเป็นตัวเชื่อม StockLogs (คืนสต็อกตอนแก้/ลบงาน) + BillAlias + Expenses.stock_item → แก้ตาม (24 พ.ย. 69)
+function renameStock_(ss, oldN, newN) {
+  [[SH.SLOG, 'item_name'], ['BillAlias', 'stock_item'], ['Expenses', 'stock_item']].forEach(([n, col]) => {
+    const sh = ss.getSheetByName(n); if (!sh || sh.getLastRow() < 2) return;
+    const head = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0], c = head.indexOf(col); if (c < 0) return;
+    const rg = sh.getRange(2, c + 1, sh.getLastRow() - 1, 1), v = rg.getDisplayValues(); let ch = false;
+    const out = v.map(([x]) => x === oldN ? (ch = true, [newN]) : [x]);
+    if (ch) rg.setNumberFormat('@').setValues(out);
+  });
 }
 
 function deleteStockItem(itemId) {
@@ -872,6 +890,7 @@ function removeNotifyTriggers_() {
 
 function dailyScheduler() {
   eveEnsure_();
+  try { cleanBillPhotos(24 * 60); } catch (e) {}
   scheduleExactNotify_(getSettings_(SpreadsheetApp.getActiveSpreadsheet()));
 }
 
@@ -884,7 +903,8 @@ function scheduleExactNotify_(s) {
   ScriptApp.newTrigger('sendMorningBrief').timeBased().at(at).create();
 }
 
-function sendMorningBrief() {
+function sendMorningBrief() { return withLock_(sendMorningBrief0_); } // กันตัวตั้งเวลายิงซ้อน → LINE เบิ้ล
+function sendMorningBrief0_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const s = getSettings_(ss);
   const today = getTodayStr();
@@ -1146,7 +1166,8 @@ function billFolder_() {
   const props = PropertiesService.getScriptProperties();
   const id = props.getProperty('BILL_FOLDER_ID');
   if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
-  const f = DriveApp.createFolder('บิลไร่อ้อย');
+  const ex = DriveApp.getFoldersByName('บิลไร่อ้อย'); // สร้างพร้อมกันสองคำขอ = ใช้อันที่มีแล้ว ไม่สร้างซ้ำ
+  const f = ex.hasNext() ? ex.next() : DriveApp.createFolder('บิลไร่อ้อย');
   props.setProperty('BILL_FOLDER_ID', f.getId());
   return f;
 }
@@ -1213,7 +1234,7 @@ function readBill(images, mime, opts) {
   const shops = readSheet_(ss, 'Expenses').map(e => e.shop).filter((x, i, a) => x && x !== '-' && a.indexOf(x) === i);
   const aliases = billAliases_(ss);
 
-  try { if (!(opts.photo_ids || []).length) cleanBillPhotos(24 * 60); } catch (e) {}
+  try { const cc = CacheService.getScriptCache(); if (!(opts.photo_ids || []).length && !cc.get('cbp')) { cc.put('cbp', '1', 21600); cleanBillPhotos(24 * 60); } } catch (e) {} // ไล่ทั้งโฟลเดอร์ช้า → 6 ชม./ครั้ง (+ dailyScheduler)
   const t0 = Date.now();
   const ids = (opts.photo_ids || []).slice();
   const folder = billFolder_();
@@ -1353,6 +1374,7 @@ function updateBill(billId, b) {
     let label = '🧾 ซื้ออะไหล่';
     for (let i = ad.length - 1; i >= 1; i--) if (String(ad[i][0]).indexOf(billId + '_A') === 0) { label = ad[i][4] || label; al.deleteRow(i + 1); }
     unstockBill_(ss, billId);
+    unpartsBill_(ss, billId);
     for (let k = rows.length - 1; k >= 0; k--) sh.deleteRow(rows[k] + 1);
     writeBill_(ss, billId, Object.assign({}, b, { photo_id: photo }), created, label);
     return readAll_(ss);
@@ -1362,14 +1384,18 @@ function updateBill(billId, b) {
 // คืนยอดสต็อกที่บิลนี้รับเข้า + ลบ StockLogs ของบิล
 function unstockBill_(ss, billId) {
   const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues();
-  const inv = ss.getSheetByName(SH.INV);
+  const inv = ss.getSheetByName(SH.INV), id = inv.getDataRange().getValues(), c = invCols_(id[0]); // อ่านครั้งเดียว (เดิมอ่านใหม่ทุกแถว)
   for (let i = sd.length - 1; i >= 1; i--) {
     if (String(sd[i][5]) !== billId) continue;
-    const id = inv.getDataRange().getValues(), c = invCols_(id[0]);
     const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === String(sd[i][2]));
-    if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)));
+    if (r > 0) { id[r][c.stock] = round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)); inv.getRange(r + 1, c.stock + 1).setValue(id[r][c.stock]); }
     sl.deleteRow(i + 1);
   }
+}
+// ลบ/แก้บิล: อะไหล่ที่บิลนี้ติ๊ก "ซื้อแล้ว · บิล <id>" กลับเป็น "รอซื้อ" (แก้บิล = writeBill_ ติ๊กใหม่ให้ถ้ายังจับคู่อยู่)
+function unpartsBill_(ss, billId) {
+  const sh = ss.getSheetByName(SH.ALOG); if (!sh) return; const d = sh.getDataRange().getDisplayValues();
+  for (let i = 1; i < d.length; i++) if (d[i][4] === '🛒 อะไหล่' && String(d[i][6]).indexOf('· บิล ' + billId + ' ') > 0) sh.getRange(i + 1, 7).setNumberFormat('@').setValue('รอซื้อ');
 }
 
 // ลงแถวบิลในชีต Expenses + รับเข้าสต็อก + ประวัติรถ (ใช้ทั้งบิลใหม่และบิลที่แก้)
@@ -1433,15 +1459,8 @@ function deleteBill(billId) {
     const d = sh.getDataRange().getDisplayValues();
     let photo = '';
     for (let i = d.length - 1; i >= 1; i--) if (d[i][2] === billId) { photo = photo || d[i][12]; sh.deleteRow(i + 1); }
-    const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues();
-    for (let i = sd.length - 1; i >= 1; i--) {
-      if (String(sd[i][5]) !== billId) continue;
-      const q = Number(sd[i][3]) || 0, name = String(sd[i][2]);
-      const inv = ss.getSheetByName(SH.INV), id = inv.getDataRange().getValues(), c = invCols_(id[0]);
-      const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === name);
-      if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - q));
-      sl.deleteRow(i + 1);
-    }
+    unstockBill_(ss, billId);
+    unpartsBill_(ss, billId);
     const al = ss.getSheetByName(SH.ALOG), ad = al.getDataRange().getDisplayValues();
     for (let i = ad.length - 1; i >= 1; i--) if (String(ad[i][0]).indexOf(billId + '_A') === 0) al.deleteRow(i + 1);
     if (photo) discardBillPhoto(photo);
@@ -1477,8 +1496,9 @@ function mergeBills(targetId, sourceId) {
     const txt = (r, c, v) => sh.getRange(r + 1, c + 1).setNumberFormat('@').setValue(v);
     tRows.forEach(r => txt(r, 12, photos));
     nameBillPhotos_(photos, date, shop);
+    let nx = tRows.reduce((m, r) => Math.max(m, (Number(String(d[r][0]).split('_').pop()) || 0) + 1), tRows.length); // เลขต่อจากตัวมากสุด (เคยลบบางบรรทัด = เลขชน)
     sRows.forEach((r, k) => {
-      txt(r, 0, targetId + '_' + (tRows.length + k)); txt(r, 1, date); txt(r, 2, targetId); txt(r, 3, shop); txt(r, 12, photos);
+      txt(r, 0, targetId + '_' + (nx++)); txt(r, 1, date); txt(r, 2, targetId); txt(r, 3, shop); txt(r, 12, photos);
     });
     const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getDisplayValues();
     for (let i = 1; i < sd.length; i++) if (sd[i][5] === sourceId) {
@@ -1518,17 +1538,7 @@ function setBillAsset(billId, asset, noStock) {
         `${row[5]} ${Number(String(row[8]).replace(/,/g, '')) || 0} บาท (${row[3]})`, row[5], '-']);
     });
     if (logs.length) appendRows_(al, logs);
-    if (noStock) {
-      const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues();
-      const inv = ss.getSheetByName(SH.INV);
-      for (let i = sd.length - 1; i >= 1; i--) {
-        if (String(sd[i][5]) !== billId) continue;
-        const id = inv.getDataRange().getValues(), c = invCols_(id[0]);
-        const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === String(sd[i][2]));
-        if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)));
-        sl.deleteRow(i + 1);
-      }
-    }
+    if (noStock) unstockBill_(ss, billId);
     return readAll_(ss);
   });
 }
@@ -1575,14 +1585,7 @@ function billUnstock(billId) {
       found = true; sh.getRange(i + 1, 11).setValue(''); sh.getRange(i + 1, 12).setValue('');
     }
     if (!found) throw new Error('ไม่พบบิล');
-    const sl = ss.getSheetByName(SH.SLOG), sd = sl.getDataRange().getValues(), inv = ss.getSheetByName(SH.INV);
-    for (let i = sd.length - 1; i >= 1; i--) {
-      if (String(sd[i][5]) !== billId) continue;
-      const id = inv.getDataRange().getValues(), c = invCols_(id[0]);
-      const r = id.findIndex((row, k) => k > 0 && String(row[c.name]) === String(sd[i][2]));
-      if (r > 0) inv.getRange(r + 1, c.stock + 1).setValue(round_((Number(id[r][c.stock]) || 0) - (Number(sd[i][3]) || 0)));
-      sl.deleteRow(i + 1);
-    }
+    unstockBill_(ss, billId);
     return readAll_(ss);
   });
 }
@@ -1663,10 +1666,10 @@ function setAssetCategory(name, cat) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const aSh = ss.getSheetByName(SH.ASSET), ad = aSh.getDataRange().getDisplayValues();
-    let old = '';
-    for (let i = 1; i < ad.length; i++) if (ad[i][2] === name) { old = ad[i][1]; aSh.getRange(i + 1, 2).setValue(cat); }
+    const at = ad.findIndex((r, i) => i > 0 && r[2] === name), old = at > 0 ? ad[at][1] : '';
     if (!old) throw new Error('ไม่พบ "' + name + '"');
-    if (['Truck', 'Car', 'Home', 'Moto'].indexOf(old) < 0) throw new Error('ย้ายได้เฉพาะรถ');
+    if (['Truck', 'Car', 'Home', 'Moto'].indexOf(old) < 0) throw new Error('ย้ายได้เฉพาะรถ'); // เช็กก่อนเขียน (เดิมเขียนทับหมวดรถไถ/คนงานไปก่อนแล้วค่อยฟ้อง)
+    for (let i = 1; i < ad.length; i++) if (ad[i][2] === name) aSh.getRange(i + 1, 2).setValue(cat);
     if (old !== cat) {
       const oSh = ss.getSheetByName(SH.OPT), od = oSh.getDataRange().getDisplayValues(), head = od[0];
       const col = c => { let i = head.indexOf(c); if (i < 0) { i = head.length; head.push(c); oSh.getRange(1, i + 1).setValue(c); } return i; };
@@ -1707,6 +1710,16 @@ function renameAsset(oldN, newN) {
     fixCol(ss.getSheetByName(SH.ALOG), 'asset_name');
     const act = ss.getSheetByName(SH.ACT);
     if (act) { const h = act.getRange(1, 1, 1, act.getLastColumn()).getDisplayValues()[0]; ['equipment', 'operator'].forEach(k => { if (h.includes(k)) fixCol(act, k); }); }
+    // 24 พ.ย. 69 (รีวิว Gemini): ชื่อยังอยู่ใน ค่าใช้จ่าย/เตือนตอนรับรถ/น้ำมันเครื่องพ่นยา → แก้ตาม
+    const ex = ss.getSheetByName('Expenses'); if (ex && ex.getLastRow() > 1) fixCol(ex, 'asset');
+    const sub = (sh, col, re) => {
+      if (!sh || sh.getLastRow() < 2) return; const head = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0], c = head.indexOf(col); if (c < 0) return;
+      const rg = sh.getRange(2, c + 1, sh.getLastRow() - 1, 1), v = rg.getDisplayValues(); let ch = false;
+      const out = v.map(([x]) => { const m = re.exec(x); if (!m || m[2] !== oldN) return [x]; ch = true; return [m[1] + newN + (m[3] || '')]; });
+      if (ch) rg.setNumberFormat('@').setValues(out);
+    };
+    sub(ss.getSheetByName('Reminders'), 'on_event', /^(รับรถ:|อยู่ร้าน:)(.+)()$/);
+    sub(ss.getSheetByName(SH.SLOG), 'note', /^(⛽ให้น้ำมัน\|)([^|]+)(\|.*)?$/);
     return readAll_(ss);
   });
 }

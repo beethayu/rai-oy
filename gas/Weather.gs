@@ -4,7 +4,7 @@
 // ชีต RainLog: ฝนรายวัน (ค่าประมาณจากโมเดล ไม่ใช่วัดจริง) ลงทุกเช้าด้วย trigger logDailyRain
 
 const WX_URL_ = 'https://api.open-meteo.com/v1/forecast';
-const WX_HOURLY_ = 'precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code';
+const WX_HOURLY_ = 'temperature_2m,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weather_code';
 const WX_DAILY_ = 'precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,weather_code,temperature_2m_max,temperature_2m_min';
 const RAIN_H_ = ['timestamp', 'loc', 'rain_mm', 'rain_hours', 'wind_max', 'gust_max', 'lat', 'lng', 'logged_at'];
 
@@ -37,8 +37,7 @@ function wxFetch_(points, extra) {
     timezone: 'Asia/Bangkok', wind_speed_unit: 'kmh'
   }, extra);
   const url = WX_URL_ + '?' + Object.keys(q).map(k => k + '=' + encodeURIComponent(q[k])).join('&');
-  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-  const j = JSON.parse(res.getContentText());
+  const j = wxJson_(url);
   if (j && j.error) throw new Error('Open-Meteo: ' + j.reason);
   return Array.isArray(j) ? j : [j];
 }
@@ -188,7 +187,7 @@ function rainHistory(lat, lng, years) {
   const f = d => Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy-MM-dd');
   const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + Number(lat) + '&longitude=' + Number(lng) +
     '&start_date=' + f(start) + '&end_date=' + f(end) + '&daily=precipitation_sum&timezone=Asia%2FBangkok';
-  const j = JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText());
+  const j = wxJson_(url);
   if (!j.daily) throw new Error('Open-Meteo archive: ' + (j.reason || 'ไม่มีข้อมูล'));
   const m = {};
   j.daily.time.forEach((t, i) => {
@@ -213,7 +212,7 @@ function rainClimate(refresh) {
   const f = d => Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy-MM-dd');
   const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + pts.map(p => p.lat).join(',') + '&longitude=' + pts.map(p => p.lng).join(',') +
     '&start_date=' + y0 + '-01-01&end_date=' + f(end) + '&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=Asia%2FBangkok';
-  let j = JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText());
+  let j = wxJson_(url);
   if (j && j.error) throw new Error('Open-Meteo archive: ' + j.reason);
   if (!Array.isArray(j)) j = [j];
   const areas = pts.map((p, i) => {
@@ -252,10 +251,17 @@ function rainDaily(loc) {
   const f = d => Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy-MM-dd');
   const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + p.lat + '&longitude=' + p.lng +
     '&start_date=' + y0 + '-01-01&end_date=' + f(end) + '&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=Asia%2FBangkok';
-  const j = JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText());
+  const j = wxJson_(url);
   if (!j || j.error || !j.daily) throw new Error('Open-Meteo archive: ' + ((j && j.reason) || 'ไม่มีข้อมูล'));
   const t10 = a => a.map(v => Math.round((Number(v) || 0) * 10)).join(',');
   const out = { loc: loc, start: j.daily.time[0], r: t10(j.daily.precipitation_sum), e: t10(j.daily.et0_fao_evapotranspiration) };
   try { cache.put(key, JSON.stringify(out), 21600); } catch (e) {}
   return out;
+}
+
+// 24 พ.ย. 69 (รีวิว Gemini): Open-Meteo ล่ม/ติดโควตา (429/5xx) คืนหน้า HTML → JSON.parse พังเป็นข้อความงง → บอกรหัสตรง ๆ
+function wxJson_(url) {
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true }), code = res.getResponseCode();
+  if (code !== 200) { let r = ''; try { r = JSON.parse(res.getContentText()).reason || ''; } catch (e) {} throw new Error('Open-Meteo ตอบ ' + code + (r ? ': ' + r : ' (ลองใหม่ภายหลัง)')); }
+  return JSON.parse(res.getContentText());
 }

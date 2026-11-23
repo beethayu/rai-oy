@@ -230,7 +230,8 @@ function chatParse(text, ctx, images, reuse) {
   geminiForce_ = '';
   let j;
   try { j = JSON.parse(out); } catch (e) {
-    const m = out.match(/\{[\s\S]*\}/); j = m ? JSON.parse(m[0]) : { reply: 'อ่านไม่ออก ลองพิมพ์ใหม่อีกครั้งครับ', items: [] };
+    const m = out.match(/\{[\s\S]*\}/); try { j = m ? JSON.parse(m[0]) : null; } catch (e2) { j = null; } // JSON ขาด = ให้พิมพ์ใหม่ ไม่โยน error ดิบ
+    if (!j) j = { reply: 'อ่านไม่ออก ลองพิมพ์ใหม่อีกครั้งครับ', items: [] };
   }
   j.items = Array.isArray(j.items) ? j.items : [];
   j.ask = Array.isArray(j.ask) ? j.ask : [];

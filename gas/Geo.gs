@@ -48,6 +48,7 @@ function setPlotBoundary(plotId, path) {
     const pts = parsePath_(path);
     if (pts.length && pts.length < 3) throw new Error('ขอบแปลงต้องมีอย่างน้อย 3 มุม');
     const info = polyInfo_(pts);
+    if (pts.length >= 3 && !info) throw new Error('มุมแปลงเรียงเป็นเส้นตรง คำนวณพื้นที่ไม่ได้ — ปักมุมให้กางออก'); // เดิมลบขอบเดิมทิ้งเงียบ ๆ
     const cB = headCol_(sh, 'boundary'), cR = headCol_(sh, 'map_rai'), cLa = headCol_(sh, 'center_lat'), cLn = headCol_(sh, 'center_lng');
     const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues().map(r => r[0]);
     const r = ids.indexOf(plotId);

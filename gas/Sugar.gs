@@ -31,7 +31,8 @@ function getSugar(force) {
   return d;
 }
 
-function logSugar_() {
+function logSugar_() { return withLock_(logSugar0_); } // ตัวตั้งเวลา + เปิดแอปพร้อมกัน = ไม่ลงแถวซ้ำ
+function logSugar0_() {
   const d = getSugar(true), ss = SpreadsheetApp.getActiveSpreadsheet();
   const sh = getOrCreate_(ss, 'SugarLog', SUGAR_H_), today = getTodayStr();
   const v = sh.getDataRange().getDisplayValues();

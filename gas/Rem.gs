@@ -59,7 +59,7 @@ function remDone_(ss, id) {
     d.setDate(Math.min(now.getDate(), new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
     remSet_(sh, f.r, 'date', Utilities.formatDate(d, 'Asia/Bangkok', 'dd/MM/') + (d.getFullYear() + 543));
   } else if (REM_REP_.indexOf(rep) !== -1) {
-    const d = remDate_(row[REM_H_.indexOf('date')]), day = d.getDate(), now = new Date(), t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const d = remDate_(row[REM_H_.indexOf('date')]) || new Date(), day = d.getDate(), now = new Date(), t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     if (rep === 'วัน') { if (d < t0) d.setTime(t0.getTime()); d.setDate(d.getDate() + 1); }
     else if (rep === 'สัปดาห์') { do d.setDate(d.getDate() + 7); while (d <= t0); }
     else if (rep === 'ปี') d.setFullYear(d.getFullYear() + 1); else { d.setDate(1); d.setMonth(d.getMonth() + 1); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); }
@@ -108,7 +108,7 @@ function noteAdd_(ss, p, id) {
   if (sh.getDataRange().getDisplayValues().some(r => r[0] === String(id))) return false;
   const be = remBE_(p.date);
   try { if ((p.photo_ids || []).length) nameChatPhotos_(p.photo_ids, 'นอกไร่_' + String(p.text || '').slice(0, 20), be); } catch (e) {}
-  appendRows_(sh, [[String(id), getTodayStr(), be, String(p.text || '').slice(0, 200), Number(p.amount) || '', String(p.shop || '').slice(0, 80), (p.photo_ids || []).join(','), String(p.workers || '').slice(0, 80), String(p.cat || '').slice(0, 30), p.kind === 'idea' ? 'idea' : '', (p.tags || []).join(',').slice(0, 120)]]);
+  appendRows_(sh, [[String(id), getTodayStr(), be, String(p.text || '').slice(0, p.kind === 'idea' ? 1000 : 200), Number(p.amount) || '', String(p.shop || '').slice(0, 80), (p.photo_ids || []).join(','), String(p.workers || '').slice(0, 80), String(p.cat || '').slice(0, 30), p.kind === 'idea' ? 'idea' : '', (p.tags || []).join(',').slice(0, 120)]]);
   return true;
 }
 function noteOp(op) {

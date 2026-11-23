@@ -7,13 +7,14 @@ function eveEnsure_() {
   try {
     const c = CacheService.getScriptCache();
     if (c.get('eve_trig')) return;
-    c.put('eve_trig', '1', 21600);
     const has = ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'sendEveningBrief');
     if (!has) ScriptApp.newTrigger('sendEveningBrief').timeBased().atHour(17).nearMinute(0).everyDays(1).inTimezone('Asia/Bangkok').create();
+    c.put('eve_trig', '1', 21600); // จำหลังสร้างสำเร็จ (ล้ม = ลองใหม่รอบหน้า)
   } catch (e) { console.error('eveEnsure_', e); }
 }
 
-function sendEveningBrief() {
+function sendEveningBrief() { return withLock_(sendEveningBrief0_); } // กดส่งตอนนี้ชนตัวตั้งเวลา = ไม่เบิ้ล
+function sendEveningBrief0_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const s = getSettings_(ss), today = getTodayStr();
   if (!s.LINE_CHANNEL_TOKEN || s.EVENING_ENABLED === 'ปิด' || s.LAST_EVENING === today) return;
@@ -22,12 +23,12 @@ function sendEveningBrief() {
 }
 
 // ปุ่ม "ส่งสรุปเย็นเข้า LINE ตอนนี้" (ส่งแล้วเย็นนี้ตัวตั้งเวลาไม่ส่งซ้ำ)
-function sendEveningNow() {
+function sendEveningNow() { return withLock_(() => {
   const ss = SpreadsheetApp.getActiveSpreadsheet(), s = getSettings_(ss);
   const res = sendLine_(s, buildEvening_(ss));
   if (res.ok) setSetting_(ss, 'LAST_EVENING', getTodayStr());
   return res;
-}
+}); }
 
 // ปุ่ม "ดูตัวอย่างสรุปเย็น" ในแอป (ไม่ส่ง)
 function previewEvening() { return buildEvening_(SpreadsheetApp.getActiveSpreadsheet()); }
@@ -98,6 +99,7 @@ function buildEvening_(ss) {
     const use = {}, got = {}, fuel = [];
     readSheet_(ss, SH.SLOG).forEach(l => { if (day(l.timestamp) !== today) return; const q = Number(String(l.change_qty).replace(/,/g, '')) || 0;
       if (/^⛽ให้น้ำมัน\|/.test(String(l.note || ''))) { fuel.push(`${String(l.note).split('|')[1]} ${Math.round(-q * 10) / 10} ลิตร`); return; }
+      if (String(l.ref_log_id || '') === '⚖️ ปรับยอด') return; // นับสต็อกใหม่ ไม่ใช่ใช้/ซื้อจริง
       if (q < 0) use[l.item_name] = (use[l.item_name] || 0) - q; else if (q > 0) got[l.item_name] = (got[l.item_name] || 0) + q; });
     const fq = (n, q) => { const i = inv[n] || {}, pk = Number(i.pack_size) || 1; return pk > 1 ? `${Math.round(q / pk * 10) / 10} ${i.pack_name || i.unit || ''}` : `${Math.round(q * 10) / 10} ${i.unit || ''}`; };
     const L = [];

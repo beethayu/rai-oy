@@ -4,8 +4,11 @@
 const REM_REP_ = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'];
 // '6 เดือน' (ตัวเลข+เดือน) = ทุก N เดือน (22 พ.ย. 69 บำรุงรถตามระยะ เช่น กรองโซล่าทุก 6 เดือน) · ทำแล้ว = นับรอบใหม่จากวันที่ทำจริง
 const remRepOk_ = r => REM_REP_.indexOf(r) !== -1 || /^\d{1,2} เดือน$/.test(r);
-const REM_H_ = ['rem_id', 'created', 'date', 'time', 'text', 'repeat', 'lead_days', 'status', 'done_at'];
-const remSheet_ = ss => getOrCreate_(ss, 'Reminders', REM_H_);
+const REM_H_ = ['rem_id', 'created', 'date', 'time', 'text', 'repeat', 'lead_days', 'status', 'done_at', 'on_event'];
+// on_event (23 พ.ย. 69) = "รับรถ:<ชื่อรถ>" → ยังไม่มีวัน (date ว่าง) · กดรับรถกลับ (แชต/หน้ารถ) แล้วลงวันนั้นให้เอง (remPickup_)
+// ผู้ใช้: "วันรับรถกลับจากร้านช่างนุ อาจต้องเตือนให้เปลี่ยนแบตด้วย" แชตเดิมตั้งเป็นวันนี้
+const remSheet_ = ss => { const sh = getOrCreate_(ss, 'Reminders', REM_H_);
+  if (sh.getLastColumn() < REM_H_.length) sh.getRange(1, 1, 1, REM_H_.length).setValues([REM_H_]); return sh; };
 const remBE_ = iso => { const p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + (Number(p[0]) + 543) : getTodayStr(); };
 function remDate_(be) { const p = String(be || '').split('/'); return p.length === 3 ? new Date(Number(p[2]) - 543, Number(p[1]) - 1, Number(p[0])) : null; }
 function remFind_(sh, id) { const d = sh.getDataRange().getDisplayValues(); return { d, r: d.findIndex((row, i) => i > 0 && row[0] === String(id)) }; }
@@ -13,8 +16,16 @@ function remAdd_(ss, p, id) {
   const sh = remSheet_(ss);
   if (remFind_(sh, id).r > 0) return false;
   const rep = remRepOk_(String(p.repeat || '').trim()) ? String(p.repeat).trim() : '';
-  appendRows_(sh, [[String(id), getTodayStr(), remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '']]);
+  const ev = /^รับรถ:.+/.test(String(p.on_event || '')) ? String(p.on_event).slice(0, 80) : '';
+  appendRows_(sh, [[String(id), getTodayStr(), ev && !p.date ? '' : remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), ev ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);
   return true;
+}
+// รับรถกลับแล้ว → เตือนที่รอ "ตอนรับรถ" ของคันนี้ ลงวันนี้ (ขึ้นในแอปหน้าวันนี้ + LINE) · คืนรายการข้อความ
+function remPickup_(ss, name) {
+  const sh = remSheet_(ss), d = sh.getDataRange().getDisplayValues(), out = [];
+  const ci = REM_H_.indexOf('on_event'), di = REM_H_.indexOf('date'), si = REM_H_.indexOf('status');
+  for (let i = 1; i < d.length; i++) if (d[i][ci] === 'รับรถ:' + name && !d[i][di] && d[i][si] === 'open') { remSet_(sh, i, 'date', getTodayStr()); out.push(d[i][REM_H_.indexOf('text')]); }
+  return out;
 }
 function remSet_(sh, r, col, v) { sh.getRange(r + 1, REM_H_.indexOf(col) + 1).setNumberFormat('@').setValue(v); }
 function remDone_(ss, id) {

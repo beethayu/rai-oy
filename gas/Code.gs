@@ -713,6 +713,7 @@ function saveAssetEvent(payload) {
     appendRows_(logSheet, [['AL' + Date.now(), actDate, payload.asset_name, payload.category || '-',
       payload.event_type || payload.status, payload.log_detail || payload.issue_detail || '-',
       payload.parts_needed || payload.battery_info || '-', payload.ref_plot || '-']]);
+    if (!payload.keep_status && /พร้อมใช้|ปกติ/.test(payload.status || '')) try { remPickup_(ss, payload.asset_name); } catch (e) { console.error(e); }
     return readAll_(ss);
   });
 }

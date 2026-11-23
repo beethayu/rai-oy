@@ -4752,8 +4752,9 @@
     }
     function vehRems(a) {
       const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()].filter(Boolean);
-      return (gData.reminders || []).filter(r => r.status !== 'done' && keys.some(k => String(r.text || '').toLowerCase().includes(k)));
+      return (gData.reminders || []).filter(r => r.status !== 'done' && (r.on_event === 'รับรถ:' + a.name || keys.some(k => String(r.text || '').toLowerCase().includes(k))));
     }
+    const remPick = name => (gData.reminders || []).filter(r => r.status !== 'done' && r.on_event === 'รับรถ:' + name && !beToISO(r.date));
     function vehMaint(a) {
       const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()];
       const t0 = todayISO();
@@ -4903,7 +4904,10 @@
       const dots = id => `<button type="button" class="vh-dots${vehRowOpen === id ? ' on' : ''}" aria-label="ตัวเลือก" onclick="vehRow('${qa(id)}')">⋯</button>`;
       // นัดของคันนี้ (ไม่ซ้ำ) — ถึงวันแล้วกด "ไปแล้ว" = ลงประวัติ + ปิดนัด
       h += vehPartsCard(a);
-      const appts = vehRems(a).filter(r => !r.repeat).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
+      const pick = remPick(name);
+      if (pick.length) h += `<div class="vh-cd warn"><div class="vh-k">🔔 เตือนตอนรับรถกลับ</div>${pick.map(r => `<div class="vh-row"><div class="vh-dt"><b>🔔</b><small>ตอนรับรถ</small></div><div class="vh-tx"><div class="vh-main">${esc(String(r.text).replace(new RegExp('\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*$', 'i'), '') || r.text)}</div></div>${dots(r.rem_id)}
+          ${ACT(r.rem_id, `<button type="button" class="bigbtn bigbtn-main" onclick="vehApptDone('${qa(r.rem_id)}',1)">ทำแล้ว</button><button type="button" class="bigbtn bigbtn-out vh-del" onclick="vehApptDone('${qa(r.rem_id)}',0)">ยกเลิก</button>`)}</div>`).join('')}</div>`;
+      const appts = vehRems(a).filter(r => !r.repeat && beToISO(r.date)).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
       if (appts.length) h += `<div class="vh-cd warn"><div class="vh-k">นัด / เตือน คันนี้</div>${appts.map(r => {
         const iso = beToISO(r.date), n = dayDiff(todayISO(), iso), txt = String(r.text).replace(new RegExp('^\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*·?\\s*', 'i'), '');
         const go = /ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt) ? 'ไปแล้ว รถอยู่ร้าน' : 'ทำแล้ว';
@@ -5002,7 +5006,10 @@
       call('saveAssetEvent', [{
         asset_name: name, category: cat, status: cat === 'Worker' ? 'ปกติ' : 'พร้อมใช้',
         event_type: '✅ ซ่อมเสร็จ/พร้อมใช้', issue_detail: 'ซ่อมบำรุง/เปลี่ยนอะไหล่เสร็จเรียบร้อย', parts_needed: '-'
-      }], init);
+      }], d => { const pk = remPick(name); init(d); pickAlert(pk); });
+    }
+    // เตือนที่รอ "ตอนรับรถกลับ" → เด้งบอกตอนกดรับรถ (เซิร์ฟเวอร์ลงวันนี้ให้แล้ว ขึ้นหน้าวันนี้ด้วย)
+    function pickAlert(pk) { if (pk && pk.length) setTimeout(() => alert('🔔 อย่าลืม (ตอนรับรถกลับ)\n' + pk.map(r => '• ' + r.text).join('\n')), 300);
     }
 
     
@@ -5718,7 +5725,7 @@
         fuel: fuelTeams().map(t => fuelBal(t)).filter(Boolean).map(b => ({ team: b.team.join(' + '), text: fuelLine(b), per_day_l: r1(b.perDay), warn: b.st })),
         soil_checks: (gData.soilChecks || []).slice(-10).map(c => ({ date: beToISO(c.date), area: c.area, state: c.state, model_pct: c.model_pct, note: c.note || undefined })),
         areas: (() => { const A = {}; (gData.plots || []).forEach(p => { const l = plotLoc(p.plot_name); (A[l] = A[l] || []).push(p.plot_name); }); Object.keys(A).forEach(l => { A[l] = `${A[l].length} แปลง: ${A[l].join(', ')}`; }); return A; })(),
-        reminders: (gData.reminders || []).map(r => ({ id: r.rem_id, text: r.text, date: beToISO(r.date), repeat: r.repeat || undefined })),
+        reminders: (gData.reminders || []).map(r => ({ id: r.rem_id, text: r.text, date: beToISO(r.date), repeat: r.repeat || undefined, on_pickup: r.on_event ? r.on_event.replace(/^รับรถ:/, '') : undefined })),
         guards: (gData.guards || []).slice(-12).map(g => { const st = guardStat(g); return { area: g.area, plots: guardPlots(g), workers: g.workers, start: st.s, part: g.start_part, end: st.open ? '' : st.e, nights: st.nights, days: st.days, open: st.open }; }),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
         history: chat.msgs.slice(-8).map(m => ({ me: !!m.me, t: m.t || '' }))
@@ -6096,6 +6103,9 @@
       if (it.type === 'reminder') {
         it.text = String(it.text || '').trim(); it.time = /^\d{1,2}:\d{2}$/.test(it.time || '') ? it.time.padStart(5, '0') : ''; it.repeat = String(it.repeat || '').trim().replace(/^(\d{1,2})\s*เดือน$/, '$1 เดือน'); if (it.repeat === '1 เดือน') it.repeat = 'เดือน'; it.repeat = ['วัน', 'สัปดาห์', 'เดือน', 'ปี'].includes(it.repeat) || /^\d{1,2} เดือน$/.test(it.repeat) ? it.repeat : '';
         it.lead_days = Math.max(0, Math.round(num(it.lead_days))); it.rid = it.rid || 'R' + Date.now() + Math.random().toString(36).slice(2, 5);
+        // เตือนตอนรับรถกลับ (23 พ.ย. 69) — ไม่มีวัน รอกด "รับรถกลับแล้ว"
+        const pk = String(it.on_pickup || '').trim(), pa = pk && (gData.assets || []).find(a => a.category !== 'Worker' && (a.name === pk || eqS(a.name) === pk));
+        if (pa) { it.on_pickup = pa.name; it.date = ''; it.repeat = ''; it.lead_days = 0; return it.text ? it : null; } else delete it.on_pickup;
         return it.text && /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') ? it : null;
       }
       if (it.type === 'fuel_give') {
@@ -6181,7 +6191,7 @@
         else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
         else if (a.type === 'note' && (a.replace && ops.push({ fn: 'notedel', id: a.replace }), true)) for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
-        else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days } });
+        else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days, on_event: a.on_pickup ? 'รับรถ:' + a.on_pickup : undefined } });
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
@@ -6204,7 +6214,8 @@
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
       m.rid = m.rid || 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); // รหัสครั้งนี้ — กดซ้ำตอนเน็ตหลุด เซิร์ฟเวอร์ไม่ลงซ้ำ
       chatBusy = true; m.saving = true; chatSave(); chatRender();
-      callApi('chatApply', [ops, m.rid]).then(d => { m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; if (chatDate) { chatDate = ''; chatPvRender(); } if (chatRemId) { const rid = chatRemId; chatRemId = ''; remDo('done', rid); } init(d); if (after) setTimeout(after, 250); })
+      const pkB = ops.filter(o => o.fn === 'astatus' && o.state === 'done').flatMap(o => remPick(o.asset));
+      callApi('chatApply', [ops, m.rid]).then(d => { pickAlert(pkB); m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; if (chatDate) { chatDate = ''; chatPvRender(); } if (chatRemId) { const rid = chatRemId; chatRemId = ''; remDo('done', rid); } init(d); if (after) setTimeout(after, 250); })
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message + '\nถ้าเน็ตหลุดระหว่างรอ อาจบันทึกไปแล้ว — กดบันทึกอีกครั้งได้เลย ระบบกันไม่ให้ลงซ้ำ'))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });
     }
@@ -6245,7 +6256,8 @@
       } else if (it.type === 'rem_done') {
         h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
       } else if (it.type === 'reminder') {
-        h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))
+        if (it.on_pickup) h = `<div class="ch-t">🔔 เตือนตอนรับรถกลับ</div>` + row('เรื่อง', it.text) + row('เตือนเมื่อ', `กด "รับรถกลับแล้ว" ${eqS(it.on_pickup)}`) + `<div class="ch-cn">ยังไม่รู้วัน — ขึ้นในหน้ารถคันนี้ และเด้งเตือนตอนรับรถกลับ</div>`;
+        else h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))
           + row('เวลา', it.time ? it.time + ' น.' : '') + row('ซ้ำ', it.repeat ? repTxt(it.repeat) : '') + row('เตือนล่วงหน้า', it.lead_days ? leadTxt(it.lead_days) : '')
           + (it.date < todayISO() ? `<div class="ch-warn">วันที่นี้ผ่านไปแล้ว — ถ้าทำไปแล้วให้จดเป็นงานแทน</div>` : '');
       } else if (it.type === 'fuel_give') {

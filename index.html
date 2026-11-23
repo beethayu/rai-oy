@@ -1137,79 +1137,1008 @@
     .rtag, .ltag, .ch-chip { min-height: 44px; }
     .filter-chip { height: 44px; }
     .cal-nav { width: 44px; height: 44px; }
-    /* ===== ผังงาน (24 พ.ย. 69 รอบ G: ลูกศร เส้นแตก/รวม กิ่งทางแยก · ลองกับอ้อยตอ 14 วัน แทนคู่มือ) ===== */
-    .fc-pick { display: flex; gap: 8px; align-items: center; margin: 2px 0 8px; }
-    .fc-pick select { flex: 1; min-width: 0; min-height: 48px; font-size: 16px; font-weight: 600; border: 1.5px solid #1F5E3B; border-radius: 12px; padding: 0 12px; background: #fff; color: #1F2A24; }
-    .fc-pick button { flex: none; width: 48px; height: 48px; border: 1.5px solid #C9D3CC; border-radius: 12px; background: #fff; font-size: 20px; }
-    .fc-pick button.on { background: #E7F4EB; border-color: #1F5E3B; }
-    .fc-sum { background: #FFF6E5; border: 1.5px solid #E9A23B; border-radius: 14px; padding: 8px 12px; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
-    .fc-sum > div { flex: 1; min-width: 0; font-size: 14px; line-height: 1.35; } .fc-sum b { font-size: 15px; }
-    .fc-sum button { flex: none; min-height: 44px; border: 0; border-radius: 12px; background: #B4630B; color: #fff; font-weight: 700; font-size: 15px; padding: 0 12px; }
-    .fc-sum.calm { background: #EEF5F0; border-color: #9BC7AE; }
-    .fc-zone { position: relative; border-radius: 18px; padding: 34px 8px 10px; }
-    .fc-zone.z0 { background: #EAF3EC; } .fc-zone.z1 { background: #F3F0E6; }
-    .fc-zt { position: absolute; left: 10px; top: 7px; font-size: 14px; font-weight: 700; color: #1F5E3B; }
-    .fc-zt span { font-weight: 500; color: #4A524D; margin-left: 4px; }
-    /* ลูกศรลง (เส้นหนา + หัวสามเหลี่ยม) · span = ป้ายช่วงวันบนเส้น */
-    .fc-ar { position: relative; height: 30px; display: flex; align-items: center; justify-content: center; }
-    .fc-ar::before { content: ''; position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 7px; width: 3px; background: #3F5F4C; }
-    .fc-ar::after { content: ''; position: absolute; left: calc(50% - 7px); bottom: 0; border: 7px solid transparent; border-bottom: 0; border-top: 8px solid #3F5F4C; }
-    .fc-ar.tall { height: 40px; }
-    .fc-ar span, .fc-tag { position: relative; z-index: 1; background: #fff; border: 1.5px solid #3F5F4C; color: #1F2A24; border-radius: 999px; font-size: 13px; font-weight: 700; padding: 1px 9px; margin-top: -6px; }
-    /* แตก 2 ทาง / รวม 2 ทาง (ตรงกลางคอลัมน์ 25% / 75%) */
-    .fc-fk, .fc-mg { position: relative; height: 30px; }
-    .fc-fk i, .fc-mg i { position: absolute; background: #3F5F4C; }
-    .fc-fk .a { left: calc(50% - 1.5px); top: 0; height: 12px; width: 3px; }
-    .fc-fk .h, .fc-mg .h { left: calc(25% - 1px); right: calc(25% - 1px); height: 3px; }
-    .fc-fk .h { top: 11px; } .fc-mg .h { top: 13px; }
-    .fc-fk i.l, .fc-fk i.r { top: 11px; bottom: 7px; width: 3px; }
-    .fc-fk i.l { left: calc(25% - 3px); } .fc-fk i.r { left: 75%; }
-    .fc-fk b { position: absolute; bottom: 0; width: 0; height: 0; border: 7px solid transparent; border-bottom: 0; border-top: 8px solid #3F5F4C; }
-    .fc-fk b.l { left: calc(25% - 8.5px); } .fc-fk b.r { left: calc(75% - 5.5px); }
-    .fc-fk.yn { height: 50px; } .fc-fk em { position: absolute; top: 18px; white-space: nowrap; font-style: normal; font-size: 13px; font-weight: 700; color: #5B2B78; background: #fff; border: 1.5px solid #8E6BAF; border-radius: 999px; padding: 0 8px; transform: translateX(-50%); z-index: 1; }
-    .fc-fk em.l { left: 25%; } .fc-fk em.r { left: 75%; }
-    .fc-mg .l, .fc-mg .r { top: 0; height: 15px; width: 3px; } .fc-mg .l { left: calc(25% - 3px); } .fc-mg .r { left: 75%; }
-    .fc-mg .a { left: calc(50% - 1.5px); top: 13px; bottom: 0; width: 3px; }
-    .fc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
-    .fc-col { display: flex; flex-direction: column; }
-    .fc-fill { flex: 1; min-height: 0; position: relative; } .fc-fill::before { content: ''; position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 0; width: 3px; background: #3F5F4C; }
-    .fc-skipc { display: flex; align-items: center; justify-content: center; min-height: 70px; border: 2px dashed #B8C2BB; border-radius: 14px; color: #5E6A63; font-size: 14px; font-weight: 600; text-align: center; padding: 6px; background: #ffffffa0; }
-    .off > .fc-n, .off > .fc-skipc, .fc-col.off > .fc-n, .fc-col.off > .fc-skipc { opacity: .4; }
-    /* ทางแยกหลายทาง: เส้นหลักชิดซ้าย แตกกิ่งเข้าแต่ละทาง · รวมกลับทางขวา */
-    .fc-br { position: relative; padding: 0 22px 0 30px; }
-    .fc-bo { position: relative; padding-bottom: 12px; }
-    .fc-bo::before { content: ''; position: absolute; left: -19px; width: 3px; top: 0; bottom: 0; background: #3F5F4C; }
-    .fc-bo:last-child::before { bottom: auto; height: 17px; }
-    .fc-bl { position: relative; display: inline-block; font-size: 14px; font-weight: 700; color: #5B2B78; background: #fff; border: 1.5px solid #8E6BAF; border-radius: 999px; padding: 3px 12px; margin-bottom: 6px; }
-    .fc-bl::before { content: ''; position: absolute; left: -20px; top: calc(50% - 1.5px); width: 19px; height: 3px; background: #3F5F4C; }
-    .fc-bo.on .fc-bl { background: #6B2E86; color: #fff; border-color: #6B2E86; }
-    .fc-bo.off .fc-bl, .fc-bo.off .fc-n, .fc-bo.off .fc-go { opacity: .4; }
-    .fc-bo::after { content: ''; position: absolute; right: -14px; width: 3px; top: 0; bottom: 0; background: #3F5F4C; }
-    .fc-bo:first-child::after { top: auto; bottom: 0; height: 36px; }
-    .fc-bo > .fc-mr { position: absolute; right: -14px; bottom: 33px; width: 14px; height: 3px; background: #3F5F4C; }
-    .fc-go { font-size: 14px; color: #5E6A63; padding: 4px 0 8px; }
-    .fc-bm { position: relative; height: 30px; margin: 0 22px 0 30px; }
-    .fc-bm::before { content: ''; position: absolute; left: calc(50% - 1.5px); right: -14px; top: 0; height: 3px; background: #3F5F4C; }
-    .fc-bm i { position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 7px; width: 3px; background: #3F5F4C; }
-    .fc-bm b { position: absolute; left: calc(50% - 7px); bottom: 0; border: 7px solid transparent; border-bottom: 0; border-top: 8px solid #3F5F4C; }
-    /* กล่องงาน */
-    .fc-n { position: relative; background: #fff; border: 2px solid #C9D3CC; border-radius: 14px; padding: 8px 11px; cursor: pointer; color: #1F2A24; }
-    .fc-n .t { font-size: 16px; font-weight: 700; line-height: 1.3; padding-right: 2px; }
-    .fc-n .d { font-size: 13.5px; font-weight: 600; color: #3E4A43; margin-top: 1px; }
-    .fc-n .d i { font-style: normal; font-weight: 700; }
-    .fc-n .rp { float: right; font-size: 12.5px; font-weight: 700; color: #0F6B62; background: #E2F4F1; border-radius: 999px; padding: 1px 7px; margin: 2px 0 0 6px; }
-    .fc-n .p { display: inline-block; margin-top: 5px; font-size: 13.5px; font-weight: 700; border-radius: 999px; padding: 2px 9px; background: #EEF1EF; color: #4A524D; }
-    .fc-n .x { font-size: 14px; color: #3E4A43; margin-top: 6px; border-top: 1px dashed #D6DDD8; padding-top: 6px; }
-    .fc-n.done { background: #E7F4EB; border-color: #1F7A45; } .fc-n.done .p { background: #1F7A45; color: #fff; }
-    .fc-n.due { background: #FFF6E5; border-color: #E9A23B; border-width: 3px; } .fc-n.due .p { background: #B4630B; color: #fff; }
-    .fc-n.ask .p { background: #6B2E86; color: #fff; } .fc-n.ask { border-color: #8E6BAF; border-width: 3px; }
-    .fc-n.skip, .fc-n.hold { opacity: .45; } .fc-n.skip .t { text-decoration: line-through; }
-    .fc-n.nolog { border-color: #A9B0AB; } .fc-n.nolog .p { background: #E9DFC8; color: #5E4E2A; }
-    .fc-n.note { background: #F8F9F7; border-width: 1.5px; } .fc-n.note .t { font-size: 15px; }
-    .fc-n .qh { margin: -8px -11px 7px; padding: 6px 11px; border-radius: 12px 12px 0 0; background: #6B2E86; color: #fff; font-size: 14px; font-weight: 700; }
-    .fc-ans { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .fc-ans button { min-height: 44px; flex: 1 1 auto; border: 1.5px solid #6B2E86; background: #fff; color: #5B2B78; border-radius: 10px; font-weight: 700; }
-    .fc-ans button.on { background: #6B2E86; color: #fff; }
+    /* ===== ผังงานอ้อยตอ (24 พ.ย. 69 รอบ H · ออกแบบ Gemini · ทุก rule อยู่ใต้ #fcx ไม่ชนของแอป) ===== */
+  #fcx {
+    --brand: #1F5E3B;
+    --brand-dark: #15452A;
+    --brand-soft: #E8F3EC;
+    --brand-mid: #A8CBB5;
+    --bg: #F4F5F1;
+    --surface: #FFFFFF;
+    --surface-note: #EEF4F0;
+    --ink: #16241B;
+    --ink-2: #46594E;
+    --ink-3: #6D7B72;
+    --line: #B8C6BC;
+    --line-soft: #D3DDD6;
+    --border: #DCE3DC;
+    --ask: #6D28D9;
+    --ask-soft: #F3EEFF;
+    --ask-border: #C4B5FD;
+    --due: #C2410C;
+    --due-soft: #FFF1E6;
+    --due-border: #FDBA74;
+    --nolog-bg: #F6EFE0;
+    --nolog-ink: #7A5919;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+  }
+  #fcx, #fcx * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #fcx { width: 100%; position: relative; padding-bottom: 16px; margin: 0 -2px; }
+  
+  #fcx .top-dock {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(244, 245, 241, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid rgba(31, 94, 59, 0.1);
+  }
+  #fcx .plot-trigger {
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--brand);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: left;
+    box-shadow: var(--shadow);
+    transition: background 0.15s, transform 0.1s;
+  }
+  #fcx .plot-trigger:active { transform: scale(0.99); background: var(--brand-soft); }
+  #fcx .plot-trigger-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+  }
+  #fcx .plot-trigger-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--brand);
+    flex-shrink: 0;
+  }
+  #fcx .plot-trigger-dot.has-alert { background: var(--ask); box-shadow: 0 0 0 3px var(--ask-soft); }
+  #fcx .plot-trigger-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #fcx .plot-trigger-meta {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--brand);
+    background: var(--brand-soft);
+    padding: 2px 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  #fcx .plot-trigger-chev {
+    flex-shrink: 0;
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+  }
+  #fcx .stage-nav {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  #fcx .stage-nav::-webkit-scrollbar { display: none; }
+  #fcx .stage-chip {
+    min-height: 44px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  #fcx .stage-chip:active { transform: scale(0.97); }
+  #fcx .stage-chip.is-current {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+  #fcx .stage-chip .chip-alert {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ask);
+    display: inline-block;
+  }
+  #fcx .stage-chip.is-current .chip-alert { background: #FDE047; }
+  #fcx .plot-summary {
+    margin: 10px 12px 2px;
+    padding: 11px 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  #fcx .plot-summary.has-action { border-left-color: var(--ask); }
+  #fcx .summary-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  #fcx .summary-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  #fcx .summary-stage-pill {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    background: var(--brand-soft);
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+  #fcx .summary-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 7px;
+    flex-wrap: wrap;
+  }
+  #fcx .summary-counts {
+    font-size: 13px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  #fcx .count-item { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+  #fcx .count-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  #fcx .count-dot.done { background: var(--brand); }
+  #fcx .count-dot.ask { background: var(--ask); }
+  #fcx .count-dot.due { background: var(--due); }
+  #fcx .jump-btn {
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--brand-mid);
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  #fcx .jump-btn.is-ask {
+    border-color: var(--ask-border);
+    background: var(--ask-soft);
+    color: var(--ask);
+  }
+  #fcx .jump-btn:active { transform: scale(0.97); }
+  #fcx .legend-bar {
+    margin: 10px 12px 2px;
+    padding: 8px 11px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  #fcx .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  #fcx .sym-diamond {
+    width: 10px;
+    height: 10px;
+    background: var(--ask);
+    transform: rotate(45deg);
+    border-radius: 2px;
+    display: inline-block;
+  }
+  #fcx .sym-arrow {
+    font-weight: 700;
+    color: var(--brand);
+  }
+  #fcx .sym-note {
+    width: 12px;
+    height: 10px;
+    border: 1.5px dashed #8AA794;
+    background: var(--surface-note);
+    border-radius: 3px;
+    display: inline-block;
+  }
+  #fcx .flow-canvas {
+    position: relative;
+    padding: 12px 12px 24px;
+  }
+  #fcx .flow-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+  }
+  #fcx .flow-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  #fcx .stage-banner-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 22px 0 18px;
+    scroll-margin-top: 120px;
+  }
+  #fcx .stage-banner-wrap:first-child {
+    margin-top: 4px;
+  }
+  #fcx .stage-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #E5ECE6;
+    border: 1px solid #C6D5CA;
+    color: var(--brand-dark);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  #fcx .stage-banner .stage-sub {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  #fcx .stage-banner.is-current-stage {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(31, 94, 59, 0.22);
+  }
+  #fcx .stage-banner.is-current-stage .stage-sub {
+    color: #D7EFE0;
+  }
+  #fcx .here-marker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 12px;
+    scroll-margin-top: 130px;
+  }
+  #fcx .here-marker-line {
+    flex: 1;
+    height: 1.5px;
+    background: repeating-linear-gradient(90deg, var(--brand) 0 6px, transparent 6px 10px);
+    opacity: 0.7;
+  }
+  #fcx .here-marker-pill {
+    position: relative;
+    z-index: 3;
+    background: var(--brand);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(31, 94, 59, 0.24);
+    white-space: nowrap;
+  }
+  #fcx .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #86EFAC;
+    box-shadow: 0 0 0 0 rgba(134, 239, 172, 0.8);
+    animation: fcxPulse 1.8s infinite;
+  }
+  @keyframes fcxPulse {
+    0% { box-shadow: 0 0 0 0 rgba(134, 239, 172, 0.75); }
+    70% { box-shadow: 0 0 0 6px rgba(134, 239, 172, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(134, 239, 172, 0); }
+  }
+  #fcx .fc-block {
+    position: relative;
+    margin-bottom: 22px;
+  }
+  #fcx .fc-block:last-child {
+    margin-bottom: 4px;
+  }
+  #fcx .junction-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10px;
+    position: relative;
+  }
+  #fcx .junction-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--line);
+    position: relative;
+    z-index: 3;
+  }
+  #fcx .junction-dot.is-active {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+  #fcx .fc-node {
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 11px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    transition: transform 0.1s, border-color 0.15s, background 0.15s;
+  }
+  #fcx .fc-node:active { transform: scale(0.985); }
+  #fcx .fc-node.type-ask {
+    border-color: var(--ask-border);
+    background: #FFFFFF;
+  }
+  #fcx .fc-node.type-note {
+    background: var(--surface-note);
+    border: 1.5px dashed #A8BEB0;
+    box-shadow: none;
+  }
+  #fcx .fc-node.st-done {
+    border-color: var(--brand);
+    border-left-width: 4px;
+    background: #FFFFFF;
+  }
+  #fcx .fc-node.st-ans {
+    border-color: var(--brand);
+    border-left-width: 4px;
+    background: #FFFFFF;
+  }
+  #fcx .fc-node.st-due {
+    border-color: var(--due);
+    border-left-width: 4px;
+    background: #FFFBF7;
+  }
+  #fcx .fc-node.st-ask {
+    border-color: var(--ask);
+    border-width: 2px;
+    background: #FCF9FF;
+    box-shadow: 0 2px 10px rgba(109, 40, 217, 0.12);
+  }
+  #fcx .fc-node.st-skip {
+    opacity: 0.48;
+    border-style: dashed;
+    border-color: #C7D0C9;
+    background: #F6F7F4;
+    box-shadow: none;
+  }
+  #fcx .fc-node.st-hold {
+    border-style: dashed;
+    border-color: var(--ask-border);
+    background: #FAF8FF;
+  }
+  #fcx .fc-node.st-nolog {
+    border-color: #E2DAC6;
+    background: #FCFBF8;
+  }
+  #fcx .fc-node.st-none {
+    border-color: #DFE5DF;
+    background: #FAFBFA;
+  }
+  #fcx .fc-node.st-note.is-now {
+    border-style: solid;
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+  #fcx .single-wrap {
+    max-width: 100%;
+  }
+  #fcx .node-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+  }
+  #fcx .node-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #fcx .ico-diamond {
+    width: 11px;
+    height: 11px;
+    background: var(--ask);
+    transform: rotate(45deg);
+    border-radius: 2px;
+    margin: 3px 2px 0 2px;
+  }
+  #fcx .st-ans .ico-diamond { background: var(--brand); }
+  #fcx .ico-circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--brand);
+    background: #FFFFFF;
+    margin-top: 4px;
+  }
+  #fcx .st-done .ico-circle { background: var(--brand); }
+  #fcx .st-due .ico-circle { border-color: var(--due); background: var(--due); }
+  #fcx .st-skip .ico-circle { border-color: #A6B2A9; }
+  #fcx .st-none .ico-circle, #fcx .st-nolog .ico-circle { border-color: #97A79C; }
+  #fcx .ico-info {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #D5E4D9;
+    color: var(--brand-dark);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 1px;
+  }
+  #fcx .node-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.32;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  #fcx .st-skip .node-title {
+    text-decoration: line-through;
+    color: var(--ink-3);
+  }
+  #fcx .node-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  #fcx .node-days {
+    font-size: 13px;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  #fcx .mini-tag {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: #EDF2EE;
+    color: var(--brand-dark);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  #fcx .mini-tag.is-branch {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+  #fcx .node-status-row {
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  #fcx .st-pill {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    line-height: 1.3;
+  }
+  #fcx .st-pill.done { background: var(--brand-soft); color: var(--brand-dark); }
+  #fcx .st-pill.ans { background: var(--brand-soft); color: var(--brand-dark); }
+  #fcx .st-pill.due { background: var(--due-soft); color: var(--due); }
+  #fcx .st-pill.ask { background: var(--ask-soft); color: var(--ask); }
+  #fcx .st-pill.hold { background: #F0EBF8; color: #5B3E8C; font-weight: 500; }
+  #fcx .st-pill.nolog { background: var(--nolog-bg); color: var(--nolog-ink); font-weight: 500; }
+  #fcx .st-pill.wait { background: #EEF2EF; color: var(--ink-2); font-weight: 500; }
+  #fcx .st-pill.skip { background: #ECEFE9; color: var(--ink-3); font-weight: 500; }
+  #fcx .st-pill.note { background: rgba(255,255,255,0.85); color: var(--brand-dark); font-weight: 500; }
+  #fcx .st-none-txt {
+    font-size: 13px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  #fcx .inline-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 3px;
+  }
+  #fcx .inline-opt-chip {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--ask-border);
+    background: var(--ask-soft);
+    color: var(--ask);
+  }
+  #fcx .inline-opt-chip.is-skip-opt {
+    border-color: var(--border);
+    background: #F4F5F3;
+    color: var(--ink-2);
+  }
+  #fcx .inline-opt-chip.is-chosen {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+  #fcx .fork-decision-wrap {
+    display: flex;
+    justify-content: center;
+  }
+  #fcx .fork-decision-wrap .fc-node {
+    width: 100%;
+  }
+  #fcx .fork-branches {
+    display: grid;
+    gap: 6px;
+    margin-top: 26px;
+    margin-bottom: 18px;
+    align-items: stretch;
+  }
+  #fcx .fork-branches.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #fcx .fork-branches.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #fcx .fork-branches.cols-many { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
+  #fcx .fork-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+  #fcx .edge-label-pill {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--ask-soft);
+    border: 1px solid var(--ask-border);
+    color: var(--ask);
+    margin-bottom: 6px;
+    text-align: center;
+    line-height: 1.25;
+    max-width: 100%;
+    word-break: break-word;
+  }
+  #fcx .edge-label-pill.is-chosen {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #FFFFFF;
+  }
+  #fcx .edge-label-pill.is-dim {
+    background: #ECEFE9;
+    border-color: #D2DBD4;
+    color: var(--ink-3);
+    opacity: 0.7;
+  }
+  #fcx .fork-branches.cols-3 .fc-node {
+    padding: 8px 7px;
+    border-radius: 12px;
+    flex: 1;
+  }
+  #fcx .fork-branches.cols-3 .node-head {
+    gap: 4px;
+  }
+  #fcx .fork-branches.cols-3 .node-icon {
+    display: none;
+  }
+  #fcx .fork-branches.cols-3 .node-title {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  #fcx .fork-branches.cols-3 .st-pill {
+    padding: 2px 6px;
+    font-size: 13px;
+  }
+  #fcx .parallel-lanes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 18px;
+    align-items: start;
+  }
+  #fcx .lane-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+  }
+  #fcx .lane-caption {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-align: center;
+    margin-bottom: 6px;
+    padding: 1px 6px;
+    background: var(--bg);
+    align-self: center;
+    border-radius: 6px;
+  }
+  #fcx .lane-caption.is-chain { color: var(--brand-dark); }
+  #fcx .lane-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  #fcx .lane-indep-gap {
+    height: 12px;
+    position: relative;
+  }
+  #fcx .chain-gap {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 3;
+  }
+  #fcx .chain-offset-pill {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    background: #FFFFFF;
+    border: 1.25px solid var(--brand-mid);
+    padding: 1px 8px;
+    border-radius: 999px;
+    line-height: 1.35;
+    box-shadow: 0 1px 2px rgba(20, 46, 30, 0.06);
+  }
+  #fcx .terminal-endpoints {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 26px;
+  }
+  #fcx .term-pill-btn {
+    min-height: 48px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: all 0.15s;
+  }
+  #fcx .term-pill-btn:active { transform: scale(0.98); }
+  #fcx .term-pill-btn .term-sub {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+  #fcx .term-pill-btn.is-chosen {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #FFFFFF;
+  }
+  #fcx .term-pill-btn.is-chosen .term-sub { color: #D7EFE0; }
+  #fcx .term-pill-btn.is-dim {
+    opacity: 0.45;
+    border-style: dashed;
+  }
+  #fcx .sheet-backdrop {
+    position: fixed; z-index: 2100 !important;
+    inset: 0;
+    background: rgba(16, 32, 22, 0.45);
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  #fcx .sheet-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #fcx .sheet-panel {
+    width: 100%;
+    max-width: 390px;
+    max-height: 84dvh;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
+    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.16);
+  }
+  #fcx .sheet-backdrop.open .sheet-panel {
+    transform: translateY(0);
+  }
+  #fcx .sheet-handle {
+    width: 38px;
+    height: 4px;
+    border-radius: 999px;
+    background: #D0D8D2;
+    margin: 10px auto 4px;
+    flex-shrink: 0;
+  }
+  #fcx .sheet-header {
+    padding: 6px 14px 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  #fcx .sheet-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  #fcx .sheet-subtitle {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-top: 2px;
+  }
+  #fcx .sheet-close {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: #EFF3F0;
+    color: var(--ink);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  #fcx .sheet-close:active { background: #E0E7E2; }
+  #fcx .sheet-body {
+    padding: 14px 16px 24px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #fcx .detail-box {
+    padding: 11px 13px;
+    border-radius: 12px;
+    background: #F7F9F7;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--ink);
+  }
+  #fcx .detail-box.is-branch {
+    background: #FFFBEB;
+    border-color: #FCD34D;
+  }
+  #fcx .detail-box.is-ask {
+    background: var(--ask-soft);
+    border-color: var(--ask-border);
+  }
+  #fcx .detail-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-bottom: 4px;
+  }
+  #fcx .detail-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #fcx .detail-chip {
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #E8EFEA;
+    color: var(--brand-dark);
+    font-weight: 500;
+  }
+  #fcx .answer-btn-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  #fcx .answer-opt-btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-align: left;
+  }
+  #fcx .answer-opt-btn:active { transform: scale(0.99); }
+  #fcx .answer-opt-btn.selected {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #FFFFFF;
+  }
+  #fcx .answer-opt-sub {
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+  #fcx .reset-ans-btn {
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  #fcx .plot-item-btn {
+    width: 100%;
+    min-height: 54px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  #fcx .plot-item-btn:active { background: var(--brand-soft); }
+  #fcx .plot-item-btn.active {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+  #fcx .plot-item-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  #fcx .plot-item-sub {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-top: 2px;
+  }
+  #fcx .plot-item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  #fcx .plot-badge-age {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    background: #E8F1EB;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  #fcx .plot-badge-alert {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ask);
+    background: var(--ask-soft);
+    padding: 1px 8px;
+    border-radius: 999px;
+  }
+  #fcx .fcx-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 999px;
+    z-index: 80;
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  #fcx .fcx-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+    #fcx .top-dock { top: -16px; background: #F4F5F1; margin: 0 -12px; padding-left: 14px; padding-right: 14px; }
+    #fcx .ico-info { display: inline-flex; align-items: center; justify-content: center; }
     .fc-alt { display: block; text-align: center; margin: 14px 0 4px; color: #5E6A63; font-size: 14px; text-decoration: underline; }
   </style>
 </head>
@@ -7750,97 +8679,1240 @@ Export.table.toDrive({
       });
       return segs;
     }
-    // ===== 🗺️ ผังงาน (23–24 พ.ย. 69) แทนคู่มือ เฉพาะอ้อยตอก่อน ลอง 14 วัน =====
-    // วาดเองจากขั้นตอน (gdRows) ไม่มีตำแหน่งตายตัว: แก้ขั้นตอนในแอป ผังตามเอง · สถานะแปลง = flStat ชุดเดียวกับหน้า "วันนี้"
-    // รอบ G (รีวิว Gemini "ไม่เหมือน flowchart"): ทุกบล็อกรวมกลับเส้นกลางก่อนบล็อกถัดไป → เส้นไม่พันกันแม้แก้ขั้นตอน
-    //   บล็อก: เดี่ยว · คู่ (ช่วงวันซ้อน แตก 2 → รวม) · ถามทำ/ไม่ทำ (แตก 2 ขา) · ถามแยกหลายทาง (กิ่งชิดซ้าย รวมขวา)
-    //   ขั้น "ทำต่อจาก" (af) ต่อในคอลัมน์เดียวกับแม่ + ป้าย +a–b วัน บนเส้น · การ์ดไม่เกิน 3 บรรทัด แตะ = รายละเอียด
-    let fcPid = '', fcList = false, fcStage = false;
-    const fcKids = (steps, s) => steps.some(x => x.w && x.w.a === s.id);
-    const fcYesNo = (steps, s) => s.k === 'ask' && !fcKids(steps, s) && (s.o || []).some(o => o.go === 'skip') && (s.o || []).some(o => o.go === 'do');
-    const fcAd = s => { const ad = Array.isArray(s.ad) ? s.ad : [0, 7]; return `+${+ad[0] || 0}–${+ad[1] || 0} วัน`; };
-    const fcAr = (lbl, tall) => `<div class="fc-ar${tall ? ' tall' : ''}">${lbl ? `<span>${esc(lbl)}</span>` : ''}</div>`;
-    function fcHtml(steps) {
-      const plots = flPlots(flKey).slice().sort((a, b) => String(a.plot_name).localeCompare(String(b.plot_name), 'th'));
-      const p = plots.find(x => x.plot_id === fcPid) || null;
-      let h = `<div class="fc-pick"><select onchange="fcPid=this.value;gdOpen={};flRender();setTimeout(fcGoDue,60)"><option value="">📖 ผังรวม (ยังไม่เลือกแปลง)</option>${plots.map(x => { const c = flCtx(x); return `<option value="${x.plot_id}"${x.plot_id === fcPid ? ' selected' : ''}>${esc(x.plot_name)}${c ? ` · ${c.ctx.pre ? 'รื้อตอ' : (c.ctx.age < 0 ? 'อีก ' + -c.ctx.age : c.ctx.age) + ' วัน'}` : ''}</option>`; }).join('')}</select>
-        <button type="button" class="${fcStage ? 'on' : ''}" aria-label="รูประยะอ้อย" onclick="fcStage=!fcStage;flRender()">📏</button></div>`;
-      if (p) {
-        const c = flCtx(p), list = flDue(p).map(x => x.n).concat(flAsks(p).map(x => '❓ ' + x.n)), ph = c && !c.ctx.pre ? FL_PH[flPhase(c.ctx.age)] : null;
-        h += `<div class="fc-sum${list.length ? '' : ' calm'}"><div><b>${c ? (c.ctx.pre ? 'รอรื้อตอ' : `${flBase()}มา ${c.ctx.age} วัน${ph ? ' · ' + ph[1] : ''}`) : ''}</b><br>${list.length ? `ถึงคิว: ${esc(list.join(' · '))}` : 'ตอนนี้ไม่มีงานถึงคิว'}<br><span style="color:#5E4E2A">ไม่ได้จด = ช่วง มิ.ย.–ต.ค. 69 ที่ไม่ได้ลงแอป</span></div>${list.length ? `<button type="button" onclick="fcGoDue()">ไปจุดถึงคิว ↓</button>` : ''}</div>`;
-      }
-      if (fcStage) h += flStageHtml(true);
-      const segs = gdRows(steps);
-      segs.forEach((sg, zi) => {
-        // 1) แบ่งบล็อก
-        const used = new Set(), B = [], win = it => it.s.af ? null : [it.s.f, it.s.t];
-        sg.items.forEach((it, i) => {
-          if (used.has(it)) return; used.add(it);
-          const s = it.s;
-          if (s.k === 'ask' && fcKids(steps, s)) { const kids = sg.items.filter(x => x.s.w && x.s.w.a === s.id); kids.forEach(x => used.add(x)); B.push({ br: it, kids }); return; }
-          if (fcYesNo(steps, s)) { B.push({ yn: it }); return; }
-          const nx = sg.items.slice(i + 1).find(x => !used.has(x)), a = win(it);
-          const ok = x => x && !(x.s.k === 'ask') && !(x.s.w && x.s.w.a) && x.s.k !== 'note';
-          if (ok(it) && ok(nx)) { const b = win(nx); if (a && b && a[0] <= b[1] && b[0] <= a[1]) { used.add(nx); B.push({ cols: [[it], [nx]] }); return; } }
-          B.push({ one: it });
-        });
-        // 2) ขั้น "ทำต่อจาก" ไปต่อท้ายคอลัมน์ของแม่ (ถ้าแม่อยู่ในบล็อกคู่)
-        for (let k = B.length - 1; k >= 0; k--) {
-          const b = B[k]; if (!b.one || !b.one.s.af || b.one.s.k === 'ask') continue;
-          const host = B.find(x => x.cols && x.cols.some(c => c[c.length - 1].s.id === b.one.s.af));
-          if (host) { host.cols.find(c => c[c.length - 1].s.id === b.one.s.af).push(b.one); B.splice(k, 1); }
+    const FCX_BODY = "<div id=\"fcx\">\n  <!-- Sticky Controls (designed to sit below existing green header + tabs) -->\n  <div class=\"top-dock\">\n    <button type=\"button\" class=\"plot-trigger\" id=\"plotTriggerBtn\" aria-label=\"เลือกแปลงอ้อยตอ\">\n      <span class=\"plot-trigger-main\">\n        <span class=\"plot-trigger-dot\" id=\"plotTriggerDot\"></span>\n        <span class=\"plot-trigger-label\" id=\"plotTriggerLabel\">ผังรวม (ยังไม่เลือกแปลง)</span>\n      </span>\n      <span class=\"plot-trigger-meta\" id=\"plotTriggerMeta\">17 ขั้น</span>\n      <span class=\"plot-trigger-chev\" aria-hidden=\"true\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\">\n          <path d=\"M5.5 7.75L10 12.25L14.5 7.75\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n        </svg>\n      </span>\n    </button>\n    <div class=\"stage-nav\" id=\"stageNav\" role=\"navigation\" aria-label=\"ข้ามไประยะอ้อย\"></div>\n  </div>\n\n  <!-- Contextual Summary or Master Legend -->\n  <div id=\"contextArea\"></div>\n\n  <!-- Auto-Rendered Flowchart Canvas -->\n  <div class=\"flow-canvas\" id=\"flowCanvas\">\n    <svg class=\"flow-svg\" id=\"flowSvg\" aria-hidden=\"true\"></svg>\n    <div class=\"flow-content\" id=\"flowContent\"></div>\n  </div>\n<!-- Shared Bottom Sheet (Plot Picker & Step Details/Answer) -->\n<div class=\"sheet-backdrop\" id=\"sheetBackdrop\" role=\"dialog\" aria-modal=\"true\" aria-hidden=\"true\">\n  <div class=\"sheet-panel\" id=\"sheetPanel\">\n    <div class=\"sheet-handle\"></div>\n    <div class=\"sheet-header\">\n      <div>\n        <div class=\"sheet-title\" id=\"sheetTitle\"></div>\n        <div class=\"sheet-subtitle\" id=\"sheetSubtitle\"></div>\n      </div>\n      <button type=\"button\" class=\"sheet-close\" id=\"sheetCloseBtn\" aria-label=\"ปิด\">✕</button>\n    </div>\n    <div class=\"sheet-body\" id=\"sheetBody\"></div>\n  </div>\n</div>\n\n<div class=\"fcx-toast\" id=\"fcxToast\"></div>\n</div>";
+    // ===== 🗺️ ผังงานอ้อยตอ (24 พ.ย. 69 รอบ H) — ออกแบบโดย Gemini (ratoon-flowchart.html) Claude ย้ายเข้าแอป =====
+    // วาดจากข้อมูลล้วน (ไม่มี id ขั้นตายตัว): ทางแยก w → fork · ask do/skip → ชิปในกล่อง · af → สายต่อเนื่อง · ช่วงวันซ้อน ≥35% → 2 เลน
+    // เส้น = SVG วัดตำแหน่งจริงหลังวาด · ข้อมูลสด: fcData() จาก flGet/flStat (ชุดเดียวกับหน้าวันนี้) · ตอบ = flAnswer · เลือกแปลง = fcPid
+    let fcPid = '', fcList = false;
+    function fcData() {
+      const steps = JSON.parse(JSON.stringify(flGet('อ้อยตอ')));
+      const plots = flPlots('อ้อยตอ').slice().sort((a, b) => String(a.plot_name).localeCompare(String(b.plot_name), 'th')).map(p => {
+        const c = flCtx(p), age = c ? c.ctx.age : 0;
+        return { plot_id: p.plot_id, name: p.plot_name, rai: p.area_rai, age_days: age, stage: c && c.ctx.pre ? 'รอรื้อตอ' : FL_PH[flPhase(age)][1],
+          steps: Object.fromEntries(steps.map(s => { let r = {}; try { r = flStat(s, p); } catch (e) {} return [s.id, { st: r.st, txt: r.txt, answer: r.a ? r.a.v : undefined }]; })) };
+      });
+      return { steps, plots };
+    }
+    function fcHtml() {
+      setTimeout(() => { try { fcxInit(fcData(), fcPid); } catch (e) { console.error(e); } }, 0);
+      return FCX_BODY + `<a href="#" class="fc-alt" onclick="event.preventDefault();fcList=true;flRender()">ดูแบบรายการเดิม</a>`;
+    }
+    function fcxInit(RATOON_DATA, PID) {
+
+      // =========================================================================
+      // 1. EMBEDDED DATA (ratoon-data.json — 100% verbatim)
+      //    แก้ไข/เพิ่ม/ลบขั้นตอนใน RATOON_DATA.steps ได้เลย ผังจะวาดใหม่ให้อัตโนมัติ
+      // =========================================================================
+      // =========================================================================
+      // 2. GENERIC STAGE DEFINITIONS (Pure agronomic day thresholds — no step IDs)
+      // =========================================================================
+      const STAGES = [
+        { key: 'sprout', name: 'ระยะงอก',       label: '0–1.5 เดือน',   min: 0,   max: 45 },
+        { key: 'tiller', name: 'ระยะแตกกอ',     label: '1.5–4 เดือน',   min: 46,  max: 120 },
+        { key: 'elong',  name: 'ระยะย่างปล้อง', label: '4–8 เดือน',     min: 121, max: 240 },
+        { key: 'mature', name: 'ระยะสุกแก่',    label: '8 เดือน – ตัด', min: 241, max: 9999 }
+      ];
+
+      const state = {
+        selectedPlotId: PID || null, // null = ผังรวม (Master view)
+        ast: null
+      };
+
+      // =========================================================================
+      // 3. PURE DATA-DRIVEN FLOWCHART LAYOUT ENGINE (Zero hardcoded step IDs!)
+      // =========================================================================
+      function buildFlowAST(steps) {
+        const stepMap = new Map(steps.map(s => [s.id, s]));
+
+        // Rule 1: Identify Decision-Branch Children via `w: { a, v }`
+        const childrenByAsk = new Map();
+        const consumedIds = new Set();
+        for (const s of steps) {
+          if (s.w && s.w.a && stepMap.has(s.w.a)) {
+            if (!childrenByAsk.has(s.w.a)) childrenByAsk.set(s.w.a, []);
+            childrenByAsk.get(s.w.a).push(s);
+            consumedIds.add(s.id);
+          }
         }
-        // 3) วาด
-        const P = FL_PH[sg.ph];
-        if (zi) h += fcAr('', 1);
-        h += `<div class="fc-zone z${zi % 2}" data-gph="${sg.ph}"><div class="fc-zt">${P[1]}<span>${P[2]}</span></div>`;
-        let prev = null;
-        B.forEach((b, i) => {
-          const first = b.one || b.yn || b.br || (b.cols && b.cols[0][0]);
-          const lbl = first && first.s.af ? (prev && prev === first.s.af ? fcAd(first.s) : `หลัง${(steps.find(x => x.id === first.s.af) || {}).n || ''} ${fcAd(first.s)}`) : '';
-          if (i) h += b.cols || b.yn ? (lbl ? fcAr(lbl) : '') : fcAr(lbl);
-          if (b.one) { h += fcNode(b.one, p, steps); prev = b.one.s.id; }
-          else if (b.cols) {
-            h += `<div class="fc-fk"><i class="a"></i><i class="h"></i><i class="l"></i><i class="r"></i><b class="l"></b><b class="r"></b></div><div class="fc-row">${b.cols.map(c => `<div class="fc-col">${c.map((it, j) => (j ? fcAr(fcAd(it.s)) : '') + fcNode(it, p, steps)).join('')}<div class="fc-fill"></div></div>`).join('')}</div><div class="fc-mg"><i class="l"></i><i class="r"></i><i class="h"></i><i class="a"></i></div>`;
-            prev = null;
-          } else if (b.yn) {
-            const s = b.yn.s, r = p ? flStat(s, p) : null, av = r && r.a ? r.a.v : '', yes = s.o.find(o => o.go === 'do'), no = s.o.find(o => o.go === 'skip');
-            h += `<div class="fc-fk yn"><i class="a"></i><i class="h"></i><i class="l"></i><i class="r"></i><b class="l"></b><b class="r"></b><em class="l">${esc(yes.l)}</em><em class="r">${esc(no.l)}</em></div>
-              <div class="fc-row"><div class="fc-col${av && av !== yes.v ? ' off' : ''}">${fcNode(b.yn, p, steps)}<div class="fc-fill"></div></div><div class="fc-col${av && av !== no.v ? ' off' : ''}"><div class="fc-skipc">${esc(no.l)}<br>ข้ามไปขั้นถัดไป</div><div class="fc-fill"></div></div></div>
-              <div class="fc-mg"><i class="l"></i><i class="r"></i><i class="h"></i><i class="a"></i></div>`;
-            prev = null;
+
+        // Rule 2: Classify Ask steps (Fork vs Terminal-Fork vs Inline-Ask)
+        const forkUnits = [];
+        const terminalUnits = [];
+
+        for (const s of steps) {
+          if (consumedIds.has(s.id)) continue;
+          if (s.k === 'ask' && Array.isArray(s.o) && s.o.length > 0) {
+            const linkedChildren = childrenByAsk.get(s.id) || [];
+            const hasNextBranch = linkedChildren.length > 0 || s.o.some(opt => opt.go === 'next');
+            const hasTerminalGo = s.o.some(opt => opt.go && !['next', 'do', 'skip'].includes(opt.go));
+
+            if (hasNextBranch) {
+              // Map each option to its matching child step(s)
+              const branches = s.o.map(opt => {
+                const matched = linkedChildren.filter(c => c.w && c.w.v === opt.v);
+                return { option: opt, steps: matched };
+              });
+              forkUnits.push({
+                type: 'fork',
+                uid: 'fork_' + s.id,
+                askStep: s,
+                branches,
+                steps: [s, ...linkedChildren],
+                coreF: s.f ?? 0,
+                coreT: s.t ?? s.f ?? 0,
+                minF: Math.min(s.f ?? 0, ...linkedChildren.map(c => c.f ?? 0)),
+                maxT: Math.max(s.t ?? 0, ...linkedChildren.map(c => c.t ?? 0)),
+                mid: ((s.f ?? 0) + (s.t ?? s.f ?? 0)) / 2,
+                isBarrier: true
+              });
+              consumedIds.add(s.id);
+            } else if (hasTerminalGo) {
+              terminalUnits.push({
+                type: 'terminal-fork',
+                uid: 'term_' + s.id,
+                askStep: s,
+                options: s.o,
+                steps: [s],
+                coreF: s.f ?? 0,
+                coreT: s.t ?? s.f ?? 0,
+                minF: s.f ?? 0,
+                maxT: s.t ?? s.f ?? 0,
+                mid: ((s.f ?? 0) + (s.t ?? s.f ?? 0)) / 2,
+                isBarrier: true
+              });
+              consumedIds.add(s.id);
+            }
+          }
+        }
+
+        // Rule 3: Build Sequential Dependency Chains via `af` (after step)
+        const remaining = steps.filter(s => !consumedIds.has(s.id));
+        const remainingSet = new Set(remaining.map(s => s.id));
+        const nextByAf = new Map();
+
+        for (const s of remaining) {
+          if (s.af && remainingSet.has(s.af)) {
+            if (!nextByAf.has(s.af)) nextByAf.set(s.af, []);
+            nextByAf.get(s.af).push(s);
+          }
+        }
+        // Sort af-children chronologically
+        for (const arr of nextByAf.values()) {
+          arr.sort((a, b) => (a.f ?? 0) - (b.f ?? 0));
+        }
+
+        const chainClaimed = new Set();
+        const actionUnits = [];
+
+        // Chain roots: remaining steps whose `af` is absent or not in remaining
+        const roots = remaining
+          .filter(s => !s.af || !remainingSet.has(s.af))
+          .sort((a, b) => (a.f ?? 0) - (b.f ?? 0) || (a.t ?? 0) - (b.t ?? 0));
+
+        function buildChainFrom(root) {
+          const list = [root];
+          chainClaimed.add(root.id);
+          let curr = root;
+          while (nextByAf.has(curr.id)) {
+            const kids = nextByAf.get(curr.id).filter(k => !chainClaimed.has(k.id));
+            if (!kids.length) break;
+            const next = kids[0];
+            list.push(next);
+            chainClaimed.add(next.id);
+            curr = next;
+          }
+          return list;
+        }
+
+        for (const root of roots) {
+          if (chainClaimed.has(root.id)) continue;
+          const list = buildChainFrom(root);
+          actionUnits.push(makeActionUnit(list));
+        }
+
+        // Catch any leftover branch-off `af` steps or cycles gracefully
+        for (const s of remaining) {
+          if (!chainClaimed.has(s.id)) {
+            const list = buildChainFrom(s);
+            actionUnits.push(makeActionUnit(list));
+          }
+        }
+
+        function makeActionUnit(list) {
+          const first = list[0];
+          const isNote = list.length === 1 && first.k === 'note';
+          return {
+            type: list.length > 1 ? 'chain' : 'single',
+            uid: (list.length > 1 ? 'chain_' : 'single_') + first.id,
+            steps: list,
+            coreF: first.f ?? 0,
+            coreT: first.t ?? first.f ?? 0,
+            minF: Math.min(...list.map(x => x.f ?? 0)),
+            maxT: Math.max(...list.map(x => x.t ?? x.f ?? 0)),
+            mid: ((first.f ?? 0) + (first.t ?? first.f ?? 0)) / 2,
+            isNote,
+            isBarrier: isNote
+          };
+        }
+
+        // Rule 4: Assign all Units into Stages by representative midpoint `(f + t) / 2`
+        const allUnits = [...forkUnits, ...actionUnits, ...terminalUnits];
+        const stageBuckets = STAGES.map(st => ({ ...st, units: [], blocks: [] }));
+
+        for (const u of allUnits) {
+          const m = Math.round(u.mid);
+          let bucket = stageBuckets.find(b => m >= b.min && m <= b.max);
+          if (!bucket) bucket = stageBuckets[stageBuckets.length - 1];
+          bucket.units.push(u);
+        }
+
+        // Rule 5: Within each stage, sort chronologically & cluster overlapping units into 2-Lane Parallel Blocks
+        for (const bucket of stageBuckets) {
+          bucket.units.sort((a, b) => {
+            if (a.coreF !== b.coreF) return a.coreF - b.coreF;
+            // Put Decision Forks ahead of general tasks starting on the same day
+            if (a.type === 'fork' && b.type !== 'fork') return -1;
+            if (b.type === 'fork' && a.type !== 'fork') return 1;
+            return a.coreT - b.coreT;
+          });
+
+          const blocks = [];
+          let cluster = [];
+          let clusterF = 0;
+          let clusterT = 0;
+
+          function flushCluster() {
+            if (!cluster.length) return;
+            if (cluster.length === 1) {
+              blocks.push(cluster[0]);
+            } else {
+              blocks.push(packTwoLanes(cluster));
+            }
+            cluster = [];
+          }
+
+          for (const u of bucket.units) {
+            if (u.isBarrier) {
+              flushCluster();
+              blocks.push(u);
+              continue;
+            }
+            if (!cluster.length) {
+              cluster = [u];
+              clusterF = u.coreF;
+              clusterT = u.coreT;
+            } else {
+              // Overlap ratio between unit's core window and current parallel cluster core window
+              const overlap = Math.min(clusterT, u.coreT) - Math.max(clusterF, u.coreF);
+              const minSpan = Math.max(1, Math.min(clusterT - clusterF, u.coreT - u.coreF));
+              const ratio = overlap / minSpan;
+              if (overlap > 0 && ratio >= 0.35) {
+                cluster.push(u);
+                clusterF = Math.min(clusterF, u.coreF);
+                clusterT = Math.max(clusterT, u.coreT);
+              } else {
+                flushCluster();
+                cluster = [u];
+                clusterF = u.coreF;
+                clusterT = u.coreT;
+              }
+            }
+          }
+          flushCluster();
+          bucket.blocks = blocks;
+        }
+
+        // Rule 6: Greedy Balanced 2-Lane Bin Packing (Chains kept intact; height balanced)
+        function packTwoLanes(units) {
+          const sortedByWeight = [...units].sort((a, b) => {
+            const wDiff = b.steps.length - a.steps.length;
+            if (wDiff !== 0) return wDiff;
+            return a.coreF - b.coreF;
+          });
+
+          const laneA = { units: [], weight: 0, hasChain: false };
+          const laneB = { units: [], weight: 0, hasChain: false };
+
+          for (const u of sortedByWeight) {
+            const isChain = u.type === 'chain';
+            // Prefer separating a multi-step chain into Lane B (right) for clean visual reading
+            if (isChain && !laneB.hasChain && laneB.weight <= laneA.weight + 1) {
+              laneB.units.push(u);
+              laneB.weight += u.steps.length;
+              laneB.hasChain = true;
+            } else if (laneA.weight <= laneB.weight) {
+              laneA.units.push(u);
+              laneA.weight += u.steps.length;
+              if (isChain) laneA.hasChain = true;
+            } else {
+              laneB.units.push(u);
+              laneB.weight += u.steps.length;
+              if (isChain) laneB.hasChain = true;
+            }
+          }
+
+          // Sort units inside each lane chronologically
+          laneA.units.sort((a, b) => a.coreF - b.coreF || a.coreT - b.coreT);
+          laneB.units.sort((a, b) => a.coreF - b.coreF || a.coreT - b.coreT);
+
+          // If Lane A accidentally got the chain while Lane B has only singles, swap so chain sits cleanly on right
+          let lanes = [laneA, laneB];
+          if (laneA.hasChain && !laneB.hasChain) {
+            lanes = [laneB, laneA];
+          }
+
+          return {
+            type: 'parallel',
+            uid: 'par_' + units.map(u => u.steps[0].id).join('_'),
+            lanes,
+            steps: units.flatMap(u => u.steps),
+            minF: Math.min(...units.map(u => u.minF)),
+            maxT: Math.max(...units.map(u => u.maxT))
+          };
+        }
+
+        return {
+          stepMap,
+          stages: stageBuckets.filter(b => b.blocks.length > 0)
+        };
+      }
+
+      // =========================================================================
+      // 4. HELPERS (Formatting, Status Inspection, Interactive Answer Updates)
+      // =========================================================================
+      function getSelectedPlot() {
+        if (!state.selectedPlotId) return null;
+        return RATOON_DATA.plots.find(p => p.plot_id === state.selectedPlotId) || null;
+      }
+
+      function getStepStatus(plot, stepId) {
+        if (!plot || !plot.steps) return null;
+        return plot.steps[stepId] || null;
+      }
+
+      function formatDayRange(f, t, compact = false) {
+        if (f == null && t == null) return '';
+        if (f >= 120 && t >= 180) {
+          const m1 = Math.round(f / 30);
+          const m2 = Math.round(t / 30);
+          return `${m1}–${m2} เดือน`;
+        }
+        if (compact) return `${f}–${t} วัน`;
+        return `วันที่ ${f}–${t}`;
+      }
+
+      function formatCompactStatus(stObj) {
+        if (!stObj) return { cls: 'none', text: '' };
+        const st = stObj.st;
+        if (st === 'nolog') return { cls: 'nolog', text: 'ไม่ได้จด' };
+        if (st === 'hold')  return { cls: 'hold', text: 'รอคำตอบ' };
+        if (st === 'skip')  return { cls: 'skip', text: stObj.txt || 'ไม่ต้องทำ' };
+        if (st === 'ask')   return { cls: 'ask', text: 'รอตอบ' };
+        if (st === 'due')   return { cls: 'due', text: stObj.txt || 'ถึงคิว' };
+        if (st === 'done')  return { cls: 'done', text: stObj.txt || 'ทำแล้ว' };
+        if (st === 'ans')   return { cls: 'ans', text: 'เลือก: ' + (stObj.txt || '') };
+        if (st === 'wait')  return { cls: 'wait', text: stObj.txt || 'ยังไม่ถึง' };
+        if (st === 'note')  return { cls: 'note', text: stObj.txt || '' };
+        return { cls: 'none', text: stObj.txt || 'ไม่มีบันทึก' };
+      }
+
+      function isStepActiveOrDone(stObj) {
+        if (!stObj) return false;
+        return ['done', 'ans'].includes(stObj.st) || (stObj.st === 'note' && /ตอนนี้|ฤดูนี้/.test(stObj.txt || ''));
+      }
+
+      function getPlotAlertCount(plot) {
+        if (!plot || !plot.steps) return 0;
+        let count = 0;
+        for (const s of RATOON_DATA.steps) {
+          const st = plot.steps[s.id]?.st;
+          if (st === 'ask' || st === 'due') count++;
+        }
+        return count;
+      }
+
+      function escapeHtml(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function applyPlotAnswer(plot, askStep, opt) {
+        if (!plot) return;
+        showToast(opt ? `บันทึกคำตอบ: ${opt.l}` : `ล้างคำตอบ "${askStep.n}" แล้ว`);
+        flAnswer(plot.plot_id, askStep.id, opt ? opt.v : ''); // แอป: บันทึกลงชีต (saveFlowAns) แล้ว flRender วาดผังใหม่
+      }
+
+      // =========================================================================
+      // 5. RENDERING UI (Top Bar, Summary, Flowchart Nodes)
+      // =========================================================================
+      function renderApp() {
+        state.ast = buildFlowAST(RATOON_DATA.steps);
+        const plot = getSelectedPlot();
+
+        renderTopControls(plot);
+        renderContextArea(plot);
+        renderFlowContent(plot);
+
+        // Measure DOM & draw pixel-perfect SVG curves after paint
+        requestAnimationFrame(() => {
+          drawConnections(plot);
+        });
+      }
+
+      function renderTopControls(plot) {
+        const dot = document.getElementById('plotTriggerDot');
+        const label = document.getElementById('plotTriggerLabel');
+        const meta = document.getElementById('plotTriggerMeta');
+
+        if (!plot) {
+          dot.className = 'plot-trigger-dot';
+          label.textContent = 'ผังรวม (ยังไม่เลือกแปลง)';
+          meta.textContent = `${RATOON_DATA.steps.length} ขั้น`;
+        } else {
+          const alerts = getPlotAlertCount(plot);
+          dot.className = 'plot-trigger-dot' + (alerts > 0 ? ' has-alert' : '');
+          label.textContent = plot.name;
+          meta.textContent = `${plot.age_days} วัน`;
+        }
+
+        // Stage quick-jump nav
+        const nav = document.getElementById('stageNav');
+        nav.innerHTML = state.ast.stages.map(st => {
+          const isCur = plot && (plot.age_days >= st.min && plot.age_days <= st.max);
+          const hasAlert = plot && st.blocks.some(b => b.steps.some(s => {
+            const code = plot.steps[s.id]?.st;
+            return code === 'ask' || code === 'due';
+          }));
+          return `
+            <button type="button" class="stage-chip ${isCur ? 'is-current' : ''}" data-jump-stage="${st.key}">
+              ${escapeHtml(st.name.replace('ระยะ', ''))}
+              ${hasAlert ? '<span class="chip-alert" aria-label="มีงานรอตอบ"></span>' : ''}
+            </button>
+          `;
+        }).join('');
+
+        nav.querySelectorAll('[data-jump-stage]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const el = document.getElementById('stage-' + btn.dataset.jumpStage);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+      }
+
+      function renderContextArea(plot) {
+        const area = document.getElementById('contextArea');
+        if (!plot) {
+          area.innerHTML = `
+            <div class="legend-bar">
+              <span class="legend-item"><span class="sym-diamond"></span> ทางแยก/ถาม</span>
+              <span class="legend-item"><span class="sym-arrow">↓</span> ทำต่อเนื่อง</span>
+              <span class="legend-item"><span class="sym-note"></span> ช่วงดูแล</span>
+              <span class="legend-item">แตะกล่องดูรายละเอียด</span>
+            </div>
+          `;
+          return;
+        }
+
+        let doneCount = 0, askCount = 0, dueCount = 0;
+        let firstActionId = null;
+        for (const s of RATOON_DATA.steps) {
+          const st = plot.steps[s.id]?.st;
+          if (st === 'done') doneCount++;
+          if (st === 'ask') { askCount++; if (!firstActionId) firstActionId = s.id; }
+          if (st === 'due') { dueCount++; if (!firstActionId) firstActionId = s.id; }
+        }
+        const hasAction = (askCount + dueCount) > 0;
+
+        area.innerHTML = `
+          <div class="plot-summary ${hasAction ? 'has-action' : ''}">
+            <div class="summary-top">
+              <span class="summary-title">${escapeHtml(plot.name)} · ${escapeHtml(plot.rai)} ไร่</span>
+              <span class="summary-stage-pill">${escapeHtml(plot.stage)} · ${plot.age_days} วัน</span>
+            </div>
+            <div class="summary-stats">
+              <div class="summary-counts">
+                <span class="count-item"><span class="count-dot done"></span>ทำแล้ว ${doneCount}</span>
+                ${dueCount ? `<span class="count-item"><span class="count-dot due"></span>ถึงคิว ${dueCount}</span>` : ''}
+                ${askCount ? `<span class="count-item"><span class="count-dot ask"></span>รอตอบ ${askCount}</span>` : ''}
+              </div>
+              <button type="button" class="jump-btn ${hasAction ? 'is-ask' : ''}" id="jumpCurrentBtn">
+                ${hasAction ? 'ไปงานรอตอบ ↓' : 'จุดปัจจุบัน ↓'}
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('jumpCurrentBtn').addEventListener('click', () => {
+          const target = firstActionId
+            ? document.querySelector(`[data-node-id="${firstActionId}"]`)
+            : document.getElementById('hereMarker');
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      }
+
+      function renderFlowContent(plot) {
+        const container = document.getElementById('flowContent');
+        let html = '';
+        let herePlaced = false;
+
+        for (const stage of state.ast.stages) {
+          const isCurrentStage = plot && (plot.age_days >= stage.min && plot.age_days <= stage.max);
+          html += `
+            <div class="stage-banner-wrap" id="stage-${stage.key}" data-flow-item="stage" data-stage-key="${stage.key}">
+              <div class="stage-banner ${isCurrentStage ? 'is-current-stage' : ''}">
+                <span>${escapeHtml(stage.name)}</span>
+                <span class="stage-sub">${escapeHtml(stage.label)}</span>
+              </div>
+            </div>
+          `;
+
+          for (const block of stage.blocks) {
+            // Place "You Are Here" marker right before the block matching plot.age_days
+            if (plot && !herePlaced) {
+              const blockCoversAge = plot.age_days >= block.minF && plot.age_days <= block.maxT;
+              const blockIsFuture = block.minF > plot.age_days;
+              const blockHasAskDue = block.steps.some(s => ['ask', 'due'].includes(plot.steps[s.id]?.st));
+              const blockHasNowNote = block.steps.some(s => plot.steps[s.id]?.st === 'note' && /ตอนนี้อยู่ช่วงนี้/.test(plot.steps[s.id]?.txt || ''));
+
+              if (blockHasNowNote || blockHasAskDue || blockCoversAge || blockIsFuture) {
+                html += `
+                  <div class="here-marker" id="hereMarker">
+                    <span class="here-marker-line"></span>
+                    <span class="here-marker-pill"><span class="pulse-dot"></span>ตอนนี้อยู่ตรงนี้ · อายุ ${plot.age_days} วัน</span>
+                    <span class="here-marker-line"></span>
+                  </div>
+                `;
+                herePlaced = true;
+              }
+            }
+
+            html += renderBlock(block, plot);
+          }
+        }
+
+        container.innerHTML = html;
+
+        // Bind tap listeners to all interactive nodes and terminal pills
+        container.querySelectorAll('[data-open-step]').forEach(el => {
+          el.addEventListener('click', () => {
+            openStepSheet(el.dataset.openStep);
+          });
+        });
+      }
+
+      function renderBlock(block, plot) {
+        if (block.type === 'single') {
+          return `
+            <div class="fc-block single-wrap" data-flow-item="block" data-block-type="single" data-block-id="${block.uid}">
+              ${renderNodeCard(block.steps[0], plot, { compact: false })}
+            </div>
+          `;
+        }
+
+        if (block.type === 'chain') {
+          return `
+            <div class="fc-block" data-flow-item="block" data-block-type="chain" data-block-id="${block.uid}">
+              ${renderChainList(block.steps, plot)}
+            </div>
+          `;
+        }
+
+        if (block.type === 'fork') {
+          const ask = block.askStep;
+          const askSt = getStepStatus(plot, ask.id);
+          const chosenVal = askSt?.answer || null;
+          const colClass = block.branches.length === 2 ? 'cols-2' : (block.branches.length === 3 ? 'cols-3' : 'cols-many');
+          const compactBranch = block.branches.length === 3;
+
+          const branchesHtml = block.branches.map((br, idx) => {
+            const isChosen = chosenVal && chosenVal === br.option.v;
+            const isDim = chosenVal && chosenVal !== br.option.v;
+            const pillCls = isChosen ? 'is-chosen' : (isDim ? 'is-dim' : '');
+            const childCard = br.steps.length
+              ? br.steps.map(cs => renderNodeCard(cs, plot, { compact: compactBranch, isForkChild: true, branchState: isChosen ? 'chosen' : (isDim ? 'dim' : 'normal') })).join('<div class="lane-indep-gap"></div>')
+              : `<div class="fc-node st-skip"><div class="node-title">${escapeHtml(br.option.l)}</div></div>`;
+
+            return `
+              <div class="fork-col" data-fork-branch="${br.option.v}" data-branch-state="${isChosen ? 'chosen' : (isDim ? 'dim' : 'normal')}">
+                <span class="edge-label-pill ${pillCls}" data-edge-pill="${block.uid}_${idx}">${escapeHtml(br.option.l)}</span>
+                ${childCard}
+              </div>
+            `;
+          }).join('');
+
+          const mergeActive = Boolean(chosenVal);
+          return `
+            <div class="fc-block" data-flow-item="block" data-block-type="fork" data-block-id="${block.uid}" data-ask-id="${ask.id}">
+              <div class="fork-decision-wrap">
+                ${renderNodeCard(ask, plot, { compact: false, isForkHead: true })}
+              </div>
+              <div class="fork-branches ${colClass}">
+                ${branchesHtml}
+              </div>
+              <div class="junction-row">
+                <span class="junction-dot merge ${mergeActive ? 'is-active' : ''}" data-merge-dot="${block.uid}"></span>
+              </div>
+            </div>
+          `;
+        }
+
+        if (block.type === 'parallel') {
+          const anyDone = plot && block.steps.some(s => isStepActiveOrDone(getStepStatus(plot, s.id)));
+          const lanesHtml = block.lanes.map((lane, laneIdx) => {
+            const totalItems = lane.units.reduce((acc, u) => acc + u.steps.length, 0);
+            let caption = '';
+            if (lane.hasChain) {
+              caption = `<div class="lane-caption is-chain">ทำตามลำดับ ↓</div>`;
+            } else if (totalItems > 1) {
+              caption = `<div class="lane-caption">ทำช่วงเดียวกัน</div>`;
+            }
+
+            const unitsHtml = lane.units.map((u, uIdx) => {
+              const inner = u.type === 'chain'
+                ? renderChainList(u.steps, plot, true)
+                : renderNodeCard(u.steps[0], plot, { compact: true });
+              const sep = uIdx < lane.units.length - 1 ? `<div class="lane-indep-gap" data-indep-gap="1"></div>` : '';
+              return inner + sep;
+            }).join('');
+
+            return `
+              <div class="lane-col" data-lane-index="${laneIdx}" data-lane-chain="${lane.hasChain ? '1' : '0'}">
+                ${caption}
+                <div class="lane-items">${unitsHtml}</div>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <div class="fc-block" data-flow-item="block" data-block-type="parallel" data-block-id="${block.uid}">
+              <div class="junction-row">
+                <span class="junction-dot split ${anyDone ? 'is-active' : ''}" data-split-dot="${block.uid}"></span>
+              </div>
+              <div class="parallel-lanes">${lanesHtml}</div>
+              <div class="junction-row">
+                <span class="junction-dot merge ${anyDone ? 'is-active' : ''}" data-merge-dot="${block.uid}"></span>
+              </div>
+            </div>
+          `;
+        }
+
+        if (block.type === 'terminal-fork') {
+          const ask = block.askStep;
+          const askSt = getStepStatus(plot, ask.id);
+          const chosenVal = askSt?.answer || null;
+          const goSubLabel = (go) => {
+            if (go === 'ratoon') return 'เริ่มรอบอ้อยตอใหม่';
+            if (go === 'replant') return 'ไปผังอ้อยใหม่';
+            return '';
+          };
+          const goIcon = (go) => go === 'ratoon' ? '↻ ' : (go === 'replant' ? '🌱 ' : '');
+
+          const endsHtml = block.options.map((opt, idx) => {
+            const isChosen = chosenVal === opt.v;
+            const isDim = chosenVal && chosenVal !== opt.v;
+            return `
+              <button type="button"
+                class="term-pill-btn ${isChosen ? 'is-chosen' : (isDim ? 'is-dim' : '')}"
+                data-term-end="${block.uid}_${idx}"
+                data-branch-state="${isChosen ? 'chosen' : (isDim ? 'dim' : 'normal')}"
+                data-open-step="${ask.id}">
+                <span>${goIcon(opt.go)}${escapeHtml(opt.l)}</span>
+                ${goSubLabel(opt.go) ? `<span class="term-sub">${goSubLabel(opt.go)}</span>` : ''}
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="fc-block" data-flow-item="block" data-block-type="terminal-fork" data-block-id="${block.uid}" data-ask-id="${ask.id}">
+              ${renderNodeCard(ask, plot, { compact: false, isForkHead: true })}
+              <div class="terminal-endpoints">${endsHtml}</div>
+            </div>
+          `;
+        }
+
+        return '';
+      }
+
+      function renderChainList(stepsList, plot, inLane = false) {
+        return stepsList.map((s, idx) => {
+          const card = renderNodeCard(s, plot, { compact: inLane });
+          if (idx === stepsList.length - 1) return card;
+          const next = stepsList[idx + 1];
+          const offsetTxt = Array.isArray(next.ad) && next.ad.length === 2
+            ? `+${next.ad[0]}–${next.ad[1]} วัน`
+            : 'ถัดจากขั้นนี้';
+          return `
+            ${card}
+            <div class="chain-gap" data-chain-from="${s.id}" data-chain-to="${next.id}">
+              <span class="chain-offset-pill">${offsetTxt}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderNodeCard(step, plot, opts = {}) {
+        const stObj = getStepStatus(plot, step.id);
+        const stCode = stObj ? stObj.st : null;
+        const isNowNote = stCode === 'note' && /ตอนนี้อยู่ช่วงนี้/.test(stObj.txt || '');
+
+        const classes = ['fc-node'];
+        if (step.k === 'ask') classes.push('type-ask');
+        if (step.k === 'note') classes.push('type-note');
+        if (stCode) classes.push('st-' + stCode);
+        if (isNowNote) classes.push('is-now');
+
+        // Geometric flowchart node indicator
+        let iconHtml = '<span class="ico-circle"></span>';
+        if (step.k === 'ask') iconHtml = '<span class="ico-diamond"></span>';
+        else if (step.k === 'note') iconHtml = '<span class="ico-info">i</span>';
+
+        const daysText = formatDayRange(step.f, step.t, opts.compact);
+
+        // Subtle capability tags (repeat / branch) — concise so cards stay crisp
+        let extraTags = '';
+        if (step.k === 'repeat' && step.max) {
+          extraTags += `<span class="mini-tag">↻ ทำซ้ำ</span>`;
+        }
+        if (step.k === 'branch' && step.b) {
+          extraTags += `<span class="mini-tag is-branch">⚡ มีงานแทรก</span>`;
+        }
+
+        // Inline options for do/skip asks (non-fork ask like ฉีดยาคุมหญ้า)
+        let inlineAskHtml = '';
+        const isInlineAsk = step.k === 'ask' && !opts.isForkHead && Array.isArray(step.o) && step.o.length > 0;
+        if (isInlineAsk) {
+          const chosen = stObj?.answer || null;
+          inlineAskHtml = `
+            <div class="inline-opts">
+              ${step.o.map(o => {
+                const c = chosen === o.v ? 'is-chosen' : (o.go === 'skip' ? 'is-skip-opt' : '');
+                return `<span class="inline-opt-chip ${c}">${escapeHtml(o.l)}</span>`;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        // Status display when a plot is selected
+        let statusHtml = '';
+        if (plot && stObj) {
+          const f = formatCompactStatus(stObj);
+          if (f.cls === 'none') {
+            statusHtml = `<div class="node-status-row"><span class="st-none-txt">${escapeHtml(f.text)}</span></div>`;
           } else {
-            const s = b.br.s, r = p ? flStat(s, p) : null, av = r && r.a ? r.a.v : '';
-            h += fcNode(b.br, p, steps) + fcAr('') + `<div class="fc-br">${s.o.map(o => {
-              const kids = b.kids.filter(x => String(x.s.w.v).split(',').includes(o.v));
-              return `<div class="fc-bo${av ? (av === o.v ? ' on' : ' off') : ''}"><div class="fc-bl">${esc(o.l)}</div>${kids.length ? kids.map(x => fcNode(x, p, steps)).join('<div style="height:6px"></div>') : '<div class="fc-go">ไปต่อเลย</div>'}<i class="fc-mr"></i></div>`;
-            }).join('')}</div><div class="fc-bm"><i></i><b></b></div>`;
-            prev = null;
+            statusHtml = `<div class="node-status-row"><span class="st-pill ${f.cls}">${escapeHtml(f.text)}</span></div>`;
+          }
+        } else if (!plot && step.k === 'ask' && opts.isForkHead && step.q) {
+          statusHtml = `<div class="node-status-row"><span class="st-pill ask">${escapeHtml(step.q)}</span></div>`;
+        }
+
+        return `
+          <button type="button"
+            class="${classes.join(' ')}"
+            data-node-id="${step.id}"
+            data-open-step="${step.id}"
+            data-st="${stCode || ''}">
+            <div class="node-head">
+              <span class="node-icon" aria-hidden="true">${iconHtml}</span>
+              <span class="node-title">${escapeHtml(step.n)}</span>
+            </div>
+            <div class="node-meta">
+              ${daysText ? `<span class="node-days">${escapeHtml(daysText)}</span>` : ''}
+              ${extraTags}
+            </div>
+            ${inlineAskHtml}
+            ${statusHtml}
+          </button>
+        `;
+      }
+
+      // =========================================================================
+      // 6. DOM-MEASURED SVG CURVED CONNECTOR ENGINE (Pixel-perfect, 100% dynamic)
+      // =========================================================================
+      function drawConnections(plot) {
+        const canvas = document.getElementById('flowCanvas');
+        const svg = document.getElementById('flowSvg');
+        if (!canvas || !svg) return;
+
+        const cRect = canvas.getBoundingClientRect();
+        svg.setAttribute('width', cRect.width);
+        svg.setAttribute('height', cRect.height);
+        svg.setAttribute('viewBox', `0 0 ${cRect.width} ${cRect.height}`);
+
+        const COLORS = {
+          default: '#B4C4B8',
+          done: '#1F5E3B',
+          ask: '#7C3AED',
+          skip: '#D3DCD5',
+          indep: '#C5D1C8'
+        };
+
+        const paths = [];
+
+        function relBox(el) {
+          const r = el.getBoundingClientRect();
+          return {
+            left: r.left - cRect.left,
+            right: r.right - cRect.left,
+            top: r.top - cRect.top,
+            bottom: r.bottom - cRect.top,
+            cx: (r.left + r.right) / 2 - cRect.left,
+            cy: (r.top + r.bottom) / 2 - cRect.top,
+            w: r.width,
+            h: r.height
+          };
+        }
+
+        function addPath(d, tone = 'default', opts = {}) {
+          const color = COLORS[tone] || COLORS.default;
+          const width = opts.width || (tone === 'done' ? 2.2 : (tone === 'skip' ? 1.4 : 1.75));
+          const dash = opts.dashed ? ' stroke-dasharray="4 3.5"' : '';
+          const marker = opts.arrow ? ` marker-end="url(#arr-${tone})"` : '';
+          const priority = tone === 'done' ? 2 : (tone === 'skip' ? 0 : 1);
+          paths.push({
+            priority,
+            svg: `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dash}${marker} />`
+          });
+        }
+
+        function bezierV(x1, y1, x2, y2) {
+          const midY = y1 + (y2 - y1) * 0.5;
+          return `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${x1.toFixed(1)} ${midY.toFixed(1)}, ${x2.toFixed(1)} ${midY.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+        }
+
+        // Helper: get entry/exit anchor points for any flow item (stage banner or block)
+        function getItemAnchors(itemEl) {
+          const kind = itemEl.dataset.flowItem;
+          if (kind === 'stage') {
+            const pill = itemEl.querySelector('.stage-banner');
+            const b = relBox(pill);
+            return { topX: b.cx, topY: b.top, botX: b.cx, botY: b.bottom, isStage: true };
+          }
+
+          const type = itemEl.dataset.blockType;
+          if (type === 'single' || type === 'chain') {
+            const nodes = itemEl.querySelectorAll(':scope > .fc-node');
+            const first = relBox(nodes[0]);
+            const last = relBox(nodes[nodes.length - 1]);
+            return { topX: first.cx, topY: first.top, botX: last.cx, botY: last.bottom };
+          }
+          if (type === 'fork') {
+            const head = relBox(itemEl.querySelector('.fork-decision-wrap .fc-node'));
+            const merge = relBox(itemEl.querySelector('.junction-dot.merge'));
+            return { topX: head.cx, topY: head.top, botX: merge.cx, botY: merge.bottom };
+          }
+          if (type === 'parallel') {
+            const split = relBox(itemEl.querySelector('.junction-dot.split'));
+            const merge = relBox(itemEl.querySelector('.junction-dot.merge'));
+            return { topX: split.cx, topY: split.top, botX: merge.cx, botY: merge.bottom };
+          }
+          if (type === 'terminal-fork') {
+            const head = relBox(itemEl.querySelector(':scope > .fc-node'));
+            return { topX: head.cx, topY: head.top, botX: null, botY: null };
+          }
+          return null;
+        }
+
+        // 1) Draw vertical spine connectors between consecutive flow items
+        const flowItems = Array.from(document.querySelectorAll('#flowContent > [data-flow-item]'));
+        for (let i = 0; i < flowItems.length - 1; i++) {
+          const prev = flowItems[i];
+          const next = flowItems[i + 1];
+          const a = getItemAnchors(prev);
+          const b = getItemAnchors(next);
+          if (!a || !b || a.botY == null || b.topY == null) continue;
+
+          // Determine tone: green if plot has completed work in/past previous block
+          let tone = 'default';
+          if (plot) {
+            const prevDone = Array.from(prev.querySelectorAll('.fc-node')).some(n => ['done', 'ans'].includes(n.dataset.st));
+            const nextDone = Array.from(next.querySelectorAll('.fc-node')).some(n => ['done', 'ans'].includes(n.dataset.st));
+            if (prevDone || (a.isStage && nextDone)) tone = 'done';
+          }
+          const arrow = !b.isStage;
+          const endY = arrow ? b.topY - 3 : b.topY;
+          if (endY > a.botY + 2) {
+            addPath(`M ${a.botX.toFixed(1)} ${a.botY.toFixed(1)} L ${b.topX.toFixed(1)} ${endY.toFixed(1)}`, tone, { arrow });
+          }
+        }
+
+        // 2) Draw intra-block connectors for Fork, Parallel, Chain, and Terminal-Fork
+        document.querySelectorAll('#flowContent > .fc-block').forEach(blockEl => {
+          const type = blockEl.dataset.blockType;
+
+          // A) Fork Block (Decision -> N Branch Cards -> Merge Dot)
+          if (type === 'fork') {
+            const head = relBox(blockEl.querySelector('.fork-decision-wrap .fc-node'));
+            const merge = relBox(blockEl.querySelector('.junction-dot.merge'));
+            const cols = Array.from(blockEl.querySelectorAll('.fork-col'));
+
+            cols.forEach(col => {
+              const brState = col.dataset.branchState; // chosen | dim | normal
+              const pill = relBox(col.querySelector('.edge-label-pill'));
+              const cards = Array.from(col.querySelectorAll('.fc-node')).map(relBox);
+              if (!cards.length) return;
+              const firstCard = cards[0];
+              const lastCard = cards[cards.length - 1];
+
+              const tone = brState === 'chosen' ? 'done' : (brState === 'dim' ? 'skip' : 'default');
+              const dashed = brState === 'dim';
+
+              // Curve from decision card bottom -> top of branch option pill
+              addPath(bezierV(head.cx, head.bottom, pill.cx, pill.top - 1), tone, { dashed });
+              // Short stem from pill bottom -> first branch card top
+              addPath(`M ${pill.cx.toFixed(1)} ${pill.bottom.toFixed(1)} L ${firstCard.cx.toFixed(1)} ${(firstCard.top - 2).toFixed(1)}`, tone, { dashed });
+              // Connect stacked cards inside the same fork branch if > 1
+              for (let k = 0; k < cards.length - 1; k++) {
+                addPath(`M ${cards[k].cx.toFixed(1)} ${cards[k].bottom.toFixed(1)} L ${cards[k+1].cx.toFixed(1)} ${(cards[k+1].top - 2).toFixed(1)}`, tone, { dashed, arrow: true });
+              }
+              // Curve from last branch card bottom -> merge dot top
+              addPath(bezierV(lastCard.cx, lastCard.bottom, merge.cx, merge.top), tone, { dashed });
+            });
+          }
+
+          // B) Parallel 2-Lane Block (Split Dot -> Lane A & B -> Merge Dot)
+          if (type === 'parallel') {
+            const split = relBox(blockEl.querySelector('.junction-dot.split'));
+            const merge = relBox(blockEl.querySelector('.junction-dot.merge'));
+            const lanes = Array.from(blockEl.querySelectorAll('.lane-col'));
+
+            lanes.forEach(lane => {
+              const nodes = Array.from(lane.querySelectorAll('.fc-node'));
+              if (!nodes.length) return;
+
+              const first = relBox(nodes[0]);
+              const last = relBox(nodes[nodes.length - 1]);
+              const laneHasDone = plot && nodes.some(n => ['done', 'ans'].includes(n.dataset.st));
+              const laneTone = laneHasDone ? 'done' : 'default';
+
+              // Entry curve from Split Dot -> first node top (or caption top if present)
+              const capEl = lane.querySelector('.lane-caption');
+              const entryTargetY = capEl ? relBox(capEl).top : first.top;
+              addPath(bezierV(split.cx, split.bottom, first.cx, entryTargetY - 2), laneTone, { arrow: !capEl });
+              if (capEl) {
+                const cap = relBox(capEl);
+                addPath(`M ${cap.cx.toFixed(1)} ${cap.bottom.toFixed(1)} L ${first.cx.toFixed(1)} ${(first.top - 3).toFixed(1)}`, laneTone, { arrow: true });
+              }
+
+              // Internal connections between nodes in this lane
+              for (let j = 0; j < nodes.length - 1; j++) {
+                const n1 = nodes[j];
+                const n2 = nodes[j + 1];
+                const b1 = relBox(n1);
+                const b2 = relBox(n2);
+                const chainGap = lane.querySelector(`.chain-gap[data-chain-from="${n1.dataset.nodeId}"][data-chain-to="${n2.dataset.nodeId}"]`);
+
+                if (chainGap) {
+                  // Strict sequential dependency (af) -> solid line + arrowhead
+                  const segTone = (plot && ['done', 'ans'].includes(n1.dataset.st)) ? 'done' : 'default';
+                  addPath(`M ${b1.cx.toFixed(1)} ${b1.bottom.toFixed(1)} L ${b2.cx.toFixed(1)} ${(b2.top - 3).toFixed(1)}`, segTone, { arrow: true });
+                } else {
+                  // Independent tasks in same parallel lane -> quiet dotted spine, NO arrowhead
+                  addPath(`M ${b1.cx.toFixed(1)} ${b1.bottom.toFixed(1)} L ${b2.cx.toFixed(1)} ${b2.top.toFixed(1)}`, 'indep', { dashed: true, width: 1.5 });
+                }
+              }
+
+              // Exit curve from last node bottom -> Merge Dot top
+              // If this lane ends much higher than merge dot, drop straight first before curving smoothly
+              const dropY = Math.max(last.bottom, merge.top - 22);
+              if (dropY > last.bottom + 4) {
+                addPath(`M ${last.cx.toFixed(1)} ${last.bottom.toFixed(1)} L ${last.cx.toFixed(1)} ${dropY.toFixed(1)}`, laneTone);
+                addPath(bezierV(last.cx, dropY, merge.cx, merge.top), laneTone);
+              } else {
+                addPath(bezierV(last.cx, last.bottom, merge.cx, merge.top), laneTone);
+              }
+            });
+          }
+
+          // C) Standalone Chain Block
+          if (type === 'chain') {
+            const nodes = Array.from(blockEl.querySelectorAll(':scope > .fc-node'));
+            for (let j = 0; j < nodes.length - 1; j++) {
+              const b1 = relBox(nodes[j]);
+              const b2 = relBox(nodes[j + 1]);
+              const segTone = (plot && ['done', 'ans'].includes(nodes[j].dataset.st)) ? 'done' : 'default';
+              addPath(`M ${b1.cx.toFixed(1)} ${b1.bottom.toFixed(1)} L ${b2.cx.toFixed(1)} ${(b2.top - 3).toFixed(1)}`, segTone, { arrow: true });
+            }
+          }
+
+          // D) Terminal Fork Block (e.g., ตัดอ้อย -> ไว้ตอ / รื้อตอ)
+          if (type === 'terminal-fork') {
+            const head = relBox(blockEl.querySelector(':scope > .fc-node'));
+            const ends = Array.from(blockEl.querySelectorAll('[data-term-end]'));
+            ends.forEach(endEl => {
+              const eb = relBox(endEl);
+              const brState = endEl.dataset.branchState;
+              const tone = brState === 'chosen' ? 'done' : (brState === 'dim' ? 'skip' : 'default');
+              addPath(bezierV(head.cx, head.bottom, eb.cx, eb.top - 3), tone, { arrow: true, dashed: brState === 'dim' });
+            });
           }
         });
-        h += '</div>';
-      });
-      h += `<a href="#" class="fc-alt" onclick="event.preventDefault();fcList=true;flRender()">ดูแบบรายการเดิม</a>`;
-      return h;
-    }
-    function fcNode(it, p, steps) {
-      const s = it.s, k = 'fc' + flKey + s.id, open = gdOpen[k], br = s.k === 'ask' && fcKids(steps, s), yn = fcYesNo(steps, s);
-      const r = p ? flStat(s, p) : null, st = s.k === 'note' ? 'note' : r ? r.st : '';
-      const pill = r && r.txt && st !== 'note' ? (st === 'nolog' ? 'ไม่ได้จด' : ({ done: '', due: '● ', ask: '❓ ' }[st] || '') + r.txt) : '';
-      const who = s.k === 'note' || br ? '' : (String(it.who || '').length > 18 ? String(it.who).slice(0, 17) + '…' : it.who);
-      let x = '';
-      if (open) {
-        x = [it.extra, it.note, it.real ? `ฤดูนี้ไร่ทำจริง ${it.real.t} · ${it.real.n} แปลง` : '', st === 'note' && r && r.txt ? 'แปลงนี้: ' + r.txt : ''].filter(Boolean).map(t => `<div>${esc(t)}</div>`).join('');
-        if (p && s.k === 'ask' && s.o.length && r && r.st !== 'hold') { const raw = flAnsRaw(p.plot_id)[s.id], cur = raw && raw.v; x += `<div class="fc-ans">${s.o.map(o => `<button type="button" class="${cur === o.v ? 'on' : ''}" onclick="event.stopPropagation();flAnswer('${p.plot_id}','${qa(s.id)}','${cur === o.v ? '' : qa(o.v)}')">${cur === o.v ? '✓ ' : ''}${esc(o.l)}</button>`).join('')}</div>`; }
-        x = x ? `<div class="x">${x}</div>` : '';
+
+        // Render SVG defs (crisp minimal arrowheads) + sorted paths (active green lines on top)
+        paths.sort((a, b) => a.priority - b.priority);
+        const markers = Object.entries(COLORS).map(([k, col]) => `
+          <marker id="arr-${k}" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M 1.5 1.5 L 8.5 5 L 1.5 8.5" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        `).join('');
+
+        svg.innerHTML = `<defs>${markers}</defs>${paths.map(p => p.svg).join('')}`;
       }
-      const qh = br ? `<div class="qh">⑂ เลือก 1 ทาง${r && r.a ? ' · ' + esc(((s.o.find(o => o.v === r.a.v)) || {}).l || '') : ''}</div>` : yn ? `<div class="qh">❓ ${esc(s.q || 'ทำไหม?')}</div>` : '';
-      return `<div class="fc-n ${st}" onclick="gdOpen['${qa(k)}']=!gdOpen['${qa(k)}'];flRender()">${qh}
-        ${s.k === 'repeat' ? `<span class="rp">↻ ซ้ำได้</span>` : ''}<div class="t">${s.k === 'note' ? 'ℹ️ ' : ''}${esc(s.n)}</div>
-        <div class="d">${it.day ? `<i>${it.day}</i>` : ''}${it.day && who ? ' · ' : ''}${who ? esc(who) : ''}${!p && s.k === 'ask' && !br && !yn && s.o.length ? ` · ${esc(s.o.map(o => o.l).join(' / '))}` : ''}</div>
-        ${pill && !br ? `<span class="p">${esc(pill)}</span>` : ''}${x}</div>`;
+
+      // =========================================================================
+      // 7. INTERACTIVE BOTTOM SHEETS (Plot Picker & Step Details/Answer)
+      // =========================================================================
+      const sheetBackdrop = document.getElementById('sheetBackdrop');
+      const sheetTitle = document.getElementById('sheetTitle');
+      const sheetSubtitle = document.getElementById('sheetSubtitle');
+      const sheetBody = document.getElementById('sheetBody');
+
+      function openSheet(title, subtitle, bodyHtml) {
+        sheetTitle.textContent = title;
+        sheetSubtitle.textContent = subtitle || '';
+        sheetBody.innerHTML = bodyHtml;
+        sheetBackdrop.classList.add('open');
+        sheetBackdrop.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeSheet() {
+        sheetBackdrop.classList.remove('open');
+        sheetBackdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet);
+      sheetBackdrop.addEventListener('click', (e) => {
+        if (e.target === sheetBackdrop) closeSheet();
+      });
+
+      function openPlotPicker() {
+        const curId = state.selectedPlotId;
+        const masterBtn = `
+          <button type="button" class="plot-item-btn ${!curId ? 'active' : ''}" data-pick-plot="">
+            <div>
+              <div class="plot-item-name">ผังรวม (ยังไม่เลือกแปลง)</div>
+              <div class="plot-item-sub">ดูโครงสร้างขั้นตอนอ้อยตอทั้งหมด ${RATOON_DATA.steps.length} ขั้น</div>
+            </div>
+            <div class="plot-item-right">
+              <span class="plot-badge-age">ผังแม่แบบ</span>
+            </div>
+          </button>
+        `;
+
+        const plotBtns = RATOON_DATA.plots.map(p => {
+          const alerts = getPlotAlertCount(p);
+          const doneCnt = RATOON_DATA.steps.filter(s => p.steps[s.id]?.st === 'done').length;
+          return `
+            <button type="button" class="plot-item-btn ${curId === p.plot_id ? 'active' : ''}" data-pick-plot="${p.plot_id}">
+              <div>
+                <div class="plot-item-name">${escapeHtml(p.name)}</div>
+                <div class="plot-item-sub">${escapeHtml(p.rai)} ไร่ · ${escapeHtml(p.stage)} · ทำแล้ว ${doneCnt}</div>
+              </div>
+              <div class="plot-item-right">
+                <span class="plot-badge-age">${p.age_days} วัน</span>
+                ${alerts > 0 ? `<span class="plot-badge-alert">รอตอบ ${alerts}</span>` : ''}
+              </div>
+            </button>
+          `;
+        }).join('');
+
+        openSheet('เลือกแปลงอ้อยตอ', `ทั้งหมด ${RATOON_DATA.plots.length} แปลง · แตะเพื่อดูสถานะบนผัง`, masterBtn + plotBtns);
+
+        sheetBody.querySelectorAll('[data-pick-plot]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            fcPid = btn.dataset.pickPlot || '';
+            closeSheet();
+            flRender();
+            setTimeout(() => { const t = document.getElementById('fcx'); if (t) t.scrollIntoView({ block: 'start' }); }, 60);
+          });
+        });
+      }
+
+      document.getElementById('plotTriggerBtn').addEventListener('click', openPlotPicker);
+
+      function openStepSheet(stepId) {
+        const step = state.ast.stepMap.get(stepId);
+        if (!step) return;
+        const plot = getSelectedPlot();
+        const stObj = getStepStatus(plot, step.id);
+
+        const kindLabel = {
+          once: 'งานครั้งเดียว',
+          ask: 'คำถามแยกทาง / ตัดสินใจ',
+          repeat: `งานทำซ้ำได้ (สูงสุด ${step.max || '?'} ครั้ง)`,
+          branch: 'งานที่มีเงื่อนไขแทรก',
+          note: 'ข้อควรจำ / ช่วงดูแลต่อเนื่อง'
+        }[step.k] || 'ขั้นตอนงาน';
+
+        const subtitle = `${formatDayRange(step.f, step.t)} · ${kindLabel}`;
+        let html = '';
+
+        // 1. Selected Plot Status
+        if (plot && stObj) {
+          const f = formatCompactStatus(stObj);
+          html += `
+            <div class="detail-box">
+              <div class="detail-label">สถานะแปลง ${escapeHtml(plot.name)} (อายุ ${plot.age_days} วัน)</div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:4px;">
+                <span class="st-pill ${f.cls}">${escapeHtml(stObj.txt || f.text)}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        // 2. Interactive Question Answering (if k === 'ask')
+        if (step.k === 'ask' && Array.isArray(step.o) && step.o.length > 0) {
+          const chosen = stObj?.answer || null;
+          if (plot) {
+            html += `
+              <div class="detail-box is-ask">
+                <div class="detail-label" style="color:var(--ask);">คำถามรายแปลง: ${escapeHtml(step.q || step.n)}</div>
+                <div class="answer-btn-list">
+                  ${step.o.map(opt => {
+                    const isSel = chosen === opt.v;
+                    const goDesc = opt.go === 'next' ? 'เปิดทางงานย่อย'
+                      : opt.go === 'do' ? 'ทำขั้นตอนนี้'
+                      : opt.go === 'skip' ? 'ข้ามขั้นตอนนี้'
+                      : opt.go === 'ratoon' ? 'ไว้ตอต่อรอบหน้า'
+                      : opt.go === 'replant' ? 'รื้อตอปลูกอ้อยใหม่' : '';
+                    return `
+                      <button type="button" class="answer-opt-btn ${isSel ? 'selected' : ''}" data-ans-val="${opt.v}">
+                        <span>${isSel ? '✓ ' : ''}${escapeHtml(opt.l)}</span>
+                        <span class="answer-opt-sub">${goDesc}</span>
+                      </button>
+                    `;
+                  }).join('')}
+                  ${chosen ? `<button type="button" class="reset-ans-btn" id="resetAnsBtn">ล้างคำตอบ (กลับไปรอตอบ)</button>` : ''}
+                </div>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="detail-box is-ask">
+                <div class="detail-label" style="color:var(--ask);">คำถามแยกทาง: ${escapeHtml(step.q || step.n)}</div>
+                <div class="detail-chips" style="margin-top:6px;">
+                  ${step.o.map(o => `<span class="detail-chip">${escapeHtml(o.l)}</span>`).join('')}
+                </div>
+                <div style="font-size:13px; color:var(--ink-2); margin-top:6px;">เลือกแปลงด้านบนเพื่อบันทึกคำตอบของแปลงนั้น</div>
+              </div>
+            `;
+          }
+        }
+
+        // 3. If this step is `hold` waiting on a parent `ask`, provide direct jump to answer parent!
+        if (plot && stObj?.st === 'hold' && step.w?.a && state.ast.stepMap.has(step.w.a)) {
+          const parentAsk = state.ast.stepMap.get(step.w.a);
+          html += `
+            <button type="button" class="answer-opt-btn selected" id="jumpParentAskBtn">
+              <span>ไปตอบคำถาม "${escapeHtml(parentAsk.n)}"</span>
+              <span>→</span>
+            </button>
+          `;
+        }
+
+        // 4. Dependency (`af` + `ad`)
+        if (step.af && state.ast.stepMap.has(step.af)) {
+          const prevStep = state.ast.stepMap.get(step.af);
+          const adTxt = Array.isArray(step.ad) ? ` (+${step.ad[0]}–${step.ad[1]} วัน)` : '';
+          html += `
+            <div class="detail-box">
+              <div class="detail-label">ลำดับต่อเนื่อง</div>
+              <div>ทำหลังเสร็จ <strong>${escapeHtml(prevStep.n)}</strong>${adTxt}</div>
+            </div>
+          `;
+        }
+
+        // 5. Branch condition (`b`)
+        if (step.b) {
+          html += `
+            <div class="detail-box is-branch">
+              <div class="detail-label" style="color:#92400E;">⚡ งานแทรกเมื่อเกิดเหตุ</div>
+              <div>ถ้า <strong>${escapeHtml(step.b.c)}</strong> → ทำ <strong>${escapeHtml(step.b.n)}</strong>${step.b.w ? ` (ช่วง ${step.b.w} วัน)` : ''}</div>
+            </div>
+          `;
+        }
+
+        // 6. Repeat info
+        if (step.k === 'repeat') {
+          html += `
+            <div class="detail-box">
+              <div class="detail-label">↻ เงื่อนไขทำซ้ำ</div>
+              <div>สูงสุด ${step.max || '-'} ครั้ง${step.cond ? ` · เมื่อ ${escapeHtml(step.cond)}` : ''}${step.gap ? ` · เว้นห่างประมาณ ${step.gap} วัน` : ''}</div>
+            </div>
+          `;
+        }
+
+        // 7. Tool & Category
+        if (step.tool || (step.g && step.g.length)) {
+          html += `
+            <div class="detail-box">
+              ${step.tool ? `<div style="margin-bottom:${step.g?.length ? '8px' : '0'}"><div class="detail-label">เครื่องมือ / รถที่ใช้</div><div>${escapeHtml(step.tool)}</div></div>` : ''}
+              ${step.g?.length ? `<div><div class="detail-label">หมวดงาน</div><div class="detail-chips">${step.g.map(x => `<span class="detail-chip">${escapeHtml(x)}</span>`).join('')}</div></div>` : ''}
+            </div>
+          `;
+        }
+
+        // 8. Note
+        if (step.note) {
+          html += `
+            <div class="detail-box">
+              <div class="detail-label">หมายเหตุ / แนวทางไร่</div>
+              <div style="line-height:1.55;">${escapeHtml(step.note)}</div>
+            </div>
+          `;
+        }
+
+        openSheet(step.n, subtitle, html);
+
+        // Bind answer buttons
+        if (plot && step.k === 'ask') {
+          sheetBody.querySelectorAll('[data-ans-val]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const opt = step.o.find(o => o.v === btn.dataset.ansVal);
+              applyPlotAnswer(plot, step, opt);
+              closeSheet();
+            });
+          });
+          const resetBtn = document.getElementById('resetAnsBtn');
+          if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+              applyPlotAnswer(plot, step, null);
+              closeSheet();
+            });
+          }
+        }
+
+        const jumpParentBtn = document.getElementById('jumpParentAskBtn');
+        if (jumpParentBtn && step.w?.a) {
+          jumpParentBtn.addEventListener('click', () => openStepSheet(step.w.a));
+        }
+      }
+
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById('fcxToast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2100);
+      }
+
+      // =========================================================================
+      // 8. INIT & RESPONSIVE SVG REDRAW
+      // =========================================================================
+      renderApp();
+
+      // Redraw SVG lines cleanly when fonts finish loading or viewport resizes
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => drawConnections(getSelectedPlot()));
+      }
+      if (window.__fcxRO) window.__fcxRO.disconnect();
+      window.__fcxRO = new ResizeObserver(() => { if (document.getElementById('flowCanvas')) drawConnections(getSelectedPlot()); });
+      window.__fcxRO.observe(document.getElementById('flowCanvas'));
+
     }
-    function fcGoDue() { const el = document.querySelector('#flow-body .fc-n.due, #flow-body .fc-n.ask'); if (el) flScrollTo(el); }
     function gdHtml(steps) {
       const segs = gdRows(steps);
       let h = `<div class="gd-top">ลำดับงาน${flKey}ทั้งฤดู · <b>วันที่ = นับจากวัน${flBase()}</b>${flKey === 'อ้อยใหม่' ? ' (วันทอยอ้อย = วันที่ 0)' : ' (วันตัดเสร็จ = วันที่ 0)'} · แตะข้อ = อ่านเต็ม</div>${flStageHtml(1)}`;

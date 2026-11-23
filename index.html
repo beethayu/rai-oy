@@ -1743,6 +1743,7 @@
             </div>
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewEve()" id="btnPrevE">ดูตัวอย่างสรุปเย็น</button>
+              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="sendEveNow()" id="btnSendE">ส่งสรุปเย็นเข้า LINE ตอนนี้</button>
             </div>
             <div class="d-flex gap-2 mt-2">
               <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewLine()" id="btnPrev">ดูตัวอย่าง</button>
@@ -3018,7 +3019,11 @@
       (gData.activities || []).forEach(a => { const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
         const fm = String(a.remark || '').match(/เสร็จ (\d{1,2}\/\d{1,2}\/\d{4})/); if (fm) { const fi = beToISO(fm[1]); if (fi && fi !== iso) (at(fi).fin = at(fi).fin || []).push(a); }
         (/^ฝนตก/.test(a.activity_group) ? at(iso).rain : at(iso).logs).push(a); });
-      try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty, ref: g.ref }); })); } catch (e) {}
+      try { fuelTeams().forEach(t => t.gives.forEach(g => { if (g.iso) at(g.iso).fuel.push({ team: t.team, qty: g.qty, ref: g.ref, iso: g.iso }); })); } catch (e) {}
+      // 🟫 ผลดูดินหน้างาน + 📷/📝 บันทึกแปลง (23 พ.ย. 69 ผู้ใช้: "วันนี้ไปดูที่ตลาดนัด เข้าไปสับหญ้าไม่ได้ น่าจะลงไว้ด้วย")
+      (gData.soilChecks || []).forEach(c => { const iso = beToISO(c.date); if (iso) (at(iso).soil = at(iso).soil || []).push(c); });
+      (gData.plotPhotos || []).forEach(x => { const iso = beToISO(String(x.timestamp || '').split(' ')[0]); if (!iso) return; const o = at(iso), k = String(x.photo_id || '').replace(/_\d+$/, '');
+        o.pnote = o.pnote || {}; (o.pnote[k] = o.pnote[k] || { ...x, plots: [] }).plots.push(x.plot_id); });
       (gData.guards || []).forEach(g => { const st = guardStat(g); if (st.future) { at(st.s).guards.push(g); return; }
         for (let d = st.s, k = 0; d <= st.e && k < 400; d = isoAdd(d, 1), k++) { if (d === st.e && !st.open && d !== st.s) break; at(d).guards.push(g); } });
       const t0 = todayISO();
@@ -3038,6 +3043,7 @@
       if (o.guards.length) d.push(`<i style="background:${CAL_GUARD}"></i>`);
       if (o.fuel.length) d.push(`<i style="background:${CAL_FUEL}"></i>`);
       if ((o.notes || []).length) d.push(`<i style="background:#0E7490"></i>`);
+      if ((o.soil || []).length || o.pnote) d.push(`<i style="background:#8B5E34"></i>`);
       if (o.veh) d.push(`<i style="background:#475569"></i>`);
       if (o.rem.length) d.push(`<i class="o" style="border-color:#D97706;border-width:2px"></i>`);
       if (o.ripe.length) d.push(`<i class="o" style="border-color:${DS_COL['ตัดอ้อย']}"></i>`);
@@ -3112,7 +3118,19 @@
         out.push(djRow({ icon: ICON[a.category] || '🔧', what: esc(eqS(nm)), where: shop ? 'ร้าน' + esc(shop.replace(/^ร้าน/, '')) : '', extra: ls.map(l => esc(txt(l))).filter(Boolean).join(' · '),
           attrs: a.category && a.category !== 'Worker' ? ` onclick="openAssetHist('${qa(nm)}')" style="cursor:pointer"` : '' })); });
       (o.fuel || []).forEach(f => { const pump = f.team.length === 1 && f.team[0] === PUMP;
-        out.push(djRow({ icon: '⛽', what: pump ? 'เติมเบนซิน เครื่องสูบน้ำ' : 'ให้น้ำมัน เบนซิน + 2T', amt: `${r1(f.qty)} ลิตร`, who: pump ? '' : esc(f.team.join(' + ')), attrs: f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ${pump ? 'เครื่องสูบน้ำ' : esc(f.team.join(' + '))}"` : '' })); });
+        let ex = '';
+        if (!pump) { // ให้ไว้ทำอะไร: พอกี่ถัง + ฉีดไปแล้วหรือยังหลังให้ (ทีมเดียวกัน)
+          const sp = (gData.activities || []).filter(a => a.activity_group === 'ฉีดยา' && (w => w.length && w.every(n => f.team.includes(n)))(logWho(a))).map(a => ({ a, d: beToISO(String(a.timestamp || '').split(' ')[0]) })).filter(x => x.d && x.d >= f.iso);
+          const tk = tankOf(sp.map(x => x.a)), last = sp.map(x => x.d).sort().pop();
+          ex = `สำหรับเครื่องพ่นยา · ผสม 2T ${r1(f.qty * fuelCap())} ฝา · พอฉีด ≈ ${r1(f.qty / fuelL())} ถัง<br>` + (tk ? `หลังให้ ฉีดไปแล้ว ${r1(tk)} ถัง (ล่าสุด ${esc(calLbl(last))})` : `ยังไม่ได้ฉีดหลังให้ — เตรียมไว้ฉีดรอบถัดไป`);
+          try { const t = fuelTeams().find(t => t.team.slice().sort().join('|') === f.team.slice().sort().join('|')), b = t && fuelBal(t); if (b && iso === t0) ex += ` · ตอนนี้เหลือ ≈ ${r1(b.left)} ลิตร`; } catch (e) {}
+        }
+        out.push(djRow({ icon: '⛽', what: pump ? 'เติมเบนซิน เครื่องสูบน้ำ' : 'ให้น้ำมัน เบนซิน + 2T', amt: `${r1(f.qty)} ลิตร`, who: pump ? '' : esc(f.team.join(' + ')), extra: ex, attrs: f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ${pump ? 'เครื่องสูบน้ำ' : esc(f.team.join(' + '))}"` : '' })); });
+      (o.soil || []).forEach(c => { const ps = String(c.plot_ids || '').split(',').filter(Boolean), bad = /ไม่ได้|ขัง|แฉะ|เปียก/.test(c.state || '');
+        out.push(djRow({ icon: '🟫', what: `ดูดินหน้างาน · <span style="color:${bad ? '#B42318' : '#2E7D4F'}">${esc(c.state || '')}</span>`, where: esc(c.area || '') + (ps.length && !c.area ? djWhere(ps, pname) : ''), extra: esc(c.note || '') })); });
+      Object.values(o.pnote || {}).forEach(x => { const n = String(x.note || '').replace(/^⚠️ แชตเข้าใจผิด — จดธรรมดาไว้ · /, '');
+        out.push(djRow({ icon: x.file_ids ? '📷' : '📝', what: esc(x.diagnosis && !/^📝/.test(x.diagnosis) ? x.diagnosis : x.file_ids ? 'รูปหน้างาน' : 'บันทึกแปลง'), where: djWhere(x.plots, pname), extra: esc(n.slice(0, 160)),
+          attrs: x.file_ids ? ` onclick="viewPhotos('${qa(pname(x.plots[0]))}','${qa(x.file_ids)}')" style="cursor:pointer"` : '' })); });
       (o.guards || []).forEach(g => { const st = guardStat(g), nth = st.future ? 0 : dayDiff(st.s, iso) + 1;
         out.push(djRow({ icon: '🛡️', what: 'เฝ้าไร่', tag: nth > 0 ? `คืนที่ ${nth}` : '', who: esc(String(g.workers || '').split(/\s*[,+]\s*/).filter(Boolean).join(' + ') || 'ไม่ระบุคน'), where: esc(guardWhere(g)) })); });
       (o.ripe || []).forEach(r => out.push(djRow({ icon: '🌾', what: 'ครบตัด', where: esc(r.p.plot_name), extra: `${esc(r.type)} · อายุครบ ${r.type === 'อ้อยใหม่' ? '10' : '11'} เดือน` })));
@@ -5400,6 +5418,11 @@
     }
     function previewEve() {
       call('previewEvening', [], t => { const b = $('set_preview'); b.textContent = t; b.style.display = 'block'; }, $('btnPrevE'), '⏳ กำลังสร้างตัวอย่าง...');
+    }
+    function sendEveNow() {
+      if (!S('hasToken')) return alert('ยังไม่ได้ใส่โทเคน LINE');
+      if (!confirm('ส่งสรุปงานวันนี้เข้า LINE ตอนนี้?')) return;
+      call('sendEveningNow', [], r => alert((r.ok ? '✅ ' : '❌ ') + r.msg), $('btnSendE'), '⏳ กำลังส่ง LINE...');
     }
     function testLine() {
       if (!S('hasToken')) return alert('กด "บันทึกการตั้งค่า" พร้อมโทเคนก่อนครับ');

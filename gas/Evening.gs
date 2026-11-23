@@ -21,6 +21,14 @@ function sendEveningBrief() {
   if (res.ok) setSetting_(ss, 'LAST_EVENING', today); else console.error(res.msg);
 }
 
+// ปุ่ม "ส่งสรุปเย็นเข้า LINE ตอนนี้" (ส่งแล้วเย็นนี้ตัวตั้งเวลาไม่ส่งซ้ำ)
+function sendEveningNow() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet(), s = getSettings_(ss);
+  const res = sendLine_(s, buildEvening_(ss));
+  if (res.ok) setSetting_(ss, 'LAST_EVENING', getTodayStr());
+  return res;
+}
+
 // ปุ่ม "ดูตัวอย่างสรุปเย็น" ในแอป (ไม่ส่ง)
 function previewEvening() { return buildEvening_(SpreadsheetApp.getActiveSpreadsheet()); }
 
@@ -58,6 +66,15 @@ function buildEvening_(ss) {
     Object.keys(fin).forEach(k => out.push(`• ✅ ${k} เสร็จ · ${fin[k].join(', ')}`));
   }
   if (rain.length) out.push('', `🌧️ ฝนตก: ${rain.join(', ')}`);
+  try {
+    const sc = readSheet_(ss, 'SoilChecks').filter(c => day(c.date) === today);
+    const pp = {}; readSheet_(ss, 'PlotPhotos').filter(x => day(x.timestamp) === today).forEach(x => { const k = String(x.photo_id).replace(/_\d+$/, ''); (pp[k] = pp[k] || { x, ps: [] }).ps.push(pName[x.plot_id] || x.plot_id); });
+    if (sc.length || Object.keys(pp).length) {
+      out.push('', '👀 ไปดูหน้างาน');
+      sc.forEach(c => out.push(`• 🟫 ${c.area || String(c.plot_ids || '').split(',').map(id => pName[id] || id).join(', ')} · ${c.state}${clean(c.note) ? ' · ' + c.note : ''}`));
+      Object.values(pp).forEach(o => out.push(`• ${o.x.file_ids ? '📷' : '📝'} ${o.ps.join(', ')} · ${String(o.x.diagnosis && !/^📝/.test(o.x.diagnosis) ? o.x.diagnosis + ' ' : '') + String(o.x.note || '').replace(/^⚠️ แชตเข้าใจผิด — จดธรรมดาไว้ · /, '')}`.trim().slice(0, 160)));
+    }
+  } catch (e) {}
 
   // รถ (ไม่นับรายการค้างซ่อม/จดข้อมูล)
   const al = readSheet_(ss, SH.ALOG).filter(l => day(l.timestamp) === today && !/ค้างซ่อม/.test(l.event_type));
@@ -70,11 +87,13 @@ function buildEvening_(ss) {
   try {
     const inv = {}; readSheet_(ss, SH.INV, true).forEach(i => { inv[i.name] = i; });
     const use = {}, got = {};
-    readSheet_(ss, SH.SLOG).forEach(l => { if (day(l.timestamp) !== today) return; const q = Number(String(l.change_qty).replace(/,/g, '')) || 0; if (q < 0) use[l.item_name] = (use[l.item_name] || 0) - q; else if (q > 0) got[l.item_name] = (got[l.item_name] || 0) + q; });
+    const fuel = [];
+    readSheet_(ss, SH.SLOG).forEach(l => { if (day(l.timestamp) !== today) return; const q = Number(String(l.change_qty).replace(/,/g, '')) || 0; if (/^⛽ให้น้ำมัน\|/.test(String(l.note || ''))) { fuel.push(`${String(l.note).split('|')[1]} ${Math.round(-q * 10) / 10} ลิตร`); return; } if (q < 0) use[l.item_name] = (use[l.item_name] || 0) - q; else if (q > 0) got[l.item_name] = (got[l.item_name] || 0) + q; });
     const fq = (n, q) => { const i = inv[n] || {}, pk = Number(i.pack_size) || 1; return pk > 1 ? `${Math.round(q / pk * 10) / 10} ${i.pack_name || i.unit || ''}` : `${Math.round(q * 10) / 10} ${i.unit || ''}`; };
     const u = Object.keys(use), g = Object.keys(got);
-    if (u.length || g.length) {
+    if (u.length || g.length || fuel.length) {
       out.push('', '📦 สต็อก');
+      if (fuel.length) out.push('• ⛽ ให้น้ำมันเครื่องพ่นยา: ' + fuel.join(', '));
       if (u.length) out.push('• ใช้ไป: ' + u.map(n => `${n} ${fq(n, use[n])}`).join(', '));
       if (g.length) out.push('• รับเข้า: ' + g.map(n => `${n} ${fq(n, got[n])}`).join(', '));
     }

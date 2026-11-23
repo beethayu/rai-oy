@@ -4752,13 +4752,13 @@
     }
     function vehRems(a) {
       const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()].filter(Boolean);
-      return (gData.reminders || []).filter(r => r.status !== 'done' && (r.on_event === 'รับรถ:' + a.name || keys.some(k => String(r.text || '').toLowerCase().includes(k))));
+      return (gData.reminders || []).filter(r => r.status !== 'done' && (r.on_event === 'รับรถ:' + a.name || r.on_event === 'อยู่ร้าน:' + a.name || keys.some(k => String(r.text || '').toLowerCase().includes(k))));
     }
     const remPick = name => (gData.reminders || []).filter(r => r.status !== 'done' && r.on_event === 'รับรถ:' + name && !beToISO(r.date));
     function vehMaint(a) {
       const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()];
       const t0 = todayISO();
-      return vehRems(a).filter(r => r.repeat).map(r => {
+      return vehRems(a).filter(r => r.repeat && !/^อยู่ร้าน:/.test(r.on_event || '')).map(r => {
         const next = beToISO(r.date), nm = /^(\d{1,2}) เดือน$/.exec(r.repeat || ''), mo = nm ? Number(nm[1]) : r.repeat === 'เดือน' ? 1 : r.repeat === 'ปี' ? 12 : 0;
         let last = '';
         if (mo && next) { const d = new Date(next + 'T00:00:00'); d.setMonth(d.getMonth() - mo); last = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -4785,6 +4785,7 @@
     function vehApptDone(id, went) {
       const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
       if (!went) { if (!confirm('ยกเลิกนัดนี้?')) return; return remDo('del', id).then(vehRender); }
+      if (/^อยู่ร้าน:/.test(r.on_event || '')) return remDo('done', id).then(vehRender); // โทรเช็คแล้ว → เลื่อนไปสัปดาห์หน้า (รับรถแล้วปิดเอง)
       const txt = String(r.text).split(' · ').slice(1).join(' · ') || r.text, shopy = /ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt), m = txt.match(/(?:ร้าน|อู่)\s*(\S+)/);
       const op = { fn: 'asset', asset: vehCur, event: shopy ? 'ซ่อม' : 'บันทึก', detail: txt.replace(/^เอา(รถ)?ไป/, ''), shop: shopy && m ? m[1] : '', place: '', date: isoToBE(todayISO()), plates: [], photo_ids: [], state: shopy ? 'at_shop' : '' };
       call('chatApply', [[op, { fn: 'remdone', id }], 'VA' + Date.now()], d => { init(d); vehRender(); }, null, null, () => vehRender());
@@ -4907,11 +4908,11 @@
       const pick = remPick(name);
       if (pick.length) h += `<div class="vh-cd warn"><div class="vh-k">🔔 เตือนตอนรับรถกลับ</div>${pick.map(r => `<div class="vh-row"><div class="vh-dt"><b>🔔</b><small>ตอนรับรถ</small></div><div class="vh-tx"><div class="vh-main">${esc(String(r.text).replace(new RegExp('\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*$', 'i'), '') || r.text)}</div></div>${dots(r.rem_id)}
           ${ACT(r.rem_id, `<button type="button" class="bigbtn bigbtn-main" onclick="vehApptDone('${qa(r.rem_id)}',1)">ทำแล้ว</button><button type="button" class="bigbtn bigbtn-out vh-del" onclick="vehApptDone('${qa(r.rem_id)}',0)">ยกเลิก</button>`)}</div>`).join('')}</div>`;
-      const appts = vehRems(a).filter(r => !r.repeat && beToISO(r.date)).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
+      const appts = vehRems(a).filter(r => (!r.repeat || /^อยู่ร้าน:/.test(r.on_event || '')) && beToISO(r.date)).sort((x, y) => beToISO(x.date).localeCompare(beToISO(y.date)));
       if (appts.length) h += `<div class="vh-cd warn"><div class="vh-k">นัด / เตือน คันนี้</div>${appts.map(r => {
         const iso = beToISO(r.date), n = dayDiff(todayISO(), iso), txt = String(r.text).replace(new RegExp('^\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*·?\\s*', 'i'), '');
-        const go = /ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt) ? 'ไปแล้ว รถอยู่ร้าน' : 'ทำแล้ว';
-        return `<div class="vh-row"><div class="vh-dt"><b>${dShort(iso)}</b><small>${n === 0 ? 'วันนี้' : n === 1 ? 'พรุ่งนี้' : n < 0 ? 'เลย ' + (-n) + ' วัน' : 'อีก ' + n + ' วัน'}</small></div><div class="vh-tx"><span class="vh-tg o">นัด</span><div class="vh-main">${esc(txt)}</div>
+        const call1 = /^อยู่ร้าน:/.test(r.on_event || ''), go = call1 ? 'โทรแล้ว' : /ร้าน|อู่|ช่าง|ซ่อม|เช็ค/.test(txt) ? 'ไปแล้ว รถอยู่ร้าน' : 'ทำแล้ว';
+        return `<div class="vh-row"><div class="vh-dt"><b>${dShort(iso)}</b><small>${n === 0 ? 'วันนี้' : n === 1 ? 'พรุ่งนี้' : n < 0 ? 'เลย ' + (-n) + ' วัน' : 'อีก ' + n + ' วัน'}</small></div><div class="vh-tx"><span class="vh-tg o">${call1 ? "โทรเช็ค" : "นัด"}</span><div class="vh-main">${esc(txt)}</div>
           ${n <= 0 && vehRowOpen !== r.rem_id ? `<button type="button" class="bigbtn bigbtn-main vh-go" onclick="vehApptDone('${qa(r.rem_id)}',1)">${go}</button>` : ''}</div>${dots(r.rem_id)}
           ${ACT(r.rem_id, `<button type="button" class="bigbtn bigbtn-main" onclick="vehApptDone('${qa(r.rem_id)}',1)">${go}</button><button type="button" class="bigbtn bigbtn-out vh-del" onclick="vehApptDone('${qa(r.rem_id)}',0)">ยกเลิกนัด</button>`)}</div>`; }).join('')}</div>`;
       // บำรุงตามระยะ

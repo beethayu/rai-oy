@@ -6,6 +6,7 @@ const REM_REP_ = ['วัน', 'สัปดาห์', 'เดือน', 'ป�
 const remRepOk_ = r => REM_REP_.indexOf(r) !== -1 || /^\d{1,2} เดือน$/.test(r);
 const REM_H_ = ['rem_id', 'created', 'date', 'time', 'text', 'repeat', 'lead_days', 'status', 'done_at', 'on_event'];
 // on_event (23 พ.ย. 69) = "รับรถ:<ชื่อรถ>" → ยังไม่มีวัน (date ว่าง) · กดรับรถกลับ (แชต/หน้ารถ) แล้วลงวันนั้นให้เอง (remPickup_)
+//   "อยู่ร้าน:<ชื่อรถ>" = เตือนโทรเช็คร้าน (ซ้ำทุกสัปดาห์) ปิดเองตอนรับรถกลับ
 // ผู้ใช้: "วันรับรถกลับจากร้านช่างนุ อาจต้องเตือนให้เปลี่ยนแบตด้วย" แชตเดิมตั้งเป็นวันนี้
 const remSheet_ = ss => { const sh = getOrCreate_(ss, 'Reminders', REM_H_);
   if (sh.getLastColumn() < REM_H_.length) sh.getRange(1, 1, 1, REM_H_.length).setValues([REM_H_]); return sh; };
@@ -16,15 +17,19 @@ function remAdd_(ss, p, id) {
   const sh = remSheet_(ss);
   if (remFind_(sh, id).r > 0) return false;
   const rep = remRepOk_(String(p.repeat || '').trim()) ? String(p.repeat).trim() : '';
-  const ev = /^รับรถ:.+/.test(String(p.on_event || '')) ? String(p.on_event).slice(0, 80) : '';
-  appendRows_(sh, [[String(id), getTodayStr(), ev && !p.date ? '' : remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), ev ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);
+  const ev = /^(รับรถ|อยู่ร้าน):.+/.test(String(p.on_event || '')) ? String(p.on_event).slice(0, 80) : '', pk = /^รับรถ:/.test(ev);
+  appendRows_(sh, [[String(id), getTodayStr(), pk && !p.date ? '' : remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), pk ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);
   return true;
 }
 // รับรถกลับแล้ว → เตือนที่รอ "ตอนรับรถ" ของคันนี้ ลงวันนี้ (ขึ้นในแอปหน้าวันนี้ + LINE) · คืนรายการข้อความ
 function remPickup_(ss, name) {
   const sh = remSheet_(ss), d = sh.getDataRange().getDisplayValues(), out = [];
   const ci = REM_H_.indexOf('on_event'), di = REM_H_.indexOf('date'), si = REM_H_.indexOf('status');
-  for (let i = 1; i < d.length; i++) if (d[i][ci] === 'รับรถ:' + name && !d[i][di] && d[i][si] === 'open') { remSet_(sh, i, 'date', getTodayStr()); out.push(d[i][REM_H_.indexOf('text')]); }
+  for (let i = 1; i < d.length; i++) {
+    if (d[i][si] !== 'open') continue;
+    if (d[i][ci] === 'รับรถ:' + name && !d[i][di]) { remSet_(sh, i, 'date', getTodayStr()); out.push(d[i][REM_H_.indexOf('text')]); }
+    else if (d[i][ci] === 'อยู่ร้าน:' + name) { remSet_(sh, i, 'status', 'done'); remSet_(sh, i, 'done_at', getTodayStr()); }   // รับรถแล้ว ไม่ต้องโทรเช็คต่อ
+  }
   return out;
 }
 function remSet_(sh, r, col, v) { sh.getRange(r + 1, REM_H_.indexOf(col) + 1).setNumberFormat('@').setValue(v); }

@@ -37,6 +37,8 @@ const DEFAULT_SETTINGS = [
   ['FERT_PRESET_RATOON', '21-0-0:3,16-8-8:1', 'สูตรปุ๋ยอ้อยตอ (สูตร:สัดส่วน คั่นด้วย ,)'],
   ['SPRAY_FUEL_L_PER_TANK', '0.5', 'น้ำมันเบนซินเครื่องพ่นยา ลิตรต่อถัง (ใช้คิดน้ำมันเหลือ)'],
   ['SPRAY_2T_CAP_PER_L', '1', 'ผสม 2T กี่ฝาต่อเบนซิน 1 ลิตร (แสดงอย่างเดียว ไม่ตัดสต็อก)'],
+  ['EVENING_ENABLED', 'เปิด', 'เปิด / ปิด สรุปงานวันนี้ส่ง LINE ~17:00 (ใช้โทเคนเดียวกับตอนเช้า)'],
+  ['LAST_EVENING', '', '(ระบบใช้) วันที่ส่งสรุปเย็นล่าสุด'],
   ['LAST_NOTIFY', '', '(ระบบใช้) วันที่ส่ง LINE ล่าสุด']
 ];
 
@@ -261,6 +263,7 @@ function getInitialData() {
   ensureSetup_(false);
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const data = readAll_(ss);
+  eveEnsure_();
   if (syncAssets_(ss, data.options, data.assets)) data.assets = readSheet_(ss, SH.ASSET);
   return data;
 }
@@ -785,7 +788,7 @@ function saveSettings(obj) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sh = ss.getSheetByName(SH.SET);
     const d = sh.getDataRange().getDisplayValues();
-    const allowed = DEFAULT_SETTINGS.map(r => r[0]).filter(k => k !== 'LAST_NOTIFY');
+    const allowed = DEFAULT_SETTINGS.map(r => r[0]).filter(k => k !== 'LAST_NOTIFY' && k !== 'LAST_EVENING');
     const col = d.slice(1).map(r => [r[1]]);
     Object.keys(obj || {}).forEach(k => {
       if (!allowed.includes(k)) return;
@@ -795,6 +798,7 @@ function saveSettings(obj) {
       if (i > 0) col[i - 1] = [v];
     });
     if (col.length) { const rg = sh.getRange(2, 2, col.length, 1); rg.setNumberFormat('@'); rg.setValues(col); }
+    Object.keys(obj || {}).forEach(k => { if (allowed.includes(k) && k !== 'LINE_CHANNEL_TOKEN' && !d.some((r, j) => j > 0 && r[0] === k)) setSetting_(ss, k, String(obj[k] == null ? '' : obj[k]).trim()); }); // คีย์ใหม่ที่ยังไม่มีแถว
     const s = getSettings_(ss);
     if (s.NOTIFY_ENABLED === 'เปิด') installNotifyTriggers_(s); else removeNotifyTriggers_();
     return readAll_(ss);
@@ -822,6 +826,7 @@ function removeNotifyTriggers_() {
 }
 
 function dailyScheduler() {
+  eveEnsure_();
   scheduleExactNotify_(getSettings_(SpreadsheetApp.getActiveSpreadsheet()));
 }
 

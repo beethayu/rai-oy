@@ -1727,7 +1727,7 @@
             <button type="button" class="btn btn-outline-success fw-bold" onclick="updLast=0;this.innerText='กำลังเช็ก…';checkUpdate();setTimeout(()=>{this.innerText=updNew?'มีใหม่ กำลังโหลด…':'ล่าสุดแล้ว ✓'},2500)">เช็กอัปเดต</button>
           </div>
           <div class="card-sec">
-            <h6>แจ้งเตือน LINE ทุกเช้า</h6>
+            <h6>แจ้งเตือน LINE (เช้า + เย็น)</h6>
             <div class="msub mb-2" id="set_status"></div>
             <div class="row g-2 mb-2">
               <div class="col-6"><div class="bill-lbl">สถานะ</div><select class="form-select" id="set_enabled"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
@@ -1737,7 +1737,14 @@
             <input type="password" class="form-control mb-2" id="set_token" autocomplete="off">
             <div class="bill-lbl">ส่งถึง (ไม่ใส่ = ทุกคนที่แอดเพื่อน OA)</div>
             <input type="text" class="form-control mb-2" id="set_target" placeholder="User ID หรือ Group ID">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2" style="padding:8px 0;border-top:1px solid #E6ECE8">
+              <div><b>🌇 สรุปงานวันนี้ ~17:00</b><div class="msub mb-0">ส่ง LINE ทุกเย็น วันนี้ใครทำอะไร แปลงไหน รถ สต็อก</div></div>
+              <select class="form-select" id="set_evening" style="width:auto"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select>
+            </div>
             <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewEve()" id="btnPrevE">ดูตัวอย่างสรุปเย็น</button>
+            </div>
+            <div class="d-flex gap-2 mt-2">
               <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewLine()" id="btnPrev">ดูตัวอย่าง</button>
               <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="testLine()" id="btnTest">ส่งทดสอบ</button>
             </div>
@@ -5365,6 +5372,7 @@
       $('set_token').placeholder = S('hasToken') ? 'ใส่แล้ว (ไม่ใส่ = ใช้อันเดิม)' : 'วางโทเคนจาก LINE Developers';
       $('set_target').value = S('LINE_TARGET_ID') || '';
       $('set_enabled').value = S('NOTIFY_ENABLED') === 'เปิด' ? 'เปิด' : 'ปิด';
+      $('set_evening').value = S('EVENING_ENABLED') === 'ปิด' ? 'ปิด' : 'เปิด';
       const tm = String(S('NOTIFY_TIME') || '04:00').match(/(\d{1,2})[:.](\d{2})/);
       $('set_time').value = tm ? `${pad(+tm[1])}:${tm[2]}` : '04:00';
       $('set_wnew').value = S('WATER_DAYS_NEW') || 12; $('set_wrat').value = S('WATER_DAYS_RATOON') || 15;
@@ -5378,17 +5386,20 @@
     function saveSettingsUI() {
       const o = {
         LINE_CHANNEL_TOKEN: $('set_token').value.trim(), LINE_TARGET_ID: $('set_target').value.trim(),
-        NOTIFY_ENABLED: $('set_enabled').value, NOTIFY_TIME: $('set_time').value || '04:00',
+        NOTIFY_ENABLED: $('set_enabled').value, NOTIFY_TIME: $('set_time').value || '04:00', EVENING_ENABLED: $('set_evening').value,
         WATER_DAYS_NEW: $('set_wnew').value, WATER_DAYS_RATOON: $('set_wrat').value,
         SPRAY_DAY_MIN: $('set_smin').value, SPRAY_DAY_MAX: $('set_smax').value,
         CHEM_PRESET_NEW: $('set_cnew').value, CHEM_PRESET_GROW: $('set_cgrow').value,
         FERT_PRESET_BASE: $('set_fbase').value, FERT_PRESET_RATOON: $('set_frat').value
       };
       if (o.NOTIFY_ENABLED === 'เปิด' && !o.LINE_CHANNEL_TOKEN && !S('hasToken')) return alert('ใส่ Channel access token ก่อนเปิดแจ้งเตือนครับ');
-      call('saveSettings', [o], d => { init(d); alert('✅ บันทึกการตั้งค่าแล้ว' + (o.NOTIFY_ENABLED === 'เปิด' ? `\nLINE จะส่งสรุปทุกวันเวลา ${o.NOTIFY_TIME} น.` : '')); }, $('btnSetSave'));
+      call('saveSettings', [o], d => { init(d); alert('✅ บันทึกการตั้งค่าแล้ว' + (o.NOTIFY_ENABLED === 'เปิด' ? `\nLINE จะส่งสรุปทุกวันเวลา ${o.NOTIFY_TIME} น.${o.EVENING_ENABLED === 'เปิด' ? ' และสรุปงานวันนี้ ~17:00 น.' : ''}` : '')); }, $('btnSetSave'));
     }
     function previewLine() {
       call('previewBrief', [], t => { const b = $('set_preview'); b.textContent = t; b.style.display = 'block'; }, $('btnPrev'), '⏳ กำลังสร้างตัวอย่าง...');
+    }
+    function previewEve() {
+      call('previewEvening', [], t => { const b = $('set_preview'); b.textContent = t; b.style.display = 'block'; }, $('btnPrevE'), '⏳ กำลังสร้างตัวอย่าง...');
     }
     function testLine() {
       if (!S('hasToken')) return alert('กด "บันทึกการตั้งค่า" พร้อมโทเคนก่อนครับ');

@@ -1,0 +1,58 @@
+# ให้ Gemini รีวิวโค้ด แล้วเก็บผลไว้ใน branch gemini-reviews (ไม่แตะ main / ไม่ deploy)
+# ต้องมี Secret ชื่อ GEMINI_API_KEY · Claude สั่งรัน: gh workflow run gemini-review.yml -f files="index.html:1-50" -f ask="..."
+name: Gemini review
+
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'ไฟล์ (path หรือ path:เริ่ม-จบ คั่นด้วยเว้นวรรค)'
+        required: true
+      ask:
+        description: 'อยากให้ดูอะไรเป็นพิเศษ'
+        required: false
+        default: ''
+      name:
+        description: 'ชื่อไฟล์ผล (ไม่ต้องใส่ .md)'
+        required: false
+        default: 'review'
+      models:
+        description: 'รุ่น Gemini (ลองตามลำดับ)'
+        required: false
+        default: 'gemini-3.1-pro,gemini-3.5-flash,gemini-3.5-flash-lite'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gemini-review
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ask Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FILES: ${{ inputs.files }}
+          ASK: ${{ inputs.ask }}
+          MODELS: ${{ inputs.models }}
+          OUT: /tmp/review.md
+        run: python3 tools/gemini_review.py
+      - name: Save to branch gemini-reviews
+        env:
+          NAME: ${{ inputs.name }}
+        run: |
+          F="reviews/$(TZ=Asia/Bangkok date +%y%m%d-%H%M)-${NAME//[^A-Za-z0-9_-]/_}.md"
+          git config user.name "gemini-review-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if git fetch --depth 1 origin gemini-reviews; then
+            git checkout -B gemini-reviews FETCH_HEAD
+          else
+            git checkout --orphan gemini-reviews && git rm -rfq .
+          fi
+          mkdir -p reviews && cp /tmp/review.md "$F"
+          git add "$F" && git commit -qm "Gemini review: $F" && git push -q origin gemini-reviews
+          echo "saved $F"

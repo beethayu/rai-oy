@@ -72,8 +72,11 @@ for m in models:
             trace.append(f'{m} ok {int(time.time()-t0)}s')
             break
         except urllib.error.HTTPError as e:
-            trace.append(f'{m} HTTP {e.code}')
-            if e.code in (400, 403, 404) or (e.code == 429 and 'PerDay' in e.read().decode('utf-8', 'ignore')):
+            body = e.read().decode('utf-8', 'ignore')
+            try: msg = json.loads(body)['error']['message'][:160]
+            except Exception: msg = body[:160]
+            trace.append(f'{m} HTTP {e.code} ({msg})')
+            if e.code in (400, 403, 404) or (e.code == 429 and 'PerDay' in body):
                 break
             time.sleep(15 * (attempt + 1))  # 503 ไม่ว่าง: รอ 15/30/45 วิ
         except Exception as e:

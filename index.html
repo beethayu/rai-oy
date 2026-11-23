@@ -3129,7 +3129,9 @@
           ex = `สำหรับเครื่องพ่นยา · ผสม 2T ${r1(f.qty * fuelCap())} ฝา · พอฉีด ≈ ${r1(f.qty / fuelL())} ถัง<br>` + (tk ? `หลังให้ ฉีดไปแล้ว ${r1(tk)} ถัง (ล่าสุด ${esc(calLbl(last))})` : `ยังไม่ได้ฉีดหลังให้ — เตรียมไว้ฉีดรอบถัดไป`);
           try { const t = fuelTeams().find(t => t.team.slice().sort().join('|') === f.team.slice().sort().join('|')), b = t && fuelBal(t); if (b && iso === t0) ex += ` · ตอนนี้เหลือ ≈ ${r1(b.left)} ลิตร`; } catch (e) {}
         }
-        out.push(djRow({ icon: '⛽', what: pump ? 'เติมเบนซิน เครื่องสูบน้ำ' : 'ให้น้ำมัน เบนซิน + 2T', amt: `${r1(f.qty)} ลิตร`, who: pump ? '' : esc(f.team.join(' + ')), extra: ex, attrs: f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ${pump ? 'เครื่องสูบน้ำ' : esc(f.team.join(' + '))}"` : '' })); });
+        out.push(djRow({ icon: '⛽', what: pump ? 'เติมเบนซิน เครื่องสูบน้ำ' : 'ให้น้ำมัน เบนซิน + 2T', amt: `${r1(f.qty)} ลิตร`, who: pump ? '' : esc(f.team.join(' + ')), extra: ex, cls: 'rem-r',
+          attrs: f.ref ? ` data-ids="${esc(f.ref)}" data-lb="⛽ ${pump ? 'เครื่องสูบน้ำ' : esc(f.team.join(' + '))}" onclick="remOpen=remOpen==='f${qa(f.ref)}'?'':'f${qa(f.ref)}';render()"` : '',
+          inner: f.ref && remOpen === 'f' + f.ref ? `<div class="cal-mvb" onclick="event.stopPropagation()"><button type="button" style="color:#B42318;border-color:#E9B8B8" onclick="fuelUndo('${qa(f.ref)}','${qa(dShort(f.iso) + ' ' + r1(f.qty) + ' ลิตร')}')">ลบ (ยังไม่ได้ให้ / ลงผิด)</button></div>` : '' })); });
       (o.soil || []).forEach(c => { const ps = String(c.plot_ids || '').split(',').filter(Boolean), bad = /ไม่ได้|ขัง|แฉะ|เปียก/.test(c.state || '');
         out.push(djRow({ icon: '🟫', what: `ดูดินหน้างาน · <span style="color:${bad ? '#B42318' : '#2E7D4F'}">${esc(c.state || '')}</span>`, where: esc(c.area || '') + (ps.length && !c.area ? djWhere(ps, pname) : ''), extra: esc(c.note || '') })); });
       Object.values(o.pnote || {}).forEach(x => { const n = String(x.note || '').replace(/^⚠️ แชตเข้าใจผิด — จดธรรมดาไว้ · /, '');
@@ -3439,7 +3441,7 @@
     }
     function fuelUndo(ref, lb) {
       if (!confirm(`ลบการให้น้ำมัน ${lb}? (คืนสต็อกเบนซิน)`)) return;
-      call('chatApply', [[{ fn: 'unfuel', ref }], 'u' + ref], d => { init(d); todayOpen = ''; render(); });
+      call('chatApply', [[{ fn: 'unfuel', ref }], 'u' + ref], d => { init(d); todayOpen = ''; remOpen = ''; render(); });
     }
     // ทีมที่จะได้น้ำมัน: บอกคนเดียว และคนนี้เคยฉีดกับคนอื่น = ทีมที่ฉีดด้วยกันล่าสุด
     function fuelForTeam(team) { const k = team.slice().sort().join('|'), t = fuelTeams().find(x => x.team.slice().sort().join('|') === k); return t ? fuelBal(t) : null; }

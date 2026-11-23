@@ -88,10 +88,16 @@ function noteOp(op) {
 }
 
 // ===== 🟫 ผลดูดินหน้างาน (16 พ.ย. 69 ผู้ใช้: แอปบอก "พอเข้าได้" แต่หน้างาน "ชื้นมาก เข้าไม่ได้") — ใช้เทียบ/ปรับตัวคิดน้ำในดิน + แชตเชื่อผลหน้างานก่อน =====
-const SOILCHK_H_ = ['chk_id', 'created', 'date', 'area', 'plot_ids', 'state', 'model_pct', 'note'];
+const SOILCHK_H_ = ['chk_id', 'created', 'date', 'area', 'plot_ids', 'state', 'model_pct', 'note', 'lat', 'lng'];
+// lat/lng (23 พ.ย. 69 ปุ่ม 🚜 ตรงนี้รถเข้าได้ไหม) = ผลหน้างานรายจุด · p.replace = เขียนทับแถว id เดิม (แก้หมายเหตุ/ผล)
 function soilChkAdd_(ss, p, id) {
   const sh = getOrCreate_(ss, 'SoilChecks', SOILCHK_H_);
-  if (sh.getDataRange().getDisplayValues().some(r => r[0] === String(id))) return false;
-  appendRows_(sh, [[String(id), getTodayStr(), remBE_(p.date), String(p.area || '').slice(0, 60), (p.plot_ids || []).join(','), String(p.state || '').slice(0, 40), p.model_pct === undefined ? '' : p.model_pct, String(p.note || '').slice(0, 200)]]);
+  const hd = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getDisplayValues()[0];
+  if (hd.length < SOILCHK_H_.length || hd.indexOf('lat') < 0) sh.getRange(1, 1, 1, SOILCHK_H_.length).setValues([SOILCHK_H_]);
+  const ll = v => (Number(v) ? Number(v).toFixed(6) : '');
+  const row = [String(id), getTodayStr(), remBE_(p.date), String(p.area || '').slice(0, 60), (p.plot_ids || []).join(','), String(p.state || '').slice(0, 40), p.model_pct === undefined ? '' : p.model_pct, String(p.note || '').slice(0, 200), ll(p.lat), ll(p.lng)];
+  const at = sh.getDataRange().getDisplayValues().findIndex(r => r[0] === String(id));
+  if (at > 0) { if (!p.replace) return false; row[1] = sh.getRange(at + 1, 2).getDisplayValue() || row[1]; sh.getRange(at + 1, 1, 1, row.length).setNumberFormat('@').setValues([row.map(String)]); return true; }
+  appendRows_(sh, [row]);
   return true;
 }

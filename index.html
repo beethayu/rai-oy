@@ -8555,8 +8555,10 @@ Export.table.toDrive({
             if (kmItems) return;
             if (lyOpen === 'fm') return lyToggle('fm');
             if (fmEdit) { fmEdit.pts.push(fmSnap(e.latlng)); fmDrawEdit(); }
+            else if (fmSpot) spotClose();
             else if (fmSel) { fmSel = null; fmRender(); }
           });
+          fmMap.on('contextmenu', e => { if (fmEdit || kmItems) return; fmSheetT = Date.now(); spotOpen(e.latlng, 'จุดที่กดค้าง'); }); // 🚜 กดค้าง = เช็กว่ารถเข้าตรงนี้ได้ไหม
           $('farmMapModal').addEventListener('shown.bs.modal', () => { fmMap.invalidateSize(); if (fmNeedFit && !fmSel && !fmEdit) fmFitAll(); fmNeedFit = false; }); // I-2: ฟิตใหม่หลังหน้าต่างเปิดเต็ม (ก่อนหน้านี้ขนาด 0 → ซูมสุด ป้ายตกขอบ)
           $('farmMapModal').addEventListener('hidden.bs.modal', () => { if (fmWatch !== null) navigator.geolocation.clearWatch(fmWatch); fmWatch = null; if (fmAcc) { fmAcc.remove(); fmAcc = null; } });
         }
@@ -8671,7 +8673,7 @@ Export.table.toDrive({
         const pts = pPath(p.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'plot' && fmEdit.id === p.plot_id)) return;
         const col = FM_ST[fmStOf(p, ripe)][0], on = sel('plot', p.plot_id);
         L.polygon(pts, fmSatOn ? { color: '#FFFFFF', weight: on ? 4 : 1.5, fillOpacity: 0 } : { color: on ? '#FFFFFF' : col, weight: on ? 4 : 2.5, fillColor: col, fillOpacity: on ? .45 : .25 })
-                    .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'plot', id: p.plot_id }; fmRender(); })
+                    .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmTap = e.latlng; fmSpot = null; spotMk(); fmSel = { kind: 'plot', id: p.plot_id }; fmRender(); })
           .addTo(fmLayer);
       });
       if (!fmDmgHidden()) (gData.damages || []).forEach(x => {
@@ -8685,7 +8687,7 @@ Export.table.toDrive({
         const pts = pPath(l.boundary); if (pts.length < 3 || (fmEdit && fmEdit.kind === 'land' && fmEdit.id === l.land_id) || !fmLandVisible(l)) return;
         const on = sel('land', l.land_id);
         L.polygon(pts, { color: on ? '#FFFFFF' : '#B48CE8', weight: on ? 4 : 2.5, dashArray: '6 6', fillColor: '#B48CE8', fillOpacity: fmSatOn ? 0 : on ? .4 : .2 })
-                    .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmSel = { kind: 'land', id: l.land_id }; fmRender(); })
+                    .on('click', e => { L.DomEvent.stopPropagation(e); if (fmEdit) return fmMap.fire('click', e); fmTap = e.latlng; fmSpot = null; spotMk(); fmSel = { kind: 'land', id: l.land_id }; fmRender(); })
           .addTo(fmLayer);
       });
       fmLabels(); fmLandBtn(); fmLegend();
@@ -8889,6 +8891,7 @@ Export.table.toDrive({
       if (fmEdit) { fmEditPanel(); return; }
       if (kmItems) { kmPanel(); return; }
       H.style.display = 'none';
+      if (fmSpot) { P.innerHTML = spotPanel(); return; }
       const nav = (la, ln) => `<a class="btn btn-outline-success flex-fill" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>`;
       if (fmSel && fmSel.kind === 'plot') {
         const p = gData.plots.find(x => x.plot_id === fmSel.id);
@@ -8897,7 +8900,7 @@ Export.table.toDrive({
         if (sx && sx.last) {
           P.innerHTML = fmSatSheet(sx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)">กราฟ 12 เดือน</button>
             ${nav(p.center_lat, p.center_lng)}
-            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still) + `<div class="mt-2 fm-wp">${wpBtnHtml('plot', p.plot_id)}</div>`;
+            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still) + `<div class="mt-2 fm-wp">${wpBtnHtml('plot', p.plot_id)}${spotBtn(p.center_lat, p.center_lng)}</div>`;
           const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
           return;
         }
@@ -8913,7 +8916,7 @@ Export.table.toDrive({
             <button type="button" class="btn btn-outline-danger fw-bold flex-fill" onclick="fmStartDmg('${p.plot_id}')">+ จุดเสียหาย</button>
             ${nav(p.center_lat, p.center_lng)}
             <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>
-          </div>${wpBtnHtml('plot', p.plot_id)}${fmPickHtml()}`;
+          </div>${wpBtnHtml('plot', p.plot_id)}${spotBtn(p.center_lat, p.center_lng)}${fmPickHtml()}`;
         return;
       }
       if (fmSel && fmSel.kind === 'dmg') {
@@ -8937,7 +8940,7 @@ Export.table.toDrive({
         const l = (gData.lands || []).find(x => x.land_id === fmSel.id);
         const lx = fmSatOn && fmSatItem('land', l.land_id);
         if (lx && lx.last) {
-          P.innerHTML = fmSatSheet(lx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('land|${l.land_id}'),300)">กราฟ + น้ำขังย้อนหลัง</button>${nav(l.center_lat, l.center_lng)}`, still) + `<div class="mt-2">${wpBtnHtml('land', l.land_id)}</div>`;
+          P.innerHTML = fmSatSheet(lx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('land|${l.land_id}'),300)">กราฟ + น้ำขังย้อนหลัง</button>${nav(l.center_lat, l.center_lng)}`, still) + `<div class="mt-2">${wpBtnHtml('land', l.land_id)}${spotBtn(l.center_lat, l.center_lng)}</div>`;
           const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
           return;
         }
@@ -8947,10 +8950,118 @@ Export.table.toDrive({
             <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmStartEdit('land','${l.land_id}')">แก้</button>
             ${nav(l.center_lat, l.center_lng)}
             <button type="button" class="btn btn-outline-danger" id="btnLandDel" onclick="fmDelLand('${l.land_id}')">ลบ</button>
-          </div><div class="mt-2">${wpBtnHtml('land', l.land_id)}</div>`;
+          </div><div class="mt-2">${wpBtnHtml('land', l.land_id)}${spotBtn(l.center_lat, l.center_lng)}</div>`;
         return;
       }
-      P.innerHTML = `${fmTools ? '' : '<div class="srow-s mb-2">แตะแปลงบนแผนที่เพื่อดู/แก้</div>'}${fmPickHtml()}`;
+      P.innerHTML = `${fmTools ? '' : '<div class="srow-s mb-2">แตะแปลงบนแผนที่เพื่อดู/แก้ · กดค้างตรงไหนก็ได้ = 🚜 รถเข้าตรงนั้นได้ไหม</div>'}<button type="button" class="btn btn-outline-success fw-bold w-100 mb-2" onclick="spotHere()">🚜 ตรงที่ยืนอยู่ รถเข้าได้ไหม</button>${fmPickHtml()}`;
+    }
+
+    // ===== 🚜 ตรงนี้รถเข้าได้ไหม (23 พ.ย. 69) — จุดที่แตะ / กดค้างบนแผนที่ / ตรงที่ยืน =====
+    // บทเรียนท้ายตลาดนัด 23 พ.ย.: Open-Meteo ให้ฝน 19 พ.ย. แค่ ~4 มม. แต่ฝนพายุตกจริง (ผู้ใช้จด "ฝนตก" P01–P04) → น้ำขังใต้หญ้า แอปทายว่าเข้าได้
+    // → นับ "ฝนตก" ที่ผู้ใช้จดในแปลงห่าง ≤ 12 กม. เป็นฝนจริง (ดินเกือบเต็ม) · ผลหน้างานใกล้จุด ≤ 300 ม./ที่ดินเดียวกัน ภายใน 3 วัน เชื่อก่อน
+    // · จุดที่เคยแฉะ/น้ำขัง (60 วัน) ไม่ตอบ "เข้าได้" ต้องดูหน้างาน · ดาวเทียมไม่ใช้ (มองน้ำใต้หญ้า/ใบไม่เห็น)
+    let fmSpot = null, fmTap = null, fmSpotMk = null;
+    const SPOT_RAIN_KM = 12, SPOT_NEAR_M = 300, SPOT_WET = /ขัง|แฉะ|เข้าไม่ได้/, SPOT_DRY = /เข้าได้|หมาด|แห้ง/;
+    function geoM(a, b) { const kx = 111320 * Math.cos(a.lat * Math.PI / 180); return Math.hypot((a.lng - b.lng) * kx, (a.lat - b.lat) * 110540); }
+    function ptInPoly(ll, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const yi = pts[i][0], xi = pts[i][1], yj = pts[j][0], xj = pts[j][1]; if ((yi > ll.lat) !== (yj > ll.lat) && ll.lng < (xj - xi) * (ll.lat - yi) / (yj - yi) + xi) c = !c; } return c; }
+    function spotWhere(ll) {
+      const p = (gData.plots || []).find(x => { const q = pPath(x.boundary); return q.length >= 3 && ptInPoly(ll, q); });
+      if (p) return { kind: 'plot', p, name: p.plot_name, area: plotLoc(p.plot_name) };
+      const l = (gData.lands || []).find(x => { const q = pPath(x.boundary); return q.length >= 3 && ptInPoly(ll, q); });
+      if (l) return { kind: 'land', l, name: l.name, area: l.name };
+      return { kind: 'none', name: 'นอกแปลง', area: '' };
+    }
+    function spotBtn(lat, lng) { return `<button type="button" class="btn btn-outline-success fw-bold w-100 mt-2" onclick="spotOpen(fmTap||{lat:${+lat},lng:${+lng}},fmTap?'จุดที่แตะ':'กลางแปลง')">🚜 ${'ตรงที่แตะ รถเข้าได้ไหม'}</button>`; }
+    function spotHere() {
+      if (rkLastPos && Date.now() - rkLastPos.t < 120000) return spotOpen(rkLastPos, 'ตรงที่ยืน');
+      if (!navigator.geolocation) return alert('มือถือนี้หาตำแหน่งไม่ได้');
+      navigator.geolocation.getCurrentPosition(q => spotOpen({ lat: q.coords.latitude, lng: q.coords.longitude }, 'ตรงที่ยืน'), () => alert('หาตำแหน่งไม่ได้ ลองเปิด GPS แล้วลองใหม่ หรือกดค้างบนแผนที่ตรงจุดที่อยากรู้'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+    }
+    function spotMk() {
+      if (fmSpotMk) { fmSpotMk.remove(); fmSpotMk = null; }
+      if (fmSpot && fmMap) fmSpotMk = L.marker([fmSpot.ll.lat, fmSpot.ll.lng], { interactive: false, icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 28], html: '<div style="font-size:26px;line-height:30px;text-align:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">📍</div>' }) }).addTo(fmMap);
+    }
+    function spotClose() { fmSpot = null; spotMk(); fmPanel(); }
+    function spotOpen(ll, src) {
+      const sp = fmSpot = { ll: { lat: +ll.lat, lng: +ll.lng }, src, where: spotWhere(ll), res: null, err: '', daily: null };
+      fmSel = null; fmTap = null; fmRender(); spotMk();
+      try { if (!fmMap.getBounds().pad(-0.1).contains([sp.ll.lat, sp.ll.lng])) fmMap.setView([sp.ll.lat, sp.ll.lng], Math.max(fmMap.getZoom(), 16)); } catch (e) {}
+      try { if (fmSheetMin) fmSheetSet(false); } catch (e) {}
+      const la = sp.ll.lat.toFixed(4), ln = sp.ll.lng.toFixed(4);
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${ln}&daily=precipitation_sum,et0_fao_evapotranspiration&timezone=Asia%2FBangkok&past_days=21&forecast_days=3`)
+        .then(r => r.json()).then(j => { if (!j || j.error || !j.daily) throw new Error('x'); return j; })
+        .catch(() => callApi('soilWeather', [[{ lat: +la, lng: +ln }]]).then(r => (Array.isArray(r) ? r[0] : r)))
+        .then(j => { if (!j || !j.daily) throw new Error('x'); sp.daily = j.daily; sp.res = spotCalc(sp); })
+        .catch(() => { sp.err = 'โหลดข้อมูลฝนไม่ได้ (เน็ตไม่ดี) แตะลองใหม่'; })
+        .then(() => { if (fmSpot === sp) fmPanel(); });
+    }
+    function spotCalc(sp) {
+      const d = sp.daily, T = d.time || [], t0 = todayISO(), w = sp.where, p = w.kind === 'plot' ? w.p : null;
+      const sand = p ? plotTags(p).includes(TAG_SAND) : false, cap = sand ? SOIL_CAP.sand : SOIL_CAP.norm;
+      // งานน้ำ/ฝนของแปลงนี้เอง + "ฝนตก" ที่ผู้ใช้จดในแปลงใกล้ ๆ (ฝนพายุที่พยากรณ์จับไม่ได้)
+      const own = {}, near = {};
+      const pc = {}; (gData.plots || []).forEach(x => { const la = num(x.center_lat), ln = num(x.center_lng); if (la && ln) pc[x.plot_id] = { lat: la, lng: ln, n: x.plot_name }; });
+      (gData.activities || []).forEach(a => {
+        if (!['ขึ้นน้ำ', 'ฝนตก'].includes(a.activity_group) || /สูบน้ำขัง/.test(a.activity_detail || '')) return;
+        const iso = beToISO(String(a.timestamp || '').split(' ')[0]); if (!iso) return;
+        if (p && a.plot_id === p.plot_id) { own[iso] = own[iso] === 'ขึ้นน้ำ' ? 'ขึ้นน้ำ' : a.activity_group; return; }
+        const c = pc[a.plot_id];
+        if (a.activity_group === 'ฝนตก' && c && geoM(sp.ll, c) <= SPOT_RAIN_KM * 1000) { const k = Math.round(geoM(sp.ll, c) / 1000); if (!near[iso] || k < near[iso].km) near[iso] = { km: k, n: plotLoc(c.n) }; }
+      });
+      const pl = p ? beToISO(p.plant_date) : '', age = t => pl ? Math.round((new Date(t) - new Date(pl)) / 864e5) : null;
+      let S = cap * 0.5; const rows = [];
+      T.forEach((t, k) => {
+        let rain = +(d.precipitation_sum[k] || 0); const fut = t >= t0, e = own[t], nr = !fut && !e && near[t] && rain < 10 ? near[t] : null;
+        const kc = p ? caneStage(age(t), p.cane_type).k : 0.8, et = (+(d.et0_fao_evapotranspiration[k] || 0)) * kc;
+        S += rain;
+        if (e === 'ขึ้นน้ำ') S = Math.max(S, cap); else if (e === 'ฝนตก' || nr) S = Math.max(S, cap * 0.8);
+        const over = Math.max(0, S - cap); S = Math.min(S, cap);
+        S = Math.max(0, S - et * (S / cap < 0.5 ? Math.max(0.15, S / cap / 0.5) : 1));
+        rows.push({ t, rain, ev: e || '', nr, over, S, fut });
+      });
+      const past = rows.filter(r => !r.fut); if (!past.length) return null;
+      const pct = Math.round(past[past.length - 1].S / cap * 100), over3 = past.slice(-3).reduce((a, r) => a + r.over, 0);
+      const big = [...past].reverse().find(r => r.rain >= 5 || r.nr || r.ev === 'ฝนตก' || r.ev === 'ขึ้นน้ำ'), dr = big ? dayDiff(big.t, t0) : 99;
+      const ageNow = p ? plotAgeD(p) : null, cov = p ? (ageNow || 0) >= 120 : false;
+      // ผลหน้างานใกล้จุดนี้ (มีพิกัด ≤ 300 ม. / ที่ดินหรือพื้นที่เดียวกัน)
+      const cks = (gData.soilChecks || []).map(c => { const la = num(c.lat), ln = num(c.lng), m = la && ln ? geoM(sp.ll, { lat: la, lng: ln }) : null;
+        const same = m !== null ? m <= SPOT_NEAR_M : (w.kind === 'land' ? String(c.area || '').startsWith(w.name) : p ? String(c.plot_ids || '').split(',').includes(p.plot_id) : false);
+        return same ? { ...c, iso: beToISO(c.date), m } : null; }).filter(c => c && c.iso).sort((a, b) => a.iso.localeCompare(b.iso));
+      const ck = [...cks].reverse().find(c => dayDiff(c.iso, t0) <= 3), rainAfter = ck ? past.some(r => r.t > ck.iso && (r.rain >= 5 || r.nr)) : true;
+      const wetHist = [...cks].reverse().find(c => SPOT_WET.test(c.state) && dayDiff(c.iso, t0) <= 60);
+      const prone = (p && plotTags(p).includes('น้ำขังง่าย')) || !!wetHist;
+      const needD = (cov ? 10 : 5) + (prone ? 3 : 0), lim = cov || prone ? 40 : 50, why = [];
+      why.push(big ? (big.nr ? `ฝนตกจริง ${dShort(big.t)} (จดไว้ที่${big.nr.n} ห่าง ~${big.nr.km} กม.) ${dr} วันก่อน — พยากรณ์ให้แค่ ~${r1(big.rain)} มม.` : `ฝน${big.ev === 'ขึ้นน้ำ' ? '/ขึ้นน้ำ' : ''} ≥5 มม. ล่าสุด ${dr} วันก่อน (${dShort(big.t)}${big.rain >= 0.1 ? ' ~' + r1(big.rain) + ' มม.' : ''})`) : 'ไม่มีฝน ≥5 มม. ใน 21 วัน');
+      why.push(`ต้องเว้นหลังฝน ~${needD} วัน${cov ? ' (อ้อยคลุมร่อง แห้งช้า)' : ''}${prone ? ' (+3 จุดน้ำขังง่าย)' : ''}`);
+      if (sand) why.push('ดินทราย ระบายเร็ว');
+      if (wetHist && wetHist !== ck) why.push(`จุดนี้เคย${wetHist.state} (ดูหน้างาน ${dShort(wetHist.iso)}${wetHist.m != null ? ` ห่าง ${Math.round(wetHist.m)} ม.` : ''})`);
+      why.push(`น้ำในดินโดยประมาณ ~${pct}% (ต้องต่ำกว่า ${lim}%)`);
+      if (w.kind !== 'plot') why.push('ที่ว่าง/หญ้าคลุม หน้าดินใต้หญ้าแห้งช้ากว่าที่คิด');
+      let v = over3 > 0 || pct >= lim || dr < needD ? 'ยังไม่ควรเข้า' : pct >= lim - 10 ? 'ก้ำกึ่ง ลองเดินดู' : 'น่าจะเข้าได้';
+      if (v === 'น่าจะเข้าได้' && wetHist) { v = 'ก้ำกึ่ง ลองเดินดู'; why.unshift('จุดนี้เคยน้ำขัง ต้องดูหน้างานก่อนทุกครั้ง'); }
+      if (ck && !rainAfter) { v = SPOT_WET.test(ck.state) ? 'ยังไม่ควรเข้า' : SPOT_DRY.test(ck.state) ? 'น่าจะเข้าได้' : 'ก้ำกึ่ง ลองเดินดู'; why.unshift(`ดูหน้างาน ${dShort(ck.iso)}: ${ck.state} (เชื่อผลนี้ก่อน)`); }
+      const f3 = r1(rows.filter(r => r.fut).slice(0, 3).reduce((a, r) => a + r.rain, 0));
+      return { v, why, pct, f3, wait: ck && !rainAfter ? 0 : Math.max(0, needD - dr) };
+    }
+    function spotPanel() {
+      const sp = fmSpot, w = sp.where, r = sp.res, ic = { 'ยังไม่ควรเข้า': ['🔴', '#B3261E', '#FBE3E1'], 'ก้ำกึ่ง ลองเดินดู': ['🟠', '#B4630B', '#FCEFDD'], 'น่าจะเข้าได้': ['🟢', '#1F7A45', '#E3F2E8'] };
+      const head = `<div class="d-flex align-items-center gap-2 mb-1"><div class="fw-bold flex-fill" style="font-size:17px">🚜 รถเข้า${sp.src}ได้ไหม</div><button type="button" class="btn btn-sm btn-outline-secondary" onclick="spotClose()">ปิด</button></div>
+        <div class="srow-s mb-2">${esc(w.name)} · ${sp.ll.lat.toFixed(5)}, ${sp.ll.lng.toFixed(5)}</div>`;
+      if (!r) return head + (sp.err ? `<button type="button" class="btn btn-outline-success w-100" onclick="spotOpen(fmSpot.ll,fmSpot.src)">${sp.err}</button>` : '<div class="srow-s py-2">⏳ กำลังดึงฝนของจุดนี้…</div>');
+      const c = ic[r.v];
+      const st = ['น้ำขัง', 'แฉะ เข้าไม่ได้', 'ชื้น ก้ำกึ่ง', 'หมาด เข้าได้'];
+      return head + `<div style="border-radius:14px;padding:10px 14px;background:${c[2]};margin-bottom:8px">
+          <div class="fw-bold" style="font-size:19px;color:${c[1]}">${c[0]} ${r.v}${r.v === 'ยังไม่ควรเข้า' && r.wait ? ` · รออีก ~${r.wait} วัน` : ''}</div>
+          ${r.why.map(x => `<div style="font-size:14px;padding-top:3px">– ${esc(x)}</div>`).join('')}
+          <div style="font-size:14px;padding-top:3px">– ฝนพยากรณ์ 3 วัน ~${r.f3} มม.${r.f3 >= 5 ? ' (ถ้าตก ต้องนับวันใหม่)' : ''}</div></div>
+        <div class="srow-s mb-1">ค่าประมาณ — ลองขุดลึกคืบ ปั้นดินแตกร่วน = เข้าได้ · เหนียวติดมือ/มีน้ำซึม = รอ · ดูแล้วกดบอกผล แอปจะจำจุดนี้</div>
+        <div class="d-flex flex-wrap gap-2">${st.map(x => `<button type="button" class="btn btn-sm ${SPOT_WET.test(x) ? 'btn-outline-danger' : 'btn-outline-success'} flex-fill" onclick="spotSave('${x}',this)">${x}</button>`).join('')}</div>`;
+    }
+    function spotSave(state, btn) {
+      const sp = fmSpot; if (!sp || !sp.res) return;
+      const w = sp.where, id = 'S' + Date.now().toString(36);
+      const op = { fn: 'soilchk', id, p: { date: todayISO(), area: w.kind === 'land' ? w.name : w.area || 'จุดนอกแปลง', plot_ids: w.kind === 'plot' ? [w.p.plot_id] : [], state, model_pct: sp.res.pct, lat: sp.ll.lat, lng: sp.ll.lng, note: `${sp.src} · แอปคาด ${sp.res.v}` } };
+      call('chatApply', [[op], 'sc' + id], d => { init(d); if (fmSpot === sp) { sp.res = spotCalc(sp); } fmRender(); const t = $('syncToast'); t.innerText = '✅ จดผลหน้างานแล้ว แอปจะจำจุดนี้'; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 2500); }, btn);
     }
 
     // ===== พื้นที่เสียหาย (ไฟไหม้/น้ำท่วม) =====

@@ -88,6 +88,7 @@ for m in models:
 print('trace:', ' · '.join(trace))
 if not text:
     sys.exit('Gemini ไม่ตอบทุกรุ่น')
-head = f"# รีวิวโดย Gemini ({used})\n\n- ไฟล์: {' '.join(files)}\n- โจทย์: {ask or '-'}\n\n"
+tag = " — ⚠️ รุ่นสำรอง (Flash) รุ่นหลักไม่ว่าง" if "flash" in used else ""
+head = f"# รีวิวโดย Gemini ({used}){tag}\n\n- ไฟล์: {' '.join(files)}\n- โจทย์: {ask or '-'}\n\n"
 open(out, 'w', encoding='utf-8').write(head + text.strip() + '\n')
 print('เขียนผลแล้ว', len(text), 'ตัวอักษร')

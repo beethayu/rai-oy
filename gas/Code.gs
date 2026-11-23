@@ -29,8 +29,8 @@ const DEFAULT_SETTINGS = [
   ['NOTIFY_TIME', '04:00', 'เวลาส่งสรุปทุกเช้า (ชม:นาที)'],
   ['WATER_DAYS_NEW', '12', 'รอบน้ำอ้อยใหม่ (วัน)'],
   ['WATER_DAYS_RATOON', '15', 'รอบน้ำอ้อยตอ (วัน)'],
-  ['SPRAY_DAY_MIN', '3', 'ฉีดยาคุมได้หลังน้ำ ตั้งแต่วันที่'],
-  ['SPRAY_DAY_MAX', '5', 'ฉีดยาคุมได้หลังน้ำ ถึงวันที่'],
+  ['SPRAY_DAY_MIN', '6', 'ฉีดยาคุมได้หลังน้ำ ตั้งแต่วันที่'],
+  ['SPRAY_DAY_MAX', '13', 'ฉีดยาคุมได้หลังน้ำ ถึงวันที่'],
   ['CHEM_PRESET_NEW', 'Becano,Zytron Mix,Bakaron', 'สูตรยาอ้อยใหม่ (ชื่อตรงกับชีต Inventory คั่นด้วย ,)'],
   ['CHEM_PRESET_GROW', 'Becano,Zytron Mix,Bakapost', 'สูตรยาอ้อยโต'],
   ['FERT_PRESET_BASE', '16-8-8:1', 'สูตรปุ๋ยรองพื้น (สูตร:สัดส่วน)'],
@@ -942,7 +942,7 @@ function buildBrief_(ss, s) {
   const alogs = readSheet_(ss, SH.ALOG);
   const inv = readSheet_(ss, SH.INV, true);
   const wNew = +s.WATER_DAYS_NEW || 12, wRat = +s.WATER_DAYS_RATOON || 15;
-  const sMin = +s.SPRAY_DAY_MIN || 3, sMax = +s.SPRAY_DAY_MAX || 5;
+  const sMin = +s.SPRAY_DAY_MIN || 6, sMax = +s.SPRAY_DAY_MAX || 13;
 
   const water = [], spray = [], soon = [], ongoing = [], flow = [], busy = new Set();
   // ขั้นตอนจาก 📋 (ชีต Flow): งานถึงคิวรายแปลง · ฉีดยาคุมเตือนเฉพาะเมื่อถึงช่วงฉีดตามขั้นตอน (เดิมเตือนทุกรอบน้ำ)
@@ -951,7 +951,7 @@ function buildBrief_(ss, s) {
   // พ.ย.–ธ.ค. ใกล้ตัด: ไม่เตือนคิวน้ำ/ฉีดยา ยกเว้นอ้อยใหม่อายุ < 180 วัน — กฎเดียวกับแอป isNearHarvest (index.html) แก้ต้องแก้คู่กัน
   // (19 พ.ย. 69 ผู้ใช้: LINE ขึ้น "ใกล้ถึงรอบน้ำ" 10 แปลง แต่แอปบอกงดน้ำ)
   const mon = +Utilities.formatDate(new Date(), 'Asia/Bangkok', 'M');
-  const nearCut = p => (mon === 11 || mon === 12) && !(p.cane_type === 'อ้อยใหม่' && (d => d !== null && d < 180)(daysSince_(p.plant_date)));
+  const nearCut = p => (mon === 11 || mon === 12) && !((d => d !== null && d < (p.cane_type === 'อ้อยใหม่' ? 180 : 210))(daysSince_(p.plant_date))); // อ้อยตอตัดช้า < 210 วัน ยังไม่ตัดฤดูนี้ (23 พ.ย. 69)
   // ฝนเมื่อวาน (RainLog ลงเอง 03:30 จาก Open-Meteo = ค่าประมาณ) · ยังไม่จดเข้าแปลง → บอกใน LINE ให้ไปยืนยันในแอป ไม่ลงเอง
   const rainY = {}, rainList = [];
   try {

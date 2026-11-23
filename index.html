@@ -2270,17 +2270,18 @@
     }
 
     // พ.ย.–ธ.ค. ใกล้ตัด: ไม่เตือนคิวน้ำ/ฉีดยา ยกเว้นอ้อยใหม่อายุน้อยกว่า 6 เดือน
-    const YOUNG_NEW_DAYS = 180;
+    const YOUNG_NEW_DAYS = 180, YOUNG_RATOON_DAYS = 210; // อ้อยตอตัดช้า (เช่น ยายเวียน ตัด พ.ค.) อายุ < 7 เดือนตอน พ.ย. = ฤดูนี้ยังไม่ตัด ไม่งดน้ำ (23 พ.ย. 69)
+    const youngCane = (p, d) => d !== null && d !== undefined && d < (p.cane_type === 'อ้อยใหม่' ? YOUNG_NEW_DAYS : YOUNG_RATOON_DAYS);
     function isNearHarvest(p, pDays) {
       const m = new Date().getMonth();
       if (m !== 10 && m !== 11) return false;
-      return !(p.cane_type === 'อ้อยใหม่' && pDays !== null && pDays < YOUNG_NEW_DAYS);
+      return !youngCane(p, pDays);
     }
 
     function analyze(p) {
       let wDays = calcDays(p.last_water_date), pDays = calcDays(p.plant_date);
       let limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
-      let sMin = num(S('SPRAY_DAY_MIN')) || 3, sMax = num(S('SPRAY_DAY_MAX')) || 5;
+      let sMin = num(S('SPRAY_DAY_MIN')) || 6, sMax = num(S('SPRAY_DAY_MAX')) || 13;
       let noteStr = p.status_note || '';
       let isOngoing = noteStr.includes('[กำลังทำ]');
       let isHarvested = noteStr.includes('✅ ตัดอ้อย');
@@ -2361,7 +2362,7 @@
       if (isNearHarvest(p, pDays)) return { c: 'gray', t: wDays === null ? 'งดน้ำ ใกล้ตัด' : `งดน้ำ ใกล้ตัด · น้ำล่าสุด ${wDays} วัน` };
       if (wDays === null) return { c: 'gray', t: 'ยังไม่มีวันน้ำ' };
       const limit = (p.cane_type === 'อ้อยใหม่') ? (num(S('WATER_DAYS_NEW')) || 12) : (num(S('WATER_DAYS_RATOON')) || 15);
-      const sMin = num(S('SPRAY_DAY_MIN')) || 3, sMax = num(S('SPRAY_DAY_MAX')) || 5;
+      const sMin = num(S('SPRAY_DAY_MIN')) || 6, sMax = num(S('SPRAY_DAY_MAX')) || 13;
       const rn = lastRain(p), rt = rn ? `🌧 ฝนตก${rn.mm ? ` ~${rn.mm} มม.` : ''}` : '';
       if (rn && wDays < limit) return { c: wDays < sMin ? 'blue' : 'ok', t: wDays < sMin ? `${rt} ${wDays ? wDays + ' วันก่อน' : 'วันนี้'} · ข้ามขึ้นน้ำได้` : `${rt} ${wDays} วันก่อน · อีก ${limit - wDays} วันถึงคิว` };
       if (wDays >= limit) return { c: 'red', t: `ขาดน้ำ ${wDays} วัน (ครบ ${limit} ว.)${rn ? ' · ล่าสุดเป็นฝน' : ''}` };
@@ -6024,7 +6025,7 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -6060,6 +6061,39 @@
       (gData.plots || []).forEach(p => { const n0 = String(p.plot_name || ''), m = /^(.*?)\s*\((.+)\)\s*$/.exec(n0), n = n0.replace(/\s+/g, ''), al = (m ? m[2] : n0).replace(/\s+/g, ''), area = m ? m[1].replace(/\s+/g, '') : '';
         if (t.includes(n) || t.includes(al)) out.exact.push(p.plot_id); else if (near(al)) out.fuzzy.push(p.plot_id); else if (area && t.includes(area) ) out.area = (out.area || []).concat(p.plot_id); });
       return out;
+    }
+    // 23 พ.ย. 69 ทดสอบแชตด้วยข้อความจริง 15 ข้อ AI พลาด 3 แบบ → ด่านนี้แก้ให้แน่นอน (ไม่พึ่งกฎ prompt อย่างเดียว)
+    function chJobGuard(items, txt, r) {
+      const t = String(txt || ''), hist = chat.msgs.slice(-6).map(m => m.t || '').join(' ');
+      const pn = id => (gData.plots.find(p => p.plot_id === id) || {}).plot_name || id;
+      // 1) "ขวาใน/ขวาถนน" มีทั้งสำนักแจงและหนองกระทู้ ไม่บอกพื้นที่ (ในข้อความหรือที่เพิ่งคุย) = ถาม ไม่เดา
+      ['ขวาใน', 'ขวาถนน'].forEach(w => {
+        if (!t.includes(w) || /แจง|กระทู้/.test(t + ' ' + hist)) return;
+        const ids = gData.plots.filter(p => String(p.plot_name).includes('(' + w + ')')).map(p => p.plot_id);
+        if (ids.length < 2) return;
+        let hit = false;
+        for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { items.splice(i, 1); hit = true; } }
+        if (!hit) return;
+        if (!(r.ask || []).some(q => String(q.q || '').includes(w))) r.ask = (r.ask || []).concat({ q: `"${w}" ที่ไหนครับ?`, options: ids.map(pn) });
+        if (!items.length) r.reply = `"${w}" มีทั้งสำนักแจงและหนองกระทู้ ที่ไหนครับ?`;
+      });
+      // 2) "ล้มหลังร่องฝังปุ๋ย" = 2 งานเสมอ (ล้มหลังร่อง + พูนโคน / ฝังปุ๋ย)
+      if (/ล้ม(หลัง)?ร่อง/.test(t) && /ฝังปุ๋ย/.test(t) && !items.some(it => it.type === 'activity' && /ฝังปุ๋ย/.test(it.detail || '') && !/ล้ม/.test(it.detail || '')))
+        items.slice().forEach(it => {
+          if (it.type !== 'activity' || !/ล้ม/.test(it.detail || '')) return;
+          it.detail = 'ล้มหลังร่อง + พูนโคน';
+          items.splice(items.indexOf(it) + 1, 0, Object.assign({}, it, { detail: 'ฝังปุ๋ย', plots: (it.plots || []).slice(), workers: (it.workers || []).slice(), equipment: (it.equipment || []).slice(), unsure: (it.unsure || []).slice() }));
+        });
+      // 3) "คนงาน" ไม่บอกชื่อ = ไม่ใส่ชื่อคนเอง (AI เคยใส่ทั้ง 7 คน) · "อ้อย" "นะ" เป็นชื่อคนแต่ก็เป็นคำทั่วไป ไม่นับว่าพูดถึง
+      if (/คนงาน/.test(t)) items.forEach(it => {
+        if (it.type !== 'activity' || !(it.workers || []).length) return;
+        const keep = it.workers.filter(n => n && t.includes(n) && !['อ้อย', 'นะ'].includes(n));
+        if (keep.length === it.workers.length) return;
+        it.workers = keep; if (!(it.unsure || []).includes('workers')) it.unsure = (it.unsure || []).concat('workers');
+      });
+      // 4) "ตัดพันธุ์ ... เอาไปปลูก X" = จดแค่ตัดพันธุ์ (แปลงปลายทางอยู่ใน remark) · ไม่แต่งงานปลูกที่ X เอง เว้นแต่บอกว่าปลูก/ทอยแล้ว
+      if (/เอาไป(ปลูก|ซ่อม)/.test(t) && !/(ทอย|ปลูก)(แล้ว|เสร็จ)/.test(t) && items.some(it => it.type === 'activity' && /ตัดพันธุ์/.test(it.detail || '')))
+        for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (it.type === 'activity' && /ทอย|ปลูกอ้อย/.test(it.detail || '') && !/ตัดพันธุ์/.test(it.detail || '')) items.splice(i, 1); }
     }
     function chPlotGuard(items, txt, r) {
       const said = chSaidPlots(txt), named = said.exact.length ? said.exact : said.fuzzy, areaIds = said.area || [];
@@ -7323,6 +7357,8 @@ Export.table.toDrive({
     //    ask มีคำถาม {q, o: [{v, l, go: do|skip|next|ratoon|replant, m คำในบันทึกที่เดาคำตอบได้}]} · note ข้อควรจำ
     // ctx { acts: [{g, d, age}], age: อายุวันนี้, ans: {id: {v, age}}, p0: วันเริ่มเตรียมดิน, pre: ยังไม่ปลูก } (age = วันนับจากวันเริ่มรอบ)
     // sq 1 = ขั้นเตรียมดินแบบต่อกัน (ไม่ผูกวัน) · sq 2 = ขั้นปลูก (ปลูกแล้ว = ผ่าน)
+    // ช่วงที่ไร่ไม่ได้จดงานในแอป (ผู้ใช้ยืนยัน 23 พ.ย. 69) → ขั้นที่ช่วงวันตกในนี้แล้วไม่มีบันทึก = "ไม่ได้จด" ไม่ใช่ "ขาด"
+    const FL_NOLOG = [['2026-06-01', '2026-10-31']], FL_NOLOG_TXT = 'ไม่ได้จด (มิ.ย.–ต.ค. 69)';
     function flowNorm_(a) {
       a.forEach(s => {
         s.k = s.k || 'once';
@@ -7424,8 +7460,10 @@ Export.table.toDrive({
         else if (q) after = { af: q.n, pend: true };
       }
       if (s.af) hits = hits.filter(h => after && !after.pend && h.age >= after.pa); // บันทึกก่อนขั้นก่อนหน้าเสร็จ ไม่นับ
-      const base = () => after && after.pend ? (age > s.t + 30 ? { st: 'none' } : { st: 'wait', af: after.af })
-        : Object.assign(age < F ? { st: 'wait', d: F - age } : age <= T ? { st: 'due' } : { st: 'none' }, after || {});
+      const gap = (a, b) => (ctx.gaps || []).some(g => a <= g[1] && b >= g[0]); // ช่วงวันของขั้นซ้อนช่วงที่ไม่ได้จด
+      const none = (a, b) => gap(a, b) ? { st: 'nolog' } : { st: 'none' };
+      const base = () => after && after.pend ? (age > s.t + 30 ? none(s.f, s.t) : { st: 'wait', af: after.af })
+        : Object.assign(age < F ? { st: 'wait', d: F - age } : age <= T ? { st: 'due' } : none(F, T), after || {});
       if (k === 'ask') {
         const a = flowAns_(s, ctx), o = a && s.o.find(x => x.v === a.v);
         if (hits.length) return { st: 'done', at: hits[hits.length - 1].age, a, o };
@@ -7499,14 +7537,14 @@ Export.table.toDrive({
         .filter(x => x.t).map(x => ({ g: x.g, d: x.d, age: flDd(i.start, x.t) }));
       const raw = flAnsRaw(p.plot_id), ans = {};
       Object.keys(raw).forEach(id => { if (raw[id] && raw[id].d) ans[id] = { v: raw[id].v, age: flDd(i.start, raw[id].d) }; });
-      return (m[k] = { i, steps: flGet(i.type), ctx: { acts, age: flDd(i.start, todayISO()), ans, pre: !!i.pre, p0: i.p0 ? flDd(i.start, i.p0) : null } });
+      return (m[k] = { i, steps: flGet(i.type), ctx: { acts, age: flDd(i.start, todayISO()), ans, pre: !!i.pre, p0: i.p0 ? flDd(i.start, i.p0) : null, gaps: FL_NOLOG.map(g => [flDd(i.start, g[0]), flDd(i.start, g[1])]) } });
     }
     const flPlots = key => gData.plots.filter(p => { const c = flCtx(p); return c && c.i.type === key; });
     function flStat(s, p) {
       const c = flCtx(p); if (!c) return { st: 'none', txt: '' };
       const r = flowStat_(s, c.ctx, c.steps), d = a => thDate(flAt(c.i.start, a));
       const lbl = v => { const o = (s.o || []).find(x => x.v === v); return o ? o.l : v; };
-      let t = { done: '✓ ' + (r.at != null ? d(r.at) : ''), due: 'ถึงคิว', wait: r.pre ? 'หลังปลูก' : r.af ? `รอ ${r.af}` : `อีก ${r.d} วัน`, none: 'ไม่มีบันทึก', skip: 'ไม่ต้องทำ', hold: `รอตอบ "${r.q}"`, ask: '❓ รอตอบ', ans: '', note: r.n ? `บันทึก ${r.n} วัน` : '' }[r.st];
+      let t = { done: '✓ ' + (r.at != null ? d(r.at) : ''), due: 'ถึงคิว', wait: r.pre ? 'หลังปลูก' : r.af ? `รอ ${r.af}` : `อีก ${r.d} วัน`, none: 'ไม่มีบันทึก', nolog: FL_NOLOG_TXT, skip: 'ไม่ต้องทำ', hold: `รอตอบ "${r.q}"`, ask: '❓ รอตอบ', ans: '', note: r.n ? `บันทึก ${r.n} วัน` : '' }[r.st];
       if (r.a && (r.st === 'ans' || r.st === 'done' || r.st === 'due' || r.st === 'wait')) t = `${lbl(r.a.v)}${r.a.by === 'log' ? ' (จากบันทึก)' : ''}${r.st === 'ans' ? '' : ' · ' + t}`;
       if (r.st === 'skip' && r.o) t = `${r.o.l} · ไม่ต้องทำ`;
       if ((s.sq || s.af) && r.st === 'due' && r.af) t = `ถึงคิว · ${r.af} ✓ ${r.pa != null ? d(r.pa) : ''}`;
@@ -7802,7 +7840,7 @@ Export.table.toDrive({
       if (s.k === 'ask') extra += `<div class="fl-q">❓ ${esc(s.q || s.n)}</div><div class="fl-w">${s.o.map(o => o.go === 'next' ? esc(o.l) : `${esc(o.l)} → ${FL_GO[o.go] || o.go}`).join(' · ')}</div>`;
       if (s.k === 'branch' && s.b) extra += `<div class="fl-br">ถ้า <b>${esc(s.b.c)}</b> → ${esc(s.b.n)} ภายใน ${s.b.w || 7} วัน แล้วกลับเส้นหลัก${brDue.length ? `<br><b style="color:#B4630B">ถึงคิว: ${brDue.map(x => esc(x.p.plot_name)).join(', ')}</b>` : ''}</div>`;
       if (s.k === 'note' && s.g.length) { const tot = R.reduce((a, x) => a + x.r.n, 0); extra += `<div class="fl-prog">ฤดูนี้รวม <b>${tot} วัน</b> ที่บันทึก · เฉลี่ย ${plots.length ? (tot / plots.length).toFixed(1) : 0} วัน/แปลง</div>`; }
-      const col = { done: '#1F7A45', due: '#B4630B', wait: '#6B736E', none: '#9AA19C', skip: '#9AA19C', hold: '#9AA19C', ask: '#6B2E86', ans: '#1F2A24', note: '#1F2A24' };
+      const col = { done: '#1F7A45', due: '#B4630B', wait: '#6B736E', none: '#9AA19C', nolog: '#8A7A55', skip: '#9AA19C', hold: '#9AA19C', ask: '#6B2E86', ans: '#1F2A24', note: '#1F2A24' };
       const btn = (pid, v, l, on) => `<button type="button" class="fl-ab${on ? ' on' : ''}" onclick="flAnswer('${qa(pid)}','${qa(s.id)}','${qa(v)}')">${esc(l)}</button>`;
       const acts = x => {
         const r = x.r, pid = x.p.plot_id, raw = flAnsRaw(pid)[s.id];
@@ -7956,7 +7994,7 @@ Export.table.toDrive({
         for (let k = 0; k < 345; k++) {
           const i = i0 + k; if (i >= r.length) break;
           const m = new Date(y, pl.getMonth(), pl.getDate() + k).getMonth() + 1;
-          if ((m === 11 || m === 12) && k > 20 && !(p.cane_type === 'อ้อยใหม่' && k < YOUNG_NEW_DAYS)) { full = true; break; }   // งดน้ำก่อนตัด = จบฤดู
+          if ((m === 11 || m === 12) && k > 20 && !youngCane(p, k)) { full = true; break; }   // งดน้ำก่อนตัด = จบฤดู
           if (!mon[m]) { mon[m] = { irr: 0, rain: 0, over: 0, dry: 0, age: k }; ord.push(m); }
           const o = mon[m]; o.rain += r[i];
           S += r[i]; const ov = Math.max(0, S - cap); S = Math.min(S, cap); over += ov; o.over += ov;

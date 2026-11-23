@@ -942,6 +942,8 @@ function buildBrief_(ss, s) {
   // issue_detail ขึ้นต้น "อาการ:" อยู่แล้ว → ตัดทิ้งก่อนต่อหลัง "ชื่อ:" (23 พ.ย. 69 ขึ้น "Jazz: อาการ: …" โคลอนซ้อน)
   const dtl = a => { const d = String(a.issue_detail || '').replace(/^\s*อาการ\s*[:：]\s*/, '').trim(); return d && d !== '-' ? d : a.status; };
   const broken = [], sick = [], noBat = [];
+  // เตือนที่รอ "ตอนรับรถกลับ" → ขึ้นทุกเช้าใต้รถที่ยังอยู่ร้าน (23 พ.ย. 69 ผู้ใช้: รับรถ 25 แล้วไลน์เตือนเช้า 26 ไม่ทัน)
+  const pick = {}; try { readRem_(ss).forEach(r => { const m = /^รับรถ:(.+)$/.exec(r.on_event || ''); if (m && !r.date) (pick[m[1]] = pick[m[1]] || []).push(r.text); }); } catch (e) {}
   assets.forEach(a => {
     if (a.category === 'Worker') {
       if (!isOk(a)) sick.push(`• ${a.name}: ${dtl(a)}`);
@@ -949,7 +951,7 @@ function buildBrief_(ss, s) {
     }
     if (!isOk(a)) {
       const dd = dm[a.name] ? daysSince_(dm[a.name]) : null;
-      broken.push(`• ${icon[a.category] || '🔧'} ${a.name}: ${dtl(a)}${dd !== null ? ` (${dd} วัน)` : ''}${a.parts_needed && a.parts_needed !== '-' ? ` → ${a.parts_needed}` : ''}`);
+      broken.push(`• ${icon[a.category] || '🔧'} ${a.name}: ${dtl(a)}${dd !== null ? ` (${dd} วัน)` : ''}${a.parts_needed && a.parts_needed !== '-' ? ` → ${a.parts_needed}` : ''}${pick[a.name] ? `\n   🔔 ตอนไปรับรถ อย่าลืม: ${pick[a.name].join(' · ')}` : ''}`);
     }
     if ((a.battery_info || '').includes('ไม่มีแบต')) noBat.push(`• ${a.name}`);
   });

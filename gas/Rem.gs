@@ -25,6 +25,19 @@ function remAdd_(ss, p, id) {
   appendRows_(sh, [[String(id), getTodayStr(), pk && !p.date ? '' : remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), pk ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);
   return true;
 }
+// จดเรื่องรถคันนี้ (แวะร้าน/ช่างบอกอะไร/เข้าร้าน) = ได้ติดต่อร้านแล้ว → เตือน "โทรเช็คร้าน" ที่ถึงวันแล้ว เลื่อนไปสัปดาห์หน้า
+// atShop (เอารถเข้าร้าน) → ปิดนัด "เอารถไปเช็ค/ร้าน…" ของคันนี้ที่ถึงวันแล้ว (23 พ.ย. 69 ผู้ใช้: ขึ้นสองจุด ทั้งที่รถอยู่ร้านแล้ว / แวะร้านช่างวุทแล้วยังต้องโทร)
+function remTouch_(ss, name, atShop) {
+  const sh = remSheet_(ss), d = sh.getDataRange().getDisplayValues(), C = k => REM_H_.indexOf(k), t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const ids = [];
+  for (let i = 1; i < d.length; i++) {
+    const r = d[i], due = remDate_(r[C('date')]); if (r[C('status')] !== 'open' || !due || due > t0) continue;
+    if (r[C('on_event')] === 'อยู่ร้าน:' + name) ids.push(r[0]);
+    else if (atShop && !r[C('on_event')] && !r[C('repeat')] && r[C('text')].indexOf(name) >= 0 && /ร้าน|อู่|ช่าง|เช็ค|ซ่อม/.test(r[C('text')])) ids.push(r[0]);
+  }
+  ids.forEach(id => remDone_(ss, id));
+  return ids.length;
+}
 // รับรถกลับแล้ว → เตือนที่รอ "ตอนรับรถ" ของคันนี้ ลงวันนี้ (ขึ้นในแอปหน้าวันนี้ + LINE) · คืนรายการข้อความ
 function remPickup_(ss, name) {
   const sh = remSheet_(ss), d = sh.getDataRange().getDisplayValues(), out = [];

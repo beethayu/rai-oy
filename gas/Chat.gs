@@ -412,6 +412,7 @@ function chatApply(ops, rid) {
           appendRows_(lSh, [rowv]);
           done++;
         }
+        try { if (op.state !== 'done' && date === getTodayStr()) remTouch_(ss, name, op.state === 'at_shop'); } catch (e) { console.error(e); }
         nameChatPhotos_(ids, 'รถ_' + name, date, 'รถ', name);
       } else if (op.fn === 'reg') {
         // ทะเบียน/ภาษีรถ: จำทะเบียน + วันครบกำหนดต่อ

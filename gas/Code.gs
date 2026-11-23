@@ -714,6 +714,7 @@ function saveAssetEvent(payload) {
       payload.event_type || payload.status, payload.log_detail || payload.issue_detail || '-',
       payload.parts_needed || payload.battery_info || '-', payload.ref_plot || '-']]);
     if (!payload.keep_status && /พร้อมใช้|ปกติ/.test(payload.status || '')) try { remPickup_(ss, payload.asset_name); } catch (e) { console.error(e); }
+    else if (actDate === getTodayStr()) try { remTouch_(ss, payload.asset_name, /ร้าน/.test(payload.status || '')); } catch (e) { console.error(e); }
     return readAll_(ss);
   });
 }

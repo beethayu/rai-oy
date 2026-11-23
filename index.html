@@ -5642,7 +5642,9 @@
     let chat = (() => { try { const c = JSON.parse(lsGet(CHAT_STORE) || 'null'); return c && Array.isArray(c.msgs) ? c : { msgs: [] }; } catch (e) { return { msgs: [] }; } })();
     // AI เคยจับ "ซ่อมลำโพง 2420 บาท" เป็น Kubota B2420 (16 พ.ย. 69): รถที่ AI เลือก ต้องมีชื่อ/ยี่ห้อ/ชนิดในข้อความ · ไม่มีเลย แต่มีแค่ตัวเลขรุ่นปนในข้อความ = ทิ้งรายการนั้น
     const AS_WORDS = { Tractor: /รถไถ|แทรกเตอร์|ไถ/, Truck: /รถ|สิบล้อ|หกล้อ|กระบะ|พ่วง|ดั๊ม|ดัมพ์/, Pump: /พญานาค|ปั๊ม|ปั้ม|เครื่องสูบ/, Car: /รถ/ };
-    const AS_BRAND = { kubota: /คูโบ|kubota/i, 'new holland': /นิวฮอล|ฮอลแลนด์|new holland/i, 'john deere': /จอห์น|deere/i, yanmar: /ยันม่าร์|yanmar/i, isuzu: /อีซูซุ|isuzu/i, hino: /ฮีโน่|hino/i };
+    const AS_BRAND = { kubota: /คูโบ|kubota/i, 'new holland': /นิวฮอล|ฮอลแลนด์|new holland/i, 'john deere': /จอห์น|deere/i, yanmar: /ยันม่าร์|yanmar/i, isuzu: /อีซูซุ|isuzu/i, hino: /ฮีโน่|hino/i,
+      // ชื่อรถที่ผู้ใช้พิมพ์เป็นไทย (23 พ.ย. 69 "ไปเอาแจสกลับแล้ว" โดนตัดทิ้งว่าไม่ได้พูดถึง Jazz)
+      jazz: /แจ[๊็]?[สซ]|jazz/i, dragon: /ดรา[ก็]?[กอ]?อน|ดราก้อน|dragon/i, honda: /ฮอนด้า|honda/i, toyota: /โตโยต้า|toyota/i, vigo: /วีโก้|vigo/i, revo: /รีโว่|revo/i, 'd-max': /ดีแม็?กซ์|d-?max/i, ford: /ฟอร์ด|ford/i, mitsubishi: /มิตซู|mitsubishi/i, nissan: /นิสสัน|nissan/i, mazda: /มาสด้า|mazda/i };
     // 19 พ.ย. 69: "รถหกล้อ…อีแอ๋ว" + รูปป้ายภาษี → AI ใส่ "เพิ่มสิบล้อ" (Truck = หมวดสิบล้อ ทั้งคันที่ใช้ในไร่และขนหิน · หกล้อ/กระบะ = Car รถใช้ในไร่) ซ้ำกับรายการต่อทะเบียนที่เพิ่มรถใหม่ให้อยู่แล้ว
     function chAddGuard(items, txt) {
       // ปิดเตือนบำรุงรถได้เฉพาะเรื่องเดียวกับที่จด (AI เคยปิด "กรองโซล่า" ตอนจดเปลี่ยนน้ำมันเครื่อง)
@@ -5668,7 +5670,7 @@
         const a = chAsset(it.asset) || { name: it.asset }, nm = String(a.name), sh = eqS(nm);
         const said = t.includes(nm) || (sh && t.toLowerCase().includes(sh.toLowerCase())) || Object.keys(AS_BRAND).some(b => nm.toLowerCase().includes(b) && AS_BRAND[b].test(t)) || (AS_WORDS[a.category] || /^$/).test(t);
         const digits = (sh.match(/\d{3,}/) || [])[0];
-        if (!said && (!hasPic || (digits && t.includes(digits)))) { items.splice(i, 1); r.reply = (r.reply ? r.reply + '\n' : '') + `(ไม่ได้จดเข้า ${sh || nm} — ข้อความไม่ได้พูดถึงรถคันนี้ ถ้าเป็นเรื่องนอกไร่ไม่ต้องจด)`; }
+        if (!said && (!hasPic || (digits && t.includes(digits)))) { items.splice(i, 1); const w = `(ไม่ได้จดเข้า ${sh || nm} — ข้อความไม่ได้พูดถึงรถคันนี้ ถ้าเป็นเรื่องนอกไร่ไม่ต้องจด)`; if (!String(r.reply || '').includes(w)) r.reply = (r.reply ? r.reply + '\n' : '') + w; }
       }
     }
     const leadTxt = n => n % 30 === 0 ? `${n / 30} เดือน` : n % 7 === 0 ? `${n / 7} สัปดาห์` : `${n} วัน`;

@@ -1111,7 +1111,12 @@
     .dossier-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; height: 100%; }
     #updBar { position: fixed; left: 12px; right: 12px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 3001; border: 0; border-radius: 14px; background: #1F5E3B; color: #fff; font-weight: 700; font-size: 15px; padding: 12px 14px; box-shadow: 0 6px 18px rgba(0,0,0,.25); font-family: inherit; }
     #syncToast { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #212529; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 0.94rem; z-index: 3000; display: none; }
-    #set_preview { white-space: pre-wrap; font-size: 0.88rem; background: #f1f8f1; border: 1px solid #b7dfb9; border-radius: 10px; padding: 10px; display: none; max-height: 260px; overflow-y: auto; }
+    .ln-prev { white-space: pre-wrap; font-size: 15px; line-height: 1.55; background: #f1f8f1; border: 1px solid #b7dfb9; border-radius: 10px; padding: 10px 12px; display: none; max-height: 420px; overflow-y: auto; }
+    .ln-blk { border: 1px solid #DDE5DF; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .ln-hd { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .ln-hd b { font-size: 17px; } .ln-hd select { width: auto; flex: 0 0 auto; }
+    .ln-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; margin-bottom: 8px; border-top: 1px solid #EEF2EF; border-bottom: 1px solid #EEF2EF; }
+    .ln-row span { color: #5D6B62; } .ln-row input { width: 150px; flex: 0 0 auto; }
     @media (max-width: 420px) { .status-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -1727,29 +1732,28 @@
             <button type="button" class="btn btn-outline-success fw-bold" onclick="updLast=0;this.innerText='กำลังเช็ก…';checkUpdate();setTimeout(()=>{this.innerText=updNew?'มีใหม่ กำลังโหลด…':'ล่าสุดแล้ว ✓'},2500)">เช็กอัปเดต</button>
           </div>
           <div class="card-sec">
-            <h6>แจ้งเตือน LINE (เช้า + เย็น)</h6>
+            <h6>แจ้งเตือน LINE</h6>
             <div class="msub mb-2" id="set_status"></div>
-            <div class="row g-2 mb-2">
-              <div class="col-6"><div class="bill-lbl">สถานะ</div><select class="form-select" id="set_enabled"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
-              <div class="col-6"><div class="bill-lbl">เวลาส่ง</div><input type="time" class="form-control" id="set_time"></div>
+            <div class="ln-blk">
+              <div class="ln-hd"><div><b>🌅 สรุปตอนเช้า</b><div class="msub mb-0">วันนี้ต้องทำอะไร · ถึงรอบน้ำ/ฉีดยา · รถเสีย · ยาใกล้หมด · อากาศ</div></div>
+                <select class="form-select" id="set_enabled"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
+              <div class="ln-row"><span>เวลาส่ง</span><input type="time" class="form-control" id="set_time"></div>
+              <div class="d-flex gap-2"><button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewLine()" id="btnPrev">ดูตัวอย่าง</button>
+                <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="testLine()" id="btnTest">ส่งเข้า LINE ตอนนี้</button></div>
+              <div id="set_preview" class="ln-prev mt-2"></div>
             </div>
-            <div class="bill-lbl">Channel access token</div>
+            <div class="ln-blk">
+              <div class="ln-hd"><div><b>🌇 สรุปตอนเย็น</b><div class="msub mb-0">วันนี้ทำอะไรไปแล้ว · ใครทำ แปลงไหน · รถ · ยาที่ใช้</div></div>
+                <select class="form-select" id="set_evening"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
+              <div class="ln-row"><span>เวลาส่ง</span><b>ประมาณ 17:00</b></div>
+              <div class="d-flex gap-2"><button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewEve()" id="btnPrevE">ดูตัวอย่าง</button>
+                <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="sendEveNow()" id="btnSendE">ส่งเข้า LINE ตอนนี้</button></div>
+              <div id="set_previewE" class="ln-prev mt-2"></div>
+            </div>
+            <div class="bill-lbl mt-2">Channel access token (ใช้ทั้งเช้าและเย็น)</div>
             <input type="password" class="form-control mb-2" id="set_token" autocomplete="off">
             <div class="bill-lbl">ส่งถึง (ไม่ใส่ = ทุกคนที่แอดเพื่อน OA)</div>
             <input type="text" class="form-control mb-2" id="set_target" placeholder="User ID หรือ Group ID">
-            <div class="d-flex align-items-center justify-content-between gap-2 mb-2" style="padding:8px 0;border-top:1px solid #E6ECE8">
-              <div><b>🌇 สรุปงานวันนี้ ~17:00</b><div class="msub mb-0">ส่ง LINE ทุกเย็น วันนี้ใครทำอะไร แปลงไหน รถ สต็อก</div></div>
-              <select class="form-select" id="set_evening" style="width:auto"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select>
-            </div>
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewEve()" id="btnPrevE">ดูตัวอย่างสรุปเย็น</button>
-              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="sendEveNow()" id="btnSendE">ส่งสรุปเย็นเข้า LINE ตอนนี้</button>
-            </div>
-            <div class="d-flex gap-2 mt-2">
-              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewLine()" id="btnPrev">ดูตัวอย่าง</button>
-              <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="testLine()" id="btnTest">ส่งทดสอบ</button>
-            </div>
-            <div id="set_preview" class="mt-2"></div>
           </div>
 
           <div class="card-sec">
@@ -5417,16 +5421,16 @@
       call('previewBrief', [], t => { const b = $('set_preview'); b.textContent = t; b.style.display = 'block'; }, $('btnPrev'), '⏳ กำลังสร้างตัวอย่าง...');
     }
     function previewEve() {
-      call('previewEvening', [], t => { const b = $('set_preview'); b.textContent = t; b.style.display = 'block'; }, $('btnPrevE'), '⏳ กำลังสร้างตัวอย่าง...');
+      call('previewEvening', [], t => { const b = $('set_previewE'); b.textContent = t; b.style.display = 'block'; }, $('btnPrevE'), '⏳ กำลังสร้างตัวอย่าง...');
     }
     function sendEveNow() {
       if (!S('hasToken')) return alert('ยังไม่ได้ใส่โทเคน LINE');
-      if (!confirm('ส่งสรุปงานวันนี้เข้า LINE ตอนนี้?')) return;
+      if (!confirm('ส่งสรุปตอนเย็นเข้า LINE ตอนนี้?\n(นับโควตา 1 ข้อความต่อผู้รับ)')) return;
       call('sendEveningNow', [], r => alert((r.ok ? '✅ ' : '❌ ') + r.msg), $('btnSendE'), '⏳ กำลังส่ง LINE...');
     }
     function testLine() {
       if (!S('hasToken')) return alert('กด "บันทึกการตั้งค่า" พร้อมโทเคนก่อนครับ');
-      if (!confirm('ส่งข้อความทดสอบเข้า LINE จริง?\n(นับโควตา 1 ข้อความต่อผู้รับ)')) return;
+      if (!confirm('ส่งสรุปตอนเช้าเข้า LINE ตอนนี้?\n(นับโควตา 1 ข้อความต่อผู้รับ)')) return;
       call('testNotify', [], r => alert((r.ok ? '✅ ' : '❌ ') + r.msg), $('btnTest'), '⏳ กำลังส่ง LINE...');
     }
 

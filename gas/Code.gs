@@ -859,7 +859,7 @@ function previewBrief() {
 function testNotify() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const s = getSettings_(ss);
-  return sendLine_(s, '🧪 ทดสอบระบบ\n\n' + buildBrief_(ss, s));
+  return sendLine_(s, buildBrief_(ss, s));
 }
 
 function sendLine_(s, text) {

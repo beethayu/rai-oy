@@ -4729,6 +4729,7 @@
       logs.forEach(l => {
         const e = l.event_type || '', iso = beToISO(l.timestamp), shop = vehShop(l.detail) || (l.bill ? l.shop : '');
         if (/🛒/.test(e) && !/^ซื้อแล้ว/.test(l.parts_or_battery || '')) return;
+        if (/ค้างซ่อม/.test(e)) return; // งานซ่อมค้าง อยู่การ์ดของมันเอง ไม่ใช่ประวัติที่ทำแล้ว
         if (/ทะเบียน|ภาษี/.test(e)) { out.push({ kind: 'reg', start: l.timestamp, lines: [line(l)] }); return; }
         if (isDown(e)) {
           if (!open) {
@@ -4848,6 +4849,13 @@
       call('partOp', [{ fn: 'buy', id, price: pr, shop, credit: vehCredit }], d => { vehBuyOpen = ''; vehLastPr = ''; init(d); vehRender(); }, $('vhBuySv'));
     }
     function vehModelSave() { call('partOp', [{ fn: 'model', asset: vehCur, model: String($('vhModel').value || '').trim() }], d => { vehModelEd = false; init(d); vehRender(); }, $('vhModelSv')); }
+    const vehTodos = name => (gData.assetLogs || []).filter(l => l.asset_name === name && /ค้างซ่อม/.test(l.event_type || '') && /^รอซ่อม/.test(l.parts_or_battery || ''));
+    function vehTodoCard(a) {
+      const ts = vehTodos(a.name); if (!ts.length) return '';
+      return `<div class="vh-cd warn"><div class="vh-k">🔧 งานซ่อมค้าง</div>${ts.map(l => `<div class="vh-row"><div class="vh-dt"><button type="button" class="vh-ck" aria-label="ซ่อมแล้ว" onclick="if(confirm('ซ่อมแล้ว?\n${qa(String(l.detail).slice(0, 60))}'))call('partOp',[{fn:'fixed',id:'${qa(l.log_id)}'}],d=>{init(d);vehRender();})"></button></div>
+        <div class="vh-tx"><div class="vh-main">${esc(l.detail)}</div><div class="vh-sub">จดไว้ ${dShort(beToISO(l.timestamp))}</div></div>
+        <button type="button" class="vh-dots" aria-label="ลบ" onclick="if(confirm('ลบงานซ่อมค้างนี้?'))call('deleteAssetLog',['${qa(l.log_id)}'],d=>{init(d);vehRender();})">✕</button></div>`).join('')}<div class="vh-s">ติ๊ก ☐ เมื่อซ่อมแล้ว · ตอนเอารถไปร้านใหม่ เปิดหน้านี้ให้ร้านดูได้</div></div>`;
+    }
     function vehPartsCard(a) {
       const ps = vehParts(a.name); if (!ps.length) return '';
       const pics = ps.map(l => l.photo_id).filter(Boolean).join(',');
@@ -4913,7 +4921,7 @@
       const ACT = (id, body) => vehRowOpen === id ? `<div class="vh-op">${body}</div>` : '';
       const dots = id => `<button type="button" class="vh-dots${vehRowOpen === id ? ' on' : ''}" aria-label="ตัวเลือก" onclick="vehRow('${qa(id)}')">⋯</button>`;
       // นัดของคันนี้ (ไม่ซ้ำ) — ถึงวันแล้วกด "ไปแล้ว" = ลงประวัติ + ปิดนัด
-      h += vehPartsCard(a);
+      h += vehTodoCard(a) + vehPartsCard(a);
       const pick = remPick(name);
       if (pick.length) h += `<div class="vh-cd warn"><div class="vh-k">🔔 เตือนตอนรับรถกลับ</div>${pick.map(r => `<div class="vh-row"><div class="vh-dt"><b>🔔</b><small>ตอนรับรถ</small></div><div class="vh-tx"><div class="vh-main">${esc(String(r.text).replace(new RegExp('\\s*(' + [a.name, eqS(a.name)].map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*$', 'i'), '') || r.text)}</div></div>${dots(r.rem_id)}
           ${ACT(r.rem_id, `<button type="button" class="bigbtn bigbtn-main" onclick="vehApptDone('${qa(r.rem_id)}',1)">ทำแล้ว</button><button type="button" class="bigbtn bigbtn-out vh-del" onclick="vehApptDone('${qa(r.rem_id)}',0)">ยกเลิก</button>`)}</div>`).join('')}</div>`;
@@ -5666,7 +5674,7 @@
     function chAssetGuard(items, txt, r, hasPic) {
       const t = String(txt || '');
       for (let i = items.length - 1; i >= 0; i--) {
-        const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg'].includes(it.type) || !it.asset) continue;
+        const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg', 'asset_todo'].includes(it.type) || !it.asset) continue;
         const a = chAsset(it.asset) || { name: it.asset }, nm = String(a.name), sh = eqS(nm);
         const said = t.includes(nm) || (sh && t.toLowerCase().includes(sh.toLowerCase())) || Object.keys(AS_BRAND).some(b => nm.toLowerCase().includes(b) && AS_BRAND[b].test(t)) || (AS_WORDS[a.category] || /^$/).test(t);
         const digits = (sh.match(/\d{3,}/) || [])[0];
@@ -6061,6 +6069,7 @@
       if (Array.isArray(it.plots)) it.plots = it.plots.filter(chPlot);
       it.unsure = Array.isArray(it.unsure) ? it.unsure : [];
       if (it.type === 'note' && !(it.workers || []).length) { const va = chNoteVeh(it.text); if (va) Object.assign(it, { type: 'asset_note', asset: va.name, event: /เปลี่ยน(น้ำมัน|ถ่ายน้ำมัน)|กรอง|เช็คระยะ|ถ่ายน้ำมัน/.test(it.text) ? 'บำรุง' : 'ซ่อม', detail: it.text, place: '', plates: [], amount: it.amount, state: /ทิ้งรถ|ฝากรถ|จอดไว้|รอซ่อม|ทิ้งไว้/.test(it.text) ? 'at_shop' : '' }); }
+      if (it.type === 'asset_todo') { const ta = chAsset(it.asset); it.known = !!ta; if (ta) it.asset = ta.name; it.date = it.date || todayISO(); return it.asset && it.detail ? it : null; }
       if (it.type === 'asset_status') { it.known = !!chAsset(it.asset); it.date = it.date || todayISO(); return it.asset && ['at_shop', 'done'].includes(it.state) ? it : null; }
       if (it.type === 'asset_reg') {
         const ra = chAsset(it.asset); it.known = !!ra && REG_CATS.includes(ra.category);
@@ -6214,6 +6223,7 @@
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
+        else if (a.type === 'asset_todo') { if (a.known) ops.push({ fn: 'atodo', asset: a.asset, detail: a.detail || '', note: a.note || '', date: isoToBE(a.date || todayISO()) }); }
         else if (a.type === 'asset_note') { if (a.known) ops.push({ fn: 'asset', asset: a.asset.trim(), event: a.event || 'ถ่ายรูป', detail: a.detail || '', shop: a.shop || '', place: a.place || '',
           date: isoToBE(a.date || todayISO()), plates: a.plates || [], photo_ids: a.photo_ids || [], state: a.state || '', mileage: Number(a.mileage) || 0, amount: Number(a.amount) || 0 }); }
         else if (a.type === 'asset_status') { if (a.known) ops.push({ fn: 'astatus', asset: a.asset.trim(), state: a.state, detail: a.detail || '', shop: a.shop || '', date: isoToBE(a.date || todayISO()) }); }
@@ -6339,6 +6349,9 @@
           + (!it.plates.length && shown.length ? `<div class="ch-warn">${un('plates') ? 'อ่านทะเบียนจากรูปไม่ชัด — พิมพ์บอกทะเบียนได้เลย' : 'ไม่เห็นทะเบียนในรูป'} (ไม่ใส่ก็บันทึกประวัติได้)</div>` : '')
           + oldP.map(([o, n]) => `<div class="ch-warn">ทะเบียนเดิมในข้อมูลรถ ${esc(o)} → จะเปลี่ยนเป็น ${esc(n.plate)} ถ้าไม่ใช่ ให้พิมพ์แก้</div>`).join('')
           + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" ในรายการ — รายการนี้จะไม่ถูกบันทึก (พิมพ์แก้ชื่อรถ หรือเพิ่มรถก่อน)</div>` : '');
+      } else if (it.type === 'asset_todo') {
+        h = `<div class="ch-t">🔧 งานซ่อมค้าง · ${esc(eqS(it.asset))}</div>` + row('ต้องซ่อม', it.detail) + row('หมายเหตุ', it.note)
+          + `<div class="ch-cn">ยังไม่ได้ซ่อม — ขึ้นในหน้ารถคันนี้ ติ๊ก ✓ เมื่อซ่อมแล้ว</div>` + (!it.known ? `<div class="ch-warn">ไม่พบรถชื่อ "${esc(it.asset)}" — จะไม่ถูกบันทึก</div>` : '');
       } else if (it.type === 'asset_status') {
         h = `<div class="ch-t">🚛 สถานะรถ · ${esc(it.asset)}</div>` + row('สถานะ', it.state === 'at_shop' ? 'อยู่ร้านช่าง (แท็บรถจะขึ้นไม่ว่าง)' : 'รับรถกลับแล้ว → พร้อมใช้')
           + row('ทำอะไร', it.detail) + row('ร้าน/ที่', it.shop) + row('วันที่', dt(it.date))

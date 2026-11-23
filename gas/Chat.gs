@@ -71,6 +71,9 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 18) {"type":"soil_check","area":"หนองทิ้งสุ่ม","plots":["P05"],"state":"แฉะ เข้าไม่ได้","date":"YYYY-MM-DD","note":""} = ผู้ใช้บอกสภาพดินที่เห็นหน้างาน เช่น "หน้างานตอนนี้ชื้นมากเข้าไม่ได้" "หนองจิกดินหมาดแล้ว รถเข้าได้" · state เลือก: "น้ำขัง" / "แฉะ เข้าไม่ได้" / "ชื้น ก้ำกึ่ง" / "หมาด เข้าได้" / "แห้ง" · ไม่บอกพื้นที่ = ใช้พื้นที่ที่คุยกันล่าสุดในบทสนทนา ถ้าไม่มีให้ถาม · plots = ทุกแปลงของพื้นที่นั้น (ctx.areas) ถ้าไม่ระบุแปลง
 16) {"type":"rem_done","id":"R..."} = ปิดนัด/เตือนที่ทำแล้ว (id ตาม ctx.reminders) เช่น ctx.reminders มี "ไปเอาลำโพงที่ซ่อมเสร็จ" แล้วผู้ใช้บอก "ไปเอาลำโพงมาแล้ว"
 หมวดนอกไร่ (cat) เลือก: บ้าน / ครอบครัว / สุขภาพ / เงิน / รถ/ของใช้ / สมาคม/ชุมชน / ไอเดีย/อ่าน / อื่นๆ
+22) {"type":"asset_todo","asset":"ชื่อรถตาม ctx.vehicles","detail":"หน้าปัด เข็มต่าง ๆ ไม่ทำงาน","note":"ร้านช่างฟลุ๊กทำไม่ได้"} = งานซ่อมที่ "ยังไม่ได้ทำ" จดไว้ก่อน (ต้องหาร้านอื่น / ไว้ทำทีหลัง / ยังไม่ได้เอาไป) → ขึ้นการ์ด "งานซ่อมค้าง" ในหน้ารถ ไม่ลงประวัติว่าซ่อมวันนี้
+   · คำบอก: "ยังเหลือ…ที่ต้องเอาไปซ่อม" "จดไว้ก่อน" "ยังไม่ได้เอาไป" "ร้านนี้ทำไม่ได้" "ไว้ค่อยซ่อม" = asset_todo ห้ามใช้ asset_note (asset_note = ทำไปแล้วจริง) · 1 อาการ = 1 item
+   · ผู้ใช้แก้การ์ดเดิมว่า "ยังไม่ได้เอาไปวันนี้/จดไว้ก่อน" = เปลี่ยน asset_note นั้นเป็น asset_todo
 20) {"type":"stock_in","name":"ชื่อตาม ctx.chems","packs":4,"date":"YYYY-MM-DD","unsure":[]} = ซื้อ/รับยาที่ "มีอยู่แล้ว" ใน ctx.chems เข้ามาเพิ่ม (ไม่มีรูปใบเสร็จ — มีใบเสร็จใช้ bill) · packs = จำนวนหน่วยบรรจุ (กล่อง/ขวด/ถุง/แกลลอน)
    · ผู้ใช้บอกแค่ภาชนะ ("4 กล่อง") → จับคู่ยาใน ctx.chems ที่ pack เป็นภาชนะนั้น ถ้ามีตัวเดียว ใช้ได้ (ใส่ "name" ใน unsure) · มีหลายตัว/ไม่มีตัวที่ตรง (เช่น ไม่มียาที่เป็นขวด) → ใส่ ask "3 ขวดเป็นยาตัวไหน" options ชื่อยาที่เข้าข่าย + "ยาตัวใหม่ (ถ่ายฉลากส่งมา)" ห้ามเดา · ยาตัวใหม่ที่ไม่มีใน ctx.chems = new_chem
 21) {"type":"stock_count","name":"ชื่อตาม ctx.chems","packs":2,"date":"YYYY-MM-DD"} = ผู้ใช้บอกยอดที่เหลือจริง ("เหลือ 2 กล่อง") → ปรับยอดสต็อกเป็นค่านั้น · บอกยอดเหลือ "ก่อนซื้อ" แล้วซื้อเพิ่มในข้อความเดียวกัน = ใส่ทั้ง stock_count (ยอดก่อนซื้อ) และ stock_in · ctx.chems มี stock_packs (ยอดในแอป) ถ้าไม่ตรงกับที่ผู้ใช้บอก ให้บอกใน reply สั้น ๆ
@@ -346,6 +349,11 @@ function chatApply(ops, rid) {
           done++;
           break;
         }
+      } else if (op.fn === 'atodo') {
+        // 🔧 งานซ่อมค้าง (23 พ.ย. 69 ผู้ใช้: "ไม่ได้เอาไปวันนี้ จดไว้ก่อน ร้านช่างฟลุ๊กทำไม่ได้ หน้าปัด") — AssetLogs event "🔧 ค้างซ่อม" parts_or_battery "รอซ่อม" / "ซ่อมแล้ว <วัน>"
+        const aSh = ss.getSheetByName(SH.ASSET), ar = aSh.getDataRange().getDisplayValues().find((x, i) => i > 0 && x[2] === String(op.asset || ''));
+        const det = [String(op.detail || '').trim(), String(op.note || '').trim()].filter(Boolean).join(' · ').slice(0, 200);
+        if (ar && det) { const sh = ss.getSheetByName(SH.ALOG), pc = headCol_(sh, 'photo_id'), r = ['AL' + (base++) + 'T', op.date || getTodayStr(), ar[2], ar[1] || '-', '🔧 ค้างซ่อม', det, 'รอซ่อม', '-']; while (r.length < pc) r.push(''); appendRows_(sh, [r]); done++; }
       } else if (op.fn === 'stock') {
         // ซื้อยาที่มีอยู่แล้ว (in) / ยอดที่เหลือจริง (set) จากแชต (23 พ.ย. 69) — qty เป็นหน่วยเล็ก (g/ml) หน้าเว็บคูณขนาดบรรจุมาแล้ว
         const sh = ss.getSheetByName(SH.INV), d = sh.getDataRange().getValues(), c = invCols_(d[0]);
@@ -542,6 +550,7 @@ function partOp(op) {
       let det = String(d[r][5] || '').replace(/\s*·\s*ค่า\s*[\d,]+\s*บ\.?/, '');
       if (op.fn === 'buy') { const pr = Math.round(Number(op.price) || 0); if (pr > 0) det += ' · ค่า ' + pr.toLocaleString('en-US') + ' บ.'; const shop = String(op.shop || '').trim().slice(0, 60);
         sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'ซื้อแล้ว ' + getTodayStr() + (op.credit ? ' · ค้าง ' + (shop || 'ร้าน') : shop ? ' · ' + shop : '')]]); }
+      else if (op.fn === 'fixed') sh.getRange(r + 1, 7).setNumberFormat('@').setValue('ซ่อมแล้ว ' + getTodayStr());
       else if (op.fn === 'paid') sh.getRange(r + 1, 7).setNumberFormat('@').setValue(String(d[r][6] || '').replace(/ · ค้าง .*$/, '') + ' · จ่าย ' + getTodayStr());
       else if (op.fn === 'unbuy') sh.getRange(r + 1, 6, 1, 2).setNumberFormat('@').setValues([[det, 'รอซื้อ']]);
     }

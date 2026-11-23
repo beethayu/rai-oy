@@ -1137,41 +1137,80 @@
     .rtag, .ltag, .ch-chip { min-height: 44px; }
     .filter-chip { height: 44px; }
     .cal-nav { width: 44px; height: 44px; }
-    /* ===== ผังงาน (23 พ.ย. 69 · ลองกับอ้อยตอ 14 วัน แทนคู่มือ) ===== */
+    /* ===== ผังงาน (24 พ.ย. 69 รอบ G: ลูกศร เส้นแตก/รวม กิ่งทางแยก · ลองกับอ้อยตอ 14 วัน แทนคู่มือ) ===== */
     .fc-pick { display: flex; gap: 8px; align-items: center; margin: 2px 0 8px; }
-    .fc-pick select { flex: 1; min-height: 48px; font-size: 16px; font-weight: 600; border: 1.5px solid #1F5E3B; border-radius: 12px; padding: 0 12px; background: #fff; color: #1F2A24; }
-    .fc-sum { background: #FFF6E5; border: 1.5px solid #E9A23B; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
-    .fc-sum b { font-size: 16px; } .fc-sum .fc-dl { font-size: 15px; margin-top: 2px; }
-    .fc-sum button { margin-top: 8px; min-height: 44px; width: 100%; border: 0; border-radius: 12px; background: #B4630B; color: #fff; font-weight: 700; font-size: 16px; }
-    .fc-tog { width: 100%; min-height: 44px; border: 1px solid #DCE3DE; border-radius: 12px; background: #fff; color: #1F5E3B; font-weight: 600; margin-bottom: 6px; }
-    .fc-ph { margin: 14px 0 0; padding: 8px 12px; border-radius: 12px; background: #1F5E3B; color: #fff; }
-    .fc-ph b { font-size: 16px; } .fc-ph span { font-size: 13px; opacity: .9; margin-left: 4px; }
-    .fc-ln { width: 4px; height: 18px; background: #6B8A78; margin: 0 auto; border-radius: 2px; }
-    .fc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .fc-par { font-size: 13px; font-weight: 700; color: #2D5F86; text-align: center; margin: 0 0 4px; }
-    .fc-n { position: relative; background: #fff; border: 2px solid #C9D3CC; border-radius: 14px; padding: 9px 11px; cursor: pointer; color: #1F2A24; }
-    .fc-n .t { font-size: 16px; font-weight: 700; line-height: 1.3; }
-    .fc-n .d { font-size: 13px; font-weight: 700; color: #1F5E3B; }
-    .fc-n .w { font-size: 13px; font-weight: 600; }
-    .fc-n .s { font-size: 14px; font-weight: 700; margin-top: 4px; }
+    .fc-pick select { flex: 1; min-width: 0; min-height: 48px; font-size: 16px; font-weight: 600; border: 1.5px solid #1F5E3B; border-radius: 12px; padding: 0 12px; background: #fff; color: #1F2A24; }
+    .fc-pick button { flex: none; width: 48px; height: 48px; border: 1.5px solid #C9D3CC; border-radius: 12px; background: #fff; font-size: 20px; }
+    .fc-pick button.on { background: #E7F4EB; border-color: #1F5E3B; }
+    .fc-sum { background: #FFF6E5; border: 1.5px solid #E9A23B; border-radius: 14px; padding: 8px 12px; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+    .fc-sum > div { flex: 1; min-width: 0; font-size: 14px; line-height: 1.35; } .fc-sum b { font-size: 15px; }
+    .fc-sum button { flex: none; min-height: 44px; border: 0; border-radius: 12px; background: #B4630B; color: #fff; font-weight: 700; font-size: 15px; padding: 0 12px; }
+    .fc-sum.calm { background: #EEF5F0; border-color: #9BC7AE; }
+    .fc-zone { position: relative; border-radius: 18px; padding: 34px 8px 10px; }
+    .fc-zone.z0 { background: #EAF3EC; } .fc-zone.z1 { background: #F3F0E6; }
+    .fc-zt { position: absolute; left: 10px; top: 7px; font-size: 14px; font-weight: 700; color: #1F5E3B; }
+    .fc-zt span { font-weight: 500; color: #4A524D; margin-left: 4px; }
+    /* ลูกศรลง (เส้นหนา + หัวสามเหลี่ยม) · span = ป้ายช่วงวันบนเส้น */
+    .fc-ar { position: relative; height: 30px; display: flex; align-items: center; justify-content: center; }
+    .fc-ar::before { content: ''; position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 7px; width: 3px; background: #3F5F4C; }
+    .fc-ar::after { content: ''; position: absolute; left: calc(50% - 7px); bottom: 0; border: 7px solid transparent; border-bottom: 0; border-top: 8px solid #3F5F4C; }
+    .fc-ar.tall { height: 40px; }
+    .fc-ar span, .fc-tag { position: relative; z-index: 1; background: #fff; border: 1.5px solid #3F5F4C; color: #1F2A24; border-radius: 999px; font-size: 13px; font-weight: 700; padding: 1px 9px; margin-top: -6px; }
+    /* แตก 2 ทาง / รวม 2 ทาง (ตรงกลางคอลัมน์ 25% / 75%) */
+    .fc-fk, .fc-mg { position: relative; height: 30px; }
+    .fc-fk i, .fc-mg i { position: absolute; background: #3F5F4C; }
+    .fc-fk .a { left: calc(50% - 1.5px); top: 0; height: 12px; width: 3px; }
+    .fc-fk .h, .fc-mg .h { left: calc(25% - 1px); right: calc(25% - 1px); height: 3px; }
+    .fc-fk .h { top: 11px; } .fc-mg .h { top: 13px; }
+    .fc-fk i.l, .fc-fk i.r { top: 11px; bottom: 7px; width: 3px; }
+    .fc-fk i.l { left: calc(25% - 3px); } .fc-fk i.r { left: 75%; }
+    .fc-fk b { position: absolute; bottom: 0; width: 0; height: 0; border: 7px solid transparent; border-bottom: 0; border-top: 8px solid #3F5F4C; }
+    .fc-fk b.l { left: calc(25% - 8.5px); } .fc-fk b.r { left: calc(75% - 5.5px); }
+    .fc-fk.yn { height: 50px; } .fc-fk em { position: absolute; top: 18px; white-space: nowrap; font-style: normal; font-size: 13px; font-weight: 700; color: #5B2B78; background: #fff; border: 1.5px solid #8E6BAF; border-radius: 999px; padding: 0 8px; transform: translateX(-50%); z-index: 1; }
+    .fc-fk em.l { left: 25%; } .fc-fk em.r { left: 75%; }
+    .fc-mg .l, .fc-mg .r { top: 0; height: 15px; width: 3px; } .fc-mg .l { left: calc(25% - 3px); } .fc-mg .r { left: 75%; }
+    .fc-mg .a { left: calc(50% - 1.5px); top: 13px; bottom: 0; width: 3px; }
+    .fc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+    .fc-col { display: flex; flex-direction: column; }
+    .fc-fill { flex: 1; min-height: 0; position: relative; } .fc-fill::before { content: ''; position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 0; width: 3px; background: #3F5F4C; }
+    .fc-skipc { display: flex; align-items: center; justify-content: center; min-height: 70px; border: 2px dashed #B8C2BB; border-radius: 14px; color: #5E6A63; font-size: 14px; font-weight: 600; text-align: center; padding: 6px; background: #ffffffa0; }
+    .off > .fc-n, .off > .fc-skipc, .fc-col.off > .fc-n, .fc-col.off > .fc-skipc { opacity: .4; }
+    /* ทางแยกหลายทาง: เส้นหลักชิดซ้าย แตกกิ่งเข้าแต่ละทาง · รวมกลับทางขวา */
+    .fc-br { position: relative; padding: 0 22px 0 30px; }
+    .fc-bo { position: relative; padding-bottom: 12px; }
+    .fc-bo::before { content: ''; position: absolute; left: -19px; width: 3px; top: 0; bottom: 0; background: #3F5F4C; }
+    .fc-bo:last-child::before { bottom: auto; height: 17px; }
+    .fc-bl { position: relative; display: inline-block; font-size: 14px; font-weight: 700; color: #5B2B78; background: #fff; border: 1.5px solid #8E6BAF; border-radius: 999px; padding: 3px 12px; margin-bottom: 6px; }
+    .fc-bl::before { content: ''; position: absolute; left: -20px; top: calc(50% - 1.5px); width: 19px; height: 3px; background: #3F5F4C; }
+    .fc-bo.on .fc-bl { background: #6B2E86; color: #fff; border-color: #6B2E86; }
+    .fc-bo.off .fc-bl, .fc-bo.off .fc-n, .fc-bo.off .fc-go { opacity: .4; }
+    .fc-bo::after { content: ''; position: absolute; right: -14px; width: 3px; top: 0; bottom: 0; background: #3F5F4C; }
+    .fc-bo:first-child::after { top: auto; bottom: 0; height: 36px; }
+    .fc-bo > .fc-mr { position: absolute; right: -14px; bottom: 33px; width: 14px; height: 3px; background: #3F5F4C; }
+    .fc-go { font-size: 14px; color: #5E6A63; padding: 4px 0 8px; }
+    .fc-bm { position: relative; height: 30px; margin: 0 22px 0 30px; }
+    .fc-bm::before { content: ''; position: absolute; left: calc(50% - 1.5px); right: -14px; top: 0; height: 3px; background: #3F5F4C; }
+    .fc-bm i { position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 7px; width: 3px; background: #3F5F4C; }
+    .fc-bm b { position: absolute; left: calc(50% - 7px); bottom: 0; border: 7px solid transparent; border-bottom: 0; border-top: 8px solid #3F5F4C; }
+    /* กล่องงาน */
+    .fc-n { position: relative; background: #fff; border: 2px solid #C9D3CC; border-radius: 14px; padding: 8px 11px; cursor: pointer; color: #1F2A24; }
+    .fc-n .t { font-size: 16px; font-weight: 700; line-height: 1.3; padding-right: 2px; }
+    .fc-n .d { font-size: 13.5px; font-weight: 600; color: #3E4A43; margin-top: 1px; }
+    .fc-n .d i { font-style: normal; font-weight: 700; }
+    .fc-n .rp { float: right; font-size: 12.5px; font-weight: 700; color: #0F6B62; background: #E2F4F1; border-radius: 999px; padding: 1px 7px; margin: 2px 0 0 6px; }
+    .fc-n .p { display: inline-block; margin-top: 5px; font-size: 13.5px; font-weight: 700; border-radius: 999px; padding: 2px 9px; background: #EEF1EF; color: #4A524D; }
     .fc-n .x { font-size: 14px; color: #3E4A43; margin-top: 6px; border-top: 1px dashed #D6DDD8; padding-top: 6px; }
-    .fc-n.done { background: #E7F4EB; border-color: #1F7A45; } .fc-n.done .s { color: #1F7A45; }
-    .fc-n.due, .fc-n.ask { background: #FFF6E5; border-color: #E9A23B; border-width: 3px; } .fc-n.due .s, .fc-n.ask .s { color: #9A4A06; }
-    .fc-n.skip, .fc-n.hold { background: #F2F4F3; border-style: dashed; opacity: .55; } .fc-n.skip .t { text-decoration: line-through; }
-    .fc-n.nolog { background: #F7F3EA; border-style: dashed; border-color: #B9A77E; } .fc-n.nolog .s { color: #7A6A45; }
-    .fc-n.none .s { color: #8A938D; } .fc-n.wait .s { color: #5E6A63; }
-    .fc-n.note { border-style: dashed; background: #FBFAF5; padding: 7px 11px; } .fc-n.note .t { font-size: 15px; }
-    .fc-q { border: 2px solid #8E6BAF; border-radius: 16px; padding: 8px; background: #F7F2FA; }
-    .fc-q > .fc-n { border-color: #8E6BAF; }
-    .fc-opt { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: start; margin-top: 8px; }
-    .fc-opt > span { font-size: 14px; font-weight: 700; color: #5B2B78; background: #fff; border: 1.5px solid #B79BC6; border-radius: 10px; padding: 8px 6px; text-align: center; }
-    .fc-opt.on > span { background: #6B2E86; color: #fff; border-color: #6B2E86; } .fc-opt.off { opacity: .45; }
-    .fc-opt .fc-n + .fc-n { margin-top: 6px; }
+    .fc-n.done { background: #E7F4EB; border-color: #1F7A45; } .fc-n.done .p { background: #1F7A45; color: #fff; }
+    .fc-n.due { background: #FFF6E5; border-color: #E9A23B; border-width: 3px; } .fc-n.due .p { background: #B4630B; color: #fff; }
+    .fc-n.ask .p { background: #6B2E86; color: #fff; } .fc-n.ask { border-color: #8E6BAF; border-width: 3px; }
+    .fc-n.skip, .fc-n.hold { opacity: .45; } .fc-n.skip .t { text-decoration: line-through; }
+    .fc-n.nolog { border-color: #A9B0AB; } .fc-n.nolog .p { background: #E9DFC8; color: #5E4E2A; }
+    .fc-n.note { background: #F8F9F7; border-width: 1.5px; } .fc-n.note .t { font-size: 15px; }
+    .fc-n .qh { margin: -8px -11px 7px; padding: 6px 11px; border-radius: 12px 12px 0 0; background: #6B2E86; color: #fff; font-size: 14px; font-weight: 700; }
     .fc-ans { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .fc-ans button { min-height: 44px; flex: 1 1 auto; border: 1.5px solid #6B2E86; background: #fff; color: #5B2B78; border-radius: 10px; font-weight: 700; }
     .fc-ans button.on { background: #6B2E86; color: #fff; }
     .fc-alt { display: block; text-align: center; margin: 14px 0 4px; color: #5E6A63; font-size: 14px; text-decoration: underline; }
-
   </style>
 </head>
 <body>
@@ -7711,72 +7750,96 @@ Export.table.toDrive({
       });
       return segs;
     }
-    // ===== 🗺️ ผังงาน (23 พ.ย. 69) แทนคู่มือ เฉพาะอ้อยตอก่อน ลอง 14 วัน (รีวิว Gemini + Claude) =====
+    // ===== 🗺️ ผังงาน (23–24 พ.ย. 69) แทนคู่มือ เฉพาะอ้อยตอก่อน ลอง 14 วัน =====
     // วาดเองจากขั้นตอน (gdRows) ไม่มีตำแหน่งตายตัว: แก้ขั้นตอนในแอป ผังตามเอง · สถานะแปลง = flStat ชุดเดียวกับหน้า "วันนี้"
-    // กติกาจัดผัง: ขั้นที่ช่วงวันซ้อนกันและไม่ต่อจากกัน วางคู่ (ไม่เกิน 2 ช่อง) · คำถามที่มีทางแยก = กล่องม่วง + แถวต่อคำตอบ · ไม่ซูม ไม่มีเส้นเล็ก
+    // รอบ G (รีวิว Gemini "ไม่เหมือน flowchart"): ทุกบล็อกรวมกลับเส้นกลางก่อนบล็อกถัดไป → เส้นไม่พันกันแม้แก้ขั้นตอน
+    //   บล็อก: เดี่ยว · คู่ (ช่วงวันซ้อน แตก 2 → รวม) · ถามทำ/ไม่ทำ (แตก 2 ขา) · ถามแยกหลายทาง (กิ่งชิดซ้าย รวมขวา)
+    //   ขั้น "ทำต่อจาก" (af) ต่อในคอลัมน์เดียวกับแม่ + ป้าย +a–b วัน บนเส้น · การ์ดไม่เกิน 3 บรรทัด แตะ = รายละเอียด
     let fcPid = '', fcList = false, fcStage = false;
+    const fcKids = (steps, s) => steps.some(x => x.w && x.w.a === s.id);
+    const fcYesNo = (steps, s) => s.k === 'ask' && !fcKids(steps, s) && (s.o || []).some(o => o.go === 'skip') && (s.o || []).some(o => o.go === 'do');
+    const fcAd = s => { const ad = Array.isArray(s.ad) ? s.ad : [0, 7]; return `+${+ad[0] || 0}–${+ad[1] || 0} วัน`; };
+    const fcAr = (lbl, tall) => `<div class="fc-ar${tall ? ' tall' : ''}">${lbl ? `<span>${esc(lbl)}</span>` : ''}</div>`;
     function fcHtml(steps) {
       const plots = flPlots(flKey).slice().sort((a, b) => String(a.plot_name).localeCompare(String(b.plot_name), 'th'));
       const p = plots.find(x => x.plot_id === fcPid) || null;
-      let h = `<div class="fc-pick"><select onchange="fcPid=this.value;gdOpen={};flRender();setTimeout(fcGoDue,60)"><option value="">📖 ดูผังรวม (ยังไม่เลือกแปลง)</option>${plots.map(x => { const c = flCtx(x); return `<option value="${x.plot_id}"${x.plot_id === fcPid ? ' selected' : ''}>${esc(x.plot_name)}${c ? ` · ${c.ctx.pre ? 'รื้อตอ' : (c.ctx.age < 0 ? 'อีก ' + -c.ctx.age : c.ctx.age) + ' วัน'}` : ''}</option>`; }).join('')}</select></div>`;
+      let h = `<div class="fc-pick"><select onchange="fcPid=this.value;gdOpen={};flRender();setTimeout(fcGoDue,60)"><option value="">📖 ผังรวม (ยังไม่เลือกแปลง)</option>${plots.map(x => { const c = flCtx(x); return `<option value="${x.plot_id}"${x.plot_id === fcPid ? ' selected' : ''}>${esc(x.plot_name)}${c ? ` · ${c.ctx.pre ? 'รื้อตอ' : (c.ctx.age < 0 ? 'อีก ' + -c.ctx.age : c.ctx.age) + ' วัน'}` : ''}</option>`; }).join('')}</select>
+        <button type="button" class="${fcStage ? 'on' : ''}" aria-label="รูประยะอ้อย" onclick="fcStage=!fcStage;flRender()">📏</button></div>`;
       if (p) {
-        const c = flCtx(p), due = flDue(p), ask = flAsks(p), ph = c && !c.ctx.pre ? FL_PH[flPhase(c.ctx.age)] : null;
-        const list = due.map(x => x.n).concat(ask.map(x => '❓ ' + x.n));
-        h += `<div class="fc-sum"${list.length ? '' : ' style="background:#EEF5F0;border-color:#9BC7AE"'}><b>${esc(p.plot_name)}</b> · ${c ? (c.ctx.pre ? 'รอรื้อตอ' : `${flBase()}มา ${c.ctx.age} วัน${ph ? ' · ' + ph[1] : ''}`) : ''}
-          <div class="fc-dl">${list.length ? `<b>ถึงคิว:</b> ${esc(list.join(' · '))}` : 'ตอนนี้ไม่มีงานถึงคิว'}</div>${list.length ? `<button type="button" onclick="fcGoDue()">ไปจุดถึงคิว ↓</button>` : ''}</div>`;
+        const c = flCtx(p), list = flDue(p).map(x => x.n).concat(flAsks(p).map(x => '❓ ' + x.n)), ph = c && !c.ctx.pre ? FL_PH[flPhase(c.ctx.age)] : null;
+        h += `<div class="fc-sum${list.length ? '' : ' calm'}"><div><b>${c ? (c.ctx.pre ? 'รอรื้อตอ' : `${flBase()}มา ${c.ctx.age} วัน${ph ? ' · ' + ph[1] : ''}`) : ''}</b><br>${list.length ? `ถึงคิว: ${esc(list.join(' · '))}` : 'ตอนนี้ไม่มีงานถึงคิว'}<br><span style="color:#5E4E2A">ไม่ได้จด = ช่วง มิ.ย.–ต.ค. 69 ที่ไม่ได้ลงแอป</span></div>${list.length ? `<button type="button" onclick="fcGoDue()">ไปจุดถึงคิว ↓</button>` : ''}</div>`;
       }
-      h += `<button type="button" class="fc-tog" onclick="fcStage=!fcStage;flRender()">${fcStage ? 'ซ่อนรูประยะอ้อย ▴' : 'ดูรูประยะอ้อย ▾'}</button>${fcStage ? flStageHtml(true) : ''}`;
-      const segs = gdRows(steps), qid = s => steps.some(x => x.w && x.w.a === s.id) ? s.id : '';
-      const win = it => { const s = it.s; return s.af ? null : [s.f, s.t]; };
-      segs.forEach(sg => {
-        const P = FL_PH[sg.ph];
-        h += `<div class="fc-ph" data-gph="${sg.ph}"><b>${P[1]}</b><span>${P[2]}</span></div>`;
-        const used = new Set(), blocks = [];
+      if (fcStage) h += flStageHtml(true);
+      const segs = gdRows(steps);
+      segs.forEach((sg, zi) => {
+        // 1) แบ่งบล็อก
+        const used = new Set(), B = [], win = it => it.s.af ? null : [it.s.f, it.s.t];
         sg.items.forEach((it, i) => {
           if (used.has(it)) return; used.add(it);
-          const q = qid(it.s);
-          if (q) { // คำถามแยกทาง: เก็บขั้นที่ขึ้นกับคำตอบนี้ (ทั้งระยะ) มาไว้ใต้คำถาม
-            const kids = sg.items.filter(x => x.s.w && x.s.w.a === q); kids.forEach(x => used.add(x));
-            blocks.push({ q: it, kids }); return;
-          }
-          if (it.s.w && it.s.w.a) { blocks.push({ one: it }); return; } // ทางแยกที่คำถามอยู่ระยะอื่น
-          const a = win(it), nx = sg.items.slice(i + 1).find(x => !used.has(x));
-          const b = nx && !qid(nx.s) && !(nx.s.w && nx.s.w.a) && nx.s.k !== 'note' && it.s.k !== 'note' ? win(nx) : null;
-          if (a && b && a[0] <= b[1] && b[0] <= a[1]) { used.add(nx); blocks.push({ two: [it, nx] }); return; }
-          blocks.push({ one: it });
+          const s = it.s;
+          if (s.k === 'ask' && fcKids(steps, s)) { const kids = sg.items.filter(x => x.s.w && x.s.w.a === s.id); kids.forEach(x => used.add(x)); B.push({ br: it, kids }); return; }
+          if (fcYesNo(steps, s)) { B.push({ yn: it }); return; }
+          const nx = sg.items.slice(i + 1).find(x => !used.has(x)), a = win(it);
+          const ok = x => x && !(x.s.k === 'ask') && !(x.s.w && x.s.w.a) && x.s.k !== 'note';
+          if (ok(it) && ok(nx)) { const b = win(nx); if (a && b && a[0] <= b[1] && b[0] <= a[1]) { used.add(nx); B.push({ cols: [[it], [nx]] }); return; } }
+          B.push({ one: it });
         });
-        blocks.forEach((bk, i) => {
-          if (i) h += '<div class="fc-ln"></div>';
-          else h += '<div class="fc-ln" style="height:10px"></div>';
-          if (bk.one) h += fcNode(bk.one, p);
-          else if (bk.two) h += `<div class="fc-par">ทำพร้อมกันได้</div><div class="fc-row">${fcNode(bk.two[0], p, 1)}${fcNode(bk.two[1], p, 1)}</div>`;
-          else {
-            const s = bk.q.s, r = p ? flStat(s, p) : null, av = r && r.a ? r.a.v : '';
-            h += `<div class="fc-q">${fcNode(bk.q, p)}${s.o.map(o => {
-              const kids = bk.kids.filter(x => String(x.s.w.v).split(',').includes(o.v));
-              return `<div class="fc-opt${av ? (av === o.v ? ' on' : ' off') : ''}"><span>${esc(o.l)}</span><div>${kids.length ? kids.map(x => fcNode(x, p, 1)).join('') : '<div class="srow-s" style="padding-top:8px">ไปขั้นถัดไป</div>'}</div></div>`;
-            }).join('')}</div>`;
+        // 2) ขั้น "ทำต่อจาก" ไปต่อท้ายคอลัมน์ของแม่ (ถ้าแม่อยู่ในบล็อกคู่)
+        for (let k = B.length - 1; k >= 0; k--) {
+          const b = B[k]; if (!b.one || !b.one.s.af || b.one.s.k === 'ask') continue;
+          const host = B.find(x => x.cols && x.cols.some(c => c[c.length - 1].s.id === b.one.s.af));
+          if (host) { host.cols.find(c => c[c.length - 1].s.id === b.one.s.af).push(b.one); B.splice(k, 1); }
+        }
+        // 3) วาด
+        const P = FL_PH[sg.ph];
+        if (zi) h += fcAr('', 1);
+        h += `<div class="fc-zone z${zi % 2}" data-gph="${sg.ph}"><div class="fc-zt">${P[1]}<span>${P[2]}</span></div>`;
+        let prev = null;
+        B.forEach((b, i) => {
+          const first = b.one || b.yn || b.br || (b.cols && b.cols[0][0]);
+          const lbl = first && first.s.af ? (prev && prev === first.s.af ? fcAd(first.s) : `หลัง${(steps.find(x => x.id === first.s.af) || {}).n || ''} ${fcAd(first.s)}`) : '';
+          if (i) h += b.cols || b.yn ? (lbl ? fcAr(lbl) : '') : fcAr(lbl);
+          if (b.one) { h += fcNode(b.one, p, steps); prev = b.one.s.id; }
+          else if (b.cols) {
+            h += `<div class="fc-fk"><i class="a"></i><i class="h"></i><i class="l"></i><i class="r"></i><b class="l"></b><b class="r"></b></div><div class="fc-row">${b.cols.map(c => `<div class="fc-col">${c.map((it, j) => (j ? fcAr(fcAd(it.s)) : '') + fcNode(it, p, steps)).join('')}<div class="fc-fill"></div></div>`).join('')}</div><div class="fc-mg"><i class="l"></i><i class="r"></i><i class="h"></i><i class="a"></i></div>`;
+            prev = null;
+          } else if (b.yn) {
+            const s = b.yn.s, r = p ? flStat(s, p) : null, av = r && r.a ? r.a.v : '', yes = s.o.find(o => o.go === 'do'), no = s.o.find(o => o.go === 'skip');
+            h += `<div class="fc-fk yn"><i class="a"></i><i class="h"></i><i class="l"></i><i class="r"></i><b class="l"></b><b class="r"></b><em class="l">${esc(yes.l)}</em><em class="r">${esc(no.l)}</em></div>
+              <div class="fc-row"><div class="fc-col${av && av !== yes.v ? ' off' : ''}">${fcNode(b.yn, p, steps)}<div class="fc-fill"></div></div><div class="fc-col${av && av !== no.v ? ' off' : ''}"><div class="fc-skipc">${esc(no.l)}<br>ข้ามไปขั้นถัดไป</div><div class="fc-fill"></div></div></div>
+              <div class="fc-mg"><i class="l"></i><i class="r"></i><i class="h"></i><i class="a"></i></div>`;
+            prev = null;
+          } else {
+            const s = b.br.s, r = p ? flStat(s, p) : null, av = r && r.a ? r.a.v : '';
+            h += fcNode(b.br, p, steps) + fcAr('') + `<div class="fc-br">${s.o.map(o => {
+              const kids = b.kids.filter(x => String(x.s.w.v).split(',').includes(o.v));
+              return `<div class="fc-bo${av ? (av === o.v ? ' on' : ' off') : ''}"><div class="fc-bl">${esc(o.l)}</div>${kids.length ? kids.map(x => fcNode(x, p, steps)).join('<div style="height:6px"></div>') : '<div class="fc-go">ไปต่อเลย</div>'}<i class="fc-mr"></i></div>`;
+            }).join('')}</div><div class="fc-bm"><i></i><b></b></div>`;
+            prev = null;
           }
         });
+        h += '</div>';
       });
       h += `<a href="#" class="fc-alt" onclick="event.preventDefault();fcList=true;flRender()">ดูแบบรายการเดิม</a>`;
       return h;
     }
-    function fcNode(it, p, sm) {
-      const s = it.s, C = FL_CAT[it.cat], k = 'fc' + flKey + s.id, open = gdOpen[k];
-      const r = p ? flStat(s, p) : null, st = r ? (s.k === 'note' ? 'note' : r.st) : (s.k === 'note' ? 'note' : '');
-      const stTxt = r && r.txt ? (st === 'due' ? '● ' : st === 'ask' ? '' : '') + r.txt : '';
+    function fcNode(it, p, steps) {
+      const s = it.s, k = 'fc' + flKey + s.id, open = gdOpen[k], br = s.k === 'ask' && fcKids(steps, s), yn = fcYesNo(steps, s);
+      const r = p ? flStat(s, p) : null, st = s.k === 'note' ? 'note' : r ? r.st : '';
+      const pill = r && r.txt && st !== 'note' ? (st === 'nolog' ? 'ไม่ได้จด' : ({ done: '', due: '● ', ask: '❓ ' }[st] || '') + r.txt) : '';
+      const who = s.k === 'note' || br ? '' : (String(it.who || '').length > 18 ? String(it.who).slice(0, 17) + '…' : it.who);
       let x = '';
       if (open) {
-        x = [it.extra, it.note, it.real ? `ฤดูนี้ไร่ทำจริง ${it.real.t} · ${it.real.n} แปลง` : ''].filter(Boolean).map(t => `<div>${esc(t)}</div>`).join('');
+        x = [it.extra, it.note, it.real ? `ฤดูนี้ไร่ทำจริง ${it.real.t} · ${it.real.n} แปลง` : '', st === 'note' && r && r.txt ? 'แปลงนี้: ' + r.txt : ''].filter(Boolean).map(t => `<div>${esc(t)}</div>`).join('');
         if (p && s.k === 'ask' && s.o.length && r && r.st !== 'hold') { const raw = flAnsRaw(p.plot_id)[s.id], cur = raw && raw.v; x += `<div class="fc-ans">${s.o.map(o => `<button type="button" class="${cur === o.v ? 'on' : ''}" onclick="event.stopPropagation();flAnswer('${p.plot_id}','${qa(s.id)}','${cur === o.v ? '' : qa(o.v)}')">${cur === o.v ? '✓ ' : ''}${esc(o.l)}</button>`).join('')}</div>`; }
         x = x ? `<div class="x">${x}</div>` : '';
       }
-      return `<div class="fc-n ${st}" data-fc="${st}" onclick="gdOpen['${qa(k)}']=!gdOpen['${qa(k)}'];flRender()">
-        <div class="t">${esc(s.n)}</div>${it.day ? `<div class="d">${it.day}</div>` : ''}${it.who && !sm ? `<div class="w" style="color:${C[1]}">${esc(it.who)}</div>` : ''}${s.k === 'ask' && s.q && s.o.length && !steps_hasKids(s) ? `<div class="w" style="color:#6B2E86">❓ ${esc(s.q)} (${esc(s.o.map(o => o.l).join(' / '))})</div>` : ''}
-        ${stTxt && st !== 'note' ? `<div class="s">${esc(stTxt)}</div>` : st === 'note' && r && r.txt ? `<div class="s" style="color:#5E6A63">${esc(r.txt)}</div>` : ''}${x}</div>`;
+      const qh = br ? `<div class="qh">⑂ เลือก 1 ทาง${r && r.a ? ' · ' + esc(((s.o.find(o => o.v === r.a.v)) || {}).l || '') : ''}</div>` : yn ? `<div class="qh">❓ ${esc(s.q || 'ทำไหม?')}</div>` : '';
+      return `<div class="fc-n ${st}" onclick="gdOpen['${qa(k)}']=!gdOpen['${qa(k)}'];flRender()">${qh}
+        ${s.k === 'repeat' ? `<span class="rp">↻ ซ้ำได้</span>` : ''}<div class="t">${s.k === 'note' ? 'ℹ️ ' : ''}${esc(s.n)}</div>
+        <div class="d">${it.day ? `<i>${it.day}</i>` : ''}${it.day && who ? ' · ' : ''}${who ? esc(who) : ''}${!p && s.k === 'ask' && !br && !yn && s.o.length ? ` · ${esc(s.o.map(o => o.l).join(' / '))}` : ''}</div>
+        ${pill && !br ? `<span class="p">${esc(pill)}</span>` : ''}${x}</div>`;
     }
-    const steps_hasKids = s => flGet(flKey).some(x => x.w && x.w.a === s.id);
     function fcGoDue() { const el = document.querySelector('#flow-body .fc-n.due, #flow-body .fc-n.ask'); if (el) flScrollTo(el); }
     function gdHtml(steps) {
       const segs = gdRows(steps);

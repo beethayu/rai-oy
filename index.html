@@ -1972,6 +1972,7 @@
   #fcx .sheet-body {
     padding: 14px 16px 24px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
@@ -8683,13 +8684,23 @@ Export.table.toDrive({
     // ===== 🗺️ ผังงานอ้อยตอ (24 พ.ย. 69 รอบ H) — ออกแบบโดย Gemini (ratoon-flowchart.html) Claude ย้ายเข้าแอป =====
     // วาดจากข้อมูลล้วน (ไม่มี id ขั้นตายตัว): ทางแยก w → fork · ask do/skip → ชิปในกล่อง · af → สายต่อเนื่อง · ช่วงวันซ้อน ≥35% → 2 เลน
     // เส้น = SVG วัดตำแหน่งจริงหลังวาด · ข้อมูลสด: fcData() จาก flGet/flStat (ชุดเดียวกับหน้าวันนี้) · ตอบ = flAnswer · เลือกแปลง = fcPid
-    let fcPid = '', fcList = false;
+    let fcPid = '', fcList = false, fcToastMsg = '', fcSheetShutAt = 0;
+    // เลื่อนใน #flow-body เอง (scrollIntoView ในหน้าต่างบน iOS เลื่อนไม่ตรง) · เผื่อความสูงแถบบนที่ติดหัว (.top-dock)
+    function fcScrollTo(el, where) {
+      const sc = $('flow-body'); if (!el || !sc) return;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const dock = sc.querySelector('#fcx .top-dock'), dh = dock ? dock.offsetHeight : 0;
+        const y = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+        const top = where === 'center' ? y - (sc.clientHeight - el.offsetHeight) / 2 + dh / 2 : y - dh - 10;
+        sc.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }));
+    }
     function fcData() {
       const steps = JSON.parse(JSON.stringify(flGet('อ้อยตอ')));
       const plots = flPlots('อ้อยตอ').slice().sort((a, b) => String(a.plot_name).localeCompare(String(b.plot_name), 'th')).map(p => {
         const c = flCtx(p), age = c ? c.ctx.age : 0;
-        return { plot_id: p.plot_id, name: p.plot_name, rai: p.area_rai, age_days: age, stage: c && c.ctx.pre ? 'รอรื้อตอ' : FL_PH[flPhase(age)][1],
-          steps: Object.fromEntries(steps.map(s => { let r = {}; try { r = flStat(s, p); } catch (e) {} return [s.id, { st: r.st, txt: r.txt, answer: r.a ? r.a.v : undefined }]; })) };
+        return { plot_id: p.plot_id, name: p.plot_name, rai: p.area_rai, age_days: age, isPre: !!(c && c.ctx.pre), stage: c && c.ctx.pre ? 'รอรื้อตอ' : FL_PH[flPhase(age)][1],
+          steps: Object.fromEntries(steps.map(s => { let r = {}; try { r = flStat(s, p) || {}; } catch (e) {} return [s.id, { st: r.st, txt: r.txt, answer: r.a ? r.a.v : undefined }]; })) };
       });
       return { steps, plots };
     }
@@ -8749,7 +8760,7 @@ Export.table.toDrive({
             if (hasNextBranch) {
               // Map each option to its matching child step(s)
               const branches = s.o.map(opt => {
-                const matched = linkedChildren.filter(c => c.w && c.w.v === opt.v);
+                const matched = linkedChildren.filter(c => c.w && c.w.v === opt.v).sort((a, b) => (a.f ?? 0) - (b.f ?? 0));
                 return { option: opt, steps: matched };
               });
               forkUnits.push({
@@ -8761,7 +8772,7 @@ Export.table.toDrive({
                 coreF: s.f ?? 0,
                 coreT: s.t ?? s.f ?? 0,
                 minF: Math.min(s.f ?? 0, ...linkedChildren.map(c => c.f ?? 0)),
-                maxT: Math.max(s.t ?? 0, ...linkedChildren.map(c => c.t ?? 0)),
+                maxT: Math.max(s.t ?? s.f ?? 0, ...linkedChildren.map(c => c.t ?? c.f ?? 0)),
                 mid: ((s.f ?? 0) + (s.t ?? s.f ?? 0)) / 2,
                 isBarrier: true
               });
@@ -8992,6 +9003,8 @@ Export.table.toDrive({
 
       function formatDayRange(f, t, compact = false) {
         if (f == null && t == null) return '';
+        if (f == null) f = t; if (t == null) t = f;
+        if (f === t) return compact ? `${f} วัน` : `วันที่ ${f}`;
         if (f >= 120 && t >= 180) {
           const m1 = Math.round(f / 30);
           const m2 = Math.round(t / 30);
@@ -9041,7 +9054,7 @@ Export.table.toDrive({
 
       function applyPlotAnswer(plot, askStep, opt) {
         if (!plot) return;
-        showToast(opt ? `บันทึกคำตอบ: ${opt.l}` : `ล้างคำตอบ "${askStep.n}" แล้ว`);
+        fcToastMsg = opt ? `บันทึกคำตอบ: ${opt.l}` : `ล้างคำตอบ "${askStep.n}" แล้ว`; // flAnswer วาดผังใหม่ทั้งก้อน → ขึ้นป้ายหลังวาดเสร็จ (fcxInit)
         flAnswer(plot.plot_id, askStep.id, opt ? opt.v : ''); // แอป: บันทึกลงชีต (saveFlowAns) แล้ว flRender วาดผังใหม่
       }
 
@@ -9081,7 +9094,7 @@ Export.table.toDrive({
         // Stage quick-jump nav
         const nav = document.getElementById('stageNav');
         nav.innerHTML = state.ast.stages.map(st => {
-          const isCur = plot && (plot.age_days >= st.min && plot.age_days <= st.max);
+          const isCur = plot && !plot.isPre && (plot.age_days >= st.min && plot.age_days <= st.max);
           const hasAlert = plot && st.blocks.some(b => b.steps.some(s => {
             const code = plot.steps[s.id]?.st;
             return code === 'ask' || code === 'due';
@@ -9096,8 +9109,7 @@ Export.table.toDrive({
 
         nav.querySelectorAll('[data-jump-stage]').forEach(btn => {
           btn.addEventListener('click', () => {
-            const el = document.getElementById('stage-' + btn.dataset.jumpStage);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            fcScrollTo(document.getElementById('stage-' + btn.dataset.jumpStage));
           });
         });
       }
@@ -9139,7 +9151,7 @@ Export.table.toDrive({
                 ${askCount ? `<span class="count-item"><span class="count-dot ask"></span>รอตอบ ${askCount}</span>` : ''}
               </div>
               <button type="button" class="jump-btn ${hasAction ? 'is-ask' : ''}" id="jumpCurrentBtn">
-                ${hasAction ? 'ไปงานรอตอบ ↓' : 'จุดปัจจุบัน ↓'}
+                ${hasAction ? 'ไปงานรอตอบ ↓' : (plot.isPre ? 'ไปขั้นแรก ↓' : 'จุดปัจจุบัน ↓')}
               </button>
             </div>
           </div>
@@ -9149,7 +9161,7 @@ Export.table.toDrive({
           const target = firstActionId
             ? document.querySelector(`[data-node-id="${firstActionId}"]`)
             : document.getElementById('hereMarker');
-          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          fcScrollTo(target, 'center');
         });
       }
 
@@ -9159,7 +9171,7 @@ Export.table.toDrive({
         let herePlaced = false;
 
         for (const stage of state.ast.stages) {
-          const isCurrentStage = plot && (plot.age_days >= stage.min && plot.age_days <= stage.max);
+          const isCurrentStage = plot && !plot.isPre && (plot.age_days >= stage.min && plot.age_days <= stage.max);
           html += `
             <div class="stage-banner-wrap" id="stage-${stage.key}" data-flow-item="stage" data-stage-key="${stage.key}">
               <div class="stage-banner ${isCurrentStage ? 'is-current-stage' : ''}">
@@ -9171,36 +9183,39 @@ Export.table.toDrive({
 
           for (const block of stage.blocks) {
             // Place "You Are Here" marker right before the block matching plot.age_days
-            if (plot && !herePlaced) {
+            // ป้าย "ตอนนี้อยู่ตรงนี้" ยึดอายุแปลงอย่างเดียว (งานค้างตอบมีปุ่ม "ไปงานรอตอบ" แยกแล้ว) · แปลงรอรื้อตอไม่มีป้าย
+            if (plot && !plot.isPre && !herePlaced) {
               const blockCoversAge = plot.age_days >= block.minF && plot.age_days <= block.maxT;
               const blockIsFuture = block.minF > plot.age_days;
-              const blockHasAskDue = block.steps.some(s => ['ask', 'due'].includes(plot.steps[s.id]?.st));
               const blockHasNowNote = block.steps.some(s => plot.steps[s.id]?.st === 'note' && /ตอนนี้อยู่ช่วงนี้/.test(plot.steps[s.id]?.txt || ''));
-
-              if (blockHasNowNote || blockHasAskDue || blockCoversAge || blockIsFuture) {
-                html += `
-                  <div class="here-marker" id="hereMarker">
-                    <span class="here-marker-line"></span>
-                    <span class="here-marker-pill"><span class="pulse-dot"></span>ตอนนี้อยู่ตรงนี้ · อายุ ${plot.age_days} วัน</span>
-                    <span class="here-marker-line"></span>
-                  </div>
-                `;
-                herePlaced = true;
-              }
+              if (blockHasNowNote || blockCoversAge || blockIsFuture) { html += hereHtml(); herePlaced = true; }
             }
 
             html += renderBlock(block, plot);
           }
         }
 
+        if (plot && !plot.isPre && !herePlaced) html += hereHtml(); // อายุเลยขั้นสุดท้ายแล้ว → ป้ายท้ายผัง
         container.innerHTML = html;
 
         // Bind tap listeners to all interactive nodes and terminal pills
         container.querySelectorAll('[data-open-step]').forEach(el => {
           el.addEventListener('click', () => {
+            if (Date.now() - fcSheetShutAt < 600) return; // คลิกหลอกของ iOS หลังปัดแผ่นล่างลง
             openStepSheet(el.dataset.openStep);
           });
         });
+      }
+
+      function hereHtml() {
+        const plot = getSelectedPlot();
+        return `
+          <div class="here-marker" id="hereMarker">
+            <span class="here-marker-line"></span>
+            <span class="here-marker-pill"><span class="pulse-dot"></span>ตอนนี้อยู่ตรงนี้ · อายุ ${plot.age_days} วัน</span>
+            <span class="here-marker-line"></span>
+          </div>
+        `;
       }
 
       function renderBlock(block, plot) {
@@ -9437,6 +9452,7 @@ Export.table.toDrive({
         if (!canvas || !svg) return;
 
         const cRect = canvas.getBoundingClientRect();
+        if (!cRect.width || !cRect.height) return; // ยังซ่อนอยู่ → ResizeObserver วาดให้ตอนแสดง
         svg.setAttribute('width', cRect.width);
         svg.setAttribute('height', cRect.height);
         svg.setAttribute('viewBox', `0 0 ${cRect.width} ${cRect.height}`);
@@ -9452,6 +9468,7 @@ Export.table.toDrive({
         const paths = [];
 
         function relBox(el) {
+          if (!el) return { left: 0, right: 0, top: 0, bottom: 0, cx: 0, cy: 0, w: 0, h: 0, missing: true };
           const r = el.getBoundingClientRect();
           return {
             left: r.left - cRect.left,
@@ -9494,6 +9511,7 @@ Export.table.toDrive({
           const type = itemEl.dataset.blockType;
           if (type === 'single' || type === 'chain') {
             const nodes = itemEl.querySelectorAll(':scope > .fc-node');
+            if (!nodes.length) return null;
             const first = relBox(nodes[0]);
             const last = relBox(nodes[nodes.length - 1]);
             return { topX: first.cx, topY: first.top, botX: last.cx, botY: last.bottom };
@@ -9673,14 +9691,39 @@ Export.table.toDrive({
         sheetTitle.textContent = title;
         sheetSubtitle.textContent = subtitle || '';
         sheetBody.innerHTML = bodyHtml;
+        sheetBody.scrollTop = 0;
         sheetBackdrop.classList.add('open');
         sheetBackdrop.setAttribute('aria-hidden', 'false');
+        const sc = $('flow-body'); if (sc) sc.style.overflow = 'hidden'; // พื้นหลังไม่เลื่อนตาม
       }
 
       function closeSheet() {
         sheetBackdrop.classList.remove('open');
         sheetBackdrop.setAttribute('aria-hidden', 'true');
+        sheetPanel.style.transform = ''; sheetPanel.style.transition = '';
+        const sc = $('flow-body'); if (sc) sc.style.overflow = '';
       }
+
+      // ปัดลงที่ขีด/หัวแผ่นเพื่อปิด (ตัดสินตอน touchend · กันคลิกหลอก 600ms)
+      const sheetPanel = document.getElementById('sheetPanel');
+      let swY = null, swDy = 0;
+      const swZone = e => e.target.closest('.sheet-handle, .sheet-header') && !e.target.closest('.sheet-close');
+      sheetPanel.addEventListener('touchstart', e => {
+        if (!swZone(e)) { swY = null; return; }
+        swY = e.touches[0].clientY; swDy = 0; sheetPanel.style.transition = 'none';
+      }, { passive: true });
+      sheetPanel.addEventListener('touchmove', e => {
+        if (swY == null) return;
+        swDy = Math.max(0, e.touches[0].clientY - swY);
+        if (swDy > 4) e.preventDefault();
+        sheetPanel.style.transform = `translateY(${swDy}px)`;
+      }, { passive: false });
+      sheetPanel.addEventListener('touchend', e => {
+        if (swY == null) return;
+        swY = null; sheetPanel.style.transition = '';
+        if (swDy > 70) { e.preventDefault(); fcSheetShutAt = Date.now(); closeSheet(); }
+        else sheetPanel.style.transform = '';
+      }, { passive: false });
 
       document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet);
       sheetBackdrop.addEventListener('click', (e) => {
@@ -9725,7 +9768,8 @@ Export.table.toDrive({
             fcPid = btn.dataset.pickPlot || '';
             closeSheet();
             flRender();
-            setTimeout(() => { const t = document.getElementById('fcx'); if (t) t.scrollIntoView({ block: 'start' }); }, 60);
+            const sc = $('flow-body'), t = document.getElementById('fcx');
+            if (sc && t) requestAnimationFrame(() => { sc.scrollTop = Math.max(0, t.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8); });
           });
         });
       }
@@ -9903,6 +9947,8 @@ Export.table.toDrive({
       // 8. INIT & RESPONSIVE SVG REDRAW
       // =========================================================================
       renderApp();
+      { const sc = $('flow-body'); if (sc) sc.style.overflow = ''; } // แผ่นล่างเดิมถูกวาดทับ → ปลดล็อกพื้นหลัง
+      if (fcToastMsg) { const m = fcToastMsg; fcToastMsg = ''; setTimeout(() => showToast(m), 50); }
 
       // Redraw SVG lines cleanly when fonts finish loading or viewport resizes
       if (document.fonts && document.fonts.ready) {

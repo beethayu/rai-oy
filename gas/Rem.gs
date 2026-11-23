@@ -15,7 +15,11 @@ function remDate_(be) { const p = String(be || '').split('/'); return p.length =
 function remFind_(sh, id) { const d = sh.getDataRange().getDisplayValues(); return { d, r: d.findIndex((row, i) => i > 0 && row[0] === String(id)) }; }
 function remAdd_(ss, p, id) {
   const sh = remSheet_(ss);
-  if (remFind_(sh, id).r > 0) return false;
+  const f0 = remFind_(sh, id); if (f0.r > 0) return false;
+  // เรื่องเดียวกันที่ยังเปิดอยู่ (ข้อความเหมือนกันหลังตัดช่องว่าง) = ไม่ลงซ้ำ — หน้าเว็บกรองก่อนแล้ว นี่กันอีกชั้น
+  const kz = t => String(t || '').toLowerCase().replace(/แบตเตอร[ี่ิ]*/g, 'แบต').replace(/[\s·\-.,()'"]/g, '');
+  const ti = REM_H_.indexOf('text'), st = REM_H_.indexOf('status');
+  if (kz(p.text) && f0.d.some((r, i) => i > 0 && r[st] === 'open' && kz(r[ti]) === kz(p.text))) return false;
   const rep = remRepOk_(String(p.repeat || '').trim()) ? String(p.repeat).trim() : '';
   const ev = /^(รับรถ|อยู่ร้าน):.+/.test(String(p.on_event || '')) ? String(p.on_event).slice(0, 80) : '', pk = /^รับรถ:/.test(ev);
   appendRows_(sh, [[String(id), getTodayStr(), pk && !p.date ? '' : remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, 200), pk ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);

@@ -4755,6 +4755,15 @@
       return (gData.reminders || []).filter(r => r.status !== 'done' && (r.on_event === 'รับรถ:' + a.name || r.on_event === 'อยู่ร้าน:' + a.name || keys.some(k => String(r.text || '').toLowerCase().includes(k))));
     }
     const remPick = name => (gData.reminders || []).filter(r => r.status !== 'done' && r.on_event === 'รับรถ:' + name && !beToISO(r.date));
+    // เตือนเรื่องเดียวกันที่มีอยู่แล้ว (23 พ.ย. 69 ผู้ใช้: "กดไป กรองเองได้ไหม งานมันเรื่องเดียวกัน") — รถคันเดียวกัน + ข้อความเดียวกันหลังตัดชื่อรถ/ช่องว่าง
+    function remDupOf(it) {
+      const names = (gData.assets || []).filter(a => a.category !== 'Worker').flatMap(a => [a.name, eqS(a.name)]).filter(Boolean).sort((x, y) => y.length - x.length);
+      const vehOf = (t, ev) => { const m = /^(?:รับรถ|อยู่ร้าน):(.+)$/.exec(ev || ''); const v = new Set(m ? [m[1]] : []); names.forEach(n => { if (String(t || '').toLowerCase().includes(n.toLowerCase())) v.add(((gData.assets || []).find(a => a.name === n || eqS(a.name) === n) || {}).name || n); }); return v; };
+      const key = t => { let x = String(t || '').toLowerCase(); names.forEach(n => { x = x.split(n.toLowerCase()).join(''); }); return x.replace(/แบตเตอร[ี่ิ]*/g, 'แบต').replace(/[\s·\-.,()'"]/g, ''); };
+      const V = vehOf(it.text, it.on_pickup ? 'รับรถ:' + it.on_pickup : ''), k = key(it.text); if (k.length < 3) return null;
+      return (gData.reminders || []).find(r => r.status !== 'done' && r.rem_id !== it.rid && (() => { const rv = vehOf(r.text, r.on_event), same = !V.size && !rv.size || [...V].some(v => rv.has(v)); const rk = key(r.text);
+        return same && rk.length >= 3 && (rk === k || rk.includes(k) || k.includes(rk)); })()) || null;
+    }
     function vehMaint(a) {
       const keys = [String(a.name).toLowerCase(), eqS(a.name).toLowerCase()];
       const t0 = todayISO();
@@ -6192,7 +6201,7 @@
         else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
         else if (a.type === 'note' && (a.replace && ops.push({ fn: 'notedel', id: a.replace }), true)) for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
-        else if (a.type === 'reminder') ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days, on_event: a.on_pickup ? 'รับรถ:' + a.on_pickup : undefined } });
+        else if (a.type === 'reminder') { if (!remDupOf(a)) ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days, on_event: a.on_pickup ? 'รับรถ:' + a.on_pickup : undefined } }); }
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
@@ -6256,6 +6265,9 @@
           + row('วันที่', it.date_to ? `${dt(it.date)} – ${dt(it.date_to)} (${dayDiff(it.date, it.date_to) + 1} วัน)` : dt(it.date)) + (it.replace ? `<div class="ch-cn" style="color:#B26A00">แทนบันทึกเดิมวันเดียวกัน: "${esc(it.replace_text)}" (ไม่ลงซ้ำ)</div>` : '') + (it.workers.length ? '<div class="ch-cn">นับวันทำงานในสรุปคนงาน (ก๊อปส่ง LINE)</div>' : '');
       } else if (it.type === 'rem_done') {
         h = `<div class="ch-t">🔔 ปิดนัด (ทำแล้ว)</div>` + row('เรื่อง', it.text);
+      } else if (it.type === 'reminder' && remDupOf(it)) {
+        const d0 = remDupOf(it), w = d0.on_event && /^รับรถ:/.test(d0.on_event) ? 'ตอนรับรถกลับ' : d0.date ? calLbl(beToISO(d0.date)) : '';
+        h = `<div class="ch-t" style="color:#6B736E">🔔 มีเตือนนี้อยู่แล้ว — ไม่ลงซ้ำ</div>` + row('เรื่อง', d0.text) + row('เตือนเมื่อ', w);
       } else if (it.type === 'reminder') {
         if (it.on_pickup) h = `<div class="ch-t">🔔 เตือนตอนรับรถกลับ</div>` + row('เรื่อง', it.text) + row('เตือนเมื่อ', `กด "รับรถกลับแล้ว" ${eqS(it.on_pickup)}`) + `<div class="ch-cn">ยังไม่รู้วัน — ขึ้นในหน้ารถคันนี้ และเด้งเตือนตอนรับรถกลับ</div>`;
         else h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))

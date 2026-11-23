@@ -938,15 +938,17 @@ function buildBrief_(ss, s) {
   const dm = downSinceMap_(alogs);
   const icon = { Pump: '🐍', Truck: '🚛', Tractor: '🚜' };
   const isOk = a => a.status === 'พร้อมใช้' || a.status === 'ปกติ';
+  // issue_detail ขึ้นต้น "อาการ:" อยู่แล้ว → ตัดทิ้งก่อนต่อหลัง "ชื่อ:" (23 พ.ย. 69 ขึ้น "Jazz: อาการ: …" โคลอนซ้อน)
+  const dtl = a => { const d = String(a.issue_detail || '').replace(/^\s*อาการ\s*[:：]\s*/, '').trim(); return d && d !== '-' ? d : a.status; };
   const broken = [], sick = [], noBat = [];
   assets.forEach(a => {
     if (a.category === 'Worker') {
-      if (!isOk(a)) sick.push(`• ${a.name}: ${a.issue_detail !== '-' ? a.issue_detail : a.status}`);
+      if (!isOk(a)) sick.push(`• ${a.name}: ${dtl(a)}`);
       return;
     }
     if (!isOk(a)) {
       const dd = dm[a.name] ? daysSince_(dm[a.name]) : null;
-      broken.push(`• ${icon[a.category] || '🔧'} ${a.name}: ${a.issue_detail !== '-' ? a.issue_detail : a.status}${dd !== null ? ` (${dd} วัน)` : ''}${a.parts_needed && a.parts_needed !== '-' ? ` → ${a.parts_needed}` : ''}`);
+      broken.push(`• ${icon[a.category] || '🔧'} ${a.name}: ${dtl(a)}${dd !== null ? ` (${dd} วัน)` : ''}${a.parts_needed && a.parts_needed !== '-' ? ` → ${a.parts_needed}` : ''}`);
     }
     if ((a.battery_info || '').includes('ไม่มีแบต')) noBat.push(`• ${a.name}`);
   });

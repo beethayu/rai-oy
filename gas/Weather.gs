@@ -125,18 +125,29 @@ function wxPush(pack) {
       if (t >= Utilities.formatDate(new Date(Date.now() - 864e5), 'Asia/Bangkok', 'yyyy-MM-dd') && Object.keys(k.d).length < 4)
         k.d[t] = [d.precipitation_sum[i], d.precipitation_probability_max ? d.precipitation_probability_max[i] : null, d.wind_speed_10m_max[i], d.wind_gusts_10m_max[i]];
     }); keep.push(k); });
-  PropertiesService.getScriptProperties().setProperty('WX_LAST', JSON.stringify({ at: Utilities.formatDate(new Date(), 'Asia/Bangkok', 'd/M HH:mm'), pts: keep }));
+  PropertiesService.getScriptProperties().setProperty('WX_LAST', JSON.stringify({ at: Utilities.formatDate(new Date(), 'Asia/Bangkok', 'd/M HH:mm'), ts: Date.now(), pts: keep }));
   return rows.length ? rainUpsert_(ss, rows) : 'เก็บพยากรณ์แล้ว';
 }
-// LINE เช้า: ดึงเองไม่ได้ → ใช้ที่แอปส่งมาล่าสุด (บอกเวลา)
+// LINE เช้า: บรรทัดเดียว เฉพาะพื้นที่ที่ถึงเกณฑ์ (23 พ.ย. 69) — ฝน ≥ 5 มม. หรือ โอกาส ≥ 50% · กระโชก ≥ 30 กม./ชม.
+// items = [{loc, mm, pr(null=ไม่รู้), gust}] ของ "วันนี้" · ฝนเมื่อวานมีหัวข้อ 🌧️ แยกอยู่แล้ว ไม่ซ้ำที่นี่
+const WX_MM_ = 5, WX_PR_ = 50, WX_GUST_ = 30;
+function wxLine_(items, note) {
+  const r1 = v => Math.round((Number(v) || 0) * 10) / 10;
+  const hit = items.map(it => {
+    const rain = it.mm >= WX_MM_ || (it.pr != null && it.pr >= WX_PR_), gust = it.gust >= WX_GUST_, parts = [];
+    if (rain) parts.push(`ฝน ${it.pr == null ? '' : it.pr + '% '}${r1(it.mm)} มม.`.replace('  ', ' '));
+    if (gust) parts.push(`กระโชก ${Math.round(it.gust)}`);
+    return parts.length ? `${it.loc} ${parts.join(' ')}` : '';
+  }).filter(Boolean);
+  return `\n🌦️ ${hit.length ? 'วันนี้ ' + hit.join(' · ') : 'วันนี้ไม่มีฝนหนัก/ลมแรงเด่น'}${note || ''}\n`;
+}
+// ดึงเองไม่ได้ → ใช้ที่แอปส่งมาล่าสุด แต่เก่าเกิน 6 ชม. ไม่ใช้ (คืน '' ให้ผู้เรียกบอกว่าดึงไม่ได้)
 function wxBriefCached_(pts) {
   let c = null; try { c = JSON.parse(PropertiesService.getScriptProperties().getProperty('WX_LAST') || 'null'); } catch (e) {}
-  if (!c || !c.pts || !c.pts.length) return '';
-  const tz = 'Asia/Bangkok', t = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'), y = Utilities.formatDate(new Date(Date.now() - 864e5), tz, 'yyyy-MM-dd');
-  const r1 = v => Math.round((Number(v) || 0) * 10) / 10;
-  const lines = c.pts.filter(p => p.loc !== 'บ้าน' || pts.some(x => x.loc === 'บ้าน')).map(p => { const a = p.d[y], b = p.d[t]; if (!a && !b) return '';
-    return `• ${p.loc}: ${a ? `เมื่อวานฝน ~${r1(a[0])} มม.` : ''}${a && b ? ' · ' : ''}${b ? `วันนี้ฝน ${b[1] == null ? '-' : b[1] + '%'} ${r1(b[0])} มม. · ลม ${Math.round(b[2])} (กระโชก ${Math.round(b[3])}) กม./ชม.` : ''}`; }).filter(Boolean);
-  return lines.length ? `\n🌦️ อากาศ (ค่าประมาณ จากที่แอปดึงไว้ ${c.at})\n${lines.join('\n')}\n` : '';
+  if (!c || !c.pts || !c.pts.length || !c.ts || Date.now() - c.ts > 6 * 36e5) return '';
+  const t = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
+  const items = c.pts.filter(p => p.loc !== 'บ้าน' || pts.some(x => x.loc === 'บ้าน')).map(p => { const b = p.d[t]; return b ? { loc: p.loc, mm: Number(b[0]) || 0, pr: b[1] == null ? null : Number(b[1]), gust: Number(b[3]) || 0 } : null; }).filter(Boolean);
+  return items.length ? wxLine_(items, ` (จากที่แอปดึงไว้ ${c.at})`) : '';
 }
 
 function logDailyRainTrigger() {
@@ -155,19 +166,19 @@ function installRainTrigger() {
 
 function readRain_(ss) { return sortDesc_(readSheet_(ss, 'RainLog')).slice(0, 400); }
 
-// บรรทัดอากาศในสรุป LINE ตอนเช้า: ฝนเมื่อวาน + วันนี้ฝน/ลม
+// บรรทัดอากาศในสรุป LINE ตอนเช้า: ดึงพยากรณ์ใหม่จาก Open-Meteo ทุกครั้งก่อนส่ง (ลองสูงสุด 3 ครั้ง) → บรรทัดเดียว เฉพาะพื้นที่ถึงเกณฑ์
 function wxBrief_(ss) {
   const pts = wxPoints_(ss);
   if (!pts.length) return '';
-  const q = { daily: 'precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max', past_days: 1, forecast_days: 1 };
-  let res; // เคยหายจาก LINE เงียบ ๆ (19 พ.ย. 69) → ลองซ้ำ 1 ครั้ง ยังไม่ได้ = บอกในข้อความ
-  try { res = wxFetch_(pts, q); } catch (e) { Utilities.sleep(3000); try { res = wxFetch_(pts, q); } catch (e2) { console.error(e2); return wxBriefCached_(pts) || '\n🌦️ อากาศ: ดึงพยากรณ์ไม่ได้ ดูในแอปแทน\n'; } }
-  const lines = res.map((r, i) => {
-    const d = r.daily; if (!d || !d.precipitation_sum) return `• ${pts[i].loc}: ไม่มีข้อมูล`;
-    const y = Math.round(d.precipitation_sum[0] * 10) / 10, t = d.precipitation_probability_max[1];
-    return `• ${pts[i].loc}: เมื่อวานฝน ~${y} มม. · วันนี้ฝน ${t}% ${Math.round(d.precipitation_sum[1] * 10) / 10} มม. · ลม ${Math.round(d.wind_speed_10m_max[1])} (กระโชก ${Math.round(d.wind_gusts_10m_max[1])}) กม./ชม.`;
-  });
-  return `\n🌦️ อากาศ (ค่าประมาณ Open-Meteo)\n${lines.join('\n')}\n`;
+  const q = { daily: 'precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max', forecast_days: 1 };
+  let res = null; // เคยหายจาก LINE เงียบ ๆ (19 พ.ย. 69) → ลองซ้ำ · ยังไม่ได้ = ใช้ค่าที่แอปเก็บไว้ถ้าไม่เก่าเกิน 6 ชม. ไม่งั้นบอกตรง ๆ
+  for (let i = 0; i < 3 && !res; i++) {
+    try { res = wxFetch_(pts, q); } catch (e) { console.error(e); if (i < 2) Utilities.sleep(3000 * (i + 1)); }
+  }
+  if (!res) return wxBriefCached_(pts) || '\n🌦️ อากาศ: ดึงพยากรณ์ไม่ได้ ดูในแอปแทน\n';
+  const items = res.map((r, i) => { const d = r.daily; if (!d || !d.precipitation_sum) return null;
+    return { loc: pts[i].loc, mm: Number(d.precipitation_sum[0]) || 0, pr: d.precipitation_probability_max[0] == null ? null : Number(d.precipitation_probability_max[0]), gust: Number(d.wind_gusts_10m_max[0]) || 0 }; }).filter(Boolean);
+  return items.length ? wxLine_(items) : wxBriefCached_(pts) || '\n🌦️ อากาศ: ดึงพยากรณ์ไม่ได้ ดูในแอปแทน\n';
 }
 
 // ฝนย้อนหลังรายเดือน (Open-Meteo archive) ณ พิกัดแปลง → ใช้วางแผนเดือนปลูก · คืน [{ym, mm, heavy(วันฝน ≥ 40 มม.), max}]

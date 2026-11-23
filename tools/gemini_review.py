@@ -45,9 +45,27 @@ def call(model):
         j = json.load(r)
     return ''.join(p.get('text', '') for p in j['candidates'][0]['content']['parts'])
 
+def list_models():
+    try:
+        with urllib.request.urlopen(f'https://generativelanguage.googleapis.com/v1beta/models?key={key}&pageSize=200', timeout=30) as r:
+            return [m['name'].split('/')[-1] for m in json.load(r).get('models', [])
+                    if 'generateContent' in m.get('supportedGenerationMethods', [])]
+    except Exception:
+        return []
+
+avail = list_models()
+print('รุ่นที่ใช้ได้:', ', '.join(m for m in avail if m.startswith('gemini')))
+if avail:
+    # ชื่อที่ไม่มีจริง → ลองหาชื่อที่ขึ้นต้นเหมือนกัน (เช่น gemini-3.1-pro → gemini-3.1-pro-preview)
+    fixed = []
+    for m in models:
+        if m in avail: fixed.append(m)
+        else: fixed += [a for a in avail if a.startswith(m + '-') and 'image' not in a and 'tts' not in a][:1]
+    models = fixed or models
+
 text, used, trace = None, None, []
 for m in models:
-    for attempt in range(2):
+    for attempt in range(4):
         try:
             t0 = time.time()
             text, used = call(m), m
@@ -57,7 +75,7 @@ for m in models:
             trace.append(f'{m} HTTP {e.code}')
             if e.code in (400, 403, 404) or (e.code == 429 and 'PerDay' in e.read().decode('utf-8', 'ignore')):
                 break
-            time.sleep(3)
+            time.sleep(15 * (attempt + 1))  # 503 ไม่ว่าง: รอ 15/30/45 วิ
         except Exception as e:
             trace.append(f'{m} {type(e).__name__}')
             time.sleep(3)

@@ -1457,3 +1457,14 @@
 - สลับแอประหว่างส่ง (chatApply/vehSave/partOp): ผลเดิมใหญ่เกิน 95KB ไม่ได้เก็บ → กลับเข้าแอปแล้วรอ 150 วิแล้วส่งซ้ำ (รูปเบิ้ล) · ตอนนี้เก็บ {big:true} หน้าเว็บโหลดข้อมูลใหม่แทน · timeout vehSave/partOp 120 วิ
 - ราคาน้ำตาลโหลดไม่ได้ (เน็ตหลุดในไร่) → render เรียก getSugar วนไม่หยุด → พัก 2 นาทีก่อนลองใหม่
 **ยังต้องลองของจริง 23 พ.ย.**: กด "ไปแล้ว รถอยู่ร้าน" ที่ร้านช่างนุ · ถ่ายรูปส่ง · ถ่ายบิล (WebKit/iOS ทดสอบใน workspace ไม่ได้ — โหลดเบราว์เซอร์ไม่ได้)
+
+## 23 พ.ย. 69 21:45 — แก้บั๊กจากรีวิว Gemini (Claude ตรวจกับโค้ดก่อนแก้)
+- splitUsage_(ss, logIds) ใน Code.gs: งานหลายแปลง L<เวลา>_n ตัดยาที่ _0 ก้อนเดียว → ก่อนลบ/แก้ทีละแปลง แตกเป็นแถว StockLogs ต่อแปลงตามสัดส่วน area_rai (ไม่มีไร่ = เท่ากัน) ยอดรวมคงเดิม · เรียกใน deleteActivities, chatApply cancel, deleteActivity, saveActivities (edit)
+- เดิม: ลบ _0 = คืนยาทั้งชุด · ลบ _1+ = ไม่คืน · แก้ _1+ ด้วยฟอร์ม = ตัดซ้ำ · แก้ _0 = ยาแปลงอื่นหาย
+- reverseUsage_ ก่อน deleteRow และไม่ try/catch กลืน (deleteActivities, cancel)
+- chatApply: ทุก op จำใน cache 'chatrid_<rid>_<ลายนิ้วมือ op>_<ครั้งที่>' → กดซ้ำหลัง error ข้ามรายการที่ลงแล้ว
+- stock: qty ว่าง/null ไม่ทับยอดเป็น 0 · รับ "1,200"
+- editActivities: ค่า null ไม่เขียน "null" ลงชีต
+- CHAT_RULES_: state ใน asset_note + ห้ามคู่ asset_status · event "บำรุง" ในหมวดรูป · reminder/rem_done เป็น item แยก · เลขไทย
+- index.html: chatSend แปลงเลขไทย · chAssetGuard รวม asset_status เข้า asset_note คันเดียวกัน · pickAlert นับ asset state done ด้วย
+- ไม่ทำ (Gemini เสนอแต่ไม่จริง/ไม่คุ้ม): เขตเวลา (appsscript.json เป็น Asia/Bangkok แล้ว), withLock_ (ถูกต้องแล้ว), รีวิว UX รอบแรกเป็นไฟล์ V7 เก่า

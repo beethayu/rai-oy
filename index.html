@@ -5717,6 +5717,10 @@
     }
     function chAssetGuard(items, txt, r, hasPic) {
       const t = String(txt || '');
+      // AI ส่ง asset_note + asset_status รถคันเดียวกัน = ลงประวัติ 2 แถว → รวมสถานะเข้า asset_note แล้วทิ้ง asset_status (23 พ.ย. 69)
+      for (let i = items.length - 1; i >= 0; i--) { const st = items[i]; if (!st || st.type !== 'asset_status') continue;
+        const nt = items.find(o => o && o.type === 'asset_note' && String(o.asset || '').trim() === String(st.asset || '').trim());
+        if (nt) { if (!nt.state) nt.state = st.state; if (!nt.shop && st.shop) nt.shop = st.shop; items.splice(i, 1); } }
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg', 'asset_todo'].includes(it.type) || !it.asset) continue;
         const a = chAsset(it.asset) || { name: it.asset }, nm = String(a.name), sh = eqS(nm);
@@ -5972,7 +5976,7 @@
     function chatSend(txt) {
       const box = $('chatIn');
       const typed = txt == null || String(txt).trim() === box.value.trim(); // พิมพ์ในช่อง (แนบรูปที่เลือกไว้ได้) ไม่ใช่แตะชิป/ส่งใหม่
-      txt = String(txt != null ? txt : box.value).trim();
+      txt = String(txt != null ? txt : box.value).trim().replace(/[๐-๙]/g, d => d.charCodeAt(0) - 0x0E50); // เลขไทย → อารบิก (23 พ.ย. 69 ทั้งตัวจดและด่านตรวจเห็นเลขเดียวกัน)
       const pics = typed ? chatPics : [];
       if ((!txt && !pics.length) || chatBusy) return;
       if (!txt) txt = 'ส่งรูป';
@@ -6333,7 +6337,7 @@
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
       m.rid = m.rid || 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); // รหัสครั้งนี้ — กดซ้ำตอนเน็ตหลุด เซิร์ฟเวอร์ไม่ลงซ้ำ
       chatBusy = true; m.saving = true; chatSave(); chatRender();
-      const pkB = ops.filter(o => o.fn === 'astatus' && o.state === 'done').flatMap(o => remPick(o.asset));
+      const pkB = ops.filter(o => (o.fn === 'astatus' || o.fn === 'asset') && o.state === 'done').flatMap(o => remPick(o.asset));
       callApi('chatApply', [ops, m.rid]).then(d => { pickAlert(pkB); m.state = 'saved'; m.savedAt = hhmm(Date.now()); m.nOps = ops.length; chat.pics = null; if (chatDate) { chatDate = ''; chatPvRender(); } if (chatRemId) { const rid = chatRemId; chatRemId = ''; remDo('done', rid); } init(d); if (after) setTimeout(after, 250); })
         .catch(e => alert('❌ บันทึกไม่ได้: ' + e.message + '\nถ้าเน็ตหลุดระหว่างรอ อาจบันทึกไปแล้ว — กดบันทึกอีกครั้งได้เลย ระบบกันไม่ให้ลงซ้ำ'))
         .finally(() => { chatBusy = false; m.saving = false; chatSave(); chatRender(); });

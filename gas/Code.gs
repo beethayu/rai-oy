@@ -477,6 +477,7 @@ function saveActivities(payload) {
     const pid0 = payload.plotIds[0];
 
     if (payload.edit_log_id) {
+      splitUsage_(ss, [String(payload.edit_log_id)]); // แก้แปลงที่ 2+ ของชุด: เดิมไม่คืนของเก่าแต่ตัดใหม่ = ตัดซ้ำ (แตกก่อนแก้แถว ใช้แปลงเดิมคิดสัดส่วน)
       const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues();
       for (let i = ids.length - 1; i >= 1; i--) {
         if (ids[i][0] === String(payload.edit_log_id)) {
@@ -563,11 +564,12 @@ function deleteActivity(logId, plotId) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sh = ss.getSheetByName(SH.ACT);
+    splitUsage_(ss, [String(logId)]);
+    reverseUsage_(ss, logId);
     const ids = sh.getRange(1, 1, sh.getLastRow(), 1).getDisplayValues();
     for (let i = ids.length - 1; i >= 1; i--) {
       if (ids[i][0] === String(logId)) { sh.deleteRow(i + 1); break; }
     }
-    reverseUsage_(ss, logId);
     syncPlots_(ss, [plotId]);
     return readAll_(ss);
   });
@@ -622,6 +624,49 @@ function reverseUsage_(ss, ref) {
     const r = v.findIndex((row, i) => i > 0 && String(row[c.name]) === name);
     if (r > 0) sh.getRange(r + 1, c.stock + 1).setValue(round_((Number(v[r][c.stock]) || 0) + back[name]));
   });
+}
+
+// งานหลายแปลงชุดเดียว (L<เวลา>_0, _1, …) ตัดยาไว้ที่แถวแรกก้อนเดียว → ก่อนลบ/แก้ทีละแปลง ต้องแตกก้อนนั้น
+// เป็นของแต่ละแปลงตามสัดส่วนไร่ (ไม่มีไร่ = เท่ากัน) ยอดรวมไม่เปลี่ยน สต็อกไม่ขยับ
+// แล้วค่อย reverseUsage_(id) ทีละแปลงได้ถูก (23 พ.ย. 69 — เดิมลบแปลงแรก = คืนยาทั้งชุด, ลบแปลงอื่น = ไม่คืนเลย)
+function splitUsage_(ss, logIds) {
+  const grp = id => { const m = /^(L\d+)_\d+$/.exec(String(id)); return m ? m[1] : ''; };
+  const want = new Set((logIds || []).map(grp).filter(Boolean));
+  if (!want.size) return;
+  const slog = ss.getSheetByName(SH.SLOG);
+  if (!slog || slog.getLastRow() < 2) return;
+  const act = ss.getSheetByName(SH.ACT);
+  const a = act.getRange(1, 1, act.getLastRow(), 3).getDisplayValues();
+  const members = {};
+  for (let i = 1; i < a.length; i++) { const g = grp(a[i][0]); if (want.has(g)) (members[g] = members[g] || []).push({ id: a[i][0], plot: a[i][2] }); }
+  const area = {}; readSheet_(ss, SH.PLOTS).forEach(p => { area[p.plot_id] = parseFloat(String(p.area_rai).replace(/,/g, '')) || 0; });
+  const s = slog.getDataRange().getDisplayValues(), has = new Set();
+  for (let i = 1; i < s.length; i++) has.add(String(s[i][5]));
+  const del = [], add = [], base = Date.now();
+  Object.keys(members).forEach(g => {
+    const ms = members[g];
+    if (ms.length < 2) return;
+    const own = ms.filter(m => has.has(m.id));
+    if (own.length !== 1) return; // ไม่มีการตัดยา หรือแตกไปแล้ว (ทุกแปลงมี ref ของตัวเอง)
+    const pool = own[0].id, cover = ms.filter(m => m.id === pool || !has.has(m.id));
+    if (cover.length < 2) return;
+    const tot = cover.reduce((t, m) => t + (area[m.plot] || 0), 0);
+    const w = m => tot > 0 ? (area[m.plot] || 0) / tot : 1 / cover.length;
+    for (let i = 1; i < s.length; i++) {
+      if (String(s[i][5]) !== pool) continue;
+      const q = Number(String(s[i][3]).replace(/,/g, '')) || 0;
+      let left = q;
+      cover.forEach((m, k) => {
+        const part = k === cover.length - 1 ? round_(left) : round_(q * w(m));
+        left -= part;
+        add.push(['S' + base + '_x' + add.length, s[i][1], s[i][2], part, s[i][4], m.id, m.plot || '-', s[i][7]]);
+      });
+      del.push(i + 1);
+    }
+  });
+  if (!del.length) return;
+  del.reverse().forEach(r => slog.deleteRow(r));
+  appendRows_(slog, add);
 }
 
 // รับของเข้า (mode 'in') หรือ นับยอดจริง (mode 'set')

@@ -30,18 +30,18 @@ const CHAT_RULES_ = `คุณคือผู้ช่วยจดงานไ�
 3) {"type":"watch","plots":["P01"],"reason":R,"note":""} = ฝากดู/ฝากจำไว้ทำทีหลัง R: "ขึ้นน้ำ","หว่านปุ๋ย","ฉีดยา","น้ำขัง สูบออก","ไปดูอาการ"
 4) {"type":"rain_pick","date":"YYYY-MM-DD"} = ฝนตกแต่ผู้ใช้ไม่รู้/ไม่บอกว่าแปลงไหน (หน้าเว็บจะโชว์ฝนรายพื้นที่ให้ติ๊กเอง) ห้ามเดาแปลงเอง
 5) {"type":"add","category":C,"name":"ชื่อ"} = เพิ่มคนงาน/รถใหม่ C: "Worker","Tractor","Truck"(สิบล้อเท่านั้น — หกล้อ/กระบะ ห้ามใช้ Truck),"Pump","Car"(รถอื่นที่ใช้ในไร่ เช่น หกล้อ กระบะ ใช้กับเรื่องทะเบียน),"Home"(รถส่วนตัว/รถบ้าน เช่น เก๋ง ไว้จำทะเบียน/ภาษีเท่านั้น),"Moto"(มอเตอร์ไซค์ที่บ้าน ไว้จำทะเบียน/ภาษีเท่านั้น)
-6) {"type":"asset_note","asset":"ชื่อรถ","event":"ดัดแปลง","detail":"ต่อกล่อง","shop":"ร้านช่างวุท","place":"","date":"YYYY-MM-DD","mileage":0,"amount":0,"plates":[{"role":"หัว","plate":"70-1234"},{"role":"พ่วง","plate":"71-5678"}],"photos":[0,1],"unsure":[]} = ลงประวัติรถ/เครื่อง (ซ่อม ดัดแปลง บำรุง ตรวจ) พร้อมทะเบียนที่อ่านจากรูป · พิมพ์อย่างเดียวไม่มีรูปก็ใช้ได้
+6) {"type":"asset_note","asset":"ชื่อรถ","event":"ดัดแปลง","detail":"ต่อกล่อง","shop":"ร้านช่างวุท","place":"","date":"YYYY-MM-DD","mileage":0,"amount":0,"plates":[{"role":"หัว","plate":"70-1234"},{"role":"พ่วง","plate":"71-5678"}],"photos":[0,1],"state":"","unsure":[]} = ลงประวัติรถ/เครื่อง (ซ่อม ดัดแปลง บำรุง ตรวจ) พร้อมทะเบียนที่อ่านจากรูป · พิมพ์อย่างเดียวไม่มีรูปก็ใช้ได้
    · ใช้กับรถทุกคันใน ctx.vehicles รวมรถบ้าน (Home) มอเตอร์ไซค์ (Moto) หกล้อ/กระบะ (Car) เช่น "แจ๊สเปลี่ยนหัวเทียน" "Isuzu เปลี่ยนกรองโซล่า" ห้ามจดเป็น note นอกไร่
    · event: "ซ่อม" (แก้อาการเสีย/เปลี่ยนอะไหล่ที่พัง) · "บำรุง" (ตามระยะ: น้ำมันเครื่อง กรองต่าง ๆ เช็คระยะ ยาง แบต) · "ดัดแปลง" · "ตรวจ/ถ่ายรูป"
    · detail = รายการที่ทำ เขียนครบทุกชิ้นพร้อมจำนวน (เช่น "เปลี่ยนหัวเทียน 8 หัว · คอยล์จุดระเบิด 2 ตัว") · อาการที่แจ้งช่าง ใส่ต้น detail "อาการ: กระตุก วูบ"
    · mileage = เลขไมล์ (กม.) หรือชั่วโมงเครื่องรถไถ ที่ผู้ใช้บอก ไม่บอก = 0 ห้ามเดา · amount = ค่าซ่อม/ค่าอะไหล่ (บาท) ที่บอก ไม่บอก = 0
-   · เอารถไปร้านแล้ว "ทิ้งรถไว้/ฝากไว้/รอซ่อม" = state "at_shop" · ไปรับรถแล้ว = state "done"
-   · บอกรอบเปลี่ยนครั้งหน้า (เช่น "ต้องเปลี่ยนทุก 6 เดือน เตือนด้วย") = ใส่ reminder คู่: text "เปลี่ยน<ของ> <ชื่อรถตาม ctx.vehicles>" date = date + รอบ, repeat "6 เดือน", lead_days 7
-   · ถ้า ctx.reminders มีเตือนบำรุงของรถคันนี้เรื่องเดียวกัน (เช่น "เปลี่ยนกรองโซล่า Isuzu dragon") แล้วผู้ใช้บอกว่าทำแล้ว = ใส่ rem_done id นั้นคู่ด้วย (ไม่ต้องสร้าง reminder ใหม่) · ต้องเป็นของชิ้นเดียวกันเท่านั้น (เปลี่ยนน้ำมันเครื่อง ≠ กรองโซล่า ห้ามปิดเตือนกรอง)
+   · เอารถไปร้านแล้ว "ทิ้งรถไว้/ฝากไว้/รอซ่อม" = state "at_shop" · ไปรับรถแล้ว = state "done" · ไม่พูดถึงสถานะ = "" · ใส่ state ใน asset_note นี้เลย ห้ามส่ง asset_status คู่กับรถคันเดียวกัน (จะลงประวัติซ้ำ 2 แถว)
+   · บอกรอบเปลี่ยนครั้งหน้า (เช่น "ต้องเปลี่ยนทุก 6 เดือน เตือนด้วย") = เพิ่ม item type "reminder" แยกอีกตัวใน items (ห้ามซ้อนใน asset_note): text "เปลี่ยน<ของ> <ชื่อรถตาม ctx.vehicles>" date = date + รอบ, repeat "6 เดือน", lead_days 7
+   · ถ้า ctx.reminders มีเตือนบำรุงของรถคันนี้เรื่องเดียวกัน (เช่น "เปลี่ยนกรองโซล่า Isuzu dragon") แล้วผู้ใช้บอกว่าทำแล้ว = เพิ่ม item {"type":"rem_done","id":"…"} แยกอีกตัวใน items (ไม่ต้องสร้าง reminder ใหม่) · ต้องเป็นของชิ้นเดียวกันเท่านั้น (เปลี่ยนน้ำมันเครื่อง ≠ กรองโซล่า ห้ามปิดเตือนกรอง)
 7) {"type":"plot_photo","plots":["P01"],"diagnosis":"","note":"","date":"YYYY-MM-DD","photos":[0]} = รูปสภาพแปลง (อ้อยเหลือง หญ้า น้ำขัง ฯลฯ) แนบกับแปลงนั้น
 8) {"type":"new_chem","name":"ชื่อการค้า","active":"สารออกฤทธิ์","use":"ใช้ทำอะไร","unit":"g","pack_name":"กล่อง","pack_size":100,"qty":0,"label_dose":"","per_tank":0,"photos":[0],"unsure":[]} = ยาตัวใหม่ที่ยังไม่มีในสต็อก (สร้างรายการสต็อก)
 9) {"type":"bill","photos":[1]} = รูปใบเสร็จ/บิล (ส่งต่อให้ตัวอ่านบิล)
-10) {"type":"asset_status","asset":"ชื่อรถ","state":"at_shop","detail":"ต่อกล่อง","shop":"ร้านช่างวุท","date":"YYYY-MM-DD"} = บอกสถานะรถ (ไม่มีรูป ก็ใช้ได้) state: "at_shop" = รถยังอยู่ที่ร้าน/อู่ (หน้ารถ/คนจะขึ้นว่าไม่ว่าง) · "done" = ซ่อม/ดัดแปลงเสร็จ เอารถกลับมาแล้ว (กลับเป็นพร้อมใช้)
+10) {"type":"asset_status","asset":"ชื่อรถ","state":"at_shop","detail":"ต่อกล่อง","shop":"ร้านช่างวุท","date":"YYYY-MM-DD"} = บอกสถานะรถล้วน ๆ ไม่มีรายการซ่อม/บำรุง (เช่น "รับรถไถกลับแล้ว") ถ้ามีรายการซ่อมด้วยให้ใช้ asset_note + state แทน state: "at_shop" = รถยังอยู่ที่ร้าน/อู่ (หน้ารถ/คนจะขึ้นว่าไม่ว่าง) · "done" = ซ่อม/ดัดแปลงเสร็จ เอารถกลับมาแล้ว (กลับเป็นพร้อมใช้)
 11) {"type":"asset_reg","asset":"ชื่อรถ","plate":"","trailer_plate":"","expire":"YYYY-MM-DD","trailer_expire":"","new_cat":"","unsure":[]} = ทะเบียน + วันครบกำหนดต่อทะเบียน/ภาษี ของรถไร่และรถส่วนตัว (หัว/รถเดี่ยว = plate/expire, พ่วง = trailer_plate/trailer_expire) ใส่เฉพาะที่รู้
 12) {"type":"damage","plots":["P01"],"kind":"ไฟไหม้","date":"YYYY-MM-DD","rai":1,"note":""} = ความเสียหายในแปลง kind: "ไฟไหม้","น้ำท่วม","สัตว์/ขโมย","อื่น ๆ" · date = วันที่เกิด · rai = ไร่ที่เสียหายโดยประมาณ (ไม่บอกใส่ 0) · note = เวลา/สาเหตุ/สภาพ (เช่น "ราว 19:00 · ยังไม่ได้วัดพื้นที่จริง")
    ผู้ใช้ขอให้ไปดู/ตามดูอาการด้วย → ใส่ watch "ไปดูอาการ" เพิ่มอีกรายการคู่กัน · ไฟไหม้/น้ำท่วมในแปลงห้ามใส่เป็น watch อย่างเดียว
@@ -86,7 +86,7 @@ asset_note / asset_status / asset_reg: ใช้เมื่อผู้ใช�
   • อ่านป้ายทะเบียนจากรูปเท่านั้น (แบบไทย เช่น "70-1234" หรือ "กข 1234" + จังหวัดถ้าเห็น) อ่านไม่ชัดใส่ "" และใส่ "plates" ใน unsure ห้ามเดาตัวอักษร/ตัวเลข
   • role: รถเดี่ยว="รถ" · หัวลาก/รถแม่="หัว" · รถพ่วง/รถลูก/หาง="พ่วง" (พ่วงอยู่หลังหัวลาก) มีกี่ทะเบียนใส่ให้ครบ ถ้าในรูปเห็นรถ 2 คัน (แม่+ลูก) ให้ใส่ 2 ทะเบียน
   • asset ใช้ชื่อตรงตาม ctx.vehicles (ดูทะเบียนที่เคยจำไว้ประกอบได้) ไม่ตรง/ไม่รู้ ใส่ตามที่ผู้ใช้พิมพ์ + "asset" ใน unsure
-  • event เลือก: "ซ่อม","ดัดแปลง","ตรวจ/ถ่ายรูป" · detail = ทำอะไร (เช่น "ต่อกล่อง") · shop = ร้าน/ช่างที่ผู้ใช้บอกหรือเห็นในรูป · place = สถานที่ (ถ้าไม่ใช่ร้าน) · date จากข้อความ ไม่บอก = ctx.today
+  • event เลือก: "ซ่อม","บำรุง","ดัดแปลง","ตรวจ/ถ่ายรูป" · detail = ทำอะไร (เช่น "ต่อกล่อง") · shop = ร้าน/ช่างที่ผู้ใช้บอกหรือเห็นในรูป · place = สถานที่ (ถ้าไม่ใช่ร้าน) · date จากข้อความ ไม่บอก = ctx.today
   • photos = เลขรูปที่เกี่ยวกับรายการนี้ (ใส่ทุกรูปของรถคันนั้น)
   • state (สถานะรถ ณ ตอนนี้): ผู้ใช้บอกว่ารถยังอยู่ที่ร้าน/ยังไม่เสร็จ = "at_shop" · เอารถกลับมาแล้ว/เสร็จแล้ว = "done" · ไม่ได้พูดถึงเลยและงานนั้นเกิดที่ร้าน = ใส่ ask "ตอนนี้รถคันนี้ยังอยู่ที่ร้านไหม" options ["ยังอยู่ที่ร้าน","เอากลับมาแล้ว"] และ state "" · งานที่ทำเองที่ไร่ state ""
 - รูปป้ายภาษี (วงกลมติดกระจก)/เล่มทะเบียน/ใบเสร็จต่อภาษี/ผู้ใช้เล่าวันต่อทะเบียน: ใช้ asset_reg · อ่านวันหมดอายุจากรูปหรือข้อความเท่านั้น (ปีบนป้ายเป็น พ.ศ. ลบ 543 เป็น ค.ศ.) ป้ายภาษีรถยนต์มีช่อง "วันสิ้นอายุ" เป็นวัน+เดือน (เช่น "6 ม.ค.") ส่วนปี พ.ศ. ตัวใหญ่ข้าง ๆ → อ่านเลขวันให้ครบ (ระวังเลขเล็ก/โดนแสงสะท้อน) · ถ้ามองไม่เห็นเลขวันจริง ๆ ใช้วันสิ้นเดือน และต้องใส่ "expire" ใน unsure เสมอ · อ่านทะเบียนไม่ชัด/ไม่แน่ใจตัวอักษร ใส่ "plate" ใน unsure · ไม่เห็นวันที่ใส่ "" ห้ามเดา · รถที่มีใน ctx.vehicles ใช้ชื่อตรงนั้น (cat "Home" = รถส่วนตัว) · รถที่ยังไม่มีในรายการ (รวมรถส่วนตัว เช่น "รถ jazz") จดได้เลย: asset = ชื่อสั้นตามที่ผู้ใช้เรียก (เช่น "Jazz") และ new_cat = "Moto" ถ้าเป็นมอเตอร์ไซค์ · "Home" ถ้าเป็นรถส่วนตัว/รถเก๋ง/ไม่เกี่ยวกับงานไร่ หรือ "Car" ถ้าเป็นรถใช้งานในไร่ ไม่แน่ใจใส่ "Home" + "new_cat" ใน unsure (ผู้ใช้กดเลือกในการ์ดได้)
@@ -128,6 +128,7 @@ asset_note / asset_status / asset_reg: ใช้เมื่อผู้ใช�
 - ผู้ใช้ชอบถามด้วย ไม่ใช่แค่จด: ถ้าเป็นคำถาม ตอบตรงคำถามก่อนในบรรทัดแรก ใช้ตัวเลขจาก ctx เท่านั้น ถ้าข้อมูลไม่พอให้บอกว่าขาดอะไร อย่าตอบกว้าง ๆ
 
 กติกา:
+- เลขไทย (๐–๙) ในข้อความ ให้แปลงเป็นเลขอารบิก (0–9) ทุกช่องใน JSON เช่น "๔ ถัง" → quantity "4 ถัง"
 - plots ใช้ plot_id จาก ctx.plots เท่านั้น ชื่อพื้นที่ (เช่น "หนองบวบหอมทั้งหมด") = ทุกแปลงในพื้นที่นั้น · ชื่อย่อ เช่น "แจง 3" = "สำนักแจง 3" ได้ แต่ใส่ "plots" ใน unsure
 - workers/equipment ใช้ชื่อตรงตาม ctx ถ้าเป็นชื่อที่ไม่มีในรายการ ให้ใส่ตามที่พิมพ์และใส่ "workers"/"equipment" ใน unsure
 - วันที่: ctx.today คือวันนี้ "เมื่อวาน" = วันก่อนหน้า ไม่บอก = วันนี้ · ปี ค.ศ.
@@ -214,7 +215,7 @@ function chatParse(text, ctx, images, reuse) {
       trucks: ctx.trucks, pumps: ctx.pumps, vehicles: ctx.vehicles || [], reminders: ctx.reminders || undefined, areas: ctx.areas || undefined, soil: ctx.soil || undefined, soil_checks: ctx.soil_checks || undefined, chems: ctx.chems || [], fuel: ctx.fuel || undefined, flow: ctx.flow || undefined, stats: ctx.stats || undefined, date_default: ctx.date_default || undefined, draft: ctx.draft || null }) +
     (hist ? '\n\nบทสนทนาก่อนหน้า:\n' + hist : '') +
     (pics.length ? '\n\nมีรูปแนบ ' + pics.length + ' รูป (เลข 0–' + (pics.length - 1) + ' ตามลำดับท้ายข้อความนี้)' : '') +
-    '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').slice(0, 2000);
+    '\n\nข้อความใหม่ของผู้ใช้:\n' + String(text || '').replace(/[๐-๙]/g, d => d.charCodeAt(0) - 0x0E50).slice(0, 2000);
   const parts = [{ text: prompt }].concat(pics.map(p => ({ inline_data: { mime_type: 'image/jpeg', data: p } })));
   // เก็บรูปก่อน (เร็ว) แล้วค่อยถาม Gemini — ถ้า Gemini พังผู้ใช้กดส่งใหม่ รูปเก่าเก็บเป็น tmp_ ทิ้งเองพรุ่งนี้
   if (fresh) {
@@ -301,7 +302,7 @@ function chatApply(ops, rid) {
     const sh = ss.getSheetByName(SH.ACT);
     const touched = new Set();
     let base = Date.now(), done = 0;
-    (ops || []).forEach(op => {
+    const runOp = op => {
       if (op.fn === 'act') {
         const p = op.p, ids = (p.plotIds || []).filter(Boolean);
         if (!ids.length) return;
@@ -343,8 +344,9 @@ function chatApply(ops, rid) {
         const d = sh.getRange(1, 1, sh.getLastRow(), 3).getDisplayValues();
         for (let i = d.length - 1; i >= 1; i--) {
           if (d[i][0] !== String(op.log_id)) continue;
+          splitUsage_(ss, [String(op.log_id)]);
+          reverseUsage_(ss, String(op.log_id));
           sh.deleteRow(i + 1);
-          try { reverseUsage_(ss, String(op.log_id)); } catch (e) {}
           touched.add(d[i][2]);
           done++;
           break;
@@ -357,8 +359,8 @@ function chatApply(ops, rid) {
       } else if (op.fn === 'stock') {
         // ซื้อยาที่มีอยู่แล้ว (in) / ยอดที่เหลือจริง (set) จากแชต (23 พ.ย. 69) — qty เป็นหน่วยเล็ก (g/ml) หน้าเว็บคูณขนาดบรรจุมาแล้ว
         const sh = ss.getSheetByName(SH.INV), d = sh.getDataRange().getValues(), c = invCols_(d[0]);
-        const r = d.findIndex((row, i) => i > 0 && String(row[c.name]) === String(op.name)), q = Number(op.qty);
-        if (r > 0 && q >= 0 && !(op.mode !== 'set' && q === 0)) {
+        const r = d.findIndex((row, i) => i > 0 && String(row[c.name]) === String(op.name)), raw = String(op.qty == null ? '' : op.qty).replace(/,/g, '').trim(), q = raw === '' ? NaN : Number(raw);
+        if (r > 0 && Number.isFinite(q) && q >= 0 && !(op.mode !== 'set' && q === 0)) {
           const cur = Number(d[r][c.stock]) || 0, nv = round_(op.mode === 'set' ? q : cur + q), date = remBE_(op.date);
           sh.getRange(r + 1, c.stock + 1).setValue(nv); sh.getRange(r + 1, c.upd + 1).setNumberFormat('@').setValue(getTodayStr());
           appendRows_(ss.getSheetByName(SH.SLOG), [['S' + Date.now() + '_' + (base++), date, op.name, round_(nv - cur), d[r][c.unit], op.mode === 'set' ? '⚖️ ปรับยอด' : '📥 รับเข้า', '-', String(op.note || 'บันทึกจากแชต')]]);
@@ -466,6 +468,18 @@ function chatApply(ops, rid) {
         }
         done++;
       }
+    };
+    // กดบันทึกซ้ำหลังพังกลางทาง: จำทีละรายการที่ลงแล้ว (rid_ลายนิ้วมือรายการ) ส่งซ้ำ = ข้ามรายการที่ลงไปแล้ว ลงต่อเฉพาะที่เหลือ
+    // (เดิมจำ rid ตอนจบอย่างเดียว รายการ 1–2 ลงแล้วแต่ 3 พัง → กดใหม่ 1–2 ลงซ้ำ)
+    // คีย์ = rid + ลายนิ้วมือของรายการ (ไม่ใช่ลำดับ) — ผู้ใช้แก้/ลบการ์ดก่อนกดใหม่ ลำดับเลื่อน ก็ไม่ข้ามผิดตัว
+    const sig = op => { const t = JSON.stringify(op) || ''; let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + t.length; };
+    const seen = {};
+    (ops || []).forEach(op => {
+      const g = sig(op); seen[g] = (seen[g] || 0) + 1; // รายการเหมือนกันเป๊ะ 2 อันในชุดเดียว = นับแยก
+      const key = rid ? 'chatrid_' + rid + '_' + g + '_' + seen[g] : '';
+      if (key) { let hit = null; try { hit = cache.get(key); } catch (e) {} if (hit) return; }
+      runOp(op);
+      if (key) { try { cache.put(key, '1', 21600); } catch (e) {} }
     });
     if (touched.size) syncPlots_(ss, [...touched]);
     if (rid) { try { cache.put('chatrid_' + rid, '1', 21600); } catch (e) {} }
@@ -610,7 +624,7 @@ function editActivities(logIds, f) {
     const d = sh.getDataRange().getDisplayValues(), h = d[0], c = n => h.indexOf(n), plots = [];
     for (let i = 1; i < d.length; i++) {
       if (!ids.has(d[i][0])) continue;
-      const set = (n, v) => { if (v !== undefined) sh.getRange(i + 1, c(n) + 1).setNumberFormat('@').setValue(String(v).trim() || '-'); };
+      const set = (n, v) => { if (v !== undefined && v !== null) sh.getRange(i + 1, c(n) + 1).setNumberFormat('@').setValue(String(v).trim() || '-'); };
       set('activity_detail', f.detail); set('equipment', f.equipment); set('quantity', f.quantity); set('operator', f.operator);
       if (f.remark !== undefined || f.ongoing !== undefined) {
         const old = String(d[i][c('remark')] || ''), was = old.indexOf('[⏳กำลังทำ]') !== -1;
@@ -631,10 +645,11 @@ function deleteActivities(logIds) {
   return withLock_(() => {
     const ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(SH.ACT);
     const d = sh.getRange(1, 1, sh.getLastRow(), 3).getDisplayValues(), plots = [];
+    splitUsage_(ss, [...ids]); // ลบทีละแปลง = คืนยาเฉพาะส่วนของแปลงนั้น
     for (let i = d.length - 1; i >= 1; i--) {
       if (!ids.has(d[i][0])) continue;
+      reverseUsage_(ss, d[i][0]); // คืนสต็อกก่อนลบแถว ถ้าพังให้ error ขึ้นหน้าเว็บ (เดิมกลืน error งานหายแต่ยาไม่คืน)
       sh.deleteRow(i + 1);
-      try { reverseUsage_(ss, d[i][0]); } catch (e) {}
       if (plots.indexOf(d[i][2]) === -1) plots.push(d[i][2]);
     }
     if (plots.length) syncPlots_(ss, plots);

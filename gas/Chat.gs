@@ -456,10 +456,10 @@ function chatApply(ops, rid) {
       } else if (op.fn === 'plotphoto') {
         // รูปสภาพแปลง: ชีต PlotPhotos (รูปเก็บใน Drive) ดูได้ในหน้าดูแปลง
         const ids = (op.photo_ids || []).filter(Boolean), pids = (op.plotIds || []).filter(Boolean);
-        if (!ids.length || !pids.length) return;
+        if ((!ids.length && !op.note) || !pids.length) return; // ไม่มีรูปได้ถ้าเป็นบันทึกข้อความ (📝 จดธรรมดา)
         const sh = getOrCreate_(ss, 'PlotPhotos', PLOT_PHOTO_H_), date = op.date || getTodayStr();
         const b = base++;
-        appendRows_(sh, pids.map((pid, i) => ['PP' + b + '_' + i, date, pid, ids.join(','), String(op.diagnosis || ''), String(op.note || '')]));
+        appendRows_(sh, pids.map((pid, i) => ['PP' + b + '_' + i, date, pid, ids.join(','), String(op.diagnosis || ''), String(op.note || '').slice(0, 1500)]));
         {
           const pn = {}; readSheet_(ss, SH.PLOTS).forEach(p => { pn[p.plot_id] = p.plot_name; });
           nameChatPhotos_(ids, 'แปลง_' + pids.join('-'), date, 'แปลง', pids.map(id => pn[id] || id).join(' + '));

@@ -1118,6 +1118,25 @@
     .ln-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; margin-bottom: 8px; border-top: 1px solid #EEF2EF; border-bottom: 1px solid #EEF2EF; }
     .ln-row span { color: #5D6B62; } .ln-row input { width: 150px; flex: 0 0 auto; }
     @media (max-width: 420px) { .status-grid { grid-template-columns: 1fr; } }
+    /* ===== 23 พ.ย. 69: UX มือเดียวกลางแดด (รีวิว Gemini · Claude คัดเฉพาะที่ไม่ชนกฎ iOS 26) ===== */
+    .modal-footer { padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important; }
+    .modal-footer .btn { min-height: 48px; }
+    body.modal-open #app { overflow: hidden !important; }
+    .modal-body { overscroll-behavior-y: contain; }
+    #fmMap, #rkMap, #wpMap, .leaflet-container, .fm-tag, .fm-leg, .bnav, button { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+    .timeline-box .btn-sm, #dosBody .btn-sm { min-height: 44px; min-width: 50px; padding: 6px 12px !important; }
+    .timeline-box .d-flex.gap-1 { gap: 12px !important; }
+    #itemModal .modal-footer { gap: 12px; }
+    .bl-x { width: 44px; height: 44px; }
+    .ch-x { width: 44px; height: 44px; top: 2px; right: 2px; }
+    .ch-cx { width: 44px; height: 44px; opacity: .85; }
+    .opt-chip { min-height: 44px; }
+    .opt-chip button { width: 36px; height: 36px; margin-left: 4px; }
+    .bl-g label span, .cal-w, .cal-wd, .vh-t i, .vh-d, .vh-s, .vh-dt small, .vh-tg, .fm-leg, .fl-jhr { font-size: 13px !important; }
+    .vh-d, .vh-s, .vh-dt small, .vh-qh, .rg-none, .fl-jhr, .srow-zero { color: #4A524D !important; }
+    .rtag, .ltag, .ch-chip { min-height: 44px; }
+    .filter-chip { height: 44px; }
+    .cal-nav { width: 44px; height: 44px; }
   </style>
 </head>
 <body>
@@ -10608,6 +10627,9 @@ Export.table.toDrive({
         custom_date: isoToBE(iso), remark: rainNote }],
         d => { hideModal('rainModal'); init(d); }, $('btnRain'));
     }
+  
+    // 23 พ.ย. 69: แตะช่องกรอกครึ่งล่างของหน้าต่าง → เลื่อนช่องขึ้นมากลางจอ ไม่ให้คีย์บอร์ดบัง (ไม่ยุ่งแถบแชต/ความสูงหน้าต่าง กฎ iOS 26)
+    document.addEventListener('focusin', e => { const t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.closest('.modal')) setTimeout(() => { try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x) {} }, 300); });
   </script>
 </body>
 </html>

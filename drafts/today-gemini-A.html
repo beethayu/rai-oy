@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1F5E3B">
+  <title>ไร่อ้อย — หน้าวันนี้ (แบบ A)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --td-ground: #F4F3EC;
+      --td-card: #FFFFFF;
+      --td-line: #E2E0D6;
+      --td-line2: #D3D1C6;
+      --td-ink: #1C2320;
+      --td-muted: #5A625D;
+      --td-green: #1F5E3B;
+      --td-green-d: #15432A;
+      --td-green-soft: #E3EFE6;
+      --td-urg: #B4410E;
+      --td-urg-ink: #8A300A;
+      --td-urg-soft: #FCEBDD;
+      --td-doing: #1E4FB8;
+      --td-doing-ink: #183F94;
+      --td-doing-soft: #E4ECFB;
+      --td-done-soft: #ECEAE2;
+      --td-red: #C62828;
+      --td-red-ink: #9B1C1C;
+      --td-red-soft: #FDE4E1;
+      --td-warn-bg: #FFF4E0;
+      --td-warn-ink: #8A5A0B;
+      --td-purple: #6D28D9;
+      --td-purple-soft: #F3E8FF;
+      --td-font: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    /* ข้อบังคับ iOS 26: html, body สีเดียวกับ theme-color */
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--td-green);
+      color: var(--td-ink);
+      font-family: var(--td-font);
+      font-size: 15px;
+      line-height: 1.45;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    input, select, textarea {
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--td-ink);
+    }
+
+    /* โครงสร้างหลักเริ่มที่ safe-area-inset-top */
+    #td {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-top: env(safe-area-inset-top, 0px);
+      background-color: var(--td-green);
+    }
+
+    /* 1. หัวเขียวเข้ม */
+    .td-header {
+      background-color: var(--td-green);
+      color: #FFFFFF;
+      padding: 10px 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .td-hd-info { min-width: 0; }
+    .td-hd-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 500;
+    }
+    .td-hd-rai {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .td-hd-acts {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .td-btn-rain {
+      min-height: 44px;
+      padding: 0 12px;
+      background: #FFFFFF;
+      color: var(--td-green-d);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .td-btn-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.16);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* พื้นที่เนื้อหาเลื่อนได้ (พื้นเทาอยู่ที่กล่องเนื้อหา ไม่ใช่ body) */
+    .td-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background-color: var(--td-ground);
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      padding: 16px 14px 28px;
+    }
+
+    .td-page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--td-ink);
+      margin: 0 2px 12px;
+    }
+
+    /* หัวข้อหมวด */
+    .td-sec-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 18px 2px 8px;
+      min-height: 32px;
+    }
+    .td-sec-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--td-ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .td-sec-cnt {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--td-muted);
+    }
+    .td-sec-sub {
+      font-size: 13px;
+      color: var(--td-muted);
+      margin: -4px 2px 8px;
+    }
+
+    .td-chip-btn {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--td-line2);
+      background: var(--td-card);
+      color: var(--td-ink);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* กล่องการ์ดมาตรฐาน (พื้นขาว) */
+    .td-card {
+      background: var(--td-card);
+      border: 1px solid var(--td-line);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .td-card-warn {
+      background: var(--td-warn-bg);
+      border-color: #F2D29B;
+    }
+
+    /* โครงสร้างการ์ด 4 ชั้น */
+    .td-4l {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: left;
+      width: 100%;
+    }
+    .td-4l-k { font-size: 13px; color: var(--td-muted); font-weight: 500; }
+    .td-4l-h { font-size: 17px; font-weight: 700; line-height: 1.3; }
+    .td-4l-h.ok { color: var(--td-green); }
+    .td-4l-h.warn { color: var(--td-urg); }
+    .td-4l-h.err { color: var(--td-red); }
+    .td-4l-b { font-size: 14px; color: var(--td-ink); }
+    .td-4l-n { font-size: 13px; color: var(--td-muted); margin-top: 2px; }
+
+    /* แถบอากาศ & ราคาน้ำตาล */
+    .td-strip-btn {
+      width: 100%;
+      min-height: 56px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .td-strip-ic {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--td-ground);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .td-strip-mid { flex: 1; min-width: 0; }
+    .td-strip-t { font-size: 15px; font-weight: 700; color: var(--td-ink); }
+    .td-strip-s { font-size: 13px; color: var(--td-muted); }
+    .td-strip-r { font-size: 14px; font-weight: 700; color: var(--td-green); text-align: right; flex-shrink: 0; }
+
+    .td-wx-detail {
+      border-top: 1px solid var(--td-line);
+      padding: 10px 14px 12px;
+      background: #FAFAF6;
+    }
+    .td-wx-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .td-wx-d {
+      min-height: 60px;
+      padding: 6px 2px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 13px;
+    }
+    .td-wx-d.on {
+      background: var(--td-green-soft);
+      border-color: var(--td-green);
+      font-weight: 700;
+    }
+    .td-wx-hr {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .td-wx-h {
+      min-width: 68px;
+      padding: 8px 6px;
+      background: var(--td-card);
+      border: 1px solid var(--td-line);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    /* การ์ดคำถามรายแปลง */
+    .td-ask-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--td-line);
+    }
+    .td-ask-name { font-size: 15px; font-weight: 600; color: var(--td-ink); }
+    .td-ask-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .td-btn-pill {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--td-line2);
+      background: var(--td-card);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--td-ink);
+    }
+    .td-btn-pill.on {
+      background: var(--td-green);
+      border-color: var(--td-green);
+      color: #FFFFFF;
+    }
+
+    /* แถวรายการทั่วไป (กางในที่) */
+    .td-row {
+      border-top: 1px solid var(--td-line);
+      background: var(--td-card);
+    }
+    .td-row:first-child { border-top: none; }
+    .td-row.urg { border-left: 4px solid var(--td-urg); }
+    .td-row.doing { border-left: 4px solid var(--td-doing); }
+    .td-row.watch { border-left: 4px solid var(--td-purple); }
+    .td-row.warn { background: var(--td-warn-bg); }
+
+    .td-row-main {
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+    }
+    .td-row-l { flex: 1; min-width: 0; }
+    .td-row-n {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--td-ink);
+      display: block;
+    }
+    .td-row-s {
+      font-size: 13px;
+      color: var(--td-muted);
+      display: block;
+      margin-top: 2px;
+    }
+    .td-row-warn {
+      font-size: 13px;
+      color: var(--td-warn-ink);
+      font-weight: 600;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ป้ายสถานะ */
+    .td-pill {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .td-pill-urg { background: var(--td-urg-soft); color: var(--td-urg-ink); }
+    .td-pill-doing { background: var(--td-doing-soft); color: var(--td-doing-ink); }
+    .td-pill-watch { background: var(--td-purple-soft); color: var(--td-purple); }
+    .td-pill-ok { background: var(--td-green-soft); color: var(--td-green-d); }
+
+    /* พื้นที่กางรายละเอียดในที่ */
+    .td-inline {
+      padding: 0 14px 14px;
+      background: #FAFAF6;
+      border-top: 1px dashed var(--td-line);
+    }
+    .td-inline-txt {
+      font-size: 14px;
+      color: var(--td-ink);
+      padding: 10px 0 8px;
+    }
+    .td-btn-grp {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .td-btn-main {
+      flex: 1;
+      min-width: 120px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 10px;
+      background: var(--td-green);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .td-btn-out {
+      flex: 1;
+      min-width: 100px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1.5px solid var(--td-line2);
+      background: var(--td-card);
+      color: var(--td-ink);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .td-btn-danger {
+      color: var(--td-red);
+      border-color: #E9B8B8;
+    }
+
+    /* ฟอร์มฝากดูกางในที่ */
+    .td-form-box {
+      padding: 12px 14px;
+      background: #FAFAF6;
+      border-top: 1px solid var(--td-line);
+    }
+    .td-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--td-line2);
+      border-radius: 10px;
+      background: #FFFFFF;
+      margin-bottom: 8px;
+    }
+
+    /* ปฏิทินงานเต็มเดือน */
+    .td-cal-box { padding: 12px 10px 8px; }
+    .td-cal-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .td-cal-nav {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--td-ink);
+    }
+    .td-cal-ym { font-size: 16px; font-weight: 700; color: var(--td-ink); }
+    .td-cal-w {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 13px;
+      color: var(--td-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .td-cal-g {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .td-cal-c {
+      min-height: 44px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    .td-cal-n {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .td-cal-c.td .td-cal-n {
+      background: var(--td-green);
+      color: #FFFFFF;
+    }
+    .td-cal-c.sel {
+      border-color: var(--td-green);
+      background: var(--td-green-soft);
+    }
+    .td-cal-c.drop {
+      background: var(--td-doing-soft);
+      border-color: var(--td-doing);
+    }
+    .td-cal-dots {
+      display: flex;
+      gap: 3px;
+      height: 6px;
+      align-items: center;
+      justify-content: center;
+    }
+    .td-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .td-dot.hollow {
+      background: transparent !important;
+      border: 1.5px solid currentColor;
+    }
+
+    .td-cal-day {
+      border-top: 1px solid var(--td-line);
+      padding: 12px 14px 14px;
+      background: #FAFAF6;
+    }
+    .td-cal-dl {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--td-ink);
+      margin-bottom: 8px;
+    }
+    .td-cal-item {
+      background: var(--td-card);
+      border: 1px solid var(--td-line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      user-select: none;
+    }
+    .td-cal-item.lift { opacity: 0.45; }
+    .td-cal-hint {
+      font-size: 13px;
+      color: var(--td-muted);
+      margin: 6px 0 10px;
+    }
+    .td-cal-add {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1.5px dashed var(--td-green);
+      background: var(--td-card);
+      color: var(--td-green);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .td-ghost {
+      position: fixed;
+      z-index: 999;
+      background: var(--td-green);
+      color: #FFFFFF;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+      max-width: 260px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* เมนูล่าง 5 ปุ่มหน้าตาเดียวกัน ไม่มีปุ่มนูนกลาง */
+    .td-nav {
+      background: #FFFFFF;
+      border-top: 1px solid var(--td-line);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      flex-shrink: 0;
+    }
+    .td-nav-btn {
+      min-height: 54px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--td-muted);
+    }
+    .td-nav-btn.on {
+      color: var(--td-green);
+      font-weight: 700;
+    }
+
+    /* แถบแจ้งเตือนสั้นๆ ด้านล่างแทน alert */
+    .td-toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      background: var(--td-ink);
+      color: #FFFFFF;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 900;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      max-width: 90%;
+      text-align: center;
+    }
+    .td-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="td">
+    <header id="td-header" class="td-header"></header>
+    <main id="td-scroll" class="td-scroll">
+      <div id="td-title" class="td-page-title"></div>
+      <section id="td-weather-sugar"></section>
+      <section id="td-questions"></section>
+      <section id="td-urgent"></section>
+      <section id="td-calendar"></section>
+      <section id="td-guards"></section>
+      <section id="td-fuel"></section>
+      <section id="td-nearcut"></section>
+      <section id="td-datacheck"></section>
+    </main>
+    <nav id="td-nav" class="td-nav"></nav>
+  </div>
+  <div id="td-toast" class="td-toast"></div>
+
+  <script>
+    // =========================================================================
+    // ข้อมูลจริงวันนี้ (24 พ.ย. 2569) — วาดทุกอย่างจาก DATA
+    // =========================================================================
+    const DATA = {
+      today: "2026-11-24",
+      spray7d_tanks: 2,
+      plots: [
+        { id: "P01", name: "หนองบวบหอม 3 (แรก)", rai: 16, type: "อ้อยใหม่", age_days: 279, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "19/11/2569" },
+        { id: "P02", name: "หนองบวบหอม 3 (หลัง)", rai: 5, type: "อ้อยใหม่", age_days: 255, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "19/11/2569" },
+        { id: "P03", name: "หนองบวบหอม 2", rai: 20, type: "อ้อยใหม่", age_days: 255, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "19/11/2569" },
+        { id: "P04", name: "หนองบวบหอม 1", rai: 23, type: "อ้อยใหม่", age_days: 251, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "19/11/2569" },
+        { id: "P05", name: "หนองทิ้งสุ่ม (90 วา)", rai: 14, type: "อ้อยใหม่", age_days: 245, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P06", name: "หนองทิ้งสุ่ม (แม่ยา)", rai: 9, type: "อ้อยใหม่", age_days: 243, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P07", name: "สำนักแจง (ซ้ายถนน)", rai: 8, type: "อ้อยใหม่", age_days: 241, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P08", name: "สำนักแจง (ขวาถนน)", rai: 6, type: "อ้อยใหม่", age_days: 239, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P09", name: "กระถินแดง", rai: 16, type: "อ้อยใหม่", age_days: 236, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P10", name: "หนองกระทู้ (กล้วย-ใหม่)", rai: 4, type: "อ้อยใหม่", age_days: 298, urgent: true, doing: false, harvested: false, next: "ถึงคิว: ตัดพันธุ์อ้อย", last_water: "09/11/2569" },
+        { id: "P11", name: "หนองทิ้งสุ่ม (สะเดา)", rai: 23, type: "อ้อยตอ", age_days: 266, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P12", name: "หนองทิ้งสุ่ม (ยายดำ)", rai: 21, type: "อ้อยตอ", age_days: 263, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P13", name: "หนองทิ้งสุ่ม (ข้างสระ)", rai: 11, type: "อ้อยตอ", age_days: 252, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P14", name: "สำนักแจง (ซ้ายใน)", rai: 18, type: "อ้อยตอ", age_days: 256, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P15", name: "สำนักแจง (ขวาใน)", rai: 14, type: "อ้อยตอ", age_days: 256, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P16", name: "หนองเฝ้า (ข้างคลอง)", rai: 13, type: "อ้อยตอ", age_days: 257, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P17", name: "หนองเฝ้า (ข้าง รร.)", rai: 9, type: "อ้อยตอ", age_days: 243, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P18", name: "หนองกระทู้ (ขวาใน)", rai: 8, type: "อ้อยตอ", age_days: 302, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P19", name: "หนองกระทู้ (ขวาถนน)", rai: 8, type: "อ้อยตอ", age_days: 295, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P20", name: "หนองกระทู้ (กล้วย-ตอ)", rai: 4, type: "อ้อยตอ", age_days: 298, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P21", name: "แปดไร่", rai: 8, type: "อ้อยตอ", age_days: 319, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P22", name: "หนองจิก (ใหญ่)", rai: 14, type: "อ้อยตอ", age_days: 271, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P23", name: "หนองจิก (เล็ก)", rai: 3, type: "อ้อยตอ", age_days: 271, urgent: false, doing: false, harvested: false, next: "ช่วงใกล้ตัด (พ.ย.-ธ.ค.) ไม่ต้องให้น้ำ", last_water: "09/11/2569" },
+        { id: "P24", name: "ยายเวียน (ต้นตาล)", rai: 4, type: "อ้อยตอ", age_days: 190, urgent: true, doing: false, harvested: false, next: "ขาดน้ำ 15 วัน (ครบ 15 ว.) · ล่าสุดเป็นฝน", last_water: "09/11/2569" },
+        { id: "P25", name: "ยายเวียน (มะขาม)", rai: 2, type: "อ้อยตอ", age_days: 182, urgent: true, doing: false, harvested: false, next: "ขาดน้ำ 15 วัน (ครบ 15 ว.) · ล่าสุดเป็นฝน", last_water: "09/11/2569" }
+      ],
+      questions: [
+        { id: "Q1", plot_id: "P18", plot_name: "หนองกระทู้ (ขวาใน)", answer: "" },
+        { id: "Q2", plot_id: "P21", plot_name: "แปดไร่", answer: "" }
+      ],
+      watches: [],
+      reminders: [
+        { rem_id: "R1795426566113jsz", date: "2026-11-24", text: "ให้คนงานไปฉีดยารอบไร่", repeat: "", status: "open" },
+        { rem_id: "R_t1_call", date: "2026-11-30", text: "โทรเช็คช่างวุท เรื่องต่อกล่อง สิบล้อคันที่ 1", repeat: "สัปดาห์", status: "open" },
+        { rem_id: "R_ny_call", date: "2026-11-30", text: "โทรเช็คร้านช่างนุ สิบล้อหน้ายาว", repeat: "สัปดาห์", status: "open" },
+        { rem_id: "R1795312170182c18", date: "2027-05-18", text: "เปลี่ยนกรองโซล่า Isuzu dragon", repeat: "6 เดือน", status: "open" }
+      ],
+      month_activities: [
+        { id: "A01", d: "2026-11-19", g: "ฝนตก", plot: "P01,P02,P03,P04", detail: "น้ำฝนธรรมชาติ (หนองบวบหอม)", who: "" },
+        { id: "A02", d: "2026-11-18", g: "ฉีดยา", plot: "P12", detail: "ฉีดหญ้ารอบไร่", who: "หำ + ผัน", qty: "1 ถัง" },
+        { id: "A03", d: "2026-11-17", g: "ฉีดยา", plot: "P11,P05", detail: "ฉีดหญ้ารอบไร่", who: "หำ + ผัน", qty: "1 ถัง" },
+        { id: "A04", d: "2026-11-16", g: "ฉีดยา", plot: "P13,P05", detail: "ฉีดหญ้ารอบไร่", who: "หำ + ผัน" },
+        { id: "A05", d: "2026-11-15", g: "ฉีดยา", plot: "P09", detail: "ฉีดหญ้ารอบไร่", who: "หำ + ผัน" },
+        { id: "A06", d: "2026-11-09", g: "ฝนตก", plot: "ทุกแปลง (25 แปลง)", detail: "น้ำฝนธรรมชาติ", who: "" },
+        { id: "A07", d: "2026-11-07", g: "ฝนตก", plot: "ทุกแปลง (25 แปลง)", detail: "น้ำฝนธรรมชาติ", who: "" },
+        { id: "A08", d: "2026-11-06", g: "ฝนตก", plot: "ทุกแปลง (25 แปลง)", detail: "น้ำฝนธรรมชาติ", who: "" },
+        { id: "A09", d: "2026-11-04", g: "ฝนตก", plot: "21 แปลง", detail: "น้ำฝนธรรมชาติ", who: "" }
+      ],
+      notes: [
+        { note_id: "N1", d: "2026-11-18", text: "วิ่งรถโฆษณาถึง 10 โมง เครื่องเล่นเสีย รอซ่อม", workers: "พร" },
+        { note_id: "N2", d: "2026-11-20", text: "วิ่งรถโฆษณา", workers: "พร" },
+        { note_id: "N3", d: "2026-11-21", text: "วิ่งรถโฆษณา", workers: "พร" }
+      ],
+      soilChecks: [
+        { chk_id: "C1", d: "2026-11-16", area: "หนองทิ้งสุ่ม", state: "แฉะ เข้าไม่ได้", note: "หน้างานชื้นมาก รถไถเล็กเข้าไม่ได้" },
+        { chk_id: "C2", d: "2026-11-23", area: "ตลาดนัดใกล้ขนส่ง", state: "น้ำขัง", note: "ท้ายตลาด สามเหลี่ยมฝั่งตะวันออก น้ำขังใต้หญ้า" }
+      ],
+      guards: [
+        {
+          guard_id: "G1794737322319",
+          start: "2026-11-15",
+          start_part: "เย็น",
+          workers: "หม่อง, จิตร",
+          plot_ids: ["P01", "P02", "P03", "P04"],
+          area: "หนองบวบหอม",
+          note: "เฝ้าจนกว่าจะตัด หรือกดเลิกเฝ้า",
+          status: "open"
+        }
+      ],
+      fuel: [
+        {
+          id: "F_pump",
+          pump: true,
+          title: "เบนซิน · เครื่องสูบน้ำ",
+          short: "ยังไม่รู้ว่ากินเท่าไร · เติมเต็มถังทุกครั้งแล้วจดจำนวนที่เติม",
+          detail: "เบนซินล้วน สูบน้ำใส่ถัง 200 ลิตรผสมยา · แอปจะคิดอัตราการกินให้ตั้งแต่ครั้งหน้า",
+          warn: "",
+          st: "ok"
+        },
+        {
+          id: "F_spray",
+          pump: false,
+          title: "เบนซิน + 2T · หำ + ผัน",
+          short: "เหลือ ≈ 2 ลิตร · พออีก 1 วัน · เติมล่าสุด 17 พ.ย.",
+          detail: "เบนซิน 0.5 ลิตร/ถัง · ใช้ต่อวัน ≈ 1.5 ลิตร (เฉลี่ยวันที่ฉีดล่าสุด) · ให้เพิ่มพิมพ์ในแชต \"ให้น้ำมันหำ 4 ลิตร\"",
+          warn: "พอฉีดวันนี้ ถ้าพรุ่งนี้ฉีดต่อต้องเติม",
+          st: "soon"
+        }
+      ],
+      weather: {
+        location: "ทุ่งคอก · สุพรรณบุรี",
+        summary: "แดดจัด 33° · ฝน 10% · ลม 9 กม./ชม.",
+        spray_ok: "ฉีดยาได้ช่วงเช้า 06:00–10:00",
+        days: [
+          { d: "อ.24", temp: "33°", rain: "10%", mm: 0, icon: "sun" },
+          { d: "พ.25", temp: "32°", rain: "20%", mm: 1, icon: "part" },
+          { d: "พฤ.26", temp: "31°", rain: "45%", mm: 6, icon: "rain" },
+          { d: "ศ.27", temp: "32°", rain: "15%", mm: 0, icon: "part" },
+          { d: "ส.28", temp: "33°", rain: "10%", mm: 0, icon: "sun" },
+          { d: "อา.29", temp: "34°", rain: "5%", mm: 0, icon: "sun" },
+          { d: "จ.30", temp: "33°", rain: "20%", mm: 2, icon: "part" }
+        ],
+        hourly: [
+          { h: "06:00", t: "24°", r: "5%", w: "6 กม." },
+          { h: "09:00", t: "29°", r: "5%", w: "8 กม." },
+          { h: "12:00", t: "33°", r: "10%", w: "11 กม." },
+          { h: "15:00", t: "32°", r: "10%", w: "12 กม." },
+          { h: "18:00", t: "28°", r: "10%", w: "7 กม." }
+        ]
+      },
+      sugar: {
+        ice_raw: "21.45 ¢/lb",
+        change: "+0.32 (+1.5%)",
+        est_cane: "≈ 1,420 บ./ตัน",
+        note: "คำนวณที่ 10 CCS · ค่าเงิน 34.40 บ./USD (ข้อมูลตัวอย่าง)"
+      },
+      dq_issues: []
+    };
+
+    // =========================================================================
+    // สถานะหน้าจอ (Inline UI State — ไม่มี Modal)
+    // =========================================================================
+    const STATE = {
+      wxOpen: false,
+      wxDayIdx: 0,
+      sugarOpen: false,
+      openKey: "",
+      watchFormOpen: false,
+      watchReason: "ขึ้นน้ำ",
+      calYM: "2026-11",
+      calSel: DATA.today,
+      cutAll: false,
+      activeTab: "today",
+      drag: null
+    };
+
+    const TH_DAY = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+    const TH_MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    const TH_MON_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const pad = n => String(n).padStart(2, "0");
+    const dayDiff = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+    const ageTxt = d => `${Math.floor(d / 30)} เดือน${d % 30 ? " " + (d % 30) + " วัน" : ""}`;
+    const plotName = id => (DATA.plots.find(p => p.id === id) || {}).name || id;
+
+    function toast(msg) {
+      const el = document.getElementById("td-toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function svgIcon(type) {
+      const icons = {
+        rain: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 15a4 4 0 1 1 .8-7.9A5.5 5.5 0 0 1 18.5 9a3.5 3.5 0 0 1-.5 6.95H7z" fill="#1D6FB8"/><path d="M9 18l-1 3M13 18l-1 3M17 18l-1 3" stroke="#1D6FB8" stroke-width="2" stroke-linecap="round"/></svg>`,
+        sun: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="#E69A15"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1" stroke="#E69A15" stroke-width="2" stroke-linecap="round"/></svg>`,
+        part: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="4" fill="#E69A15"/><path d="M8 18a4 4 0 0 1 0-8h.4A4.5 4.5 0 0 1 17 11.5a3 3 0 0 1-.5 6.5H8z" fill="#8AA6B8"/></svg>`,
+        sugar: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 17l5-5 4 3 7-8" stroke="#1F5E3B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h5v5" stroke="#1F5E3B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        gear: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`
+      };
+      return icons[type] || "";
+    }
+
+    // =========================================================================
+    // 1. หัวเขียวเข้ม
+    // =========================================================================
+    function renderHeader(data) {
+      const d = new Date(data.today + "T00:00:00");
+      const totalRai = data.plots.reduce((s, p) => s + Number(p.rai || 0), 0);
+      const dateShort = `${TH_DAY[d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]} ${String(d.getFullYear() + 543).slice(2)}`;
+      document.getElementById("td-header").innerHTML = `
+        <div class="td-hd-info">
+          <div class="td-hd-sub">${data.plots.length} แปลง · ${dateShort}</div>
+          <div class="td-hd-rai">${totalRai} ไร่</div>
+        </div>
+        <div class="td-hd-acts">
+          <button type="button" class="td-btn-rain" onclick="toast('เปิดบันทึกฝนตก')">${svgIcon("rain")}<span>ฝนตก</span></button>
+          <button type="button" class="td-btn-icon" aria-label="จดงาน" onclick="toast('เปิดหน้าบันทึกงาน')">+</button>
+          <button type="button" class="td-btn-icon" aria-label="ตั้งค่า" onclick="toast('เปิดตั้งค่า')">${svgIcon("gear")}</button>
+        </div>
+      `;
+      document.getElementById("td-title").textContent = `วันนี้ ${TH_DAY[d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`;
+    }
+
+    // =========================================================================
+    // 2. แถบพยากรณ์อากาศ 7 วัน + ราคาน้ำตาลโลก
+    // =========================================================================
+    function renderWeatherSugar(data) {
+      const wx = data.weather;
+      const sg = data.sugar;
+      const wxBody = STATE.wxOpen ? `
+        <div class="td-wx-detail">
+          <div class="td-wx-days">
+            ${wx.days.map((x, i) => `
+              <button type="button" class="td-wx-d ${STATE.wxDayIdx === i ? "on" : ""}" onclick="STATE.wxDayIdx=${i};renderAll()">
+                <span>${esc(x.d)}</span>
+                ${svgIcon(x.icon)}
+                <b>${esc(x.temp)}</b>
+                <span style="font-size:12px;color:#1D6FB8">${esc(x.rain)}</span>
+              </button>
+            `).join("")}
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--td-green);margin-bottom:6px">${esc(wx.spray_ok)}</div>
+          <div class="td-wx-hr">
+            ${wx.hourly.map(h => `
+              <div class="td-wx-h">
+                <div style="color:var(--td-muted)">${esc(h.h)}</div>
+                <div style="font-weight:700;margin:2px 0">${esc(h.t)}</div>
+                <div style="color:#1D6FB8">ฝน ${esc(h.r)}</div>
+                <div style="color:var(--td-muted);font-size:12px">ลม ${esc(h.w)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      ` : "";
+
+      const sgBody = STATE.sugarOpen ? `
+        <div class="td-wx-detail">
+          <div class="td-4l" style="padding:0">
+            <div class="td-4l-k">ICE Sugar No.11 (ตลาดโลก)</div>
+            <div class="td-4l-h ok">${esc(sg.ice_raw)} (${esc(sg.change)})</div>
+            <div class="td-4l-b">คาดราคาอ้อยขั้นต้น <b>${esc(sg.est_cane)}</b></div>
+            <div class="td-4l-n">${esc(sg.note)}</div>
+          </div>
+        </div>
+      ` : "";
+
+      document.getElementById("td-weather-sugar").innerHTML = `
+        <div class="td-card">
+          <button type="button" class="td-strip-btn" onclick="STATE.wxOpen=!STATE.wxOpen;renderAll()">
+            <span class="td-strip-ic">${svgIcon("sun")}</span>
+            <span class="td-strip-mid">
+              <div class="td-strip-t">พยากรณ์อากาศ 7 วัน</div>
+              <div class="td-strip-s">${esc(wx.summary)}</div>
+            </span>
+            <span class="td-strip-r">${STATE.wxOpen ? "ย่อ" : "รายชม. ▾"}</span>
+          </button>
+          ${wxBody}
+        </div>
+        <div class="td-card">
+          <button type="button" class="td-strip-btn" onclick="STATE.sugarOpen=!STATE.sugarOpen;renderAll()">
+            <span class="td-strip-ic">${svgIcon("sugar")}</span>
+            <span class="td-strip-mid">
+              <div class="td-strip-t">ราคาน้ำตาลโลก · คาดอ้อย</div>
+              <div class="td-strip-s">${esc(sg.ice_raw)} · คาด ${esc(sg.est_cane)}</div>
+            </span>
+            <span class="td-strip-r">${esc(sg.change.split(" ")[0])}</span>
+          </button>
+          ${sgBody}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 3. การ์ดคำถามรายแปลง
+    // =========================================================================
+    function renderQuestions(data) {
+      const pending = data.questions.filter(q => !q.answer);
+      if (!pending.length) {
+        document.getElementById("td-questions").innerHTML = "";
+        return;
+      }
+      document.getElementById("td-questions").innerHTML = `
+        <div class="td-card">
+          <div class="td-4l">
+            <div class="td-4l-k">ถามรายแปลง · ใช้เลือกขั้นตอนต่อไป</div>
+            <div class="td-4l-h" style="color:var(--td-purple)">ตัดแล้วไว้ตอต่อไหม?</div>
+            <div class="td-4l-n">ตัดอ้อย · อ้อยตอ · ตอบแล้วแก้ได้ในเมนูแปลง > ขั้นตอน</div>
+          </div>
+          ${pending.map(q => `
+            <div class="td-ask-row">
+              <span class="td-ask-name">${esc(q.plot_name)}</span>
+              <div class="td-ask-btns">
+                <button type="button" class="td-btn-pill" onclick="answerQuestion('${q.id}','ไว้ตอ')">ไว้ตอ</button>
+                <button type="button" class="td-btn-pill" onclick="answerQuestion('${q.id}','รื้อตอ')">รื้อตอ</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function answerQuestion(qid, ans) {
+      const q = DATA.questions.find(x => x.id === qid);
+      if (q) q.answer = ans;
+      toast(`บันทึก "${q.plot_name}" = ${ans}`);
+      renderAll();
+    }
+
+    // =========================================================================
+    // 4. ต้องทำวันนี้ (นัดวันนี้ + ถึงคิว + กำลังทำ + ฝากดู)
+    // =========================================================================
+    function renderUrgent(data) {
+      const remsToday = data.reminders.filter(r => r.status === "open" && r.date <= data.today);
+      const urgPlots = data.plots.filter(p => p.urgent && !p.doing);
+      const doingPlots = data.plots.filter(p => p.doing);
+      const watches = data.watches;
+      const total = remsToday.length + urgPlots.length + doingPlots.length + watches.length;
+
+      const watchForm = STATE.watchFormOpen ? `
+        <div class="td-form-box">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px">เพิ่มรายการฝากดู</div>
+          <div class="td-btn-grp" style="margin-bottom:8px">
+            ${["ขึ้นน้ำ", "หว่านปุ๋ย", "ฉีดยา", "น้ำขัง สูบออก", "ไปดูอาการ"].map(r => `
+              <button type="button" class="td-btn-pill ${STATE.watchReason === r ? "on" : ""}" onclick="STATE.watchReason='${r}';renderAll()">${r}</button>
+            `).join("")}
+          </div>
+          <select id="td-wt-plot" class="td-input">
+            ${data.plots.map(p => `<option value="${p.id}">${esc(p.name)} (${p.rai} ไร่)</option>`).join("")}
+          </select>
+          <input id="td-wt-note" class="td-input" placeholder="หมายเหตุสั้นๆ (ไม่บังคับ)">
+          <div class="td-btn-grp">
+            <button type="button" class="td-btn-main" onclick="saveWatch()">บันทึกฝากดู</button>
+            <button type="button" class="td-btn-out" onclick="STATE.watchFormOpen=false;renderAll()">ยกเลิก</button>
+          </div>
+        </div>
+      ` : "";
+
+      const rows = [];
+
+      remsToday.forEach(r => {
+        const key = "rem:" + r.rem_id;
+        const open = STATE.openKey === key;
+        rows.push(`
+          <div class="td-row warn">
+            <button type="button" class="td-row-main" onclick="toggleKey('${key}')">
+              <span class="td-row-l">
+                <span class="td-row-n">🔔 ${esc(r.text)}</span>
+                <span class="td-row-s">นัดวันนี้ · แตะเพื่อจัดการ</span>
+              </span>
+              <span class="td-pill td-pill-urg">นัด</span>
+            </button>
+            ${open ? `
+              <div class="td-inline">
+                <div class="td-btn-grp">
+                  <button type="button" class="td-btn-main" onclick="doneRem('${r.rem_id}')">ทำแล้ว → จดเป็นงาน</button>
+                  <button type="button" class="td-btn-out" onclick="doneRem('${r.rem_id}')">ทำแล้ว</button>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        `);
+      });
+
+      urgPlots.forEach(p => {
+        const key = "urg:" + p.id;
+        const open = STATE.openKey === key;
+        rows.push(`
+          <div class="td-row urg">
+            <button type="button" class="td-row-main" onclick="toggleKey('${key}')">
+              <span class="td-row-l">
+                <span class="td-row-n">${esc(p.name)}</span>
+                <span class="td-row-s">${esc(p.next)}</span>
+              </span>
+              <span class="td-pill td-pill-urg">ถึงคิว</span>
+            </button>
+            ${open ? `
+              <div class="td-inline">
+                <div class="td-inline-txt">${esc(p.type)} · ${p.rai} ไร่ · อายุ ${ageTxt(p.age_days)} · น้ำล่าสุด ${esc(p.last_water)}</div>
+                <div class="td-btn-grp">
+                  <button type="button" class="td-btn-main" onclick="toast('เปิดบันทึกงาน: ${esc(p.name)}')">+ บันทึกงาน</button>
+                  <button type="button" class="td-btn-out" onclick="toast('เปิดแฟ้มแปลง: ${esc(p.name)}')">ดูแปลง</button>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        `);
+      });
+
+      doingPlots.forEach(p => {
+        const key = "do:" + p.id;
+        const open = STATE.openKey === key;
+        rows.push(`
+          <div class="td-row doing">
+            <button type="button" class="td-row-main" onclick="toggleKey('${key}')">
+              <span class="td-row-l">
+                <span class="td-row-n">${esc(p.name)}</span>
+                <span class="td-row-s">กำลังดำเนินการ</span>
+              </span>
+              <span class="td-pill td-pill-doing">กำลังทำ</span>
+            </button>
+            ${open ? `
+              <div class="td-inline">
+                <div class="td-btn-grp">
+                  <button type="button" class="td-btn-main" onclick="toast('ปิดงานเสร็จ: ${esc(p.name)}')">งานเสร็จ</button>
+                  <button type="button" class="td-btn-out" onclick="toast('ดูแปลง: ${esc(p.name)}')">ดูแปลง</button>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        `);
+      });
+
+      watches.forEach(w => {
+        const key = "wt:" + w.id;
+        const open = STATE.openKey === key;
+        rows.push(`
+          <div class="td-row watch">
+            <button type="button" class="td-row-main" onclick="toggleKey('${key}')">
+              <span class="td-row-l">
+                <span class="td-row-n">${esc(plotName(w.plot_id))}</span>
+                <span class="td-row-s">${w.note ? esc(w.note) + " · " : ""}ฝากดูวันนี้</span>
+              </span>
+              <span class="td-pill td-pill-watch">${esc(w.reason)}</span>
+            </button>
+            ${open ? `
+              <div class="td-inline">
+                <div class="td-btn-grp">
+                  <button type="button" class="td-btn-main" onclick="removeWatch('${w.id}')">ดูแล้ว</button>
+                  <button type="button" class="td-btn-out td-btn-danger" onclick="removeWatch('${w.id}')">ยกเลิก</button>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        `);
+      });
+
+      document.getElementById("td-urgent").innerHTML = `
+        <div class="td-sec-hd">
+          <span class="td-sec-title">ต้องทำวันนี้ <span class="td-sec-cnt">${total}</span></span>
+          <button type="button" class="td-chip-btn" onclick="STATE.watchFormOpen=!STATE.watchFormOpen;renderAll()">+ ฝากดู</button>
+        </div>
+        <div class="td-card">
+          ${watchForm}
+          ${rows.length ? rows.join("") : `<div class="td-4l"><div class="td-4l-b">วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง</div></div>`}
+        </div>
+      `;
+    }
+
+    function saveWatch() {
+      const pid = document.getElementById("td-wt-plot").value;
+      const note = document.getElementById("td-wt-note").value.trim();
+      DATA.watches.push({ id: "W" + Date.now(), plot_id: pid, reason: STATE.watchReason, note });
+      STATE.watchFormOpen = false;
+      toast("เพิ่มรายการฝากดูแล้ว");
+      renderAll();
+    }
+
+    function removeWatch(id) {
+      DATA.watches = DATA.watches.filter(w => w.id !== id);
+      STATE.openKey = "";
+      toast("เอาออกจากฝากดูแล้ว");
+      renderAll();
+    }
+
+    function doneRem(id) {
+      const r = DATA.reminders.find(x => x.rem_id === id);
+      if (r) r.status = "done";
+      STATE.openKey = "";
+      toast("ปิดนัดเรียบร้อย");
+      renderAll();
+    }
+
+    function toggleKey(k) {
+      STATE.openKey = STATE.openKey === k ? "" : k;
+      renderAll();
+    }
+
+    // =========================================================================
+    // 5. ปฏิทินงานเต็มเดือน (จุดสี, แตะวัน, ปัดเปลี่ยนเดือน, กดค้างลากย้ายวัน)
+    // =========================================================================
+    function buildCalMap(data) {
+      const map = {};
+      const at = iso => (map[iso] = map[iso] || { acts: [], rems: [], notes: [], soil: [], guards: [] });
+
+      data.month_activities.forEach(a => at(a.d).acts.push(a));
+      data.reminders.filter(r => r.status === "open").forEach(r => at(r.date).rems.push(r));
+      data.notes.forEach(n => at(n.d).notes.push(n));
+      data.soilChecks.forEach(c => at(c.d).soil.push(c));
+
+      data.guards.filter(g => g.status === "open").forEach(g => {
+        let cur = g.start;
+        for (let i = 0; i < 60 && cur <= data.today; i++) {
+          at(cur).guards.push(g);
+          const dt = new Date(cur + "T00:00:00");
+          dt.setDate(dt.getDate() + 1);
+          cur = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+        }
+      });
+      return map;
+    }
+
+    function renderCalendar(data) {
+      const map = buildCalMap(data);
+      const [y, m] = STATE.calYM.split("-").map(Number);
+      const firstDay = new Date(y, m - 1, 1).getDay();
+      const daysInMonth = new Date(y, m, 0).getDate();
+
+      let cells = "";
+      for (let i = 0; i < firstDay; i++) cells += `<span></span>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const iso = `${y}-${pad(m)}-${pad(d)}`;
+        const o = map[iso];
+        const dots = [];
+        if (o) {
+          if (o.acts.some(a => a.g === "ฉีดยา")) dots.push(`<i class="td-dot" style="background:#B4410E"></i>`);
+          if (o.acts.some(a => a.g === "ฝนตก")) dots.push(`<i class="td-dot" style="background:#1D6FB8"></i>`);
+          if (o.guards.length) dots.push(`<i class="td-dot" style="background:#6D28D9"></i>`);
+          if (o.notes.length) dots.push(`<i class="td-dot" style="background:#0E7490"></i>`);
+          if (o.soil.length) dots.push(`<i class="td-dot" style="background:#8B5E34"></i>`);
+          if (o.rems.length) dots.push(`<i class="td-dot hollow" style="color:#D97706"></i>`);
+        }
+        const cls = (iso === data.today ? " td" : "") + (iso === STATE.calSel ? " sel" : "");
+        cells += `
+          <button type="button" class="td-cal-c${cls}" data-iso="${iso}" onclick="pickCal('${iso}')">
+            <span class="td-cal-n">${d}</span>
+            <span class="td-cal-dots">${dots.slice(0, 4).join("")}</span>
+          </button>
+        `;
+      }
+
+      const sel = map[STATE.calSel] || { acts: [], rems: [], notes: [], soil: [], guards: [] };
+      const selDate = new Date(STATE.calSel + "T00:00:00");
+      const selLbl = STATE.calSel === data.today ? "วันนี้" : `${TH_DAY[selDate.getDay()]} ${selDate.getDate()} ${TH_MON[selDate.getMonth()]}`;
+
+      const items = [];
+      sel.rems.forEach(r => items.push(`
+        <div class="td-cal-item" data-drag-type="rem" data-drag-id="${r.rem_id}" data-drag-lb="${esc(r.text)}">
+          <span>🔔</span>
+          <div>
+            <div style="font-weight:700">${esc(r.text)}</div>
+            <div style="font-size:13px;color:var(--td-muted)">นัด/เตือน${r.repeat ? " · ทำซ้ำทุก" + esc(r.repeat) : ""}</div>
+          </div>
+        </div>
+      `));
+      sel.acts.forEach(a => items.push(`
+        <div class="td-cal-item" data-drag-type="act" data-drag-id="${a.id}" data-drag-lb="${esc(a.detail)}">
+          <span class="td-dot" style="margin-top:7px;background:${a.g === "ฝนตก" ? "#1D6FB8" : "#B4410E"}"></span>
+          <div>
+            <div style="font-weight:700">${esc(a.g)} · ${esc(a.detail)} ${a.qty ? `<b style="color:var(--td-red)">${esc(a.qty)}</b>` : ""}</div>
+            <div style="font-size:13px;color:var(--td-muted)">${a.who ? esc(a.who) + " · " : ""}${esc(a.plot)}</div>
+          </div>
+        </div>
+      `));
+      sel.guards.forEach(g => {
+        const nth = dayDiff(g.start, STATE.calSel) + 1;
+        items.push(`
+          <div class="td-cal-item">
+            <span>🛡️</span>
+            <div>
+              <div style="font-weight:700">เฝ้าไร่ <span style="color:var(--td-purple)">คืนที่ ${nth}</span></div>
+              <div style="font-size:13px;color:var(--td-muted)">${esc(g.workers)} · ${esc(g.area)}</div>
+            </div>
+          </div>
+        `);
+      });
+      sel.notes.forEach(n => items.push(`
+        <div class="td-cal-item" data-drag-type="note" data-drag-id="${n.note_id}" data-drag-lb="${esc(n.text)}">
+          <span>📝</span>
+          <div>
+            <div style="font-weight:700">${esc(n.text)}</div>
+            <div style="font-size:13px;color:var(--td-muted)">${esc(n.workers)} · นอกไร่</div>
+          </div>
+        </div>
+      `));
+      sel.soil.forEach(c => items.push(`
+        <div class="td-cal-item">
+          <span>🌱</span>
+          <div>
+            <div style="font-weight:700">ดูดินหน้างาน · <span style="color:var(--td-red)">${esc(c.state)}</span></div>
+            <div style="font-size:13px;color:var(--td-muted)">${esc(c.area)} · ${esc(c.note)}</div>
+          </div>
+        </div>
+      `));
+
+      document.getElementById("td-calendar").innerHTML = `
+        <div class="td-sec-hd">
+          <span class="td-sec-title">ปฏิทินงาน</span>
+          ${STATE.calSel !== data.today ? `<button type="button" class="td-chip-btn" onclick="STATE.calSel=DATA.today;STATE.calYM=DATA.today.slice(0,7);renderAll()">วันนี้</button>` : ""}
+        </div>
+        <div class="td-sec-sub">ฉีดยา 7 วันล่าสุดรวม <b style="color:var(--td-red)">${data.spray7d_tanks} ถัง</b></div>
+        <div class="td-card">
+          <div id="td-cal-swipe" class="td-cal-box">
+            <div class="td-cal-hd">
+              <button type="button" class="td-cal-nav" aria-label="เดือนก่อน" onclick="moveCal(-1)">‹</button>
+              <span class="td-cal-ym">${TH_MON_FULL[m - 1]} ${y + 543}</span>
+              <button type="button" class="td-cal-nav" aria-label="เดือนถัดไป" onclick="moveCal(1)">›</button>
+            </div>
+            <div class="td-cal-w">${TH_DAY.map(x => `<span>${x.replace(".", "")}</span>`).join("")}</div>
+            <div class="td-cal-g">${cells}</div>
+          </div>
+          <div class="td-cal-day">
+            <div class="td-cal-dl">${selLbl}</div>
+            ${items.length ? items.join("") : `<div style="font-size:14px;color:var(--td-muted);padding:4px 0 8px">ยังไม่มีบันทึกวันนี้</div>`}
+            <div class="td-cal-hint">ปัดซ้ายขวาเปลี่ยนเดือน · กดค้างที่รายการแล้วลากไปวางวันอื่นเพื่อย้ายวัน</div>
+            <button type="button" class="td-cal-add" onclick="toast('เปิดจดงานวันที่ ${selLbl}')">+ จดงาน${selLbl}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function pickCal(iso) { STATE.calSel = iso; renderAll(); }
+    function moveCal(k) {
+      let [y, m] = STATE.calYM.split("-").map(Number);
+      m += k;
+      if (m < 1) { m = 12; y--; }
+      if (m > 12) { m = 1; y++; }
+      STATE.calYM = `${y}-${pad(m)}`;
+      renderAll();
+    }
+
+    // =========================================================================
+    // 6. เฝ้าไร่
+    // =========================================================================
+    function renderGuards(data) {
+      const openGuards = data.guards.filter(g => g.status === "open");
+      if (!openGuards.length) {
+        document.getElementById("td-guards").innerHTML = "";
+        return;
+      }
+      document.getElementById("td-guards").innerHTML = `
+        <div class="td-sec-hd">
+          <span class="td-sec-title">เฝ้าไร่ <span class="td-sec-cnt">${openGuards.length}</span></span>
+        </div>
+        <div class="td-card">
+          ${openGuards.map(g => {
+            const nights = dayDiff(g.start, data.today);
+            const key = "gd:" + g.guard_id;
+            const open = STATE.openKey === key;
+            return `
+              <div class="td-row">
+                <button type="button" class="td-row-main" onclick="toggleKey('${key}')">
+                  <span class="td-row-l">
+                    <span class="td-row-n">🛡️ ${esc(g.area)} · ${esc(g.workers)}</span>
+                    <span class="td-row-s">เริ่ม 15 พ.ย. 69 ${esc(g.start_part)} · ค้างแล้ว ${nights} คืน · คืนนี้คืนที่ ${nights + 1}</span>
+                    <span class="td-row-s">${esc(g.note)}</span>
+                  </span>
+                  <span class="td-pill td-pill-watch">เฝ้าอยู่</span>
+                </button>
+                ${open ? `
+                  <div class="td-inline">
+                    <div class="td-inline-txt">${g.plot_ids.length} แปลง: ${g.plot_ids.map(plotName).join(", ")}</div>
+                    <div class="td-btn-grp">
+                      <button type="button" class="td-btn-main" onclick="endGuard('${g.guard_id}')">เลิกเฝ้าวันนี้</button>
+                      <button type="button" class="td-btn-out td-btn-danger" onclick="endGuard('${g.guard_id}')">ลบ (ลงผิด)</button>
+                    </div>
+                  </div>
+                ` : ""}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function endGuard(id) {
+      const g = DATA.guards.find(x => x.guard_id === id);
+      if (g) g.status = "done";
+      STATE.openKey = "";
+      toast("บันทึกเลิกเฝ้าไร่แล้ว");
+      renderAll();
+    }
+
+    // =========================================================================
+    // 7. น้ำมันเครื่องพ่นยา / สูบน้ำ
+    // =========================================================================
+    function renderFuel(data) {
+      document.getElementById("td-fuel").innerHTML = `
+        <div class="td-sec-hd">
+          <span class="td-sec-title">น้ำมัน <span class="td-sec-cnt">ค่าประมาณ</span></span>
+        </div>
+        <div class="td-card">
+          ${data.fuel.map(f => {
+            const key = "fl:" + f.id;
+            const open = STATE.openKey === key;
+            return `
+              <div class="td-row ${f.warn ? "warn" : ""}">
+                <button type="button" class="td-row-main" onclick="toggleKey('${key}')">
+                  <span class="td-row-l">
+                    <span class="td-row-n">⛽ ${esc(f.title)}</span>
+                    <span class="td-row-s">${esc(f.short)}</span>
+                    ${f.warn ? `<span class="td-row-warn">${esc(f.warn)}</span>` : ""}
+                  </span>
+                </button>
+                ${open ? `
+                  <div class="td-inline">
+                    <div class="td-inline-txt">${esc(f.detail)}</div>
+                    <div class="td-btn-grp">
+                      <button type="button" class="td-btn-main" onclick="toast('เปิดแชตจดเติมน้ำมัน')">+ จดเติมน้ำมัน</button>
+                    </div>
+                  </div>
+                ` : ""}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 8. รอตัดฤดูนี้
+    // =========================================================================
+    function renderNearCut(data) {
+      const list = data.plots
+        .filter(p => !p.harvested && p.id !== "P10")
+        .map(p => ({ ...p, ripe: p.age_days >= (p.type === "อ้อยใหม่" ? 300 : 330) }))
+        .sort((a, b) => b.age_days - a.age_days);
+
+      const oldest = list[0];
+      const ripeCnt = list.filter(x => x.ripe).length;
+
+      document.getElementById("td-nearcut").innerHTML = `
+        <div class="td-sec-hd">
+          <span class="td-sec-title">รอตัดฤดูนี้</span>
+        </div>
+        <div class="td-card">
+          ${!STATE.cutAll ? `
+            <div class="td-row">
+              <button type="button" class="td-row-main" onclick="STATE.cutAll=true;renderAll()">
+                <span class="td-row-l">
+                  <span class="td-row-n">${list.length} แปลง · ${ripeCnt ? `ครบตัด ${ripeCnt} แปลง` : "ยังไม่มีแปลงครบตัด"}</span>
+                  <span class="td-row-s">แก่สุด ${esc(oldest.name)} ${ageTxt(oldest.age_days)}</span>
+                </span>
+                <span style="color:var(--td-muted);font-weight:700">›</span>
+              </button>
+            </div>
+          ` : `
+            ${list.map(p => `
+              <div class="td-row">
+                <button type="button" class="td-row-main" onclick="toast('ดูแปลง: ${esc(p.name)}')">
+                  <span class="td-row-l">
+                    <span class="td-row-n">${esc(p.name)}</span>
+                    <span class="td-row-s">${esc(p.type)} · ${p.rai} ไร่</span>
+                  </span>
+                  <span style="text-align:right;font-size:14px;font-weight:700">${ageTxt(p.age_days)}</span>
+                </button>
+              </div>
+            `).join("")}
+            <div class="td-row">
+              <button type="button" class="td-row-main" style="justify-content:center;color:var(--td-green);font-weight:700" onclick="STATE.cutAll=false;renderAll()">ย่อรายการ</button>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 9. ตรวจข้อมูลอัตโนมัติ
+    // =========================================================================
+    function renderDataCheck(data) {
+      const hasErr = data.dq_issues.length > 0;
+      document.getElementById("td-datacheck").innerHTML = `
+        <div class="td-sec-hd">
+          <span class="td-sec-title">ตรวจข้อมูล</span>
+        </div>
+        <div class="td-card ${hasErr ? "td-card-warn" : ""}">
+          <div class="td-4l">
+            <div class="td-4l-k">ตรวจอัตโนมัติทุกครั้งที่เปิดหน้านี้</div>
+            <div class="td-4l-h ${hasErr ? "warn" : "ok"}">${hasErr ? `ควรเช็ก ${data.dq_issues.length} จุด` : "✓ ไม่พบจุดผิด"}</div>
+            <div class="td-4l-b">ตรวจ 30 วันล่าสุดเรียบร้อย</div>
+            <div class="td-4l-n">บันทึกซ้ำ · งานค้างนาน · ลงวันข้างหน้า · น้ำมันไม่มีงานฉีด · สต็อกติดลบ · ดาวเทียมแห้งลงไม่มีบันทึก</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 10. เมนูล่าง 5 ปุ่มหน้าตาเดียวกัน
+    // =========================================================================
+    function renderNav() {
+      const tabs = [
+        { k: "today", t: "วันนี้", ic: "☀" },
+        { k: "plots", t: "แปลง", ic: "▤" },
+        { k: "log", t: "บันทึกงาน", ic: "✎" },
+        { k: "fleet", t: "รถ/คน", ic: "⛟" },
+        { k: "stock", t: "สต็อก", ic: "◫" }
+      ];
+      document.getElementById("td-nav").innerHTML = tabs.map(tb => `
+        <button type="button" class="td-nav-btn ${STATE.activeTab === tb.k ? "on" : ""}" onclick="STATE.activeTab='${tb.k}';renderNav();toast('หน้า${tb.t}')">
+          <span style="font-size:18px;line-height:1">${tb.ic}</span>
+          <span>${tb.t}</span>
+        </button>
+      `).join("");
+    }
+
+    // =========================================================================
+    // ปัดซ้ายขวาเปลี่ยนเดือน & กดค้างลากย้ายวันบนปฏิทิน
+    // =========================================================================
+    function initCalGestures() {
+      let sw = null, timer = null, sx = 0, sy = 0;
+
+      document.addEventListener("touchstart", e => {
+        const t = e.touches[0];
+        if (e.target.closest("#td-cal-swipe")) sw = { x: t.clientX, y: t.clientY };
+        const item = e.target.closest(".td-cal-item[data-drag-id]");
+        if (item) {
+          sx = t.clientX; sy = t.clientY;
+          timer = setTimeout(() => {
+            timer = null;
+            const gh = document.createElement("div");
+            gh.className = "td-ghost";
+            gh.textContent = item.dataset.dragLb;
+            document.body.appendChild(gh);
+            item.classList.add("lift");
+            STATE.drag = { type: item.dataset.dragType, id: item.dataset.dragId, lb: item.dataset.dragLb, gh, item, to: "" };
+            gh.style.transform = `translate(${Math.max(8, sx - 120)}px, ${sy - 70}px)`;
+          }, 400);
+        }
+      }, { passive: true });
+
+      document.addEventListener("touchmove", e => {
+        const t = e.touches[0];
+        if (timer && (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8)) {
+          clearTimeout(timer); timer = null;
+        }
+        if (STATE.drag) {
+          e.preventDefault();
+          const D = STATE.drag;
+          D.gh.style.transform = `translate(${Math.max(8, t.clientX - 120)}px, ${t.clientY - 70}px)`;
+          D.gh.style.display = "none";
+          const el = document.elementFromPoint(t.clientX, t.clientY);
+          D.gh.style.display = "";
+          document.querySelectorAll(".td-cal-c.drop").forEach(c => c.classList.remove("drop"));
+          const cell = el && el.closest(".td-cal-c");
+          if (cell && cell.dataset.iso !== STATE.calSel) {
+            cell.classList.add("drop");
+            D.to = cell.dataset.iso;
+          } else {
+            D.to = "";
+          }
+        }
+      }, { passive: false });
+
+      document.addEventListener("touchend", e => {
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (STATE.drag) {
+          const D = STATE.drag;
+          STATE.drag = null;
+          D.gh.remove();
+          D.item.classList.remove("lift");
+          document.querySelectorAll(".td-cal-c.drop").forEach(c => c.classList.remove("drop"));
+          if (D.to) {
+            if (D.type === "rem") {
+              const r = DATA.reminders.find(x => x.rem_id === D.id);
+              if (r) r.date = D.to;
+            } else if (D.type === "act") {
+              const a = DATA.month_activities.find(x => x.id === D.id);
+              if (a) a.d = D.to;
+            } else if (D.type === "note") {
+              const n = DATA.notes.find(x => x.note_id === D.id);
+              if (n) n.d = D.to;
+            }
+            STATE.calSel = D.to;
+            toast(`ย้าย "${D.lb}" ไปวันที่ ${D.to.slice(8)} แล้ว`);
+            renderAll();
+          }
+          return;
+        }
+        if (sw) {
+          const t = e.changedTouches[0];
+          const dx = t.clientX - sw.x, dy = t.clientY - sw.y;
+          sw = null;
+          if (Math.abs(dx) > 60 && Math.abs(dy) < 50) moveCal(dx < 0 ? 1 : -1);
+        }
+      });
+    }
+
+    function renderAll() {
+      renderHeader(DATA);
+      renderWeatherSugar(DATA);
+      renderQuestions(DATA);
+      renderUrgent(DATA);
+      renderCalendar(DATA);
+      renderGuards(DATA);
+      renderFuel(DATA);
+      renderNearCut(DATA);
+      renderDataCheck(DATA);
+      renderNav();
+    }
+
+    initCalGestures();
+    renderAll();
+  </script>
+</body>
+</html>

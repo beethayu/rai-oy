@@ -5729,7 +5729,7 @@
         today: todayISO(),
         plots: (gData.plots || []).map(p => { const og = chOg(p.plot_id); return { id: p.plot_id, name: p.plot_name, loc: plotLoc(p.plot_name), type: p.cane_type, rai: p.area_rai, plant: p.plant_date, water: p.last_water_date || '', tags: p.tags || '', ongoing: og ? og.activity_group + ' · ' + og.activity_detail : '', watch: (gData.watches || []).filter(w => w.plot_id === p.plot_id).map(w => w.reason + (w.note ? ' (' + w.note + ')' : '')).join(', '), last: (l => l ? l.activity_group + ' · ' + l.activity_detail + ' · ' + l.timestamp : '')(chCancelLogs(p.plot_id, 'last')[0]) }; }),
         workers: O.Worker || [], tractors: O.Tractor || [], trucks: O.Truck || [], pumps: O.Pump || [],
-        chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
+        chems: (gData.inventory || []).filter(i => i.category === 'Chemical').map(i => ({ name: i.name, unit: i.unit, pack: (num(i.pack_size) > 1 ? i.pack_size + ' ' + i.unit + '/' + (i.pack_name || '') : ''), stock_packs: Math.round(num(i.stock) / (num(i.pack_size) || 1) * 10) / 10, per_tank: num(i.per_tank) || 0, note: String(i.note || '').slice(0, 80) })),
         vehicles: (gData.assets || []).filter(a => a.category && a.category !== 'Worker').map(a => ({ name: a.name, cat: a.category, plate: a.plate || '', trailer: a.trailer_plate || '', reg: beToISO(a.reg_expire), regTrailer: beToISO(a.trailer_reg_expire) })),
         flow: chatFlow(),
         fuel: fuelTeams().map(t => fuelBal(t)).filter(Boolean).map(b => ({ team: b.team.join(' + '), text: fuelLine(b), per_day_l: r1(b.perDay), warn: b.st })),
@@ -6093,6 +6093,12 @@
         it.gid = it.gid || 'G' + Date.now();
         if (it.action === 'stop') return (it.plots || []).length || it.area ? (it.plots = it.plots || [], it) : null;
       }
+      if (it.type === 'stock_in' || it.type === 'stock_count') { // ซื้อยาที่มีอยู่แล้ว / ยอดเหลือจริง (23 พ.ย. 69)
+        const iv = invItem(String(it.name || '').trim()); if (!iv) return null;
+        it.name = iv.name; it.packs = num(it.packs); it.ps = num(iv.pack_size) || 1; it.unit = iv.unit; it.pack_name = iv.pack_name || 'หน่วย';
+        it.date = it.date || todayISO(); it.cur = num(iv.stock);
+        return it.packs > 0 || (it.type === 'stock_count' && it.packs === 0) ? it : null;
+      }
       if (it.type === 'soil_check') {
         it.plots = (it.plots || []).filter(chPlot); if (!it.plots.length && it.area) it.plots = (gData.plots || []).filter(p => plotLoc(p.plot_name) === it.area).map(p => p.plot_id);
         it.date = it.date || todayISO(); it.cid = it.cid || 'C' + Date.now() + Math.random().toString(36).slice(2, 5);
@@ -6198,6 +6204,7 @@
           if (a.action === 'stop') chGuards(a).forEach(g => ops.push({ fn: 'guardend', guard_id: g.guard_id, end: isoToBE(a.date || todayISO()) }));
           else ops.push({ fn: 'guard', id: a.gid, p: { start: isoToBE(a.date || todayISO()), part: a.part, workers: (a.workers || []).join(', '), plot_ids: a.plots.join(','), area: a.area || '', note: a.note || '' } });
         }
+        else if (a.type === 'stock_count' || a.type === 'stock_in') ops[a.type === 'stock_count' ? 'unshift' : 'push']({ fn: 'stock', mode: a.type === 'stock_count' ? 'set' : 'in', name: a.name, qty: Math.round(a.packs * a.ps * 100) / 100, date: a.date, note: a.type === 'stock_count' ? 'ยอดเหลือจริง (แชต)' : 'ซื้อเพิ่ม (แชต)' });
         else if (a.type === 'soil_check') ops.push({ fn: 'soilchk', id: a.cid, p: { area: a.area || plotLoc((chPlot(a.plots[0]) || {}).plot_name || ''), plot_ids: a.plots, state: a.state, date: a.date, model_pct: a.model_pct, note: a.note || '' } });
         else if (a.type === 'note' && (a.replace && ops.push({ fn: 'notedel', id: a.replace }), true)) for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
@@ -6257,6 +6264,13 @@
           + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+      } else if (it.type === 'stock_in' || it.type === 'stock_count') {
+        const f = n => (Math.round(n * 10) / 10).toLocaleString('th-TH'), cnt = it.type === 'stock_count';
+        const pre = cnt ? 0 : ((chat.msgs[mi] || {}).items || []).filter(x => x.type === 'stock_count' && x.name === it.name).reduce((a, x) => a + x.packs * x.ps, 0);
+        const before = cnt ? it.cur : (pre || it.cur), after = cnt ? it.packs * it.ps : before + it.packs * it.ps;
+        h = `<div class="ch-t">${cnt ? '⚖️ ยอดที่เหลือจริง' : '📥 ซื้อเข้าสต็อก'} · ${esc(it.name)}</div>` + row(cnt ? 'เหลือ' : 'ซื้อมา', `${f(it.packs)} ${it.pack_name}`, 'name')
+          + row('ยอดหลังบันทึก', `${f(after / it.ps)} ${it.pack_name} (${f(after)} ${it.unit})`)
+          + (cnt && Math.abs(it.cur - after) >= it.ps * 0.5 ? `<div class="ch-cn">ในแอปมี ${f(it.cur / it.ps)} ${it.pack_name} → ปรับเป็น ${f(it.packs)}</div>` : '');
       } else if (it.type === 'soil_check') {
         h = `<div class="ch-t">🟫 ผลดูดินหน้างาน</div>` + row('พื้นที่', it.area || pn(it.plots)) + row('สภาพ', it.state) + row('วันที่', dt(it.date))
           + (it.model_pct !== undefined ? `<div class="ch-cn">แอปคำนวณไว้ ~${it.model_pct}% · จดไว้ใช้ปรับตัวคิด และแชตจะเชื่อผลหน้างานนี้ 3 วัน (ถ้าไม่มีฝนเพิ่ม)</div>` : '');

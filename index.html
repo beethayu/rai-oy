@@ -1137,6 +1137,41 @@
     .rtag, .ltag, .ch-chip { min-height: 44px; }
     .filter-chip { height: 44px; }
     .cal-nav { width: 44px; height: 44px; }
+    /* ===== ผังงาน (23 พ.ย. 69 · ลองกับอ้อยตอ 14 วัน แทนคู่มือ) ===== */
+    .fc-pick { display: flex; gap: 8px; align-items: center; margin: 2px 0 8px; }
+    .fc-pick select { flex: 1; min-height: 48px; font-size: 16px; font-weight: 600; border: 1.5px solid #1F5E3B; border-radius: 12px; padding: 0 12px; background: #fff; color: #1F2A24; }
+    .fc-sum { background: #FFF6E5; border: 1.5px solid #E9A23B; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+    .fc-sum b { font-size: 16px; } .fc-sum .fc-dl { font-size: 15px; margin-top: 2px; }
+    .fc-sum button { margin-top: 8px; min-height: 44px; width: 100%; border: 0; border-radius: 12px; background: #B4630B; color: #fff; font-weight: 700; font-size: 16px; }
+    .fc-tog { width: 100%; min-height: 44px; border: 1px solid #DCE3DE; border-radius: 12px; background: #fff; color: #1F5E3B; font-weight: 600; margin-bottom: 6px; }
+    .fc-ph { margin: 14px 0 0; padding: 8px 12px; border-radius: 12px; background: #1F5E3B; color: #fff; }
+    .fc-ph b { font-size: 16px; } .fc-ph span { font-size: 13px; opacity: .9; margin-left: 4px; }
+    .fc-ln { width: 4px; height: 18px; background: #6B8A78; margin: 0 auto; border-radius: 2px; }
+    .fc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fc-par { font-size: 13px; font-weight: 700; color: #2D5F86; text-align: center; margin: 0 0 4px; }
+    .fc-n { position: relative; background: #fff; border: 2px solid #C9D3CC; border-radius: 14px; padding: 9px 11px; cursor: pointer; color: #1F2A24; }
+    .fc-n .t { font-size: 16px; font-weight: 700; line-height: 1.3; }
+    .fc-n .d { font-size: 13px; font-weight: 700; color: #1F5E3B; }
+    .fc-n .w { font-size: 13px; font-weight: 600; }
+    .fc-n .s { font-size: 14px; font-weight: 700; margin-top: 4px; }
+    .fc-n .x { font-size: 14px; color: #3E4A43; margin-top: 6px; border-top: 1px dashed #D6DDD8; padding-top: 6px; }
+    .fc-n.done { background: #E7F4EB; border-color: #1F7A45; } .fc-n.done .s { color: #1F7A45; }
+    .fc-n.due, .fc-n.ask { background: #FFF6E5; border-color: #E9A23B; border-width: 3px; } .fc-n.due .s, .fc-n.ask .s { color: #9A4A06; }
+    .fc-n.skip, .fc-n.hold { background: #F2F4F3; border-style: dashed; opacity: .55; } .fc-n.skip .t { text-decoration: line-through; }
+    .fc-n.nolog { background: #F7F3EA; border-style: dashed; border-color: #B9A77E; } .fc-n.nolog .s { color: #7A6A45; }
+    .fc-n.none .s { color: #8A938D; } .fc-n.wait .s { color: #5E6A63; }
+    .fc-n.note { border-style: dashed; background: #FBFAF5; padding: 7px 11px; } .fc-n.note .t { font-size: 15px; }
+    .fc-q { border: 2px solid #8E6BAF; border-radius: 16px; padding: 8px; background: #F7F2FA; }
+    .fc-q > .fc-n { border-color: #8E6BAF; }
+    .fc-opt { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: start; margin-top: 8px; }
+    .fc-opt > span { font-size: 14px; font-weight: 700; color: #5B2B78; background: #fff; border: 1.5px solid #B79BC6; border-radius: 10px; padding: 8px 6px; text-align: center; }
+    .fc-opt.on > span { background: #6B2E86; color: #fff; border-color: #6B2E86; } .fc-opt.off { opacity: .45; }
+    .fc-opt .fc-n + .fc-n { margin-top: 6px; }
+    .fc-ans { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .fc-ans button { min-height: 44px; flex: 1 1 auto; border: 1.5px solid #6B2E86; background: #fff; color: #5B2B78; border-radius: 10px; font-weight: 700; }
+    .fc-ans button.on { background: #6B2E86; color: #fff; }
+    .fc-alt { display: block; text-align: center; margin: 14px 0 4px; color: #5E6A63; font-size: 14px; text-decoration: underline; }
+
   </style>
 </head>
 <body>
@@ -7676,6 +7711,73 @@ Export.table.toDrive({
       });
       return segs;
     }
+    // ===== 🗺️ ผังงาน (23 พ.ย. 69) แทนคู่มือ เฉพาะอ้อยตอก่อน ลอง 14 วัน (รีวิว Gemini + Claude) =====
+    // วาดเองจากขั้นตอน (gdRows) ไม่มีตำแหน่งตายตัว: แก้ขั้นตอนในแอป ผังตามเอง · สถานะแปลง = flStat ชุดเดียวกับหน้า "วันนี้"
+    // กติกาจัดผัง: ขั้นที่ช่วงวันซ้อนกันและไม่ต่อจากกัน วางคู่ (ไม่เกิน 2 ช่อง) · คำถามที่มีทางแยก = กล่องม่วง + แถวต่อคำตอบ · ไม่ซูม ไม่มีเส้นเล็ก
+    let fcPid = '', fcList = false, fcStage = false;
+    function fcHtml(steps) {
+      const plots = flPlots(flKey).slice().sort((a, b) => String(a.plot_name).localeCompare(String(b.plot_name), 'th'));
+      const p = plots.find(x => x.plot_id === fcPid) || null;
+      let h = `<div class="fc-pick"><select onchange="fcPid=this.value;gdOpen={};flRender();setTimeout(fcGoDue,60)"><option value="">📖 ดูผังรวม (ยังไม่เลือกแปลง)</option>${plots.map(x => { const c = flCtx(x); return `<option value="${x.plot_id}"${x.plot_id === fcPid ? ' selected' : ''}>${esc(x.plot_name)}${c ? ` · ${c.ctx.pre ? 'รื้อตอ' : (c.ctx.age < 0 ? 'อีก ' + -c.ctx.age : c.ctx.age) + ' วัน'}` : ''}</option>`; }).join('')}</select></div>`;
+      if (p) {
+        const c = flCtx(p), due = flDue(p), ask = flAsks(p), ph = c && !c.ctx.pre ? FL_PH[flPhase(c.ctx.age)] : null;
+        const list = due.map(x => x.n).concat(ask.map(x => '❓ ' + x.n));
+        h += `<div class="fc-sum"${list.length ? '' : ' style="background:#EEF5F0;border-color:#9BC7AE"'}><b>${esc(p.plot_name)}</b> · ${c ? (c.ctx.pre ? 'รอรื้อตอ' : `${flBase()}มา ${c.ctx.age} วัน${ph ? ' · ' + ph[1] : ''}`) : ''}
+          <div class="fc-dl">${list.length ? `<b>ถึงคิว:</b> ${esc(list.join(' · '))}` : 'ตอนนี้ไม่มีงานถึงคิว'}</div>${list.length ? `<button type="button" onclick="fcGoDue()">ไปจุดถึงคิว ↓</button>` : ''}</div>`;
+      }
+      h += `<button type="button" class="fc-tog" onclick="fcStage=!fcStage;flRender()">${fcStage ? 'ซ่อนรูประยะอ้อย ▴' : 'ดูรูประยะอ้อย ▾'}</button>${fcStage ? flStageHtml(true) : ''}`;
+      const segs = gdRows(steps), qid = s => steps.some(x => x.w && x.w.a === s.id) ? s.id : '';
+      const win = it => { const s = it.s; return s.af ? null : [s.f, s.t]; };
+      segs.forEach(sg => {
+        const P = FL_PH[sg.ph];
+        h += `<div class="fc-ph" data-gph="${sg.ph}"><b>${P[1]}</b><span>${P[2]}</span></div>`;
+        const used = new Set(), blocks = [];
+        sg.items.forEach((it, i) => {
+          if (used.has(it)) return; used.add(it);
+          const q = qid(it.s);
+          if (q) { // คำถามแยกทาง: เก็บขั้นที่ขึ้นกับคำตอบนี้ (ทั้งระยะ) มาไว้ใต้คำถาม
+            const kids = sg.items.filter(x => x.s.w && x.s.w.a === q); kids.forEach(x => used.add(x));
+            blocks.push({ q: it, kids }); return;
+          }
+          if (it.s.w && it.s.w.a) { blocks.push({ one: it }); return; } // ทางแยกที่คำถามอยู่ระยะอื่น
+          const a = win(it), nx = sg.items.slice(i + 1).find(x => !used.has(x));
+          const b = nx && !qid(nx.s) && !(nx.s.w && nx.s.w.a) && nx.s.k !== 'note' && it.s.k !== 'note' ? win(nx) : null;
+          if (a && b && a[0] <= b[1] && b[0] <= a[1]) { used.add(nx); blocks.push({ two: [it, nx] }); return; }
+          blocks.push({ one: it });
+        });
+        blocks.forEach((bk, i) => {
+          if (i) h += '<div class="fc-ln"></div>';
+          else h += '<div class="fc-ln" style="height:10px"></div>';
+          if (bk.one) h += fcNode(bk.one, p);
+          else if (bk.two) h += `<div class="fc-par">ทำพร้อมกันได้</div><div class="fc-row">${fcNode(bk.two[0], p, 1)}${fcNode(bk.two[1], p, 1)}</div>`;
+          else {
+            const s = bk.q.s, r = p ? flStat(s, p) : null, av = r && r.a ? r.a.v : '';
+            h += `<div class="fc-q">${fcNode(bk.q, p)}${s.o.map(o => {
+              const kids = bk.kids.filter(x => String(x.s.w.v).split(',').includes(o.v));
+              return `<div class="fc-opt${av ? (av === o.v ? ' on' : ' off') : ''}"><span>${esc(o.l)}</span><div>${kids.length ? kids.map(x => fcNode(x, p, 1)).join('') : '<div class="srow-s" style="padding-top:8px">ไปขั้นถัดไป</div>'}</div></div>`;
+            }).join('')}</div>`;
+          }
+        });
+      });
+      h += `<a href="#" class="fc-alt" onclick="event.preventDefault();fcList=true;flRender()">ดูแบบรายการเดิม</a>`;
+      return h;
+    }
+    function fcNode(it, p, sm) {
+      const s = it.s, C = FL_CAT[it.cat], k = 'fc' + flKey + s.id, open = gdOpen[k];
+      const r = p ? flStat(s, p) : null, st = r ? (s.k === 'note' ? 'note' : r.st) : (s.k === 'note' ? 'note' : '');
+      const stTxt = r && r.txt ? (st === 'due' ? '● ' : st === 'ask' ? '' : '') + r.txt : '';
+      let x = '';
+      if (open) {
+        x = [it.extra, it.note, it.real ? `ฤดูนี้ไร่ทำจริง ${it.real.t} · ${it.real.n} แปลง` : ''].filter(Boolean).map(t => `<div>${esc(t)}</div>`).join('');
+        if (p && s.k === 'ask' && s.o.length && r && r.st !== 'hold') { const raw = flAnsRaw(p.plot_id)[s.id], cur = raw && raw.v; x += `<div class="fc-ans">${s.o.map(o => `<button type="button" class="${cur === o.v ? 'on' : ''}" onclick="event.stopPropagation();flAnswer('${p.plot_id}','${qa(s.id)}','${cur === o.v ? '' : qa(o.v)}')">${cur === o.v ? '✓ ' : ''}${esc(o.l)}</button>`).join('')}</div>`; }
+        x = x ? `<div class="x">${x}</div>` : '';
+      }
+      return `<div class="fc-n ${st}" data-fc="${st}" onclick="gdOpen['${qa(k)}']=!gdOpen['${qa(k)}'];flRender()">
+        <div class="t">${esc(s.n)}</div>${it.day ? `<div class="d">${it.day}</div>` : ''}${it.who && !sm ? `<div class="w" style="color:${C[1]}">${esc(it.who)}</div>` : ''}${s.k === 'ask' && s.q && s.o.length && !steps_hasKids(s) ? `<div class="w" style="color:#6B2E86">❓ ${esc(s.q)} (${esc(s.o.map(o => o.l).join(' / '))})</div>` : ''}
+        ${stTxt && st !== 'note' ? `<div class="s">${esc(stTxt)}</div>` : st === 'note' && r && r.txt ? `<div class="s" style="color:#5E6A63">${esc(r.txt)}</div>` : ''}${x}</div>`;
+    }
+    const steps_hasKids = s => flGet(flKey).some(x => x.w && x.w.a === s.id);
+    function fcGoDue() { const el = document.querySelector('#flow-body .fc-n.due, #flow-body .fc-n.ask'); if (el) flScrollTo(el); }
     function gdHtml(steps) {
       const segs = gdRows(steps);
       let h = `<div class="gd-top">ลำดับงาน${flKey}ทั้งฤดู · <b>วันที่ = นับจากวัน${flBase()}</b>${flKey === 'อ้อยใหม่' ? ' (วันทอยอ้อย = วันที่ 0)' : ' (วันตัดเสร็จ = วันที่ 0)'} · แตะข้อ = อ่านเต็ม</div>${flStageHtml(1)}`;
@@ -7766,8 +7868,8 @@ Export.table.toDrive({
       const B = $('flow-body'); if (!B) return;
       const steps = flGet(flKey), plots = flPlots(flKey);
       let h = `<div class="sat-seg mt-0">${['อ้อยใหม่', 'อ้อยตอ'].map(k => `<button type="button" class="${k === flKey ? 'on' : ''}" onclick="flKey='${k}';flOpen=-1;flEdit=-1;gdExp=null;flRender()">${k === 'อ้อยใหม่' ? '🌱 อ้อยใหม่' : '🌿 อ้อยตอ'}</button>`).join('')}</div>
-        <div class="fl-vw">${[['guide', '📖 คู่มือ'], ['plots', '🗂️ แปลงของเรา']].map(v => `<button type="button" class="${flView === v[0] ? 'on' : ''}" onclick="flView='${v[0]}';gdExp=null;flRender();$('flow-body').scrollTop=0">${v[1]}</button>`).join('')}</div>`;
-      if (flView === 'guide') { B.innerHTML = h + gdHtml(steps); return; }
+        <div class="fl-vw">${[['guide', flKey === 'อ้อยตอ' && !fcList ? '🗺️ ผังงาน' : '📖 คู่มือ'], ['plots', '🗂️ แปลงของเรา']].map(v => `<button type="button" class="${flView === v[0] ? 'on' : ''}" onclick="flView='${v[0]}';gdExp=null;flRender();$('flow-body').scrollTop=0">${v[1]}</button>`).join('')}</div>`;
+      if (flView === 'guide') { B.innerHTML = h + (flKey === 'อ้อยตอ' && !fcList ? fcHtml(steps) : gdHtml(steps) + (flKey === 'อ้อยตอ' ? `<a href="#" class="fc-alt" onclick="event.preventDefault();fcList=false;flRender()">ดูแบบผังงาน</a>` : '')); return; }
       h += `${flStageHtml()}${flJobsHtml(steps)}<div class="srow-s mb-2">${plots.length} แปลง · นับวันจากวัน${flKey === 'อ้อยใหม่' ? 'ปลูก' : 'ตัด'} · แตะขั้น = ดูรายแปลง / ตอบ / แก้ · แตะแถบระยะ = พับ/กาง</div>`;
       let skip = []; try { skip = JSON.parse(lsGet('raioy_flskip') || '[]'); } catch (e) {}
       const miss = flRow(flKey) ? flDef(flKey).filter(d => { const s = steps.find(x => x.id === d.id); return (!s || (d.rev || 0) > (s.rev || 0)) && !skip.includes(flKey + d.id + (d.rev || '')); }) : [];

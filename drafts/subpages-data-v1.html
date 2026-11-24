@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1F5E3B" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>ดาวเทียม · น้ำในดิน · ฝนประจำพื้นที่ — ไร่อ้อย 281 ไร่</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== ภาษาภาพและตัวแปรชุดเดียวกับหน้าวันนี้ v5 และหน้าแปลง v1 ===== */
+    :root {
+      --brand: #1F5E3B;
+      --brand-dark: #15452A;
+      --brand-soft: #E8F3EC;
+      --brand-mid: #A8CBB5;
+      --bg: #F4F5F1;
+      --surface: #FFFFFF;
+      --surface-note: #EEF4F0;
+      --ink: #16241B;
+      --ink-2: #46594E;
+      --ink-3: #6D7B72;
+      --line: #B8C6BC;
+      --line-soft: #D3DDD6;
+      --border: #DCE3DC;
+      --ask: #6D28D9;
+      --ask-soft: #F3EEFF;
+      --ask-border: #C4B5FD;
+      --due: #C2410C;
+      --due-soft: #FFF1E6;
+      --due-border: #FDBA74;
+      --danger: #B91C1C;
+      --danger-soft: #FEF2F2;
+      --danger-border: #FECACA;
+      --nolog-bg: #F6EFE0;
+      --nolog-ink: #7A5919;
+      --nolog-border: #E6D2A2;
+      --brown-ink: #6B3410;
+      --water: #0369A1;
+      --water-soft: #E0F2FE;
+      --water-border: #BAE6FD;
+      --cut: #15803D;
+      --car: #B45309;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+      --shadow-md: 0 4px 12px rgba(20, 46, 30, 0.09), 0 1px 3px rgba(20, 46, 30, 0.04);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.sun-boost {
+      --border: #B2C1B5;
+      --ink-2: #2A3C31;
+      --ink-3: #45594E;
+      --shadow: 0 1px 3px rgba(10, 26, 16, 0.14);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* iPhone: html และ body ไม่เลื่อน */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.42;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    /* ช่องพิมพ์ 16px เสมอ กัน iPhone ซูม */
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* กรอบจอ iPhone 390x844 */
+    .phone-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 440px) and (min-height: 700px) {
+      .phone-frame {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        width: 390px;
+        height: min(844px, calc(100dvh - 24px));
+        border-radius: 34px;
+        border: 1px solid #CFD8D0;
+        box-shadow: 0 22px 60px rgba(20, 46, 30, 0.14), 0 4px 14px rgba(20, 46, 30, 0.06);
+      }
+    }
+
+    .safe-top-bar {
+      height: var(--safe-top);
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+
+    /* ===== หัวหน้าย่อยตระกูล v5 (แถบเขียว #1F5E3B · ‹ ย้อนกลับ · ชื่อขาวตัวหนา · ไม่มี ✕ ไม่มีอีโมจิ) ===== */
+    .app-green-bar {
+      position: relative;
+      z-index: 40;
+      background: var(--brand);
+      color: #FFFFFF;
+      padding: 7px 12px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      flex-shrink: 0;
+    }
+
+    .subpage-bar-row {
+      display: grid;
+      grid-template-columns: minmax(82px, auto) 1fr minmax(36px, auto);
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+    }
+
+    .subpage-back-btn {
+      justify-self: start;
+      height: 34px;
+      padding: 0 10px 0 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .subpage-back-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .subpage-title {
+      margin: 0;
+      font-size: 16.5px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #FFFFFF;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subpage-right {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .green-hdr-btn {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.14);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .green-hdr-btn.is-icon {
+      width: 34px;
+      padding: 0;
+    }
+
+    .green-hdr-btn.is-sun-on {
+      background: #FEF3C7;
+      border-color: #FCD34D;
+      color: #92400E;
+    }
+
+    /* แถบสลับหน้าหลักในก้อน 2 (ดาวเทียม / น้ำในดิน) ซ่อนเมื่อเข้าหน้ารายละเอียด */
+    .top-mode-dock {
+      background: var(--bg);
+      padding: 9px 14px 4px;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(31, 94, 59, 0.08);
+    }
+
+    .top-mode-dock.is-hidden {
+      display: none;
+    }
+
+    /* ===== โครงสลับหน้าและกล่องเลื่อนหลักใต้ safe-top ===== */
+    .views-stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-scroll {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding: 10px 14px calc(var(--safe-bottom) + 24px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: var(--bg);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
+    }
+
+    .page-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page-scroll > * {
+      flex-shrink: 0;
+    }
+
+    .page-scroll.is-inactive {
+      display: none;
+    }
+
+    /* ===== ชิ้นส่วน v5 เดิมที่ใช้ซ้ำตรงตัว ===== */
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+      padding: 0 2px;
+    }
+
+    .sec-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .sec-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .sec-head-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .sec-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #E5ECE6;
+      color: var(--brand-dark);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .sec-badge.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .sec-badge.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .sec-badge.is-muted {
+      background: #EAEFE9;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    .sec-toggle-btn {
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sec-toggle-btn:active {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    /* Segmented Control (v5 exact classes) */
+    .seg-bar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      padding: 3px;
+      background: #E5EBE6;
+      border-radius: 11px;
+    }
+
+    .seg-bar.is-3col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .seg-btn {
+      height: 34px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+      white-space: nowrap;
+      padding: 0 4px;
+    }
+
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(20, 46, 30, 0.1);
+    }
+
+    .seg-cnt {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+
+    .seg-btn.active .seg-cnt {
+      color: var(--brand);
+    }
+
+    /* KPI 3 ช่อง (plots-gemini-v1) */
+    .kpi-3-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .kpi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      box-shadow: var(--shadow);
+      padding: 10px 8px 9px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .kpi-box:active {
+      transform: scale(0.97);
+    }
+
+    .kpi-box.is-due {
+      border-color: var(--due-border);
+      background: #FFFEFC;
+    }
+
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    .kpi-val.is-ok { color: var(--brand); }
+    .kpi-val.is-due { color: var(--due); }
+    .kpi-val.is-muted { color: var(--ink-3); }
+
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    /* Grouped Card & Status Row (v5 exact classes) */
+    .grouped-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .status-row {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      position: relative;
+    }
+
+    .status-row + .status-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .status-row.is-clickable {
+      cursor: pointer;
+    }
+
+    .status-row.is-clickable:active {
+      background: #F7FAF7;
+    }
+
+    .status-row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-icon-box.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .status-icon-box.is-water {
+      background: var(--water-soft);
+      color: var(--water);
+    }
+
+    .status-icon-box.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .status-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .status-sub {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 2px;
+      line-height: 1.34;
+    }
+
+    .chev {
+      color: var(--ink-3);
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+
+    /* ป้ายสถานะ .st-pill */
+    .st-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.35;
+    }
+
+    .st-pill.done {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .st-pill.due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .st-pill.danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .st-pill.muted {
+      background: #EDF2EE;
+      color: var(--ink-2);
+    }
+
+    /* ปุ่มเล็ก .task-inline-btn */
+    .task-inline-btn {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #F6F8F6;
+      color: var(--ink);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .task-inline-btn:active {
+      transform: scale(0.96);
+    }
+
+    .task-inline-btn.is-doing {
+      border-color: var(--brand-mid);
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .task-inline-btn.is-water {
+      border-color: var(--water-border);
+      background: var(--water-soft);
+      color: var(--water);
+    }
+
+    /* การ์ดเตือน/สรุป 4 ชั้น (.task-card) */
+    .task-card {
+      width: 100%;
+      padding: 11px 12px 11px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .task-card.st-watch {
+      border-left-color: var(--due);
+      background: #FFFDF8;
+      border-color: var(--due-border);
+      border-left-width: 4px;
+    }
+
+    .task-card.st-ok {
+      border-left-color: var(--brand);
+      background: var(--surface);
+    }
+
+    .task-card.st-note {
+      border-left-color: var(--water);
+      background: #F5FAFF;
+      border-color: var(--water-border);
+      border-left-width: 4px;
+    }
+
+    .an-l1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+      line-height: 1.3;
+    }
+
+    .an-l2 {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .an-l2.is-due { color: var(--due); }
+    .an-l2.is-ok { color: var(--brand-dark); }
+    .an-l2.is-water { color: var(--water); }
+
+    .an-l3 {
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.38;
+    }
+
+    .an-l3 strong {
+      font-weight: 700;
+    }
+
+    .an-l4 {
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.36;
+      margin-top: 1px;
+    }
+
+    /* ===== ชิ้นเฉพาะก้อน 2 (เข้าชุด v5 เป๊ะ) ===== */
+
+    /* 2a: ภาพย่อดาวเทียมในแถว status-row (แทน status-icon-box ขอบมน 10px) */
+    .sat-thumb {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      border: 1px solid #D5E0D7;
+      background: #EEF3EE;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sat-thumb svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .row-right-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    /* 2b: กล่องภาพแปลงดาวเทียมใหญ่ + แถบเลือกวันปุ่ม 44px */
+    .sat-viewer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .sat-canvas-wrap {
+      position: relative;
+      background: #1C2B20;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 204px;
+    }
+
+    .sat-north-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(22, 36, 27, 0.72);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 8px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .sat-compare-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .sat-compare-pane {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sat-compare-tag {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.14);
+      padding: 1px 8px;
+      border-radius: 999px;
+    }
+
+    .sat-scale-bar {
+      padding: 8px 12px;
+      background: #F8FAF8;
+      border-top: 1px solid #E9EFEA;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--ink-2);
+    }
+
+    .sat-scale-items {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scale-dot-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+
+    .scale-sw {
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* แถบเลือกวัน ‹ 21 พ.ย. › (ปุ่ม 44px) */
+    .date-stepper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-top: 1px solid #E9EFEA;
+      background: var(--surface);
+    }
+
+    .step-nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: #F6F8F6;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .step-nav-btn:active:not(:disabled) {
+      transform: scale(0.95);
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .step-nav-btn:disabled {
+      opacity: 0.38;
+      cursor: default;
+    }
+
+    .date-stepper-mid {
+      text-align: center;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .date-stepper-main {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .date-stepper-sub {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin-top: 1px;
+    }
+
+    /* กล่องกราฟ (2b, 2c, 2d) */
+    .chart-card-body {
+      padding: 11px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+
+    .chart-leg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+    }
+
+    /* 2c: ป้ายดินทราย / แอ่ง + แถบระดับน้ำในดิน + กางในที่ */
+    .info-card-pad {
+      padding: 11px 13px;
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    .info-card-pad p {
+      margin: 0;
+    }
+
+    .info-card-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.38;
+    }
+
+    .soil-plot-acc + .soil-plot-acc {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .soil-plot-head {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .soil-plot-head:active {
+      background: #F8FAF8;
+    }
+
+    .soil-plot-left {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .soil-name-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .soil-plot-name {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.28;
+    }
+
+    .soil-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 6px;
+      border-radius: 5px;
+      line-height: 1.55;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+    }
+
+    .soil-tag.is-sand {
+      background: var(--nolog-bg);
+      color: var(--nolog-ink);
+      border: 1px dashed var(--nolog-border);
+    }
+
+    .soil-tag.is-basin {
+      background: var(--water-soft);
+      color: var(--water);
+    }
+
+    .soil-bar-track {
+      width: 100%;
+      max-width: 175px;
+      height: 6px;
+      border-radius: 999px;
+      background: #E8EDE9;
+      overflow: hidden;
+    }
+
+    .soil-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .soil-bar-fill.is-ok { background: var(--brand); }
+    .soil-bar-fill.is-due { background: var(--due); }
+    .soil-bar-fill.is-danger { background: var(--danger); }
+
+    .soil-plot-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .soil-mm-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .soil-mm-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
+      line-height: 1.2;
+    }
+
+    .soil-plot-acc.is-open .soil-chev {
+      transform: rotate(180deg);
+    }
+
+    .soil-plot-body {
+      border-top: 1px solid #EAEFEA;
+      background: #FAFBF9;
+      padding: 11px 12px 12px;
+      display: none;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .soil-plot-acc.is-open .soil-plot-body {
+      display: flex;
+    }
+
+    .soil-facts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .soil-btn-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .soil-btn-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* 2c: การ์ดลองสมมติฝน */
+    .sim-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sim-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink-2);
+      margin-bottom: 5px;
+    }
+
+    .sim-days-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .sim-day-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sim-day-field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+
+    .sim-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .sim-num-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 34px 0 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .sim-num-input:focus {
+      border-color: var(--brand);
+    }
+
+    .sim-unit {
+      position: absolute;
+      right: 8px;
+      font-size: 11.5px;
+      color: var(--ink-3);
+      pointer-events: none;
+    }
+
+    .sim-preset-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .mini-chip {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #F6F8F6;
+      color: var(--ink-2);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .mini-chip:active {
+      background: var(--brand-soft);
+      border-color: var(--brand-mid);
+      color: var(--brand-dark);
+    }
+
+    .sim-result-box {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--surface-note);
+      border: 1px solid #C6D8CC;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .sim-result-box.is-warn {
+      background: #FFFDF8;
+      border-color: var(--due-border);
+    }
+
+    /* 2d: ชิปพื้นที่เลื่อนซ้ายขวา + ชิปรายปี + ตารางอายุอ้อย */
+    .zone-chip-scroll {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin: 0 -14px;
+      padding: 2px 14px;
+    }
+
+    .zone-chip-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .zone-filter-chip {
+      height: 34px;
+      padding: 0 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-2);
+      font-size: 13.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .zone-filter-chip.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .year-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .year-chip {
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 8px;
+      background: #F2F5F2;
+      border: 1px solid #E2E9E3;
+      color: var(--ink);
+    }
+
+    .age-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .age-table th {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-3);
+      text-align: left;
+      padding: 9px 10px 8px;
+      background: #F7F9F7;
+      border-bottom: 1px solid #E8EEE9;
+      vertical-align: bottom;
+      line-height: 1.25;
+    }
+
+    .age-table th:not(:first-child),
+    .age-table td:not(:first-child) {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .age-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid #EEF2EE;
+      vertical-align: top;
+      font-size: 13.5px;
+    }
+
+    .age-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .age-plot-name {
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      line-height: 1.28;
+    }
+
+    .age-plant-sub {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+
+    .age-val {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .age-val.is-danger { color: var(--danger); }
+    .age-val.is-due { color: var(--due); }
+    .age-val.is-ok { color: var(--ink); }
+
+    .table-foot-note {
+      padding: 9px 12px 11px;
+      background: #FAFBF9;
+      border-top: 1px solid #EAEFEA;
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.42;
+    }
+
+    .bar-hit {
+      cursor: pointer;
+    }
+
+    /* Toast (v5 exact classes) */
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 18px);
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 9px 15px;
+      border-radius: 999px;
+      z-index: 2300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+      max-width: 356px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 6px 20px rgba(16, 32, 22, 0.26);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" id="phoneFrame">
+    <div class="safe-top-bar"></div>
+
+    <!-- หัวหน้าต่างตระกูล v5: แถบเขียว #1F5E3B · ‹ ย้อนกลับซ้าย · ชื่อหน้าขาวตัวหนา · ไม่มี ✕ ไม่มีอีโมจิ -->
+    <header class="app-green-bar">
+      <div class="subpage-bar-row">
+        <button type="button" class="subpage-back-btn" id="btnHeaderBack" aria-label="ย้อนกลับ">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span id="headerBackLabel">แปลง</span>
+        </button>
+        <h1 class="subpage-title" id="headerTitle">ดาวเทียมรายแปลง</h1>
+        <div class="subpage-right">
+          <button type="button" class="green-hdr-btn is-icon" id="btnSunToggle" title="โหมดกลางแดดจัด" aria-label="สลับโหมดกลางแดดจัด">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- แถบสลับ 2 หน้าหลักในไฟล์เดียว (ดาวเทียม / น้ำในดิน) — ซ่อนเมื่อเปิดหน้ารายละเอียด -->
+    <div class="top-mode-dock" id="topModeDock">
+      <div class="seg-bar" role="tablist" aria-label="สลับหน้าข้อมูลไร่">
+        <button type="button" class="seg-btn active" data-root-tab="sat" role="tab" aria-selected="true">
+          <span>ดาวเทียม</span>
+          <span class="seg-cnt tabular">6 ดู</span>
+        </button>
+        <button type="button" class="seg-btn" data-root-tab="soil" role="tab" aria-selected="false">
+          <span>น้ำในดิน</span>
+          <span class="seg-cnt tabular">25 แปลง</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- พื้นที่เลื่อนหลักใต้ safe-top + หัวเขียว -->
+    <main class="views-stage">
+      <!-- ==================== 2a: ดาวเทียมรายแปลง (รายการ) ==================== -->
+      <section class="page-scroll" id="viewSatList" aria-label="ดาวเทียมรายแปลง">
+        <!-- กล่องตัวเลข 3 ช่อง -->
+        <div class="kpi-3-grid tabular">
+          <button type="button" class="kpi-box" id="kpiSatOk">
+            <span class="kpi-val is-ok">19</span>
+            <span class="kpi-label">ปกติ</span>
+          </button>
+          <button type="button" class="kpi-box is-due" id="kpiSatWatch">
+            <span class="kpi-val is-due">6</span>
+            <span class="kpi-label">ควรไปดู</span>
+          </button>
+          <div class="kpi-box" style="cursor:default;">
+            <span class="kpi-val is-muted">0</span>
+            <span class="kpi-label">ไม่มีภาพใหม่</span>
+          </div>
+        </div>
+
+        <!-- การ์ดรอบภาพล่าสุด + ปุ่มเล็ก ดูบนแผนที่ -->
+        <div class="grouped-card">
+          <div class="status-row">
+            <div class="status-row-left">
+              <span class="status-icon-box is-ok" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/></svg>
+              </span>
+              <div class="status-info">
+                <div class="status-title tabular">ภาพล่าสุด 21 พ.ย. 69</div>
+                <div class="status-sub tabular">รอบหน้า ~24 พ.ย. (วันนี้) ภาพลงพรุ่งนี้เช้า · ถ้าไม่มีเมฆ</div>
+              </div>
+            </div>
+            <button type="button" class="task-inline-btn is-doing" id="btnSatOpenMap">ดูบนแผนที่</button>
+          </div>
+        </div>
+
+        <!-- ส่วนที่ 1: ควรไปดู (6) -->
+        <div id="secSatWatchWrap">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ควรไปดู</h2>
+              <span class="sec-badge is-due tabular">6 แปลง</span>
+            </div>
+          </div>
+          <div class="grouped-card" id="satWatchList"></div>
+        </div>
+
+        <!-- ส่วนที่ 2: ปกติ (19) พับ/กางได้ -->
+        <div id="secSatNormalWrap">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ปกติ</h2>
+              <span class="sec-badge is-ok tabular">19 แปลง</span>
+            </div>
+            <div class="sec-head-right">
+              <button type="button" class="sec-toggle-btn" id="btnToggleSatNormal">▾ ย่อ</button>
+            </div>
+          </div>
+          <div class="grouped-card" id="satNormalList"></div>
+        </div>
+      </section>
+
+      <!-- ==================== 2b: ดาวเทียม รายละเอียดแปลง ==================== -->
+      <section class="page-scroll is-inactive" id="viewSatDetail" aria-label="รายละเอียดดาวเทียมรายแปลง">
+        <!-- การ์ดภาพแปลงใหญ่ + แถบเลือกวัน 44px + โหมด 3 ช่อง -->
+        <div class="sat-viewer-card">
+          <div class="sat-canvas-wrap" id="satDetailCanvasWrap">
+            <!-- เติม SVG ภาพแปลงด้วย JS -->
+          </div>
+          <div class="sat-scale-bar">
+            <div class="sat-scale-items" id="satScaleLegend"></div>
+            <span style="color:var(--ink-3);white-space:nowrap;">ไม่นับขอบ 10 ม.</span>
+          </div>
+          <!-- แถบเลือกวัน ‹ 21 พ.ย. › ปุ่ม 44px -->
+          <div class="date-stepper">
+            <button type="button" class="step-nav-btn" id="btnDatePrev" aria-label="ภาพวันก่อนหน้า">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="date-stepper-mid">
+              <div class="date-stepper-main tabular" id="satDateLabel">21 พ.ย. 69</div>
+              <div class="date-stepper-sub" id="satDateSub">ภาพล่าสุด · ฟ้าใส</div>
+            </div>
+            <button type="button" class="step-nav-btn" id="btnDateNext" aria-label="ภาพวันถัดไป">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- โหมดปุ่มแบ่งช่อง: ความเขียว / จุดเปลี่ยน / เทียบก่อน–หลัง -->
+        <div class="seg-bar is-3col" id="satModeBar" role="tablist" aria-label="โหมดภาพดาวเทียม">
+          <button type="button" class="seg-btn active" data-sat-mode="ndvi" role="tab" aria-selected="true">ความเขียว</button>
+          <button type="button" class="seg-btn" data-sat-mode="change" role="tab" aria-selected="false">จุดเปลี่ยน</button>
+          <button type="button" class="seg-btn" data-sat-mode="compare" role="tab" aria-selected="false">เทียบก่อน–หลัง</button>
+        </div>
+
+        <!-- การ์ดสรุป 4 ชั้น -->
+        <div id="satSummaryCardWrap"></div>
+
+        <!-- กราฟความเขียวตามเวลา (จุดกลวง = เมฆ, แท่งฝนใต้กราฟ) -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ความเขียวตามเวลา</h2>
+              <span class="sec-badge is-muted">Sentinel-2</span>
+            </div>
+          </div>
+          <div class="grouped-card">
+            <div class="chart-card-body">
+              <div id="satTrendChartWrap"></div>
+              <div class="chart-legend">
+                <span class="chart-leg-item">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#1F5E3B"/></svg>
+                  ภาพใส
+                </span>
+                <span class="chart-leg-item">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="3.5" fill="#FFFFFF" stroke="#6D7B72" stroke-width="1.8"/></svg>
+                  เมฆ (จุดกลวง)
+                </span>
+                <span class="chart-leg-item">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><rect x="2" y="2" width="6" height="7" rx="1.5" fill="#38BDF8"/></svg>
+                  ฝนรายรอบ
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 2c: น้ำในดิน (ประมาณ) ==================== -->
+      <section class="page-scroll is-inactive" id="viewSoil" aria-label="น้ำในดิน (ประมาณ)">
+        <!-- แบนเนอร์บอกสถานะฤดูกาลครั้งเดียวบนหัว (แทนการเขียนซ้ำ 25 แถว) -->
+        <div class="task-card st-note">
+          <div class="an-l1"><span>ช่วงตัดน้ำก่อนเก็บเกี่ยว · พ.ย.–ธ.ค.</span></div>
+          <div class="an-l2 is-water">ช่วงใกล้ตัด งดให้น้ำ</div>
+          <div class="an-l3"><strong>ยกเว้นอ้อยใหม่อายุ &lt; 6 เดือน</strong> · ดินแห้งลงช่วงนี้เป็นเรื่องปกติ</div>
+        </div>
+
+        <!-- การ์ดอธิบาย + แถวเปิดหน้าฝนประจำพื้นที่ (แทนปุ่มเขียวเต็มความกว้างเดิม) -->
+        <div class="grouped-card">
+          <div class="info-card-pad">
+            <p><strong>ดินเหมือนถังเก็บน้ำ</strong> ฝนกับการขึ้นน้ำเติมถัง อ้อยกับแดดดึงออกทุกวัน ดินทรายถังเล็ก (~45 มม.) ดินทั่วไป (~90 มม.) ฝนที่เกินถังจะไหลออก ซึมลึก หรือขังในจุดที่เป็นแอ่ง</p>
+            <div class="info-card-note">ค่าประมาณจากฝน Open-Meteo + วันขึ้นน้ำ/ฝนตกที่บันทึกในแอป · ดินทรายดูจากป้าย "ทราย" ของแปลง</div>
+          </div>
+          <button type="button" class="status-row is-clickable" id="btnOpenClimate" style="border-top:1px solid #E9EFEA;">
+            <div class="status-row-left">
+              <span class="status-icon-box is-water" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </span>
+              <div class="status-info">
+                <div class="status-title">ฝนรายเดือน · ฝนแรก · น้ำที่อ้อยต้องการ</div>
+                <div class="status-sub">ดูสถิติฝน 2020–2026 และอายุอ้อยตอนเข้าหน้าฝน</div>
+              </div>
+            </div>
+            <span class="chev" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </button>
+        </div>
+
+        <!-- รายการกลุ่มตามพื้นที่ (แตะแถว = กางในที่) -->
+        <div id="soilZonesContainer" style="display:flex;flex-direction:column;gap:14px;"></div>
+
+        <!-- การ์ด ลองสมมติฝน -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ลองสมมติฝน</h2>
+              <span class="sec-badge is-muted">คำนวณสด</span>
+            </div>
+          </div>
+          <div class="grouped-card">
+            <div class="sim-body">
+              <div>
+                <div class="sim-label">ชนิดดิน</div>
+                <div class="seg-bar" id="simSoilBar">
+                  <button type="button" class="seg-btn" data-sim-soil="sand">ดินทราย (~45 มม.)</button>
+                  <button type="button" class="seg-btn active" data-sim-soil="normal">ดินทั่วไป (~90 มม.)</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="sim-label">ระยะอ้อย</div>
+                <div class="seg-bar is-3col" id="simStageBar">
+                  <button type="button" class="seg-btn" data-sim-stage="small">อ้อยเล็ก</button>
+                  <button type="button" class="seg-btn" data-sim-stage="mid">อ้อยกลาง</button>
+                  <button type="button" class="seg-btn active" data-sim-stage="tall">อ้อยโต</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="sim-label">ฝนแต่ละวัน (มม.)</div>
+                <div class="sim-days-grid">
+                  <div class="sim-day-field">
+                    <label for="simDay1">วันนี้</label>
+                    <div class="sim-input-wrap">
+                      <input type="number" id="simDay1" class="sim-num-input tabular" min="0" max="250" value="0" inputmode="numeric" />
+                      <span class="sim-unit">มม.</span>
+                    </div>
+                  </div>
+                  <div class="sim-day-field">
+                    <label for="simDay2">พรุ่งนี้</label>
+                    <div class="sim-input-wrap">
+                      <input type="number" id="simDay2" class="sim-num-input tabular" min="0" max="250" value="15" inputmode="numeric" />
+                      <span class="sim-unit">มม.</span>
+                    </div>
+                  </div>
+                  <div class="sim-day-field">
+                    <label for="simDay3">มะรืนนี้</label>
+                    <div class="sim-input-wrap">
+                      <input type="number" id="simDay3" class="sim-num-input tabular" min="0" max="250" value="0" inputmode="numeric" />
+                      <span class="sim-unit">มม.</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="sim-preset-row" style="margin-top:8px;">
+                  <button type="button" class="mini-chip" data-sim-preset="0,0,0">ไม่ตกเลย</button>
+                  <button type="button" class="mini-chip" data-sim-preset="10,15,5">ฝนปรอย 30 มม.</button>
+                  <button type="button" class="mini-chip" data-sim-preset="45,35,0">ฝนหนัก 80 มม.</button>
+                </div>
+              </div>
+
+              <div class="sim-result-box" id="simResultBox"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 2d: ฝนประจำพื้นที่ ==================== -->
+      <section class="page-scroll is-inactive" id="viewClimate" aria-label="ฝนประจำพื้นที่">
+        <!-- ชิปพื้นที่เลื่อนซ้ายขวา -->
+        <div class="zone-chip-scroll" id="climateZoneChips" role="tablist" aria-label="เลือกพื้นที่ดูสถิติฝน"></div>
+
+        <!-- การ์ด ฝนแรก (เริ่มหน้าฝน) 4 ชั้น -->
+        <div class="grouped-card" id="climateFirstRainCard"></div>
+
+        <!-- ตาราง อายุอ้อยตอนเข้าหน้าฝน -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">อายุอ้อยตอนเข้าหน้าฝน</h2>
+              <span class="sec-badge is-due" id="climAgeBadge">หนองบวบหอม</span>
+            </div>
+          </div>
+          <div class="grouped-card" id="climateAgeTableCard"></div>
+        </div>
+
+        <!-- กราฟแท่ง ฝนเฉลี่ยรายเดือน 2020–2026 -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ฝนเฉลี่ยรายเดือน (มม.)</h2>
+              <span class="sec-badge is-muted tabular" id="climMonthSub">2020–2026 · หนองบวบหอม</span>
+            </div>
+          </div>
+          <div class="grouped-card">
+            <div class="chart-card-body">
+              <div id="climateBarChartWrap"></div>
+              <div class="an-l4 tabular" id="climateBarHint">แตะแท่งแต่ละเดือนเพื่อดูปริมาณฝนเทียบกับน้ำที่อ้อยต้องการ</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ===== ข้อมูลจริงจากบรีฟและภาพหน้าจอ 24 พ.ย. 69 (ไม่แต่งตัวเลขเพิ่ม) ===== */
+      const SAT_DATES = [
+        { label: '21 พ.ย. 69', sub: 'ภาพล่าสุด · ฟ้าใส', cloudy: false, rain: 2 },
+        { label: '16 พ.ย. 69', sub: 'มีเมฆบางส่วน', cloudy: true, rain: 5 },
+        { label: '11 พ.ย. 69', sub: 'ฟ้าใส', cloudy: false, rain: 0 },
+        { label: '6 พ.ย. 69',  sub: 'ฟ้าใส · หลังฝนตก', cloudy: false, rain: 18 },
+        { label: '1 พ.ย. 69',  sub: 'ฟ้าใส', cloudy: false, rain: 4 },
+        { label: '27 ต.ค. 69', sub: 'มีเมฆบางส่วน', cloudy: true, rain: 12 },
+        { label: '22 ต.ค. 69', sub: 'ฟ้าใส', cloudy: false, rain: 8 }
+      ];
+
+      const SAT_WATCH_PLOTS = [
+        { id: 'ktd', name: 'กระถินแดง', weakPct: 19, approxRai: '~3 ไร่', ndvi: 0.64, shape: 'rectA', weakCorner: 'tr', series: [0.64, 0.61, 0.66, 0.69, 0.70, 0.67, 0.72] },
+        { id: 'snj-ki', name: 'สำนักแจง (ขวาใน)', weakPct: 8, approxRai: '~1 ไร่', ndvi: 0.72, shape: 'rectB', weakCorner: 'bl', series: [0.72, 0.69, 0.74, 0.75, 0.76, 0.72, 0.77] },
+        { id: 'nk-kn', name: 'หนองกระทู้ (กล้วย-ใหม่)', weakPct: 20, approxRai: '~0.8 ไร่', ndvi: 0.58, shape: 'rectC', weakCorner: 'tl', series: [0.58, 0.55, 0.60, 0.62, 0.63, 0.60, 0.65] },
+        { id: 'nk-kr', name: 'หนองกระทู้ (ขวาถนน)', weakPct: 17, approxRai: '~1.4 ไร่', ndvi: 0.63, shape: 'rectA', weakCorner: 'br', series: [0.63, 0.60, 0.65, 0.67, 0.68, 0.65, 0.70] },
+        { id: 'nj-big', name: 'หนองจิก (ใหญ่)', weakPct: 12, approxRai: '~1.1 ไร่', ndvi: 0.68, shape: 'rectB', weakCorner: 'tr', series: [0.68, 0.65, 0.70, 0.71, 0.72, 0.68, 0.74] },
+        { id: 'nts-sd', name: 'หนองทิ้งสุ่ม (สะเดา)', weakPct: 18, approxRai: '~2.2 ไร่', ndvi: 0.62, shape: 'rectC', weakCorner: 'br', series: [0.62, 0.59, 0.64, 0.67, 0.68, 0.65, 0.71] }
+      ];
+
+      const SAT_NORMAL_PLOTS = [
+        { id: 'pr', name: 'แปดไร่', ndvi: '0.80', note: 'เขียวเต็มแปลง', shape: 'rectA' },
+        { id: 'yw-tt', name: 'ยายเวียน (ต้นตาล)', ndvi: '0.69', note: 'เขียวดี', shape: 'rectB' },
+        { id: 'yw-mk', name: 'ยายเวียน (มะขาม)', ndvi: '0.73', note: 'เขียวเต็มแปลง', shape: 'rectC' },
+        { id: 'snj-kr', name: 'สำนักแจง (ขวาถนน)', ndvi: '0.80', note: 'เขียวเต็มแปลง', shape: 'rectA' },
+        { id: 'snj-sr', name: 'สำนักแจง (ซ้ายถนน)', ndvi: '0.83', note: 'เขียวเต็มแปลง', shape: 'rectB' },
+        { id: 'snj-si', name: 'สำนักแจง (ซ้ายใน)', ndvi: '0.81', note: 'เขียวเต็มแปลง', shape: 'rectC' },
+        { id: 'nk-kt', name: 'หนองกระทู้ (กล้วย-ตอ)', ndvi: '0.66', note: 'เขียวดี', shape: 'rectA' },
+        { id: 'nk-ki', name: 'หนองกระทู้ (ขวาใน)', ndvi: '0.74', note: 'เขียวเต็มแปลง', shape: 'rectB' },
+        { id: 'nj-sm', name: 'หนองจิก (เล็ก)', ndvi: '0.79', note: 'เขียวเต็มแปลง', shape: 'rectC' },
+        { id: 'nts-90', name: 'หนองทิ้งสุ่ม (90 วา)', ndvi: null, note: 'เขียวเต็มแปลง', shape: 'rectA' },
+        { id: 'nts-my', name: 'หนองทิ้งสุ่ม (แม่ยา)', ndvi: null, note: 'เขียวดี', shape: 'rectB' },
+        { id: 'nts-yd', name: 'หนองทิ้งสุ่ม (ยายดำ)', ndvi: null, note: 'เขียวดี', shape: 'rectC' },
+        { id: 'nts-ks', name: 'หนองทิ้งสุ่ม (ข้างสระ)', ndvi: null, note: 'เขียวดี', shape: 'rectA' },
+        { id: 'nbh-3a', name: 'หนองบวบหอม 3 (แรก)', ndvi: null, note: 'เขียวดี', shape: 'rectB' },
+        { id: 'nbh-3b', name: 'หนองบวบหอม 3 (หลัง)', ndvi: null, note: 'เขียวดี', shape: 'rectC' },
+        { id: 'nbh-2', name: 'หนองบวบหอม 2', ndvi: null, note: 'เขียวดี', shape: 'rectA' },
+        { id: 'nbh-1', name: 'หนองบวบหอม 1', ndvi: null, note: 'เขียวดี', shape: 'rectB' },
+        { id: 'nf-1', name: 'หนองเฝ้า (แปลงบน)', ndvi: null, note: 'เขียวดี', shape: 'rectC' },
+        { id: 'nf-2', name: 'หนองเฝ้า (แปลงล่าง)', ndvi: null, note: 'เขียวดี', shape: 'rectA' }
+      ];
+
+      /* 2c: ข้อมูลน้ำในดินจัดกลุ่มตามพื้นที่ */
+      const SOIL_ZONES = [
+        {
+          id: 'nbh',
+          name: 'หนองบวบหอม',
+          rainMeta: 'ฝน 7 วัน 7 มม. · พยากรณ์ 2 มม.',
+          plots: [
+            { id: 'nbh-3a', name: 'หนองบวบหอม 3 (แรก)', sand: true, basin: true, mm: 11, cap: 45, status: 'danger', statusLabel: 'แห้ง', age: '9 ด.', et: '4.8' },
+            { id: 'nbh-3b', name: 'หนองบวบหอม 3 (หลัง)', sand: true, basin: true, mm: 12, cap: 45, status: 'danger', statusLabel: 'แห้ง', age: '8 ด.', et: '4.9' },
+            { id: 'nbh-2',  name: 'หนองบวบหอม 2', sand: true, basin: false, mm: 13, cap: 45, status: 'due', statusLabel: 'เริ่มแห้ง', age: '8 ด.', et: '4.9' },
+            { id: 'nbh-1',  name: 'หนองบวบหอม 1', sand: true, basin: false, mm: 12, cap: 45, status: 'danger', statusLabel: 'แห้ง', age: '8 ด.', et: '4.8' }
+          ]
+        },
+        {
+          id: 'nts',
+          name: 'หนองทิ้งสุ่ม',
+          rainMeta: 'ฝน 7 วัน 8 มม. · พยากรณ์ 3 มม.',
+          plots: [
+            { id: 'nts-90', name: 'หนองทิ้งสุ่ม (90 วา)', sand: false, basin: false, mm: 31, cap: 90, status: 'due', statusLabel: 'เริ่มแห้ง', age: '8 ด.', et: '5.2' },
+            { id: 'nts-my', name: 'หนองทิ้งสุ่ม (แม่ยา)', sand: false, basin: false, mm: 32, cap: 90, status: 'due', statusLabel: 'เริ่มแห้ง', age: '8 ด.', et: '5.2' },
+            { id: 'nts-sd', name: 'หนองทิ้งสุ่ม (สะเดา)', sand: false, basin: false, mm: 29, cap: 90, status: 'due', statusLabel: 'เริ่มแห้ง', age: '8 ด.', et: '5.2' },
+            { id: 'nts-yd', name: 'หนองทิ้งสุ่ม (ยายดำ)', sand: false, basin: false, mm: 54, cap: 90, status: 'ok', statusLabel: 'ชื้นพอ', age: '8 ด.', et: '5.0' },
+            { id: 'nts-ks', name: 'หนองทิ้งสุ่ม (ข้างสระ)', sand: false, basin: false, mm: 30, cap: 90, status: 'due', statusLabel: 'เริ่มแห้ง', age: '8 ด.', et: '5.2' }
+          ]
+        },
+        {
+          id: 'snj',
+          name: 'สำนักแจง',
+          rainMeta: 'ฝน 7 วัน 7 มม. · พยากรณ์ 2 มม.',
+          plots: [
+            { id: 'snj-sr', name: 'สำนักแจง (ซ้ายถนน)', sand: true, basin: false, mm: 14, cap: 45, status: 'due', statusLabel: 'เริ่มแห้ง', age: '8 ด.', et: '5.0' },
+            { id: 'snj-kr', name: 'สำนักแจง (ขวาถนน)', sand: false, basin: false, mm: 52, cap: 90, status: 'ok', statusLabel: 'ชื้นพอ', age: '8 ด.', et: '5.1' }
+          ]
+        }
+      ];
+
+      /* 2d: ข้อมูลฝนประจำพื้นที่ (ข้อมูลจริงจาก clim.jpg) */
+      const CLIMATE_ZONES = [
+        'หนองบวบหอม', 'หนองทิ้งสุ่ม', 'สำนักแจง', 'กระถินแดง',
+        'หนองกระทู้', 'หนองจิก', 'หนองเฝ้า', 'แปดไร่', 'ยายเวียน'
+      ];
+
+      const CLIMATE_DATA_NBH = {
+        typical: '11 พ.ค.',
+        earliest: '8 เม.ย.',
+        latest: '17 มิ.ย.',
+        years: [
+          '63: 17 มิ.ย.', '64: 8 เม.ย.', '65: 22 เม.ย.',
+          '66: 13 พ.ค.', '67: 11 พ.ค.', '68: 10 พ.ค.', '69: 22 พ.ค.'
+        ],
+        ageRows: [
+          { name: 'หนองบวบหอม 3 (แรก)', basin: true, planted: 'ปลูก 18 ก.พ. 69', firstRain: '2.7 ด.', firstTone: 'danger', sep1: '6.5 ด.', sepTone: 'ok' },
+          { name: 'หนองบวบหอม 3 (หลัง)', basin: true, planted: 'ปลูก 14 มี.ค. 69', firstRain: '1.9 ด.', firstTone: 'danger', sep1: '5.7 ด.', sepTone: 'danger' },
+          { name: 'หนองบวบหอม 2', basin: false, planted: 'ปลูก 14 มี.ค. 69', firstRain: '1.9 ด.', firstTone: 'due', sep1: '5.7 ด.', sepTone: 'due' },
+          { name: 'หนองบวบหอม 1', basin: false, planted: 'ปลูก 18 มี.ค. 69', firstRain: '1.8 ด.', firstTone: 'due', sep1: '5.6 ด.', sepTone: 'due' }
+        ],
+        /* ฝนเฉลี่ยรายเดือน 2020–2026 (ก.ย. = 358 มม. ตามภาพ clim.jpg) */
+        monthly: [
+          { m: 'ม.ค.', mm: 12 }, { m: 'ก.พ.', mm: 18 }, { m: 'มี.ค.', mm: 42 },
+          { m: 'เม.ย.', mm: 88 }, { m: 'พ.ค.', mm: 168 }, { m: 'มิ.ย.', mm: 145 },
+          { m: 'ก.ค.', mm: 156 }, { m: 'ส.ค.', mm: 198 }, { m: 'ก.ย.', mm: 358 },
+          { m: 'ต.ค.', mm: 234 }, { m: 'พ.ย.', mm: 48 }, { m: 'ธ.ค.', mm: 14 }
+        ]
+      };
+
+      /* ===== State ===== */
+      const state = {
+        view: 'sat-list',       // 'sat-list' | 'sat-detail' | 'soil' | 'climate'
+        returnFromSatDetail: 'sat-list',
+        satNormalCollapsed: false,
+        activeSatPlot: SAT_WATCH_PLOTS[0],
+        satDateIdx: 0,
+        satMode: 'ndvi',        // 'ndvi' | 'change' | 'compare'
+        expandedSoilId: 'nts-ks', // กาง "หนองทิ้งสุ่ม (ข้างสระ)" ไว้เป็นตัวอย่าง
+        simSoil: 'normal',      // 'sand' | 'normal'
+        simStage: 'tall',       // 'small' | 'mid' | 'tall'
+        climateZone: 'หนองบวบหอม',
+        selectedMonthIdx: 8,    // ก.ย. 358 มม.
+        sunBoost: false
+      };
+
+      /* ===== Elements ===== */
+      const headerBackLabel = document.getElementById('headerBackLabel');
+      const headerTitle = document.getElementById('headerTitle');
+      const topModeDock = document.getElementById('topModeDock');
+      const viewSatList = document.getElementById('viewSatList');
+      const viewSatDetail = document.getElementById('viewSatDetail');
+      const viewSoil = document.getElementById('viewSoil');
+      const viewClimate = document.getElementById('viewClimate');
+      const toastEl = document.getElementById('toast');
+
+      const CHEV_RIGHT = '<span class="chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+      const CHEV_DOWN = '<span class="chev soil-chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>';
+      const ICO_DROP = '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
+
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+      }
+
+      /* ===== Navigation ===== */
+      function setView(nextView) {
+        state.view = nextView;
+        viewSatList.classList.toggle('is-inactive', nextView !== 'sat-list');
+        viewSatDetail.classList.toggle('is-inactive', nextView !== 'sat-detail');
+        viewSoil.classList.toggle('is-inactive', nextView !== 'soil');
+        viewClimate.classList.toggle('is-inactive', nextView !== 'climate');
+
+        const isRoot = nextView === 'sat-list' || nextView === 'soil';
+        topModeDock.classList.toggle('is-hidden', !isRoot);
+
+        if (nextView === 'sat-list') {
+          headerBackLabel.textContent = 'แปลง';
+          headerTitle.textContent = 'ดาวเทียมรายแปลง';
+        } else if (nextView === 'sat-detail') {
+          headerBackLabel.textContent = state.returnFromSatDetail === 'soil' ? 'น้ำในดิน' : 'ดาวเทียม';
+          headerTitle.textContent = state.activeSatPlot.name;
+          renderSatDetail();
+          viewSatDetail.scrollTop = 0;
+        } else if (nextView === 'soil') {
+          headerBackLabel.textContent = 'แปลง';
+          headerTitle.textContent = 'น้ำในดิน (ประมาณ)';
+        } else if (nextView === 'climate') {
+          headerBackLabel.textContent = 'น้ำในดิน';
+          headerTitle.textContent = 'ฝนประจำพื้นที่';
+          renderClimateView();
+          viewClimate.scrollTop = 0;
+        }
+
+        document.querySelectorAll('[data-root-tab]').forEach((b) => {
+          const isAct = (b.getAttribute('data-root-tab') === 'sat' && nextView === 'sat-list') ||
+                        (b.getAttribute('data-root-tab') === 'soil' && nextView === 'soil');
+          b.classList.toggle('active', isAct);
+          b.setAttribute('aria-selected', String(isAct));
+        });
+      }
+
+      document.getElementById('btnHeaderBack').addEventListener('click', () => {
+        if (state.view === 'sat-detail') {
+          setView(state.returnFromSatDetail);
+        } else if (state.view === 'climate') {
+          setView('soil');
+        } else {
+          showToast('กลับหน้าแปลง (หน้าก่อนหน้า)');
+        }
+      });
+
+      document.querySelectorAll('[data-root-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const tab = btn.getAttribute('data-root-tab');
+          setView(tab === 'soil' ? 'soil' : 'sat-list');
+        });
+      });
+
+      /* ===== 2a: สร้างภาพย่อพิกเซล Sentinel-2 + รายการดาวเทียม ===== */
+      function buildSatPixelSvg(plot, options = {}) {
+        const isBig = Boolean(options.big);
+        const mode = options.mode || 'ndvi';
+        const dateIdx = options.dateIdx || 0;
+        const weakPct = plot.weakPct || 0;
+        const cols = isBig ? 12 : 6;
+        const rows = isBig ? 9 : 5;
+        const cell = isBig ? 18 : 8;
+        const pad = isBig ? 12 : 5;
+        const w = cols * cell + pad * 2;
+        const h = rows * cell + pad * 2;
+
+        let cells = '';
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const x = pad + c * cell;
+            const y = pad + r * cell;
+            /* ตัดมุมให้ดูเป็นรูปแปลงจริง */
+            if (plot.shape === 'rectA' && r === 0 && c === 0) continue;
+            if (plot.shape === 'rectB' && r === rows - 1 && c === cols - 1) continue;
+            if (plot.shape === 'rectC' && r === 0 && c === cols - 1) continue;
+
+            const isEdge = isBig && (r === 0 || r === rows - 1 || c === 0 || c === cols - 1);
+            let fill = '#228B4E';
+
+            if (isEdge) {
+              fill = '#94A39B';
+            } else {
+              /* ตรวจโซนอ่อนตามมุมแปลง */
+              let inWeak = false;
+              if (weakPct > 0) {
+                const thresh = weakPct >= 17 ? 0.45 : 0.34;
+                const nx = c / (cols - 1);
+                const ny = r / (rows - 1);
+                if (plot.weakCorner === 'tr' && nx > (1 - thresh) && ny < thresh + 0.16) inWeak = true;
+                if (plot.weakCorner === 'tl' && nx < thresh && ny < thresh + 0.16) inWeak = true;
+                if (plot.weakCorner === 'br' && nx > (1 - thresh) && ny > (1 - thresh - 0.14)) inWeak = true;
+                if (plot.weakCorner === 'bl' && nx < thresh && ny > (1 - thresh - 0.14)) inWeak = true;
+              }
+
+              const wave = ((r * 7 + c * 13 + dateIdx * 3) % 5);
+              if (mode === 'change') {
+                if (inWeak) fill = wave % 2 === 0 ? '#DC2626' : '#EA580C';
+                else fill = wave === 0 ? '#E2E8E2' : (wave === 1 ? '#CBD8CE' : '#86EFAC');
+              } else {
+                if (inWeak) {
+                  fill = (wave === 0 || wave === 3) ? '#DC2626' : '#F97316';
+                } else {
+                  const greens = ['#166534', '#15803D', '#22C55E', '#1F7A46', '#4ADE80'];
+                  fill = greens[(wave + (dateIdx % 2)) % greens.length];
+                }
+              }
+            }
+            cells += `<rect x="${x}" y="${y}" width="${cell - 1}" height="${cell - 1}" rx="${isBig ? 2.5 : 1.2}" fill="${fill}" />`;
+          }
+        }
+
+        return `<svg viewBox="0 0 ${w} ${h}" width="${isBig ? '100%' : '50'}" style="max-width:${isBig ? '248px' : '50px'};height:auto;" aria-hidden="true">${cells}</svg>`;
+      }
+
+      function renderSatList() {
+        document.getElementById('satWatchList').innerHTML = SAT_WATCH_PLOTS.map((p) => `
+          <button type="button" class="status-row is-clickable" data-open-sat="${p.id}">
+            <div class="status-row-left">
+              <div class="sat-thumb">${buildSatPixelSvg(p)}</div>
+              <div class="status-info">
+                <div class="status-title">${p.name}</div>
+                <div class="status-sub tabular">มีส่วนที่อ่อนกว่าส่วนอื่นราว ${p.weakPct}% ของแปลง</div>
+              </div>
+            </div>
+            <div class="row-right-group">
+              <span class="st-pill due tabular">อ่อน ${p.weakPct}%</span>
+              ${CHEV_RIGHT}
+            </div>
+          </button>
+        `).join('');
+
+        const normalListEl = document.getElementById('satNormalList');
+        normalListEl.classList.toggle('is-hidden', state.satNormalCollapsed);
+        document.getElementById('btnToggleSatNormal').textContent = state.satNormalCollapsed ? '▴ แสดง 19 แปลง' : '▾ ย่อ';
+
+        normalListEl.innerHTML = SAT_NORMAL_PLOTS.map((p) => `
+          <button type="button" class="status-row is-clickable" data-open-sat="${p.id}">
+            <div class="status-row-left">
+              <div class="sat-thumb">${buildSatPixelSvg(p)}</div>
+              <div class="status-info">
+                <div class="status-title">${p.name}</div>
+                <div class="status-sub tabular">${p.ndvi ? `เขียว ${p.ndvi} · ` : ''}${p.note}</div>
+              </div>
+            </div>
+            <div class="row-right-group">
+              <span class="st-pill done">ปกติ</span>
+              ${CHEV_RIGHT}
+            </div>
+          </button>
+        `).join('');
+
+        document.querySelectorAll('[data-open-sat]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const pid = btn.getAttribute('data-open-sat');
+            const found = [...SAT_WATCH_PLOTS, ...SAT_NORMAL_PLOTS].find((x) => x.id === pid);
+            if (!found) return;
+            state.activeSatPlot = found;
+            state.satDateIdx = 0;
+            state.satMode = 'ndvi';
+            state.returnFromSatDetail = 'sat-list';
+            setView('sat-detail');
+          });
+        });
+      }
+
+      document.getElementById('btnToggleSatNormal').addEventListener('click', () => {
+        state.satNormalCollapsed = !state.satNormalCollapsed;
+        renderSatList();
+      });
+
+      document.getElementById('kpiSatWatch').addEventListener('click', () => {
+        document.getElementById('secSatWatchWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      document.getElementById('kpiSatOk').addEventListener('click', () => {
+        if (state.satNormalCollapsed) {
+          state.satNormalCollapsed = false;
+          renderSatList();
+        }
+        document.getElementById('secSatNormalWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      document.getElementById('btnSatOpenMap').addEventListener('click', () => {
+        showToast('เปิดแผนที่ไร่พร้อมชั้นภาพดาวเทียม NDVI');
+      });
+
+      /* ===== 2b: รายละเอียดดาวเทียมรายแปลง ===== */
+      function renderSatDetail() {
+        const p = state.activeSatPlot;
+        const curDate = SAT_DATES[state.satDateIdx];
+        const canvasWrap = document.getElementById('satDetailCanvasWrap');
+
+        if (state.satMode === 'compare') {
+          const prevIdx = Math.min(SAT_DATES.length - 1, state.satDateIdx + 2);
+          canvasWrap.innerHTML = `
+            <span class="sat-north-badge">N ↑</span>
+            <div class="sat-compare-grid">
+              <div class="sat-compare-pane">
+                <span class="sat-compare-tag tabular">ก่อน · ${SAT_DATES[prevIdx].label}</span>
+                ${buildSatPixelSvg(p, { big: true, mode: 'ndvi', dateIdx: prevIdx })}
+              </div>
+              <div class="sat-compare-pane">
+                <span class="sat-compare-tag tabular">ล่าสุด · ${curDate.label}</span>
+                ${buildSatPixelSvg(p, { big: true, mode: 'ndvi', dateIdx: state.satDateIdx })}
+              </div>
+            </div>
+          `;
+        } else {
+          canvasWrap.innerHTML = `
+            <span class="sat-north-badge">N ↑</span>
+            ${buildSatPixelSvg(p, { big: true, mode: state.satMode, dateIdx: state.satDateIdx })}
+          `;
+        }
+
+        /* คำอธิบายสีตามโหมด */
+        const scaleEl = document.getElementById('satScaleLegend');
+        if (state.satMode === 'change') {
+          scaleEl.innerHTML = `
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#DC2626"></span>ลดลงชัด</span>
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#E2E8E2;border:1px solid #C6D0C8"></span>คงที่</span>
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#86EFAC"></span>เขียวขึ้น</span>
+          `;
+        } else {
+          scaleEl.innerHTML = `
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#DC2626"></span>อ่อนมาก</span>
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#F97316"></span>อ่อนกว่า</span>
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#22C55E"></span>ปกติ</span>
+            <span class="scale-dot-item"><span class="scale-sw" style="background:#166534"></span>เขียวดี</span>
+          `;
+        }
+
+        /* แถบเลือกวัน */
+        document.getElementById('satDateLabel').textContent = curDate.label;
+        document.getElementById('satDateSub').textContent = curDate.sub;
+        document.getElementById('btnDatePrev').disabled = state.satDateIdx >= SAT_DATES.length - 1;
+        document.getElementById('btnDateNext').disabled = state.satDateIdx <= 0;
+
+        /* โหมด seg-bar */
+        document.querySelectorAll('#satModeBar [data-sat-mode]').forEach((b) => {
+          const active = b.getAttribute('data-sat-mode') === state.satMode;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-selected', String(active));
+        });
+
+        /* การ์ดสรุป 4 ชั้น */
+        const isWatch = Boolean(p.weakPct);
+        const sumWrap = document.getElementById('satSummaryCardWrap');
+        if (isWatch) {
+          sumWrap.innerHTML = `
+            <div class="task-card st-watch">
+              <div class="an-l1 tabular"><span>ภาพวันที่ ${curDate.label} · ${p.name}</span></div>
+              <div class="an-l2 is-due">
+                <span>ควรไปดูหน้างาน</span>
+                <span class="st-pill due tabular">อ่อน ${p.weakPct}%</span>
+              </div>
+              <div class="an-l3 tabular">อ่อนกว่าส่วนอื่นราว <strong>${p.weakPct}%</strong> · <strong>${p.approxRai}</strong> · ควรไปดูหน้างาน</div>
+              <div class="an-l4">ค่าจาก Sentinel-2 · ไม่นับขอบแปลง 10 ม.</div>
+            </div>
+          `;
+        } else {
+          sumWrap.innerHTML = `
+            <div class="task-card st-ok">
+              <div class="an-l1 tabular"><span>ภาพวันที่ ${curDate.label} · ${p.name}</span></div>
+              <div class="an-l2 is-ok">
+                <span>${p.note}</span>
+                <span class="st-pill done">ปกติ</span>
+              </div>
+              <div class="an-l3 tabular">${p.ndvi ? `ค่าความเขียวเฉลี่ย <strong>${p.ndvi}</strong> · ` : ''}ความเขียวสม่ำเสมอทั่วแปลง ไม่มีจุดอ่อนผิดปกติ</div>
+              <div class="an-l4">ค่าจาก Sentinel-2 · ไม่นับขอบแปลง 10 ม.</div>
+            </div>
+          `;
+        }
+
+        /* กราฟความเขียวตามเวลา (เก่า → ใหม่ จากซ้ายไปขวา) */
+        const valsNewestFirst = p.series || [Number(p.ndvi || 0.78), 0.75, 0.77, 0.76, 0.74, 0.71, 0.73];
+        const pts = [...SAT_DATES].reverse().map((d, i) => ({
+          ...d,
+          origIdx: SAT_DATES.length - 1 - i,
+          v: valsNewestFirst[SAT_DATES.length - 1 - i]
+        }));
+
+        const W = 336, H = 148, padL = 28, padR = 22, padT = 14, padB = 34;
+        const chartW = W - padL - padR;
+        const chartH = H - padT - padB;
+        const minV = 0.45, maxV = 0.90;
+
+        const xAt = (i) => padL + (i / (pts.length - 1)) * chartW;
+        const yAt = (v) => padT + (1 - (v - minV) / (maxV - minV)) * (chartH - 18);
+
+        let gridLines = '';
+        [0.5, 0.7, 0.9].forEach((gv) => {
+          const gy = yAt(gv);
+          gridLines += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="#E6ECE7" stroke-dasharray="3 3" />`;
+          gridLines += `<text x="2" y="${gy + 3.5}" font-size="10" fill="#6D7B72">${gv.toFixed(1)}</text>`;
+        });
+
+        /* แท่งฝนใต้กราฟ */
+        const baseY = H - padB;
+        let rainBars = '';
+        pts.forEach((pt, i) => {
+          const bh = Math.min(26, pt.rain * 1.3);
+          if (bh > 0) {
+            rainBars += `<rect x="${xAt(i) - 7}" y="${baseY - bh}" width="14" height="${bh}" rx="3" fill="#7DD3FC" opacity="0.82" />`;
+          }
+        });
+
+        /* เส้นความเขียวเฉพาะภาพใสเชื่อมต่อเนื่อง */
+        const polyPts = pts.map((pt, i) => `${xAt(i).toFixed(1)},${yAt(pt.v).toFixed(1)}`).join(' ');
+        let dots = '';
+        let xLabels = '';
+        pts.forEach((pt, i) => {
+          const cx = xAt(i);
+          const cy = yAt(pt.v);
+          const isCur = pt.origIdx === state.satDateIdx;
+          if (isCur) {
+            dots += `<line x1="${cx}" y1="${padT}" x2="${cx}" y2="${baseY}" stroke="#1F5E3B" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.55" />`;
+            dots += `<circle cx="${cx}" cy="${cy}" r="8" fill="#1F5E3B" opacity="0.16" />`;
+          }
+          if (pt.cloudy) {
+            dots += `<circle cx="${cx}" cy="${cy}" r="4.2" fill="#FFFFFF" stroke="#6D7B72" stroke-width="2" />`;
+          } else {
+            dots += `<circle cx="${cx}" cy="${cy}" r="4.2" fill="${isCur ? '#C2410C' : '#1F5E3B'}" stroke="#FFFFFF" stroke-width="1.5" />`;
+          }
+          const shortLbl = pt.label.replace(' 69', '');
+          if (i % 2 === 0 || isCur) {
+            xLabels += `<text x="${cx}" y="${H - 12}" text-anchor="middle" font-size="10" font-weight="${isCur ? '700' : '500'}" fill="${isCur ? '#16241B' : '#6D7B72'}">${shortLbl}</text>`;
+          }
+        });
+
+        document.getElementById('satTrendChartWrap').innerHTML = `
+          <svg class="chart-svg" viewBox="0 0 ${W} ${H}" aria-label="กราฟความเขียวตามเวลา">
+            ${gridLines}
+            ${rainBars}
+            <polyline points="${polyPts}" fill="none" stroke="#1F5E3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            ${dots}
+            <line x1="${padL}" y1="${baseY}" x2="${W - padR}" y2="${baseY}" stroke="#D3DDD6" />
+            ${xLabels}
+          </svg>
+        `;
+      }
+
+      document.getElementById('btnDatePrev').addEventListener('click', () => {
+        if (state.satDateIdx < SAT_DATES.length - 1) {
+          state.satDateIdx++;
+          renderSatDetail();
+        }
+      });
+
+      document.getElementById('btnDateNext').addEventListener('click', () => {
+        if (state.satDateIdx > 0) {
+          state.satDateIdx--;
+          renderSatDetail();
+        }
+      });
+
+      document.getElementById('satModeBar').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-sat-mode]');
+        if (!btn) return;
+        state.satMode = btn.getAttribute('data-sat-mode');
+        renderSatDetail();
+      });
+
+      /* ===== 2c: น้ำในดิน (ประมาณ) ===== */
+      function buildSoil3WeekChart(plot) {
+        const cap = plot.cap;
+        const cur = plot.mm;
+        const W = 326, H = 122, padL = 26, padR = 22, padT = 14, padB = 24;
+        const cW = W - padL - padR;
+        const cH = H - padT - padB;
+        const baseY = H - padB;
+
+        /* 8 จุดรอบ 3 สัปดาห์ล่าสุด จบที่ค่าจริงปัจจุบัน cur */
+        const days = ['3 พ.ย.', '6 พ.ย.', '9 พ.ย.', '12 พ.ย.', '15 พ.ย.', '18 พ.ย.', '21 พ.ย.', '24 พ.ย.'];
+        const rain = [4, 18, 6, 0, 0, 5, 2, 0];
+        const irr  = [0, 0, 0, 0, 0, 0, 0, 0];
+        const ratios = [0.68, 0.88, 0.82, 0.66, 0.54, 0.49, 0.41, cur / cap];
+        const vals = ratios.map((r) => Math.max(4, Math.min(cap, Math.round(r * cap))));
+        vals[vals.length - 1] = cur;
+
+        const xAt = (i) => padL + (i / (days.length - 1)) * cW;
+        const yAt = (v) => padT + (1 - v / cap) * cH;
+
+        let bars = '';
+        rain.forEach((rv, i) => {
+          if (rv > 0) {
+            const bh = Math.min(cH * 0.5, (rv / 30) * cH * 0.55);
+            bars += `<rect x="${xAt(i) - 6}" y="${baseY - bh}" width="12" height="${bh}" rx="2.5" fill="#7DD3FC" opacity="0.85" />`;
+          }
+          if (irr[i] > 0) {
+            bars += `<rect x="${xAt(i) + 1}" y="${baseY - 18}" width="8" height="18" rx="2" fill="#1F5E3B" opacity="0.7" />`;
+          }
+        });
+
+        const linePts = vals.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+        const strokeColor = plot.status === 'ok' ? '#1F5E3B' : (plot.status === 'due' ? '#C2410C' : '#B91C1C');
+
+        let labels = '';
+        [0, 3, 5, 7].forEach((idx) => {
+          labels += `<text x="${xAt(idx)}" y="${H - 7}" text-anchor="middle" font-size="9.5" fill="${idx === 7 ? '#16241B' : '#6D7B72'}" font-weight="${idx === 7 ? '700' : '500'}">${days[idx]}</text>`;
+        });
+
+        return `
+          <svg class="chart-svg" viewBox="0 0 ${W} ${H}" aria-label="กราฟน้ำในดิน 3 สัปดาห์">
+            <line x1="${padL}" y1="${padT}" x2="${W - padR}" y2="${padT}" stroke="#CBD8CE" stroke-dasharray="3 3" />
+            <text x="1" y="${padT + 3}" font-size="9.5" fill="#6D7B72">${cap}</text>
+            <line x1="${padL}" y1="${padT + cH / 2}" x2="${W - padR}" y2="${padT + cH / 2}" stroke="#E6ECE7" stroke-dasharray="3 3" />
+            <text x="1" y="${padT + cH / 2 + 3}" font-size="9.5" fill="#6D7B72">${Math.round(cap / 2)}</text>
+            <text x="8" y="${baseY + 3}" font-size="9.5" fill="#6D7B72">0</text>
+            ${bars}
+            <polyline points="${linePts}" fill="none" stroke="${strokeColor}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="${xAt(vals.length - 1)}" cy="${yAt(cur)}" r="4.2" fill="${strokeColor}" stroke="#FFFFFF" stroke-width="1.5" />
+            <line x1="${padL}" y1="${baseY}" x2="${W - padR}" y2="${baseY}" stroke="#D3DDD6" />
+            ${labels}
+          </svg>
+        `;
+      }
+
+      function renderSoilZones() {
+        const container = document.getElementById('soilZonesContainer');
+        container.innerHTML = SOIL_ZONES.map((z) => `
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">${z.name}</h2>
+              </div>
+              <span class="sec-badge is-muted tabular">${z.rainMeta}</span>
+            </div>
+            <div class="grouped-card">
+              ${z.plots.map((p) => {
+                const isOpen = state.expandedSoilId === p.id;
+                const pct = Math.max(8, Math.min(100, Math.round((p.mm / p.cap) * 100)));
+                const pillCls = p.status === 'ok' ? 'done' : (p.status === 'due' ? 'due' : 'danger');
+                const barCls = p.status === 'ok' ? 'is-ok' : (p.status === 'due' ? 'is-due' : 'is-danger');
+                return `
+                  <div class="soil-plot-acc ${isOpen ? 'is-open' : ''}">
+                    <button type="button" class="soil-plot-head" data-toggle-soil="${p.id}" aria-expanded="${isOpen}">
+                      <div class="soil-plot-left">
+                        <div class="soil-name-line">
+                          <span class="soil-plot-name">${p.name}</span>
+                          ${p.sand ? '<span class="soil-tag is-sand">ทราย</span>' : ''}
+                          ${p.basin ? `<span class="soil-tag is-basin">${ICO_DROP} แอ่ง</span>` : ''}
+                        </div>
+                        <div class="soil-bar-track">
+                          <div class="soil-bar-fill ${barCls}" style="width:${pct}%;"></div>
+                        </div>
+                      </div>
+                      <div class="soil-plot-right">
+                        <div class="soil-mm-col">
+                          <span class="st-pill ${pillCls}">${p.statusLabel}</span>
+                          <span class="soil-mm-val tabular">${p.mm} / ${p.cap} มม.</span>
+                        </div>
+                        ${CHEV_DOWN}
+                      </div>
+                    </button>
+                    <div class="soil-plot-body">
+                      ${buildSoil3WeekChart(p)}
+                      <div class="chart-legend">
+                        <span class="chart-leg-item"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="2" y="2" width="6" height="7" rx="1.5" fill="#7DD3FC"/></svg>ฝนตก</span>
+                        <span class="chart-leg-item"><svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5" stroke="#1F5E3B" stroke-width="2.4"/></svg>น้ำในดิน 3 สัปดาห์</span>
+                      </div>
+                      <div class="soil-facts-list">
+                        <div class="an-l3 tabular">ตอนนี้ดินมีน้ำราว <strong>${p.mm} มม.</strong> จากที่เก็บได้ ~${p.cap} มม.</div>
+                        <div class="an-l3 tabular">อ้อยอายุ ${p.age} ใช้น้ำ + แดดระเหย ราว <strong>${p.et} มม./วัน</strong></div>
+                        <div class="an-l4">ช่วงตัดน้ำ 2 เดือนก่อนตัด (พ.ย.–ธ.ค.) ดินแห้งลงเป็นเรื่องปกติ เพื่อเร่งความหวานและให้รถตัดเข้าได้</div>
+                      </div>
+                      <div class="soil-btn-row">
+                        <button type="button" class="task-inline-btn is-water" data-soil-act="waterlog" data-plot-name="${p.name}">จุดน้ำขังบนแผนที่</button>
+                        <button type="button" class="task-inline-btn is-doing" data-soil-act="sat" data-plot-id="${p.id}" data-plot-name="${p.name}">ภาพดาวเทียม</button>
+                        <button type="button" class="task-inline-btn" data-soil-act="waterplan" data-plot-name="${p.name}">แผนน้ำแปลงนี้</button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        container.querySelectorAll('[data-toggle-soil]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-toggle-soil');
+            state.expandedSoilId = state.expandedSoilId === id ? null : id;
+            renderSoilZones();
+          });
+        });
+
+        container.querySelectorAll('[data-soil-act]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const act = btn.getAttribute('data-soil-act');
+            const pName = btn.getAttribute('data-plot-name');
+            const pid = btn.getAttribute('data-plot-id');
+            if (act === 'sat') {
+              const found = [...SAT_WATCH_PLOTS, ...SAT_NORMAL_PLOTS].find((x) => x.id === pid) || { id: pid, name: pName, ndvi: null, note: 'เขียวดี', shape: 'rectA' };
+              state.activeSatPlot = found;
+              state.satDateIdx = 0;
+              state.satMode = 'ndvi';
+              state.returnFromSatDetail = 'soil';
+              setView('sat-detail');
+            } else if (act === 'waterlog') {
+              showToast(`เปิดจุดน้ำขังบนแผนที่ · ${pName}`);
+            } else if (act === 'waterplan') {
+              showToast(`เปิดแผนน้ำแปลงนี้ · ${pName}`);
+            }
+          });
+        });
+      }
+
+      /* ลองสมมติฝน */
+      function updateRainSim() {
+        const cap = state.simSoil === 'sand' ? 45 : 90;
+        const startMm = state.simSoil === 'sand' ? 12 : 30;
+        const etPerDay = state.simStage === 'small' ? 3.2 : (state.simStage === 'mid' ? 4.4 : 5.2);
+        const d1 = Math.max(0, Number(document.getElementById('simDay1').value || 0));
+        const d2 = Math.max(0, Number(document.getElementById('simDay2').value || 0));
+        const d3 = Math.max(0, Number(document.getElementById('simDay3').value || 0));
+
+        let cur = startMm;
+        let overflow = 0;
+        [d1, d2, d3].forEach((r) => {
+          cur = cur + r - etPerDay;
+          if (cur > cap) {
+            overflow += (cur - cap);
+            cur = cap;
+          }
+          if (cur < 0) cur = 0;
+        });
+
+        const endMm = Math.round(cur);
+        const pct = Math.round((endMm / cap) * 100);
+        const box = document.getElementById('simResultBox');
+        const isWarn = overflow > 0 || pct < 30;
+        box.classList.toggle('is-warn', isWarn);
+
+        let headline = 'ดินชื้นกำลังดี';
+        let headlineColor = 'var(--brand-dark)';
+        if (overflow > 0) {
+          headline = `น้ำเกินถัง ~${Math.round(overflow)} มม. (ระวังขังในแอ่ง)`;
+          headlineColor = 'var(--due)';
+        } else if (pct < 30) {
+          headline = 'ดินยังแห้ง (อยู่ต่ำกว่า 30% ของถัง)';
+          headlineColor = 'var(--due)';
+        }
+
+        box.innerHTML = `
+          <div class="an-l1 tabular"><span>ผลจำลองหลัง 3 วัน · ใช้น้ำ ~${etPerDay.toFixed(1)} มม./วัน</span></div>
+          <div class="an-l2" style="color:${headlineColor};">${headline}</div>
+          <div class="an-l3 tabular">น้ำในดินคงเหลือราว <strong>${endMm} มม.</strong> จากถัง ~${cap} มม. (${pct}%) · ฝนรวม ${d1 + d2 + d3} มม.</div>
+        `;
+      }
+
+      document.getElementById('simSoilBar').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-sim-soil]');
+        if (!b) return;
+        state.simSoil = b.getAttribute('data-sim-soil');
+        document.querySelectorAll('#simSoilBar .seg-btn').forEach((el) => el.classList.toggle('active', el === b));
+        updateRainSim();
+      });
+
+      document.getElementById('simStageBar').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-sim-stage]');
+        if (!b) return;
+        state.simStage = b.getAttribute('data-sim-stage');
+        document.querySelectorAll('#simStageBar .seg-btn').forEach((el) => el.classList.toggle('active', el === b));
+        updateRainSim();
+      });
+
+      ['simDay1', 'simDay2', 'simDay3'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', updateRainSim);
+      });
+
+      document.querySelectorAll('[data-sim-preset]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const [v1, v2, v3] = btn.getAttribute('data-sim-preset').split(',');
+          document.getElementById('simDay1').value = v1;
+          document.getElementById('simDay2').value = v2;
+          document.getElementById('simDay3').value = v3;
+          updateRainSim();
+        });
+      });
+
+      document.getElementById('btnOpenClimate').addEventListener('click', () => {
+        setView('climate');
+      });
+
+      /* ===== 2d: ฝนประจำพื้นที่ ===== */
+      function renderClimateView() {
+        const chipsEl = document.getElementById('climateZoneChips');
+        chipsEl.innerHTML = CLIMATE_ZONES.map((z) => `
+          <button type="button" class="zone-filter-chip ${state.climateZone === z ? 'active' : ''}" data-clim-zone="${z}" role="tab" aria-selected="${state.climateZone === z}">${z}</button>
+        `).join('');
+
+        chipsEl.querySelectorAll('[data-clim-zone]').forEach((b) => {
+          b.addEventListener('click', () => {
+            state.climateZone = b.getAttribute('data-clim-zone');
+            renderClimateView();
+          });
+        });
+
+        const zName = state.climateZone;
+        document.getElementById('climAgeBadge').textContent = zName;
+        document.getElementById('climMonthSub').textContent = `2020–2026 · ${zName}`;
+
+        const d = CLIMATE_DATA_NBH;
+        document.getElementById('climateFirstRainCard').innerHTML = `
+          <div class="info-card-pad">
+            <div class="an-l1"><span>ฝนแรก (เริ่มหน้าฝน) · ${zName}</span></div>
+            <div class="an-l2 is-ok tabular" style="margin-top:2px;">ปกติมาราว ${d.typical}</div>
+            <div class="an-l3 tabular" style="margin-top:2px;">เร็วสุด <strong>${d.earliest}</strong> · ช้าสุด <strong>${d.latest}</strong></div>
+            <div class="year-chips-wrap tabular">
+              ${d.years.map((y) => `<span class="year-chip">${y}</span>`).join('')}
+            </div>
+            <div class="an-l4" style="margin-top:8px;">นับวันแรกตั้งแต่ เม.ย. ที่ฝนรวม 10 วันถึง 50 มม.</div>
+          </div>
+        `;
+
+        /* ตารางอายุอ้อยตอนเข้าหน้าฝน */
+        const rowsHtml = zName === 'หนองบวบหอม'
+          ? d.ageRows.map((r) => `
+              <tr>
+                <td>
+                  <div class="age-plot-name">
+                    <span>${r.name}</span>
+                    ${r.basin ? `<span class="soil-tag is-basin">${ICO_DROP} แอ่ง</span>` : ''}
+                  </div>
+                  <div class="age-plant-sub tabular">${r.planted}</div>
+                </td>
+                <td><span class="age-val is-${r.firstTone} tabular">${r.firstRain}</span></td>
+                <td><span class="age-val is-${r.sepTone} tabular">${r.sep1}</span></td>
+              </tr>
+            `).join('')
+          : `
+              <tr>
+                <td colspan="3" style="color:var(--ink-2);padding:14px 12px;">
+                  ตัวอย่างข้อมูลอายุอ้อยชุดเต็มแสดงที่พื้นที่ <strong>หนองบวบหอม</strong> (แตะชิป "หนองบวบหอม" ด้านบนเพื่อดูครบ 4 แปลง)
+                </td>
+              </tr>
+            `;
+
+        document.getElementById('climateAgeTableCard').innerHTML = `
+          <table class="age-table">
+            <thead>
+              <tr>
+                <th>แปลง</th>
+                <th>ฝนแรก<br>~${d.typical}</th>
+                <th>1 ก.ย.<br>(ฝนหนัก)</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+          <div class="table-foot-note">
+            สีส้ม/แดง = อายุน้อยกว่า 3 ด. ตอนฝนแรก หรือน้อยกว่า 6 ด. ตอน ก.ย. (แดง = แปลงน้ำขังง่าย) · อ้อยช่วงงอก แตกกอ ย่างปล้องช่วงแรก ถ้าน้ำท่วมยอด 2–5 วัน ตายได้ราวครึ่ง
+          </div>
+        `;
+
+        /* กราฟแท่ง ฝนเฉลี่ยรายเดือน 2020–2026 */
+        const W = 336, H = 166, padL = 10, padR = 10, padT = 22, padB = 26;
+        const cW = W - padL - padR;
+        const cH = H - padT - padB;
+        const baseY = H - padB;
+        const maxMm = 380;
+        const barSlot = cW / d.monthly.length;
+        const barW = Math.floor(barSlot - 6);
+        const needY = baseY - (135 / maxMm) * cH;
+
+        let barsSvg = '';
+        d.monthly.forEach((item, idx) => {
+          const bh = Math.max(4, (item.mm / maxMm) * cH);
+          const bx = padL + idx * barSlot + (barSlot - barW) / 2;
+          const by = baseY - bh;
+          const isSel = idx === state.selectedMonthIdx;
+          const isHeavy = item.mm >= 200;
+          const fill = isSel ? '#1F5E3B' : (isHeavy ? '#0369A1' : '#7DD3FC');
+          barsSvg += `
+            <g class="bar-hit" data-month-idx="${idx}">
+              <rect x="${bx}" y="${by}" width="${barW}" height="${bh}" rx="4" fill="${fill}" />
+              ${(isSel || item.mm === 358) ? `<text x="${bx + barW / 2}" y="${by - 5}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${isSel ? '#15452A' : '#0369A1'}">${item.mm}</text>` : ''}
+              <text x="${bx + barW / 2}" y="${H - 8}" text-anchor="middle" font-size="9.5" font-weight="${isSel ? '700' : '500'}" fill="${isSel ? '#16241B' : '#6D7B72'}">${item.m}</text>
+            </g>
+          `;
+        });
+
+        document.getElementById('climateBarChartWrap').innerHTML = `
+          <svg class="chart-svg" viewBox="0 0 ${W} ${H}" aria-label="กราฟแท่งฝนเฉลี่ยรายเดือน">
+            <line x1="${padL}" y1="${needY}" x2="${W - padR}" y2="${needY}" stroke="#C2410C" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.72" />
+            <text x="${padL + 2}" y="${needY - 4}" font-size="9.5" font-weight="700" fill="#C2410C">~135 มม.</text>
+            ${barsSvg}
+            <line x1="${padL}" y1="${baseY}" x2="${W - padR}" y2="${baseY}" stroke="#D3DDD6" />
+          </svg>
+          <div class="chart-legend" style="margin-top:4px;">
+            <span class="chart-leg-item"><svg width="14" height="8" viewBox="0 0 14 8"><line x1="0" y1="4" x2="14" y2="4" stroke="#C2410C" stroke-width="1.6" stroke-dasharray="3 2"/></svg>น้ำที่อ้อยต้องการ ~135 มม./เดือน</span>
+          </div>
+        `;
+
+        const curM = d.monthly[state.selectedMonthIdx];
+        document.getElementById('climateBarHint').innerHTML = `เดือน <strong>${curM.m}</strong> ฝนเฉลี่ยราว <strong>${curM.mm} มม.</strong> (${curM.mm >= 135 ? 'เกินน้ำที่อ้อยต้องการ · ระวังจุดน้ำขัง' : 'ต่ำกว่าน้ำที่อ้อยต้องการ'})`;
+
+        document.querySelectorAll('#climateBarChartWrap [data-month-idx]').forEach((g) => {
+          g.addEventListener('click', () => {
+            state.selectedMonthIdx = Number(g.getAttribute('data-month-idx'));
+            renderClimateView();
+          });
+        });
+      }
+
+      /* ===== โหมดกลางแดดจัด ===== */
+      const btnSunToggle = document.getElementById('btnSunToggle');
+      btnSunToggle.addEventListener('click', () => {
+        state.sunBoost = !state.sunBoost;
+        document.body.classList.toggle('sun-boost', state.sunBoost);
+        btnSunToggle.classList.toggle('is-sun-on', state.sunBoost);
+        showToast(state.sunBoost ? 'เปิดโหมดกลางแดดจัด' : 'ปิดโหมดกลางแดดจัด');
+      });
+
+      /* ===== เริ่มต้น ===== */
+      renderSatList();
+      renderSoilZones();
+      updateRainSim();
+      setView('sat-list');
+    })();
+  </script>
+</body>
+</html>

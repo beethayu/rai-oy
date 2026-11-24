@@ -2718,6 +2718,31 @@
 
 .pl5 #dsAna>.vh-k{display:none}.pl5 #dsAna .vh-rows{margin:0;border:0}
 #dosBody.pl5{background:#F4F5F1;padding:12px 14px 28px!important;color:#16241B;font-size:15px}
+/* หัว/เนื้อหน้าต่าง v5: ดาวเทียม · น้ำในดิน · ฝน (แบบ Gemini drafts/subpages-data-v1.html · 24 พ.ย. 69) */
+.v5h .modal-header{justify-content:space-between;gap:8px}.v5h .modal-header .btn-close{display:none}
+.v5h .modal-header .modal-title{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:70px}
+.v5h .mb-back{display:inline-flex;align-items:center;flex:none;border:0;background:rgba(255,255,255,.16);color:#fff;font-weight:600;font-size:14px;line-height:1.4;border-radius:9px;padding:4px 10px 4px 6px;margin:0;white-space:nowrap;min-width:70px}
+.v5h .mb-back+.modal-title{margin-right:70px}
+.v5h .modal-body{background:#F4F6F3}
+.v5b{display:flex;flex-direction:column;gap:10px}
+.v5b .v5-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.v5b .v5-kpi .kpi-box{background:#fff;border:1px solid var(--border);border-radius:14px;padding:9px 6px;text-align:center;font-size:13px;font-weight:600;color:var(--ink-2)}
+.v5b .v5-kpi .kpi-box b{display:block;font-size:26px;line-height:1.15;color:var(--ink)}
+.v5b .v5-kpi .kpi-box.is-due{border:1.5px solid var(--due-border);background:#FFF8F1}.v5b .v5-kpi .kpi-box.is-due b{color:var(--due)}
+.v5b .v5-sh{margin:6px 0 -2px}
+.v5b .status-row{width:100%;text-align:left;border:0;background:none;color:inherit}
+.v5b .v5-th{width:44px;height:44px;border-radius:10px;background:#EEF2EE;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.v5b .v5-th img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.v5h .st-pill.done{background:var(--brand-soft);color:var(--brand-dark)}.v5h .st-pill.due{background:var(--due-soft);color:var(--due)}.v5h .st-pill.muted{background:#EEF2EE;color:var(--ink-2)}
+.v5h .chev{color:var(--ink-3);display:inline-flex;flex:none}
+#soil-body .srow-h{color:var(--ink);font-size:14px;margin:16px 2px 6px}
+#soil-body .sw-card,#clim-body .sw-card{border-color:var(--border);box-shadow:0 1px 2px rgba(20,46,30,.06)}
+#soil-body .sw-intro{background:#fff;padding-bottom:0}
+#soil-body .v5-clim{margin:10px -14px 0;width:calc(100% + 28px);border:0;border-top:1px solid #E9EFEA;border-radius:0 0 14px 14px;background:none;padding:11px 14px;text-align:left;color:inherit}
+#soil-body .v5-ban{background:#EFF6FB;border-color:#CFE3F1}
+#soil-body .v5-l1{font-size:12px;font-weight:600;color:var(--ink-3)}#soil-body .v5-l2{font-size:16px;font-weight:700;color:#1F6FB2;line-height:1.35}#soil-body .v5-l3{font-size:13.5px;color:var(--ink)}
+#soil-body .sw-r{align-items:flex-end;gap:3px}#soil-body .sw-r .st-pill{font-weight:700}
+#soil-body .sw-bar{height:6px;max-width:220px}
 /* แผนที่ไร่ v5 (แบบ Gemini drafts/subpages-map-v1.html · 24 พ.ย. 69) */
 .fm5{--brand:#1F5E3B;--brand-dark:#15452A;--brand-soft:#E8F3EC;--ink:#16241B;--ink-2:#4B5A51;--ink-3:#7A867F;--surface:#FFFFFF;--border:#DCE5DE;--shadow:0 1px 2px rgba(20,46,30,.06);--due:#C2410C;--due-soft:#FFF1E6;--due-border:#FBD3B5;--water:#0369A1;--water-soft:#E0F2FE;--radius:14px}
 .fm5 .fm5-back{display:inline-flex;align-items:center;border:0;background:rgba(255,255,255,.16);color:#fff;font-weight:600;font-size:14px;border-radius:9px;padding:4px 10px 4px 6px;white-space:nowrap;min-width:70px}
@@ -3566,14 +3591,14 @@
     </div>
   </div>
 
-  <div class="modal fade" id="climModal" tabindex="-1">
+  <div class="modal fade v5h" id="climModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
-          <h6 class="modal-title">📊 ฝนประจำพื้นที่</h6>
+          <h6 class="modal-title">ฝนประจำพื้นที่</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3 mbody" id="clim-body"></div>
+        <div class="modal-body p-3 mbody td5" id="clim-body"></div>
       </div>
     </div>
   </div>
@@ -3613,22 +3638,22 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="soilModal" tabindex="-1">
+  <div class="modal fade v5h" id="soilModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
-          <h6 class="modal-title">💧 น้ำในดิน (ประมาณ)</h6>
+          <h6 class="modal-title">น้ำในดิน (ประมาณ)</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3 mbody" id="soil-body"></div>
+        <div class="modal-body p-3 mbody td5" id="soil-body"></div>
       </div>
     </div>
   </div>
-  <div class="modal fade" id="satModal" tabindex="-1">
+  <div class="modal fade v5h" id="satModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
-          <h6 class="modal-title">🛰️ ดาวเทียมรายแปลง</h6>
+          <h6 class="modal-title">ดาวเทียมรายแปลง</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody" id="sat-body"></div>
@@ -3828,6 +3853,14 @@
     let mProg = { id: '', t: 0 }, mPar = {}, mBackTo = '';
     const M_REOPEN = { dossierModal: () => { const pid = mDsPid; if (pid) openDossier(pid); else showM('dossierModal'); }, flowModal: () => { showM('flowModal'); try { flRender(); } catch (e) {} } };
     let mDsPid = '';
+    // หัวหน้าต่าง v5 (ดาวเทียม/น้ำในดิน/ฝน · 24 พ.ย. 69): ‹ <หน้าที่เปิดมา> ซ้ายบนเสมอ ไม่มี ✕
+    const V5_PAR = { farmMapModal: 'แผนที่', soilModal: 'น้ำในดิน', satModal: 'ดาวเทียม', dossierModal: 'แปลง', flowModal: 'ขั้นตอน', climModal: 'ฝน' };
+    function v5Back(hd, par, fn, lbl) {
+      let b = hd.querySelector('.mb-back');
+      if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); hd.prepend(b); }
+      b.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>${lbl || (par && V5_PAR[par]) || (par ? 'ย้อน' : 'แปลง')}`;
+      b.onclick = fn;
+    }
     document.addEventListener('show.bs.modal', e => {
       const id = e.target.id; if (!id || !/Modal$/.test(id)) return;
       if (backFn) { if (Date.now() - backT < 1500) bfOwn[id] = backFn; backFn = null; }
@@ -3837,6 +3870,7 @@
       else if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
       if (id === 'satModal') return setTimeout(satHdr, 0);
       const hd = e.target.querySelector('.modal-header'); if (!hd) return;
+      if (e.target.classList.contains('v5h')) { v5Back(hd, mPar[id], () => hideModal(id)); return; }
       let b = hd.querySelector('.mb-back');
       if (mPar[id]) { if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; b.onclick = () => hideModal(id); hd.prepend(b); } }
       else if (b) b.remove();
@@ -11768,22 +11802,24 @@ Export.table.toDrive({
       const intro = `<div class="sw-card sw-intro"><b>ดินเหมือนถังเก็บน้ำ</b> ฝนกับการขึ้นน้ำเติมถัง อ้อยกับแดดดึงออกทุกวัน
         ดินทรายถังเล็ก (~${SOIL_CAP.sand} มม.) ดินทั่วไป (~${SOIL_CAP.norm} มม.) ฝนที่เกินถังจะไหลออก ซึมลึก หรือขังในจุดที่เป็นแอ่ง
         <div class="srow-s mt-1">ค่าประมาณจากฝน Open-Meteo + วันขึ้นน้ำ/ฝนตกที่บันทึกในแอป · ดินทรายดูจากป้าย "ทราย" ของแปลง</div>
-        <button type="button" class="btn btn-sm btn-success w-100 mt-2 fw-bold" onclick="openClim()">📊 ฝนรายเดือน · ฝนแรก · น้ำที่อ้อยต้องการ</button></div>`;
+        <button type="button" class="status-row is-clickable v5-clim" onclick="openClim()"><div class="status-row-left"><span class="status-icon-box is-water">${FM5I.ch}</span><div class="status-info"><div class="status-title">ฝนรายเดือน · ฝนแรก · น้ำที่อ้อยต้องการ</div><div class="status-sub">สถิติฝน 2020–2026 และอายุอ้อยตอนเข้าหน้าฝน</div></div></div>${FM5I.chev}</button></div>`;
       if (!soilWx) { B.innerHTML = intro + `<div class="srow-s p-2">${soilErr ? esc(soilErr) + ` <a href="#" onclick="event.preventDefault();soilLoad(soilRender)">ลองใหม่</a>` : 'กำลังโหลดฝนย้อนหลัง 3 สัปดาห์…'}</div>` + sim; return; }
       const groups = {}, order = [];
       gData.plots.forEach(p => { const r = soilCalc(p); if (!r) return; const l = plotLoc(p.plot_name); if (!groups[l]) { groups[l] = []; order.push(l); } groups[l].push(r); });
       const rank = { wet: 0, dry: 1, dry1: 2, ok: 3, stop: 4, cut: 5, none: 6 };
-      let h = intro;
+      const anyStop = order.some(l => groups[l].some(r => r.st === 'stop'));
+      let h = (anyStop ? `<div class="sw-card v5-ban"><div class="v5-l1">ช่วงตัดน้ำก่อนเก็บเกี่ยว · พ.ย.–ธ.ค.</div><div class="v5-l2">ช่วงใกล้ตัด งดให้น้ำ</div><div class="v5-l3">ยกเว้นอ้อยใหม่อายุ &lt; 6 เดือน · ดินแห้งลงช่วงนี้เป็นเรื่องปกติ</div></div>` : '') + intro;
       order.forEach(l => {
         const rs = groups[l].sort((a, b) => rank[a.st] - rank[b.st] || a.pct - b.pct), r0 = rs[0];
-        h += `<div class="srow-h d-flex justify-content-between"><span>${esc(l)}</span><span style="font-weight:500;color:#6B736E;font-size:13px">ฝน 7 วัน ${Math.round(r0.rain7)} มม. · พยากรณ์ ${Math.round(r0.rainF)} มม.</span></div><div class="srow-box">`;
+        h += `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(l)}</span><span style="font-weight:500;color:#6B736E;font-size:13px">ฝน 7 วัน ${Math.round(r0.rain7)} มม. · พยากรณ์ ${Math.round(r0.rainF)} มม.</span></div><div class="srow-box">`;
         rs.forEach(r => {
-          const [lb, c, bg] = SOIL_ST[r.st], open = soilOpen === r.p.plot_id;
-          const right = r.st === 'wet' ? `น้ำเกิน ${Math.round(r.over3)} มม.` : r.st === 'stop' ? 'ไม่ต้องขึ้นน้ำ' : r.st === 'cut' || r.st === 'none' ? '' : r.pct >= 0.5 ? `ชื้นอีก ~${r.left} วัน` : 'ควรขึ้นน้ำ';
+          let [lb, c, bg] = SOIL_ST[r.st]; const open = soilOpen === r.p.plot_id, cap = r.sand ? SOIL_CAP.sand : SOIL_CAP.norm;
+          if (r.st === 'stop') [lb, c, bg] = r.pct >= 0.5 ? SOIL_ST.ok : r.pct >= 0.25 ? SOIL_ST.dry1 : SOIL_ST.dry; // งดน้ำบอกครั้งเดียวบนหัว แถวบอกสภาพดินจริง
+          const right = r.st === 'wet' ? `น้ำเกิน ${Math.round(r.over3)} มม.` : r.st === 'stop' ? `${Math.round(Math.min(1, r.pct) * cap)} / ${cap} มม.` : r.st === 'cut' || r.st === 'none' ? '' : r.pct >= 0.5 ? `ชื้นอีก ~${r.left} วัน` : 'ควรขึ้นน้ำ';
           h += `<div class="sw-row${open ? ' open' : ''}"><button type="button" class="sw-main" onclick="soilOpen=soilOpen==='${r.p.plot_id}'?'':'${r.p.plot_id}';soilRender()">
             <span class="sw-l"><span class="sw-n">${esc(r.p.plot_name)}${r.sand ? ' <span class="prow-tag">ทราย</span>' : ''}${r.prone.length ? ' <span class="sw-pr">💧แอ่ง</span>' : ''}</span>
             <span class="sw-bar"><i style="width:${Math.round(Math.min(1, r.pct) * 100)}%;background:${c}"></i></span></span>
-            <span class="sw-r"><b style="color:${c}">${lb}</b><small>${right}</small></span></button>${open ? soilDetail(r) : ''}</div>`;
+            <span class="sw-r"><span class="st-pill" style="color:${c};background:${bg}">${lb}</span><small class="tabular">${right}</small></span></button>${open ? soilDetail(r) : ''}</div>`;
         });
         h += '</div>';
       });
@@ -11833,31 +11869,30 @@ Export.table.toDrive({
       const row = (x, i) => {
         const v = x.last ? x.last.ndvi : null;
         const say = x.st === 'bad' ? x.flags.join(' · ') : x.st === 'none' ? (x.last ? `ภาพใสล่าสุด ${satDs(x.last.d)} (เมฆบังช่วงนี้)` : 'ยังไม่มีภาพใส') : x.land ? `เขียว ${v.toFixed(2)} · ${satLevel(v)}` : `เขียว ${v.toFixed(2)} · ${satLevel(v)}`;
-        return `<button type="button" class="sat-it" onclick="satOpen('${qa(x.key)}',true)"><span class="th" id="satTh${i}"></span>
-          <span class="t"><b>${esc(x.name)}</b><span>${esc(say)}</span></span><span class="st">${x.st === 'bad' ? '⚠️' : x.st === 'ok' ? '✅' : '☁️'}</span></button>`;
+        const pc = x.st === 'bad' ? (x.flags.join(' ').match(/(\d+)%/) || [])[1] : '';
+        const pill = x.st === 'bad' ? `<span class="st-pill due">${pc ? 'อ่อน ' + pc + '%' : 'ควรไปดู'}</span>` : x.st === 'ok' ? '<span class="st-pill done">ปกติ</span>' : '<span class="st-pill muted">เมฆ</span>';
+        return `<button type="button" class="status-row is-clickable" onclick="satOpen('${qa(x.key)}',true)"><div class="status-row-left"><span class="th v5-th" id="satTh${i}"></span>
+          <div class="status-info"><div class="status-title">${esc(x.name)}</div><div class="status-sub">${esc(say)}</div></div></div>${x.land ? '' : pill}${FM5I.chev}</button>`;
       };
       const all = bad.concat(ok, none, lands);
-      $('sat-body').innerHTML = `
-        <div class="sat-cnt"><div><b style="color:#2E7D32">${ok.length}</b>ปกติ</div><div><b style="color:var(--urg)">${bad.length}</b>ควรไปดู</div><div><b style="color:#8A8F8B">${none.length}</b>ไม่มีภาพใหม่</div></div>
-        <div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted">ภาพล่าสุด ${latest ? satD(latest) : '-'}${satNextTxt()} · ถ้าไม่มีเมฆ</small>
-          <button type="button" class="btn btn-sm btn-outline-success fw-bold" style="border-radius:10px" onclick="satToMap()">🗺️ ดูบนแผนที่</button></div>
-        ${bad.length ? '<div class="sat-h">⚠️ ควรไปดู</div>' + bad.map(x => row(x, all.indexOf(x))).join('') : ''}
-        ${ok.length ? '<div class="sat-h">✅ ปกติ</div>' + ok.map(x => row(x, all.indexOf(x))).join('') : ''}
-        ${none.length ? '<div class="sat-h">☁️ ไม่มีภาพใหม่ใน 30 วัน</div>' + none.map(x => row(x, all.indexOf(x))).join('') : ''}
-        ${lands.length ? '<div class="sat-h">ที่ดินที่จะเช่า</div>' + lands.map(x => row(x, all.indexOf(x))).join('') : ''}`;
+      const sec = (t, n, cls, list, fold) => list.length ? `<div class="sec-head v5-sh"><div class="sec-title-wrap"><h2 class="sec-title">${t}</h2><span class="sec-badge ${cls}">${n}</span></div>${fold ? `<button type="button" class="sec-toggle-btn" onclick="satOkFold=!satOkFold;lsSet('raioy_satokf',satOkFold?'1':'0');satList()">${satOkFold ? '▴ ดู ' + list.length + ' แปลง' : '▾ ย่อ'}</button>` : ''}</div>
+          ${fold && satOkFold ? '' : `<div class="grouped-card">${list.map(x => row(x, all.indexOf(x))).join('')}</div>`}` : '';
+      $('sat-body').innerHTML = `<div class="td5 v5b">
+        <div class="v5-kpi"><div class="kpi-box"><b class="tabular" style="color:#1F7A45">${ok.length}</b>ปกติ</div><div class="kpi-box${bad.length ? ' is-due' : ''}"><b class="tabular">${bad.length}</b>ควรไปดู</div><div class="kpi-box"><b class="tabular" style="color:#7A867F">${none.length}</b>ไม่มีภาพใหม่</div></div>
+        <div class="grouped-card"><div class="status-row"><div class="status-row-left"><span class="status-icon-box is-ok">🛰️</span><div class="status-info"><div class="status-title">ภาพล่าสุด ${latest ? satD(latest) : '-'}</div><div class="status-sub">${satNextTxt().replace(/^ · /, '')} · ถ้าไม่มีเมฆ</div></div></div>
+          <button type="button" class="task-inline-btn is-doing" onclick="satToMap()">ดูบนแผนที่</button></div></div>
+        ${sec('ควรไปดู', bad.length + ' แปลง', 'is-due', bad)}${sec('ปกติ', ok.length + ' แปลง', 'is-ok', ok, true)}${sec('ไม่มีภาพใหม่ใน 30 วัน', none.length, 'is-muted', none)}${sec('ที่ดินที่จะเช่า', lands.length, 'is-muted', lands)}</div>`;
       all.forEach((x, i) => satThumb(x, 'satTh' + i));
     }
     // ‹ ในหัวหน้าดาวเทียม (22 พ.ย. 69 ผู้ใช้: เข้าจากรายการ "ควรไปดู" → แปลง → ย้อน แล้วเด้งไปแผนที่รวม "กดย้อนหลายครั้งชักมึน")
     // = ย้อนทีละชั้นแบบ iPhone: หน้าแปลงที่เปิดจากรายการ → กลับรายการ · หน้าแปลงที่เปิดจากแผนที่ / หน้ารายการ → กลับหน้าที่เปิดมา (ถ้ามี)
-    let satFromList = false;
+    let satFromList = false, satOkFold = lsGet('raioy_satokf') === '1';
     function satBack() { if (satSelK && (satFromList || !mPar.satModal)) { satFromList = false; satList(); const mb = $('sat-body').closest('.modal-body'); if (mb) mb.scrollTop = satListY; } else hideModal('satModal'); }
     let satListY = 0;
     function satHdr() {
       const hd = $('satModal').querySelector('.modal-header'); if (!hd) return;
-      let b = hd.querySelector('.mb-back'); const need = !!satSelK || !!mPar.satModal;
-      if (need && !b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; hd.prepend(b); }
-      if (b) { if (!need) b.remove(); else b.onclick = satBack; }
-      const t = hd.querySelector('.modal-title'); if (t) t.textContent = satSelK ? '🛰️ ' + ((satInfo.items.find(i => i.key === satSelK) || {}).name || 'ดาวเทียม') : '🛰️ ดาวเทียมรายแปลง';
+      v5Back(hd, mPar.satModal, satBack, satSelK && (satFromList || !mPar.satModal) ? 'ดาวเทียม' : '');
+      const t = hd.querySelector('.modal-title'); if (t) t.textContent = satSelK ? ((satInfo.items.find(i => i.key === satSelK) || {}).name || 'ดาวเทียม') : 'ดาวเทียมรายแปลง';
     }
     function satOpen(key, fromList) {
       if (fromList) { satFromList = true; const mb = $('sat-body').closest('.modal-body'); satListY = mb ? mb.scrollTop : 0; } else if (fromList === undefined && !satSelK) satFromList = false;
@@ -12678,6 +12713,7 @@ Export.table.toDrive({
       wa: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
       ld: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
       im: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+      ch: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
       chev: '<span class="chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>' };
     const fm5Row = (ic, cls, t, sub, act) => `<button type="button" class="status-row is-clickable" onclick="${act}"><div class="status-row-left"><span class="status-icon-box ${cls}" aria-hidden="true">${ic}</span><div class="status-info"><div class="status-title">${t}</div>${sub ? `<div class="status-sub">${sub}</div>` : ''}</div></div>${FM5I.chev}</button>`;
     function fm5ToolsRow() { const left = gData.plots.filter(p => !p.boundary).length; return fm5Row(FM5I.to, 'is-muted', 'เครื่องมือ', 'วาดขอบแปลง · วัดที่ดิน · นำเข้า' + (left ? ` · ยังไม่วาด ${left}` : ''), 'fmTools=true;fmPanel()'); }

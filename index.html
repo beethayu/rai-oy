@@ -7096,6 +7096,7 @@
       if (typed) { box.value = ''; box.style.height = 'auto'; chatPics = []; chatPvRender(); }
       const mine = { me: true, t: txt }; if (pics.length) mine.th = pics.map(p => p.th);
       chat.msgs.push(mine); chatBusy = true; chatSave(); chatRender(true);
+      if (!pics.length && chLocalEdit(txt)) { chatBusy = false; chatSave(); chatRender(true); return; } // แก้การ์ดแบบง่ายในเครื่องเลย ไม่ผ่าน AI (24 พ.ย. 69)
       if (isSoilQ(txt) && !pics.length) { // รถเข้าแปลงได้ไหม = แอปคำนวณตอบเอง ครบทุกแปลง
         new Promise(res => { if (soilWx) return res(); let done = false; const tm = setTimeout(() => { done = true; res(); }, 8000); soilLoad(() => { if (!done) { clearTimeout(tm); res(); } }); })
           .then(() => { chat.msgs.push({ ai: true, t: soilAnswer(txt), items: [], ask: [], state: 'info' }); })
@@ -7113,8 +7114,8 @@
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt);
-          const ask = r.ask || [];
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt);
+          const ask = (r.ask || []).filter(q => !(/ถัง/.test(q.q || '') && items.some(it => it.group === 'ฉีดยา') && items.every(it => it.group !== 'ฉีดยา' || chTanks(it.quantity)))); // รู้ถังแล้ว (เช่น คิดจากลิตร) ไม่ถามซ้ำ
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
           if (!chForxa() && items.some(it => it.chemSrc === 'user' && (it.chemList || []).includes(EDGE_MIX[0]) && !(it.chemList || []).includes(EDGE_MIX[1])) && !ask.some(q => /ฟอร์ซาซิน/.test(q.q || '')))
@@ -7224,6 +7225,66 @@
     }
     // ===== E1 (15 พ.ย. 69): แชตฉีดยา → ยา + ตัดสต็อก · ลำดับ (ก) ยาที่ผู้ใช้บอก (ข) ฉีดรอบไร่ = EDGE_MIX (ค) สูตรของไร่ตามชนิดอ้อยแปลงแรก (สีส้ม)
     // qty = per_tank × ถังของรายการ · ไม่มีถัง/ไม่มีอัตรา = ไม่ตัด (ไม่เดา)
+    // ===== พิมพ์แก้การ์ดน้อยรอบลง (24 พ.ย. 69 ผู้ใช้: "ต้องพิมพ์แก้หลายรอบ") =====
+    // ทดสอบจริง: "…ขวาในกับขวาถนน ใช้กลูโฟ 4 ลิตร" → AI ถาม "กี่ถัง" ทั้งที่บอกลิตรแล้ว · "ขวาถนนยังไม่ได้ฉีด เอาออก" → AI กลับเอาขวาในออก + เติมสำนักแจง (ขวาถนน)
+    // 1) ยาที่บอกเป็นลิตร/ซีซี/กก. → คิดเป็นถังจาก per_tank ของสต็อก (กลูโฟ 2 ลิตร/ถัง: 4 ลิตร = 2 ถัง) ไม่ถามถังซ้ำ
+    const chemShort = n => String(n || '').split(/\s+/)[0];
+    const chPer = c => c.unit === 'ml' && num(c.per_tank) >= 1000 ? r1(num(c.per_tank) / 1000) + ' ลิตร' : c.unit === 'g' && num(c.per_tank) >= 1000 ? r1(num(c.per_tank) / 1000) + ' กก.' : num(c.per_tank) + ' ' + (c.unit === 'ml' ? 'ซีซี' : c.unit === 'g' ? 'กรัม' : c.unit);
+    const CH_AMT_RE = /([\d.]+)\s*(ลิตร|ล\.|ซีซี|ซี\.ซี\.|cc|มล\.?|ml|กิโลกรัม|กิโล|กก\.?|kg|กรัม|g\b)/i;
+    function chAmtIn(t, unit) {
+      const m = CH_AMT_RE.exec(String(t || '')); if (!m) return null; const v = num(m[1]), u = m[2].toLowerCase(); if (!(v > 0)) return null;
+      const ml = /ลิตร|ล\./.test(u) ? v * 1000 : /ซี|cc|มล|ml/.test(u) ? v : null, g = /กิโล|กก|kg/.test(u) ? v * 1000 : /กรัม|^g$/.test(u) ? v : null;
+      const q = unit === 'ml' ? ml : unit === 'g' ? g : null; return q ? { q, raw: m[0].trim() } : null;
+    }
+    function chChemTanks(items, texts, force) {
+      items.forEach(it => {
+        if (it.type !== 'activity' || it.group !== 'ฉีดยา') return;
+        // AI อ่าน "4 ลิตร" เป็น "4 ถัง" ได้ → ข้อความล่าสุดบอกยาเป็นลิตร/ซีซี และไม่ได้พูดคำว่าถัง = คิดใหม่จากลิตร
+        const f = force || (texts[0] && CH_AMT_RE.test(texts[0]) && !/[\d.]+\s*ถัง/.test(texts[0]));
+        if (!f && chTanks(it.quantity)) return;
+        for (const t of texts) {
+          const c = (it.chemList || []).map(n => invItem(n)).find(x => x && num(x.per_tank) > 0 && (force || String(t).includes(String(x.name).slice(0, 4))) && chAmtIn(t, x.unit));
+          if (!c && /[\d.]+\s*ถัง/.test(t)) return; // ข้อความที่ใหม่กว่าบอกถังเอง = ใช้ถัง
+          if (!c) continue;
+          const a = chAmtIn(t, c.unit), tk = Math.max(0.5, Math.round(a.q / num(c.per_tank) * 2) / 2);
+          it.quantity = tk + ' ถัง'; it.qtyFrom = `${chemShort(c.name)} ${a.raw} ÷ ${chPer(c)}/ถัง`; chSpray(it); return;
+        }
+      });
+    }
+    // 2) AI แยกฉีดยาชุดเดียวกันเป็นหลายรายการ (รายการละแปลง) → รวมเป็นรายการเดียวหลายแปลง (ถัง/ยาคิดรวม ไม่เบิ้ล)
+    function chSprayMerge(items) {
+      const key = it => [it.date, it.detail, (it.workers || []).slice().sort().join(','), (it.chemList || []).join(','), !!it.ongoing, it.date_to || ''].join('|');
+      for (let i = 0; i < items.length; i++) { const a = items[i]; if (a.type !== 'activity' || a.group !== 'ฉีดยา' || chTanks(a.quantity)) continue;
+        for (let j = items.length - 1; j > i; j--) { const b = items[j]; if (b.type === 'activity' && b.group === 'ฉีดยา' && !chTanks(b.quantity) && key(a) === key(b)) {
+          a.plots = [...new Set([...(a.plots || []), ...(b.plots || [])])]; a.unsure = [...new Set([...(a.unsure || []), ...(b.unsure || [])])]; items.splice(j, 1); } } }
+    }
+    // 3) แก้ง่าย ๆ ทำในเครื่องเลย ไม่ส่ง AI (AI สร้างชุดใหม่ทั้งชุดแล้วพลาดจุดอื่น): "X ยังไม่ได้ฉีด/เอา X ออก" · "ใช้ไป 3 ลิตร" · "3 ถัง"
+    function chLocalEdit(txt) {
+      const last = chat.msgs.slice(0, -1).reverse().find(m => m.ai);
+      if (!last || last.state !== 'draft' || !(last.items || []).length) return false;
+      const T = String(txt || '').trim(), pn = id => (gData.plots.find(p => p.plot_id === id) || {}).plot_name || id;
+      const inDraft = [...new Set(last.items.flatMap(it => it.plots || []))];
+      const done = (items, say) => { last.state = 'old'; chat.msgs.push({ ai: true, t: say + ' · ตรวจอีกรอบนะครับ', items, ask: (last.ask || []).filter(q => !(/ถัง/.test(q.q || '') && items.every(it => it.group !== 'ฉีดยา' || chTanks(it.quantity)))), state: 'draft', local: true }); return true; };
+      const copy = () => JSON.parse(JSON.stringify(last.items));
+      if (T.length <= 60 && /ออก|ยังไม่ได้|ไม่ได้\s*(ฉีด|ทำ|ใส่|ไป|ลง)|ไม่รวม|ไม่ใช่แปลง/.test(T) && !/เพิ่ม|ด้วย/.test(T)) {
+        const s = chSaidPlots(T), ex = s.exact.filter(id => inDraft.includes(id)), ids = ex.length ? ex : s.fuzzy.filter(id => inDraft.includes(id)); // ชื่อตรงก่อน (สะกดใกล้ "ขวาใน"≈"ขวาถนน" เคยลบทั้งคู่)
+        if (ids.length && ids.length < inDraft.length) {
+          const items = copy().map(it => { if (Array.isArray(it.plots)) it.plots = it.plots.filter(p => !ids.includes(p)); return it; }).filter(it => !Array.isArray(it.plots) || it.plots.length || !['activity', 'finish', 'cancel'].includes(it.type));
+          return done(items, `เอา ${ids.map(pn).join(', ')} ออกแล้ว เหลือ ${[...new Set(items.flatMap(it => it.plots || []))].map(pn).join(', ')}`);
+        }
+      }
+      const sp = last.items.filter(it => it.type === 'activity' && it.group === 'ฉีดยา');
+      if (sp.length !== 1) return false;
+      const tk = /^(?:ใช้|ฉีด|ไป|แค่|ได้|เป็น|แก้|รวม|ทั้งหมด|\s)*([\d.]+)\s*ถัง\s*(?:พอ|ครับ|ค่ะ|นะ|เอง|\s)*$/.exec(T);
+      const cw = (sp[0].chemList || []).flatMap(n => { const w = chemShort(n); return [w, w.slice(0, 5), w.slice(0, 4)]; }).filter(Boolean).sort((a, b) => b.length - a.length);
+      let rest = T.replace(CH_AMT_RE, ''); cw.forEach(w => { rest = rest.split(w).join(''); });
+      const am = !tk && CH_AMT_RE.test(T) && rest.replace(/ใช้|ไป|แค่|พอ|ครับ|ค่ะ|นะ|เอง|จริง|ได้|เป็น|แก้|ยา|รวม|ทั้งหมด|\s/g, '') === '';
+      if (!tk && !am) return false;
+      const items = copy(), it = items.find(x => x.type === 'activity' && x.group === 'ฉีดยา');
+      if (tk) { it.quantity = num(tk[1]) + ' ถัง'; delete it.qtyFrom; chSpray(it); return done(items, `แก้เป็น ${it.quantity}`); }
+      const q0 = it.quantity; chChemTanks([it], [T], true); if (it.quantity === q0 && !it.qtyFrom) return false;
+      return done(items, `แก้เป็น ${it.quantity} (${it.qtyFrom})`);
+    }
     const chTanks = q => { const m = /([\d.]+)\s*ถัง/.exec(String(q || '')); return m ? num(m[1]) : 0; };
     function chSpray(it) {
       if (!it || it.type !== 'activity' || it.group !== 'ฉีดยา') return;
@@ -7536,7 +7597,7 @@
         const g = it.group === 'รถไถเตรียมดิน/บำรุง' ? 'รถไถ' : it.group;
         h = `<div class="ch-t">${CH_ICON[it.group] || '📝'} ${esc(g)}${it.detail && it.detail !== '-' && it.group !== 'ฝนตก' ? ' · ' + esc(it.detail) : ''}${it.ongoing ? ' <span class="pill pill-doing">กำลังทำ</span>' : ''}</div>`
           + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', eqS((it.equipment || []).join(', ')), 'equipment')
-          + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + chChemHtml(it, i, mi, live)
+          + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + (it.qtyFrom ? `<div class="ch-cn">คิดจาก ${esc(it.qtyFrom)}</div>` : '') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
           + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
       } else if (it.type === 'stock_in' || it.type === 'stock_count') {
@@ -7695,7 +7756,7 @@
               if (m.ask && m.ask.length) h += m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" data-t="${esc(q.q + ' → ' + o)}" onclick="chatSend(this.dataset.t)">${esc(o)}</button>`).join('')}</div></div>`).join('');
               h += `<div class="ch-acts"><button type="button" class="btn btn-light flex-fill" onclick="chatCancel(${mi})" ${live ? '' : 'disabled'}>ยกเลิก</button>
                 <button type="button" class="btn btn-success" style="flex:2" onclick="chatCommit(${mi})" ${live ? '' : 'disabled'}>${m.saving ? '⏳ กำลังบันทึก…' : 'บันทึก ' + m.items.length + ' รายการ'}</button></div>
-                <div class="srow-s px-3 pb-2">ผิดตรงไหน พิมพ์แก้ต่อได้เลย เช่น "พรทำทั้งวัน" · ช่องสีส้ม = เดา ไม่แน่ใจ</div>`
+                <div class="srow-s px-3 pb-2">ผิดตรงไหน พิมพ์แก้ต่อได้เลย เช่น "ขวาถนนยังไม่ได้ฉีด" "ใช้ไป 3 ลิตร" "พรทำทั้งวัน" · ช่องสีส้ม = เดา ไม่แน่ใจ</div>`
                 + chPlainHtml(mi, live);
             }
             h += `</div>`;

@@ -7,7 +7,7 @@
 VIEW w h = เปลี่ยนขนาดจอ (ถ่ายยาวทั้งหน้า) · FULL ชื่อ = ถ่ายทั้งหน้า · SAVE <ไฟล์> <js> = เก็บผล js (สตริง) ลงไฟล์
 API ถูก mock: getInitialData คืนไฟล์ข้อมูล · ฟังก์ชันอื่นคืน null (ไม่เขียนชีตจริง) → error "reading 'flows' of null" จาก mock ไม่ต้องสนใจ
 หน้าหลักเลื่อนที่ window ไม่ใช่ #app · หน้าต่างเลื่อนที่ '#<id> .modal-body'"""
-import json, subprocess, sys, time, os
+import json, subprocess, sys, time, os, re
 from playwright.sync_api import sync_playwright
 R = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')); NM = '/tmp/t/node_modules'
 data, out, cmds = sys.argv[1], sys.argv[2], sys.argv[3:]
@@ -23,7 +23,16 @@ try:
         pg = c.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         D = open(data, encoding='utf-8').read()
         mock = lambda fn: D if fn == 'getInitialData' else (open(f'/tmp/mock_{fn}.json').read() if os.path.exists(f'/tmp/mock_{fn}.json') else 'null')  # /tmp/mock_<fn>.json = ผลจำลองของฟังก์ชันอื่น
-        pg.route('https://script.google.com/**', lambda r: r.fulfill(status=200, content_type='application/json', body='{"ok":true,"result":' + mock(json.loads(r.request.post_data or '{}').get('fn')) + '}'))
+        REAL = [x for x in os.environ.get('REAL', '').split(',') if x]  # REAL=chatParse K=<รหัส> = ส่งฟังก์ชันนี้ไป API จริง (อ่านอย่างเดียว! ห้ามใส่ฟังก์ชันที่เขียนชีต)
+        def api(r):
+            q = json.loads(r.request.post_data or '{}'); fn = q.get('fn')
+            if fn in REAL:
+                import urllib.request
+                U = re.search(r"https://script\.google\.com/macros/s/[^'\"]+/exec", open('index.html', encoding='utf-8').read()).group(0)
+                q['k'] = os.environ['K']; body = urllib.request.urlopen(urllib.request.Request(U, data=json.dumps(q).encode(), headers={'Content-Type': 'text/plain;charset=utf-8'}), timeout=300).read()
+                return r.fulfill(status=200, content_type='application/json', body=body)
+            r.fulfill(status=200, content_type='application/json', body='{"ok":true,"result":' + mock(fn) + '}')
+        pg.route('https://script.google.com/**', api)
         pg.route('https://api.open-meteo.com/**', lambda r: r.fulfill(status=500, body=''))
         for h in ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com']: pg.route(f'https://{h}/**', cdn)
         pg.route('https://fonts.googleapis.com/**', lambda r: r.fulfill(body=''))
@@ -36,6 +45,7 @@ try:
             elif cmd.startswith('SCROLL '): sel, px = cmd[7:].rsplit(' ', 1); pg.evaluate("([s,y])=>{document.querySelector(s).scrollTop=y}", [sel, int(px)])
             elif cmd.startswith('VIEW '): w, h = cmd[5:].split(); pg.set_viewport_size({'width': int(w), 'height': int(h)})
             elif cmd.startswith('WAIT '): pg.wait_for_timeout(int(cmd[5:]))
+            elif cmd.startswith('UNTIL '): pg.wait_for_function(cmd[6:], timeout=240000)
             elif cmd.startswith('PRINT '): print(pg.evaluate(cmd[6:]))
             else: pg.evaluate(cmd)
             pg.wait_for_timeout(500)

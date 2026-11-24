@@ -2481,7 +2481,246 @@
 /* ปฏิทินเดิม (แบบ A) ใส่กรอบการ์ดแบบ v5 */
 .td5 .td5-cal > .srow-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin: 0; }
 
-  </style>
+  
+    /* ===== หน้าแปลง v5 (Gemini plots-gemini-v1 · 24 พ.ย. 69) — CSS จากไฟล์แบบ ใส่ .pl5 นำหน้า (กล่องมีทั้ง .td5 .pl5) ===== */
+.pl5 .tabular{font-variant-numeric: tabular-nums;}
+.pl5 .sec-head{display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; padding: 0 2px;}
+.pl5 .sec-title-wrap{display: flex; align-items: center; gap: 7px; min-width: 0;}
+.pl5 .sec-title{margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em;}
+.pl5 .sec-head-right{display: flex; align-items: center; gap: 6px; flex-shrink: 0;}
+.pl5 .sec-badge{font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: #E5ECE6; color: var(--brand-dark); line-height: 1.45; white-space: nowrap;}
+.pl5 .sec-badge.is-ask{background: var(--ask-soft); color: var(--ask);}
+.pl5 .sec-badge.is-due{background: var(--due-soft); color: var(--due);}
+.pl5 .sec-badge.is-ok{background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .sec-badge.is-muted{background: #EAEFE9; color: var(--ink-2); font-weight: 500;}
+.pl5 .sec-toggle-btn{height: 28px; padding: 0 7px; border: none; background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 3px; border-radius: 8px; cursor: pointer;}
+.pl5 .sec-toggle-btn:active{background: rgba(31, 94, 59, 0.08);}
+.pl5 .farm-strip{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;}
+.pl5 .farm-strip-top{display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;}
+.pl5 .farm-strip-main{font-size: 14px; font-weight: 700; color: var(--ink); display: inline-flex; align-items: center; gap: 6px;}
+.pl5 .farm-strip-sub{font-size: 13px; font-weight: 500; color: var(--ink-2);}
+.pl5 .farm-strip-pills{display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-top: 7px; border-top: 1px solid #EEF2EE;}
+.pl5 .stat-mini-chip{border: 1px solid var(--border); background: #F7F9F7; color: var(--ink-2); font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; line-height: 1.4; transition: transform 0.1s, border-color 0.15s;}
+.pl5 .stat-mini-chip:active{transform: scale(0.96);}
+.pl5 .stat-mini-chip.is-due{background: var(--due-soft); border-color: var(--due-border); color: var(--due);}
+.pl5 .stat-mini-chip.is-doing{background: var(--brand-soft); border-color: var(--brand-mid); color: var(--brand-dark);}
+.pl5 .stat-mini-chip.is-active-filter{box-shadow: 0 0 0 1.5px var(--brand);}
+.pl5 .seg-bar{display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 3px; background: #E5EBE6; border-radius: 11px;}
+.pl5 .seg-bar.is-3col{grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px;}
+.pl5 .seg-btn{height: 34px; border: none; border-radius: 8px; background: transparent; color: var(--ink-2); font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 3px; transition: background 0.16s, color 0.16s, box-shadow 0.16s; white-space: nowrap; padding: 0 3px;}
+.pl5 .seg-btn.active{background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(20, 46, 30, 0.1);}
+.pl5 .seg-cnt{font-size: 11px; font-weight: 600; color: var(--ink-3);}
+.pl5 .seg-btn.active .seg-cnt{color: var(--brand);}
+.pl5 .tools-wrap{display: flex; flex-direction: column; gap: 8px;}
+.pl5 .tools-top-grid{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+.pl5 .tele-card{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 11px 10px; box-shadow: var(--shadow); text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; min-width: 0; transition: transform 0.1s, border-color 0.15s;}
+.pl5 .tele-card:active{transform: scale(0.982); border-color: var(--brand-mid);}
+.pl5 .tele-card.is-warn-card{background: #FFFEFC; border-color: var(--due-border);}
+.pl5 .tele-head{display: flex; align-items: center; justify-content: space-between; gap: 6px;}
+.pl5 .tele-label{font-size: 14px; font-weight: 700; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; min-width: 0;}
+.pl5 .tele-ico{width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;}
+.pl5 .tele-ico.is-map{background: var(--brand-soft); color: var(--brand);}
+.pl5 .tele-ico.is-sat{background: #EDF2EE; color: var(--brand-dark);}
+.pl5 .tele-ico.is-sat-warn{background: var(--due-soft); color: var(--due);}
+.pl5 .tele-sub{font-size: 13px; color: var(--ink-2); line-height: 1.32;}
+.pl5 .tele-status-ok{color: var(--brand-dark); font-weight: 600;}
+.pl5 .tele-status-due{color: var(--due); font-weight: 700;}
+.pl5 .grouped-card{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;}
+.pl5 .status-row{padding: 11px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative;}
+.pl5 .status-row + .status-row{border-top: 1px solid #E9EFEA;}
+.pl5 .status-row.is-clickable{cursor: pointer;}
+.pl5 .status-row.is-clickable:active{background: #F8FAF8;}
+.pl5 .status-row-left{display: flex; align-items: flex-start; gap: 10px; min-width: 0; flex: 1;}
+.pl5 .status-icon-box{width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;}
+.pl5 .status-icon-box.is-water{background: var(--water-soft); color: var(--water);}
+.pl5 .status-icon-box.is-due{background: var(--due-soft); color: var(--due);}
+.pl5 .status-icon-box.is-ok{background: var(--brand-soft); color: var(--brand);}
+.pl5 .status-icon-box.is-nolog{background: var(--nolog-bg); color: var(--nolog-ink);}
+.pl5 .status-icon-box.is-muted{background: #EEF2EE; color: var(--ink-2);}
+.pl5 .status-info{min-width: 0; flex: 1;}
+.pl5 .status-title-row{display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
+.pl5 .status-title{font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 1.3;}
+.pl5 .status-sub{font-size: 13px; color: var(--ink-2); margin-top: 2px; line-height: 1.35;}
+.pl5 .soil-bar-wrap{display: flex; align-items: center; gap: 8px; margin-top: 5px;}
+.pl5 .soil-bar-track{flex: 1; max-width: 112px; height: 5px; border-radius: 999px; background: var(--due-soft); overflow: hidden; display: flex;}
+.pl5 .soil-bar-ok{height: 100%; background: var(--water); border-radius: 999px 0 0 999px;}
+.pl5 .soil-bar-dry{height: 100%; background: var(--due);}
+.pl5 .tool-pills-row{display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 4px;}
+.pl5 .chev{color: var(--ink-3); flex-shrink: 0; display: inline-flex; align-items: center; transition: transform 0.2s ease;}
+.pl5 .st-pill{font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex-shrink: 0; line-height: 1.35;}
+.pl5 .st-pill.doing{background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .st-pill.due{background: var(--due-soft); color: var(--due);}
+.pl5 .st-pill.watch{background: #FEF3C7; color: #92400E;}
+.pl5 .st-pill.done{background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .st-pill.muted{background: #EDF2EE; color: var(--ink-2);}
+.pl5 .pulse-dot{width: 6.5px; height: 6.5px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.55); animation: livePulse 2s infinite;}
+.pl5 .zone-stack{display: flex; flex-direction: column; gap: 8px;}
+.pl5 .zone-card{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;}
+.pl5 .zone-card.has-doing{border-left: 4px solid var(--brand);}
+.pl5 .zone-card.has-due{border-left: 4px solid var(--due);}
+.pl5 .zone-head{width: 100%; padding: 11px 12px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; transition: background 0.14s;}
+.pl5 .zone-head:active{background: #F8FAF8;}
+.pl5 .zone-head-left{min-width: 0; flex: 1;}
+.pl5 .zone-title-line{display: flex; align-items: center; flex-wrap: wrap; gap: 6px;}
+.pl5 .zone-name{font-size: 15.5px; font-weight: 700; color: var(--ink); line-height: 1.28;}
+.pl5 .zone-meta{margin-top: 2px; font-size: 13px; color: var(--ink-2); line-height: 1.35;}
+.pl5 .zone-card.is-open .zone-chev{transform: rotate(180deg);}
+.pl5 .zone-plots{border-top: 1px solid #E9EFEA; background: #FAFBF9;}
+.pl5 .plot-row{width: 100%; padding: 10px 12px; border: none; background: transparent; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; position: relative; transition: background 0.14s;}
+.pl5 .plot-row + .plot-row{border-top: 1px solid #ECEFEA;}
+.pl5 .plot-row:active{background: var(--brand-soft);}
+.pl5 .plot-row.st-doing{background: #FFFFFF; box-shadow: inset 3px 0 0 var(--brand);}
+.pl5 .plot-row.st-due{background: #FFFEFC; box-shadow: inset 3px 0 0 var(--due);}
+.pl5 .plot-row-left{min-width: 0; flex: 1;}
+.pl5 .plot-name{font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3;}
+.pl5 .plot-meta-line{margin-top: 3px; font-size: 13px; color: var(--ink-2); display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; line-height: 1.32;}
+.pl5 .plot-rai{font-weight: 700; color: var(--ink);}
+.pl5 .crop-tag{font-size: 12px; font-weight: 600; padding: 0 6px; border-radius: 5px; line-height: 1.5;}
+.pl5 .crop-tag.is-ratoon{background: #F4ECE1; color: var(--brown-ink);}
+.pl5 .crop-tag.is-new{background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .water-ago{font-size: 12.5px; color: var(--ink-2);}
+.pl5 .water-ago.is-dry{color: var(--due); font-weight: 600;}
+.pl5 .plot-row-right{display: flex; align-items: center; gap: 6px; flex-shrink: 0;}
+.pl5 .empty-filter-box{background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius); padding: 20px 14px; text-align: center; color: var(--ink-2); font-size: 14px;}
+.pl5 .plot-hero{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 13px 13px 12px; display: flex; flex-direction: column; gap: 8px;}
+.pl5 .plot-hero-top{display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;}
+.pl5 .plot-hero-title{margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); line-height: 1.24;}
+.pl5 .plot-hero-meta{display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; font-size: 13.5px; color: var(--ink-2);}
+.pl5 .plot-hero-meta strong{color: var(--ink); font-weight: 700;}
+.pl5 .meta-dot{color: var(--line);}
+.pl5 .kpi-3-grid{display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;}
+.pl5 .kpi-box{background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); padding: 9px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0;}
+.pl5 .kpi-box.is-due{border-color: var(--due-border); background: #FFFEFC;}
+.pl5 .kpi-label{font-size: 12px; font-weight: 600; color: var(--ink-3); line-height: 1.25;}
+.pl5 .kpi-val{font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.28;}
+.pl5 .kpi-box.is-due .kpi-val{color: var(--due);}
+.pl5 .task-card{width: 100%; padding: 11px 12px 11px 13px; background: var(--surface); border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px;}
+.pl5 .task-card.st-doing{border-left-color: var(--brand);}
+.pl5 .task-card.st-due{border-left-color: var(--due); background: #FFFEFC;}
+.pl5 .task-card.st-ok{border-left-color: var(--brand-mid); background: #FAFBF9;}
+.pl5 .next-card-row{display: flex; align-items: center; justify-content: space-between; gap: 10px;}
+.pl5 .next-kicker{font-size: 12px; font-weight: 700; color: var(--ink-3);}
+.pl5 .next-text{font-size: 14.5px; font-weight: 700; color: var(--brand-dark); line-height: 1.34; margin-top: 2px;}
+.pl5 .task-inline-btn{height: 31px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: #F6F8F6; color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 3px; transition: transform 0.1s, background 0.15s;}
+.pl5 .task-inline-btn:active{transform: scale(0.95);}
+.pl5 .task-inline-btn.is-doing{border-color: var(--brand-mid); background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .task-inline-btn.is-solid{border-color: var(--brand); background: var(--brand); color: #FFFFFF;}
+.pl5 .task-inline-btn.is-undo{border-color: var(--border); background: #FFFFFF; color: var(--ink-2);}
+.pl5 .action-pair-wrap{display: flex; flex-direction: column; gap: 6px;}
+.pl5 .action-pair{display: grid; grid-template-columns: 1.15fr 1fr; gap: 8px;}
+.pl5 .act-btn{height: 40px; padding: 0 12px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow); transition: transform 0.1s, background 0.15s; white-space: nowrap;}
+.pl5 .act-btn:active{transform: scale(0.97);}
+.pl5 .act-btn.is-primary{background: var(--brand); border-color: var(--brand); color: #FFFFFF;}
+.pl5 .act-btn.is-primary:active{background: var(--brand-dark);}
+.pl5 .map-measure-note{font-size: 12.5px; color: var(--ink-3); padding: 0 2px; display: flex; align-items: center; gap: 5px;}
+.pl5 .analysis-row{padding: 11px 12px; display: flex; align-items: flex-start; gap: 10px;}
+.pl5 .analysis-row + .analysis-row{border-top: 1px solid #E9EFEA;}
+.pl5 .analysis-body{min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px;}
+.pl5 .an-l1{display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12.5px; font-weight: 600; color: var(--ink-3); line-height: 1.3;}
+.pl5 .an-l2{font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--ink);}
+.pl5 .an-l2.is-due{color: var(--due);}
+.pl5 .an-l2.is-muted{color: var(--ink-2);}
+.pl5 .an-l2.is-nolog{color: var(--nolog-ink);}
+.pl5 .an-l2.is-ok{color: var(--brand-dark);}
+.pl5 .an-l3{font-size: 13.5px; color: var(--ink); line-height: 1.38;}
+.pl5 .an-l4{font-size: 12px; color: var(--ink-3); line-height: 1.36; margin-top: 1px;}
+.pl5 .cat-acc + .cat-acc{border-top: 1px solid #E9EFEA;}
+.pl5 .cat-acc-head{width: 100%; padding: 11px 12px; border: none; background: transparent; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; transition: background 0.14s;}
+.pl5 .cat-acc-head:active{background: #F8FAF8;}
+.pl5 .cat-acc-left{min-width: 0; flex: 1;}
+.pl5 .cat-acc-title-row{display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
+.pl5 .cat-acc-title{font-size: 14.5px; font-weight: 700; color: var(--ink); line-height: 1.3;}
+.pl5 .cat-acc-sum{font-size: 13px; color: var(--ink-2); margin-top: 2px; line-height: 1.34;}
+.pl5 .cat-acc-right{display: flex; align-items: center; gap: 6px; flex-shrink: 0;}
+.pl5 .cat-acc.is-open .cat-chev{transform: rotate(180deg);}
+.pl5 .cat-acc-body{border-top: 1px solid #ECEFEA; background: #FAFBF9; padding: 10px 12px 11px; display: flex; flex-direction: column; gap: 8px;}
+.pl5 .step-progress-bar{display: flex; align-items: center; gap: 8px;}
+.pl5 .step-segments{display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; flex: 1; max-width: 150px;}
+.pl5 .step-seg{height: 5px; border-radius: 999px; background: #DDE5DF;}
+.pl5 .step-seg.is-done{background: var(--brand);}
+.pl5 .step-list{display: flex; flex-direction: column; gap: 6px;}
+.pl5 .step-item{display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 7px 9px; border-radius: 10px; background: var(--surface); border: 1px solid #E5ECE6; font-size: 13.5px;}
+.pl5 .step-item.is-pending{background: transparent; border-style: dashed; border-color: var(--line);}
+.pl5 .step-item-left{display: flex; align-items: flex-start; gap: 7px; min-width: 0; flex: 1;}
+.pl5 .step-mark{width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;}
+.pl5 .step-mark.done{background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .step-mark.pending{background: #EAEFE9; color: var(--ink-3);}
+.pl5 .step-mark.extra{background: #FEF3C7; color: #92400E;}
+.pl5 .step-name{font-weight: 600; color: var(--ink); line-height: 1.3;}
+.pl5 .step-item.is-pending .step-name{color: var(--ink-2); font-weight: 500;}
+.pl5 .step-meta{font-size: 12.5px; color: var(--ink-3); margin-top: 1px;}
+.pl5 .step-date{font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; flex-shrink: 0;}
+.pl5 .sub-row{display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 9px; border-radius: 10px; background: var(--surface); border: 1px solid #E5ECE6; font-size: 13.5px;}
+.pl5 .sub-row-left{min-width: 0; flex: 1;}
+.pl5 .sub-row-title{font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
+.pl5 .sub-row-meta{font-size: 12.5px; color: var(--ink-2); margin-top: 1px;}
+.pl5 .cat-empty-note{font-size: 13px; color: var(--ink-3); line-height: 1.4;}
+.pl5 .tl-year-bar{padding: 6px 12px; background: #F3F6F3; border-bottom: 1px solid #E6ECE7; font-size: 12.5px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; justify-content: space-between;}
+.pl5 .tl-item + .tl-item{border-top: 1px solid #ECEFEA;}
+.pl5 .tl-row{padding: 10px 10px 10px 12px; display: grid; grid-template-columns: 74px minmax(0, 1fr) 32px; gap: 8px; align-items: start;}
+.pl5 .tl-date-col{display: flex; flex-direction: column; align-items: flex-start; gap: 1px;}
+.pl5 .tl-date-main{font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.25;}
+.pl5 .tl-date-year{font-size: 11.5px; color: var(--ink-3); line-height: 1.2;}
+.pl5 .tl-span-pill{margin-top: 3px; font-size: 11px; font-weight: 600; padding: 0 6px; border-radius: 999px; background: #EDF2EE; color: var(--ink-2); line-height: 1.5;}
+.pl5 .tl-work-col{min-width: 0; display: flex; flex-direction: column; gap: 2px;}
+.pl5 .tl-tag-line{display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 1px;}
+.pl5 .work-tag{font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 6px; line-height: 1.45; white-space: nowrap;}
+.pl5 .work-tag.spray{background: var(--brand-soft); color: var(--brand-dark);}
+.pl5 .work-tag.water{background: var(--water-soft); color: var(--water);}
+.pl5 .work-tag.tractor{background: #FEF3C7; color: #92400E;}
+.pl5 .work-tag.cut{background: #F4E6D8; color: var(--brown-ink);}
+.pl5 .work-tag.fert{background: var(--ask-soft); color: var(--ask);}
+.pl5 .work-tag.rain{background: #E6F4FE; color: #0284C7;}
+.pl5 .tl-work-title{font-size: 14.5px; font-weight: 700; color: var(--ink); line-height: 1.3;}
+.pl5 .tl-work-detail{font-size: 13px; color: var(--ink-2); line-height: 1.35;}
+.pl5 .tl-more-btn{width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent; color: var(--ink-3); font-size: 17px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.14s, color 0.14s;}
+.pl5 .tl-more-btn:active,.pl5 .tl-item.is-menu-open .tl-more-btn{background: #EDF2EE; color: var(--ink);}
+.pl5 .tl-inline-actions{padding: 0 12px 10px 94px; display: flex; align-items: center; gap: 7px;}
+.pl5 .tl-act-btn{height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: #F7F9F7; color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;}
+.pl5 .tl-act-btn:active{transform: scale(0.96);}
+.pl5 .tl-act-btn.is-del{border-color: #FECACA; background: #FEF2F2; color: #B91C1C;}
+.pl5 .edit-plot-row{width: 100%; padding: 12px 13px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; text-align: left; transition: transform 0.1s, background 0.15s;}
+.pl5 .edit-plot-row:active{transform: scale(0.99); background: #F8FAF8;}
+.pl5 .detail-box{padding: 11px 13px; border-radius: 12px; background: #F7F9F7; border: 1px solid var(--border); font-size: 14px; color: var(--ink);}
+.pl5 .detail-box.is-due{background: var(--due-soft); border-color: var(--due-border);}
+.pl5 .detail-box.is-ask{background: var(--ask-soft); border-color: var(--ask-border);}
+.pl5 .detail-box.is-warn{background: #FFFBEB; border-color: #FCD34D;}
+.pl5 .detail-label{font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 5px;}
+.pl5 .sheet-btn-stack{display: flex; flex-direction: column; gap: 8px; margin-top: 2px;}
+.pl5 .sheet-btn{flex: 1; height: 42px; padding: 0 14px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.1s;}
+.pl5 .sheet-btn:active{transform: scale(0.985);}
+.pl5 .sheet-btn.primary{border-color: var(--brand); background: var(--brand); color: #FFFFFF;}
+.pl5 .form-group{display: flex; flex-direction: column; gap: 5px;}
+.pl5 .form-row-2{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+.pl5 .form-label{font-size: 13px; font-weight: 600; color: var(--ink-2);}
+.pl5 .form-input,.pl5 .form-select{width: 100%; height: 42px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); font-size: 16px; outline: none;}
+.pl5 .form-input:focus,.pl5 .form-select:focus{border-color: var(--brand);}
+.pl5 .hist-row{display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid #EAEFEA; font-size: 13.5px;}
+.pl5 .hist-row:last-child{border-bottom: none; padding-bottom: 0;}
+.pl5 .mini-map-box{border-radius: 12px; border: 1px solid var(--border); background: #E8F0E8; overflow: hidden; position: relative;}
+.pl5 .is-hidden{display: none !important;}
+.pl5 .pl5-stack{display:flex;flex-direction:column;gap:14px}
+.pl5 .work-tag.labor{background:#E7F5EC;color:#1F7A45}
+.pl5 .tl-row{cursor:pointer}
+.pl5 #dsAna .vh-row{display:flex!important;gap:10px;padding:11px 12px;margin:0;border:0;align-items:flex-start}
+.pl5 #dsAna .vh-row+.vh-row{border-top:1px solid #E9EFEA}
+.pl5 #dsAna .vh-dt{width:34px;height:34px;border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.pl5 #dsAna .vh-dt b{font-size:16px}.pl5 #dsAna .vh-dt img{width:34px!important;height:34px;object-fit:cover}
+.pl5 #dsAna .vh-tx{flex:1;min-width:0}
+.pl5 #dsAna .vh-k{font-size:12.5px!important;font-weight:600;color:var(--ink-3);line-height:1.3}
+.pl5 #dsAna .vh-main{font-size:15px;font-weight:700;line-height:1.3}
+.pl5 #dsAna .vh-sub{font-size:13.5px;color:var(--ink);line-height:1.38}
+.pl5 details.ds-edit{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 13px;margin:0}
+.pl5 details.ds-edit summary{font-size:15px;color:var(--ink);position:relative;padding-right:20px}
+.pl5 details.ds-edit summary::after{content:'›';position:absolute;right:2px;top:2px;font-size:20px;color:var(--ink-3);transition:transform .15s}
+.pl5 details.ds-edit[open] summary::after{transform:rotate(90deg)}
+.pl5 .vh-cd,.pl5 .dossier-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+.pl5 #dsAna>.vh-k{display:none}.pl5 #dsAna .vh-rows{margin:0;border:0}
+#dosBody.pl5{background:#F4F5F1;padding:12px 14px 28px!important;color:#16241B;font-size:15px}
+#dossierModal .pl5-back{display:none;border:0;background:rgba(255,255,255,.16);color:#fff;font-weight:600;font-size:14px;border-radius:9px;padding:4px 10px 4px 6px;margin-right:8px;white-space:nowrap}
+#dossierModal.is-pl5 .pl5-back{display:inline-flex;align-items:center}#dossierModal.is-pl5 .btn-close{display:none}
+</style>
 </head>
 <body>
   <div id="sbar"></div>
@@ -2779,7 +3018,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header text-white py-2" style="background:#1F5E3B">
-          <h6 class="modal-title fw-bold" id="dosTitle">📓 แฟ้มประวัติแปลงแบบละเอียด</h6>
+          <button type="button" class="pl5-back" data-bs-dismiss="modal" aria-label="ย้อนกลับ"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>แปลง</button><h6 class="modal-title fw-bold" id="dosTitle">📓 แฟ้มประวัติแปลงแบบละเอียด</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody" id="dosBody"></div>
@@ -5406,24 +5645,24 @@
       });
       if (curTab === 'urgent') list.sort((a, b) => (a.st.isOngoing ? 1 : 0) - (b.st.isOngoing ? 1 : 0));
 
-      let html = curTab === 'all' ? farmBtnHtml() + plotListHtml(list, logsBy) : todayHtml(rows, logsBy);
+      let html = curTab === 'all' ? (PLOTS_V ? pl5Html(rows) /* หน้าแปลง v5 */ : farmBtnHtml() + plotListHtml(list, logsBy)) : todayHtml(rows, logsBy);
       if (!html) html = '<div class="empty"><b>ไม่มีแปลงในหมวดนี้</b>ลองเลือกหมวดอื่น</div>';
 
       chkHtml = rainListHtml();
 
-      $('plot-list').innerHTML = html; $('plot-list').classList.toggle('tdA', curTab === 'urgent' && !!HOME_V); $('plot-list').classList.toggle('td5', curTab === 'urgent' && HOME_V === '5'); document.body.classList.toggle('tdA-on', curTab === 'urgent'); // หน้าวันนี้แบบ A (Gemini 24 พ.ย. 69)
+      $('plot-list').innerHTML = html; $('plot-list').classList.toggle('tdA', curTab === 'urgent' && !!HOME_V); $('plot-list').classList.toggle('td5', (curTab === 'urgent' && HOME_V === '5') || (curTab === 'all' && !!PLOTS_V)); $('plot-list').classList.toggle('pl5', curTab === 'all' && !!PLOTS_V); document.body.classList.toggle('tdA-on', curTab === 'urgent'); // หน้าวันนี้แบบ A (Gemini 24 พ.ย. 69)
       $('chk-list').innerHTML = chkHtml; rainSync();
       const total = nUrg + nDoing + (gData.watches || []).length + (gData.reminders || []).filter(r => { const d = beToISO(r.date); return r.status !== 'done' && d && d <= todayISO() && dayDiff(d, todayISO()) <= 30; }).length; // นับนัดด้วย ให้ตรงกับหัว "ต้องทำวันนี้"
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';
       $('t-urg').innerText = nUrg; $('t-doing').innerText = nDoing;
-      const none = !nUrg && !nDoing, hideT = curTab === 'urgent' || curTab === 'log'; $('tiles').dataset.none = none ? '1' : '';
+      const none = !nUrg && !nDoing, hideT = curTab === 'urgent' || curTab === 'log' || (curTab === 'all' && !!PLOTS_V); $('tiles').dataset.none = none ? '1' : '';
       $('tiles').style.display = hideT || none ? 'none' : ''; $('t-none').style.display = !hideT && none ? '' : 'none';
       $('sub-info').innerText = `${totRai} ไร่`;
       const n = new Date();
       $('hd-date').innerText = `${gData.plots.length} แปลง · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
       let nSec = list.length;
       if (curTab === 'urgent') { const ids = new Set(list.map(r => r.p.plot_id)); try { nearCutList().forEach(r => ids.add(r.p.plot_id)); } catch (e) {} nSec = ids.size; }
-      $('sec-sub').innerText = curTab === 'urgent' && HOME_V ? '' : `${nSec} แปลง`;
+      $('sec-sub').innerText = (curTab === 'urgent' && HOME_V) || (curTab === 'all' && PLOTS_V) ? '' : `${nSec} แปลง`; // v5: จำนวนแปลงอยู่ในแถบสรุปแล้ว
       $('notice-box').innerHTML = (curTab === 'urgent' && nNoWater)
         ? `<div class="notice">มี <b>${nNoWater} แปลง</b> ที่ยังไม่มีวันให้น้ำล่าสุด ระบบจึงยังเตือนคิวน้ำ/คิวฉีดยาของแปลงเหล่านี้ไม่ได้ <button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab('all')">ไปดูแปลงทั้งหมด</button></div>`
         : '';
@@ -5446,10 +5685,10 @@
       document.querySelectorAll('#mainTab .tab-btn').forEach(e => e.classList.toggle('active', e.dataset.tab === t || (t === 'table' && e.dataset.tab === 'all')));
       const plotTab = t === 'all' || t === 'urgent';
       $('plot-list').style.display = plotTab ? 'block' : 'none';
-      $('filter-sec').style.setProperty('display', t === 'all' ? 'flex' : 'none', 'important');
+      $('filter-sec').style.setProperty('display', t === 'all' && !PLOTS_V ? 'flex' : 'none', 'important');
       $('fleet-view').style.display = t === 'fleet' ? 'block' : 'none';
       $('log-view').style.display = t === 'log' ? 'block' : 'none';
-      { const hide = t === 'urgent' || t === 'log', none = $('tiles').dataset.none === '1';
+      { const hide = t === 'urgent' || t === 'log' || (t === 'all' && !!PLOTS_V), none = $('tiles').dataset.none === '1';
         $('tiles').style.display = hide || none ? 'none' : ''; $('t-none').style.display = !hide && none ? '' : 'none'; }
       if (t === 'log') { logModeApply(); if (!pkTask) pickStage('task'); else renderPick(); }
       $('stock-view').style.display = t === 'stock' ? 'block' : 'none';
@@ -5870,8 +6109,231 @@
           <div class="vh-s" style="margin:6px 2px">ดินทราย = ป้ายบอกเฉย ๆ · น้ำขังง่าย = หน้าน้ำในดินจะเตือนแปลงนี้ก่อน · อ้อยเก่าค้างปน = ดาวเทียมเห็นใบซีด/สีไม่สม่ำเสมอจากอ้อยเก่า ไม่ใช่ขาดปุ๋ย</div>
           <button type="button" class="bigbtn bigbtn-main" style="width:100%;height:46px" id="btnPlotSave" onclick="savePlotProfile('${p.plot_id}')">บันทึกข้อมูลแปลง</button>
         </details>`;
+      $('dossierModal').classList.toggle('is-pl5', !!PLOTS_V); $('dosBody').classList.toggle('td5', !!PLOTS_V); $('dosBody').classList.toggle('pl5', !!PLOTS_V);
+      if (PLOTS_V) { // หน้ารายละเอียดแปลง v5: เอาส่วนรูป/เสียหาย/รถจ้าง + ฟอร์มแก้ จากของเดิม ที่เหลือวาดใหม่
+        const T = document.createElement('div'); T.innerHTML = html;
+        const ph = [...T.querySelectorAll('.vh-cd')].filter(e => /รูป\/บันทึกหน้างาน/.test(e.textContent)).map(e => e.outerHTML).join(''), rg = T.querySelector('.row.g-2'), ed = T.querySelector('details.ds-edit');
+        const ex = ph + (rg && rg.textContent.trim() ? rg.outerHTML : '');
+        html = `<div class="pl5-stack">${pl5Dossier({ p, an, ageD, ageM, wD, tags, trac, plant, subFert, weed, labor, waterDates, sprayList, fertList, harvList, totalSprayTanks, totalFertBags, totalTons, totalTrips, used, steps, extraHtml: ex })}${ed ? `<section>${ed.outerHTML}</section>` : ''}</div>`;
+        $('dosTitle').innerHTML = `<span style="font-size:15px">${esc(plotLoc(p.plot_name))}</span>`;
+      }
       $('dosBody').innerHTML = html; dsOpen = {}; dsHist(pid); try { dsAnaLoad(pid); } catch (e) {}
       bootstrap.Modal.getOrCreateInstance($('dossierModal')).show();
+    }
+
+
+    // ===== หน้าแปลง v5 (Gemini plots-gemini-v1 · 24 พ.ย. 69) — CSS ชุด .pl5 (ตัดจากไฟล์แบบ) + ตัวแปรสีของ .td5 =====
+    // รายการ: แถบสรุป (ชิปกรองเร็ว) → เครื่องมือ 4 อัน → แปลงแยกตามพื้นที่ (พับ/กาง จำใน raioy_grpOpen) · แตะแปลง = openDossier (หน้ารายละเอียดชุดเดียวกัน)
+    let PLOTS_V = '5'; // '' = แบบเดิม
+    var pl5Fil = (() => { try { return localStorage.getItem('raioy_pl5fil') || 'all'; } catch (e) { return 'all'; } })();
+    const PL5_CHEV = '<span class="chev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>';
+    const PL5_DOWN = '<span class="chev cat-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></span>';
+    function pl5St(st) { return st.isOngoing ? 'doing' : st.isUrg ? 'due' : st.isHarvested ? 'cut' : ''; }
+    function pl5Match(p, st) {
+      const k = pl5St(st);
+      return pl5Fil === 'due' ? k === 'due' : pl5Fil === 'doing' ? k === 'doing' : pl5Fil === 'new' ? p.cane_type === 'อ้อยใหม่' : pl5Fil === 'ratoon' ? p.cane_type !== 'อ้อยใหม่' : true;
+    }
+    function pl5SetFil(f) {
+      pl5Fil = pl5Fil === f && f !== 'all' ? 'all' : f;
+      try { localStorage.setItem('raioy_pl5fil', pl5Fil); } catch (e) {}
+      if (pl5Fil === 'due' || pl5Fil === 'doing') { // กรองถึงคิว/กำลังทำ = กางพื้นที่ที่มีให้เห็นทันที
+        const add = gData.plots.filter(p => pl5Match(p, analyze(p))).map(p => plotLoc(p.plot_name));
+        grpOpen = [...new Set(grpOpen.concat(add))]; try { localStorage.setItem('raioy_grpOpen', JSON.stringify(grpOpen)); } catch (e) {}
+      }
+      render();
+    }
+    function pl5AllZones(open) {
+      grpOpen = open ? [...new Set(gData.plots.map(p => plotLoc(p.plot_name)))] : [];
+      try { localStorage.setItem('raioy_grpOpen', JSON.stringify(grpOpen)); } catch (e) {}
+      render();
+    }
+    function pl5Tools() {
+      const nB = gData.plots.filter(p => p.boundary).length, nl = (gData.lands || []).length, left = gData.plots.length - nB;
+      const mapSub = `${left ? `ยังไม่วาดขอบ ${left} แปลง` : `${gData.plots.length} แปลง`}${nl ? ` · ที่ดิน ${nl}` : ''}`;
+      let satSub = '<span style="color:var(--ink-3)">วาดขอบแปลงก่อน</span>', bad = 0;
+      if (nB) { satQuiet(); const it = satInfo ? satInfo.items.filter(x => !x.land) : null; bad = it ? it.filter(x => x.st === 'bad').length : 0; const ok = it ? it.filter(x => x.st === 'ok').length : 0;
+        satSub = !it ? '<span style="color:var(--ink-3)">กำลังโหลด…</span>' : bad ? `<span class="tele-status-due">⚠️ ควรไปดู ${bad}</span> · ✓ ${ok}` : `<span class="tele-status-ok">✓ ปกติ ${ok} แปลง</span>`; }
+      const ico = (cls, svg) => `<span class="tele-ico ${cls}" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></span>`;
+      let h = `<div class="tools-top-grid">
+        <button type="button" class="tele-card" onclick="openFarmMap()"><div class="tele-head"><span class="tele-label">${ico('is-map', '<polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/>')}แผนที่ไร่</span>${PL5_CHEV}</div><div class="tele-sub tabular">${mapSub}</div></button>
+        <button type="button" class="tele-card${bad ? ' is-warn-card' : ''}" onclick="${nB ? 'openSat()' : 'openFarmMap()'}"><div class="tele-head"><span class="tele-label">${ico(bad ? 'is-sat-warn' : 'is-sat', '<path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/>')}ดาวเทียม</span>${PL5_CHEV}</div><div class="tele-sub tabular">${satSub}</div></button></div>`;
+      // น้ำในดิน: ซ่อนเมื่อทุกแปลงอยู่ช่วงใกล้ตัด (กติกาเดิม) · ขั้นตอน: ถึงคิว / รอตอบ
+      let soil = '';
+      if (nB && !gData.plots.every(p => isNearHarvest(p, calcDays(p.plant_date)))) {
+        let sub = '', bar = '';
+        if (!soilWx) { soilLoad(() => { if (curTab === 'all') render(); }); sub = soilErr ? 'แตะเพื่อลองใหม่' : 'กำลังคำนวณ…'; }
+        else { const c = { wet: 0, ok: 0, dry1: 0, dry: 0, stop: 0, cut: 0, none: 0 }; gData.plots.forEach(p => { const r = soilCalc(p); if (r) c[r.st]++; });
+          sub = ['ok', 'dry1', 'dry', 'wet', 'stop', 'cut'].filter(k => c[k]).map(k => ['ok', 'stop', 'cut'].includes(k) ? `${SOIL_ST[k][0]} <strong>${c[k]}</strong>` : `<span style="color:${SOIL_ST[k][1]};font-weight:700">${SOIL_ST[k][0]} ${c[k]}</span>`).join(' · ');
+          const tot = c.ok + c.dry1 + c.dry + c.wet; if (tot) { const pc = Math.round(c.ok / tot * 100);
+            bar = `<div class="soil-bar-wrap" aria-hidden="true"><div class="soil-bar-track"><div class="soil-bar-ok" style="width:${pc}%"></div><div class="soil-bar-dry" style="width:${100 - pc}%"></div></div><span style="font-size:11.5px;color:var(--ink-3)" class="tabular">${pc}% ชื้นพอ</span></div>`; } }
+        soil = `<div class="status-row is-clickable" role="button" tabindex="0" onclick="openSoil()"><div class="status-row-left"><div class="status-icon-box is-water" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7l5.6 7.4a7 7 0 1 1-11.2 0L12 2.7z"/></svg></div>
+          <div class="status-info"><div class="status-title-row"><span class="status-title">น้ำในดิน (ประมาณ)</span><span class="sec-badge is-muted">ค่าประมาณ</span></div><div class="status-sub tabular">${sub}</div>${bar}</div></div>${PL5_CHEV}</div>`;
+      }
+      let fc = { n: 0, q: 0 }; try { fc = flDueCount(); } catch (e) {}
+      const flow = `<div class="status-row is-clickable" role="button" tabindex="0" onclick="openFlow()"><div class="status-row-left"><div class="status-icon-box ${fc.n ? 'is-due' : 'is-ok'}" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div>
+        <div class="status-info"><div class="status-title-row"><span class="status-title">ขั้นตอนอ้อยใหม่ / อ้อยตอ</span></div><div class="tool-pills-row tabular">${fc.n ? `<span class="sec-badge is-due">ถึงคิว ${fc.n} งาน</span>` : '<span class="sec-badge is-ok">ไม่มีงานถึงคิว</span>'}${fc.q ? `<span class="sec-badge is-ask">? รอตอบ ${fc.q}</span>` : ''}</div></div></div>${PL5_CHEV}</div>`;
+      return `<section><div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">เครื่องมือดูภาพรวมไร่</h2></div></div><div class="tools-wrap">${h}<div class="grouped-card">${soil}${flow}</div></div></section>`;
+    }
+    function pl5Html(rows) {
+      const tot = rows.reduce((t, r) => t + num(r.p.area_rai), 0), nN = rows.filter(r => r.p.cane_type === 'อ้อยใหม่').length, nR = rows.length - nN;
+      const nDue = rows.filter(r => pl5St(r.st) === 'due').length, nDo = rows.filter(r => pl5St(r.st) === 'doing').length;
+      const chip = (f, t, cls) => `<button type="button" class="stat-mini-chip${cls ? ' ' + cls : ''}${pl5Fil === f ? ' is-active-filter' : ''}" onclick="pl5SetFil('${f}')">${t}</button>`;
+      let h = `<section class="farm-strip"><div class="farm-strip-top tabular"><span class="farm-strip-main">${r1(tot)} ไร่ · ${rows.length} แปลง</span><span class="farm-strip-sub">อ้อยใหม่ ${nN} · อ้อยตอ ${nR}</span></div>
+        <div class="farm-strip-pills tabular">${nDue ? chip('due', `ถึงคิว <strong>${nDue}</strong>`, 'is-due') : ''}${nDo ? chip('doing', `<span class="pulse-dot"></span>กำลังทำ <strong>${nDo}</strong>`, 'is-doing') : ''}${chip('new', `อ้อยใหม่ <strong>${nN}</strong>`)}${chip('ratoon', `อ้อยตอ <strong>${nR}</strong>`)}</div></section>`;
+      h += pl5Tools();
+      // พื้นที่
+      const groups = [], idx = {};
+      rows.forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
+      const vis = groups.map(g => ({ ...g, show: g.rows.filter(r => pl5Match(r.p, r.st)) })).filter(g => g.show.length);
+      const nShow = vis.reduce((t, g) => t + g.show.length, 0), allOpen = vis.length && vis.every(g => grpOpen.includes(g.l));
+      const seg = (f, t) => `<button type="button" class="seg-btn${pl5Fil === f ? ' active' : ''}" onclick="pl5SetFil('${f}')">${t}</button>`;
+      h += `<section><div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">แปลงแยกตามพื้นที่</h2><span class="sec-badge tabular">${pl5Fil === 'all' ? vis.length + ' พื้นที่' : nShow + ' แปลง'}</span></div>
+        <button type="button" class="sec-toggle-btn" onclick="pl5AllZones(${allOpen ? 0 : 1})">${allOpen ? 'พับทั้งหมด' : 'กางทั้งหมด'}</button></div>
+        <div class="seg-bar" role="tablist" style="margin-bottom:10px">${seg('all', 'ทั้งหมด')}${seg('due', 'ถึงคิว')}${seg('doing', 'กำลังทำ')}${seg('new', 'อ้อยใหม่')}${seg('ratoon', 'ตอ')}</div><div class="zone-stack">`;
+      if (!vis.length) h += '<div class="empty-filter-box">ไม่พบแปลงที่ตรงกับตัวกรองนี้</div>';
+      vis.forEach(g => {
+        const open = grpOpen.includes(g.l), rai = g.rows.reduce((t, r) => t + num(r.p.area_rai), 0);
+        const nD = g.rows.filter(r => pl5St(r.st) === 'doing').length, nU = g.rows.filter(r => pl5St(r.st) === 'due').length;
+        const nS = satInfo ? g.rows.filter(r => { const x = satInfo.items.find(i => i.key === 'plot|' + r.p.plot_id); return x && x.st === 'bad'; }).length : 0;
+        const ages = {}; g.rows.forEach(({ p }) => { const d = calcDays(p.plant_date), t = p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'ตอ'; if (d !== null) (ages[t] = ages[t] || []).push(Math.floor(d / 30)); });
+        const ageTxt = Object.keys(ages).map(t => { const a = ages[t], lo = Math.min(...a), hi = Math.max(...a); return `${t} ${lo === hi ? lo : lo + '–' + hi} ด.`; }).join(' · ');
+        const pill = (nD ? `<span class="st-pill doing tabular"><span class="pulse-dot"></span>กำลังทำ ${nD}</span>` : '') + (nU ? `<span class="st-pill due tabular">ถึงคิว ${nU}</span>` : '') + (nS ? `<span class="st-pill due tabular">🛰️ ควรดู ${nS}</span>` : '');
+        h += `<div class="zone-card${open ? ' is-open' : ''}${nD ? ' has-doing' : nU || nS ? ' has-due' : ''}"><button type="button" class="zone-head" aria-expanded="${open}" onclick="tglGrp('${qa(g.l)}')"><div class="zone-head-left"><div class="zone-title-line"><span class="zone-name">${esc(g.l)}</span>${pill}</div>
+          <div class="zone-meta tabular">${g.rows.length} แปลง · ${r1(rai)} ไร่${ageTxt ? ' · ' + ageTxt : ''}</div></div><span class="chev zone-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>`;
+        if (open) h += `<div class="zone-plots">${g.show.map(({ p, st }) => {
+          const k = pl5St(st), pD = calcDays(p.plant_date), wD = calcDays(p.last_water_date), isNew = p.cane_type === 'อ้อยใหม่';
+          const age = pD === null ? (isNew ? 'ยังไม่ปลูก' : '') : `${Math.floor(pD / 30)} ด.`, wc = waterChip(p, st, pD, wD);
+          const wTxt = !wc || wD === null ? '' : `<span class="water-ago tabular${wc.c === 'red' ? ' is-dry' : ''}">· ${wc.c === 'red' ? 'ขาดน้ำ' : 'น้ำ'} ${wD} วัน${wc.c === 'red' ? '' : 'ก่อน'}</span>`;
+          const tg = (plotTags(p).includes(TAG_SAND) ? '<span class="crop-tag">ทราย</span>' : '') + (watchesOf(p.plot_id).length ? '<span class="crop-tag" style="background:#F3EEFF;color:#5A2E8F">ฝากดู</span>' : '');
+          const pp = k === 'doing' ? '<span class="st-pill doing">กำลังทำ</span>' : k === 'due' ? '<span class="st-pill due">ถึงคิว</span>' : k === 'cut' ? '<span class="st-pill muted">ตัดแล้ว</span>' : '';
+          return `<button type="button" class="plot-row${k === 'doing' ? ' st-doing' : k === 'due' ? ' st-due' : ''}" onclick="openDossier('${p.plot_id}')"><div class="plot-row-left"><div class="plot-name">${esc(p.plot_name)}</div>
+            <div class="plot-meta-line tabular"><span class="plot-rai">${esc(p.area_rai)} ไร่</span><span class="crop-tag ${isNew ? 'is-new' : 'is-ratoon'}">${isNew ? 'อ้อยใหม่' : 'ตอ'}${age ? ' ' + age : ''}</span>${wTxt}${tg}</div></div><div class="plot-row-right">${pp}${PL5_CHEV}</div></button>`; }).join('')}</div>`;
+        h += '</div>';
+      });
+      return `<div class="pl5-stack">${h}</div></section></div>`;
+    }
+
+    // ===== หน้ารายละเอียดแปลง v5 (ใช้ข้อมูลที่ openDossier คำนวณแล้ว) =====
+    function pl5Cat(el) { const c = el.closest('.cat-acc'); c.classList.toggle('is-open'); c.querySelector('.cat-acc-body').classList.toggle('is-hidden'); }
+    function pl5CatAll(btn) { const box = btn.closest('section').querySelectorAll('.cat-acc'), open = [...box].every(c => c.classList.contains('is-open'));
+      box.forEach(c => { c.classList.toggle('is-open', !open); c.querySelector('.cat-acc-body').classList.toggle('is-hidden', open); }); btn.textContent = open ? 'กางทั้งหมด' : 'พับทั้งหมด'; }
+    function pl5Dossier(o) {
+      const { p, an, ageD, ageM, wD, tags, trac, plant, subFert, weed, labor, waterDates, sprayList, fertList, harvList, totalSprayTanks, totalFertBags, totalTons, totalTrips, used, steps, extraHtml } = o;
+      const pid = p.plot_id, pn = qa(p.plot_name), isNew = p.cane_type === 'อ้อยใหม่';
+      const ds = v => { const m = String(v || '').match(/(\d\d)\/(\d\d)\/(\d{4})/); return m ? dShort(beToISO(m[0])) : ''; };
+      const dsy = v => { const m = String(v || '').match(/(\d\d)\/(\d\d)\/(\d{4})/); return m ? `${dShort(beToISO(m[0]))} ${String(+m[3]).slice(2)}` : ''; };
+      const paren = v => (String(v).match(/\(([^)]*)\)\s*$/) || [])[1] || '';
+      const stP = an.isOngoing ? '<span class="st-pill doing"><span class="pulse-dot"></span>กำลังทำ</span>' : an.isUrg ? '<span class="st-pill due">ถึงคิว</span>' : an.isHarvested ? '<span class="st-pill muted">ตัดแล้ว</span>' : '<span class="st-pill muted">ปกติ</span>';
+      const variety = p.cane_variety && p.cane_variety !== 'nan' ? esc(p.cane_variety) : '-';
+      let h = `<section class="plot-hero"><div class="plot-hero-top"><h1 class="plot-hero-title">${esc(p.plot_name)}</h1>${stP}</div>
+        <div class="plot-hero-meta tabular"><strong>${esc(p.area_rai)} ไร่</strong><span class="meta-dot">·</span><span>${isNew ? '🌱' : '🌿'} ${esc(p.cane_type || '')}</span><span class="meta-dot">·</span><span>พันธุ์ ${variety}</span></div>
+        ${tags.includes(TAG_SAND) || tags.includes('น้ำขังง่าย') ? `<div class="tool-pills-row" style="margin-top:6px">${tags.includes(TAG_SAND) ? '<span class="sec-badge is-due">ดินทราย แห้งง่าย</span>' : ''}${tags.includes('น้ำขังง่าย') ? '<span class="sec-badge" style="background:var(--water-soft);color:var(--water)">💧 น้ำขังง่าย</span>' : ''}</div>` : ''}</section>`;
+      // ตัวเลขหลัก + ถัดไป
+      const pD = calcDays(p.plant_date), wc = (() => { try { return waterChip(p, an, pD, wD); } catch (e) { return null; } })();
+      const kpi = (k, v, cls) => `<div class="kpi-box${cls ? ' ' + cls : ''}"><span class="kpi-label">${k}</span><span class="kpi-val">${v}</span></div>`;
+      const next = an.isOngoing ? 'ลุยงานที่ค้างให้จบ (เสร็จแล้วกดปุ่ม งานเสร็จ)' : an.next ? esc(String(plain(an.next)).replace(/^[^\p{L}\d]+/u, '')) : '';
+      const note = (p.status_note && p.status_note !== 'nan' && p.status_note !== '-') ? plain(p.status_note.replace('[กำลังทำ]', '')).replace(/\s*\|\s*/g, ' · ').replace(/(\d\d)\/(\d\d)\/(\d{4})/g, m => dShort(beToISO(m))).trim() : '';
+      const W = watchesOf(pid);
+      h += `<section style="display:flex;flex-direction:column;gap:8px"><div class="kpi-3-grid tabular">${kpi(isNew ? 'อายุจากปลูก' : 'อายุตอ', ageM !== null ? (ageM ? ageM + ' เดือน' : ageD + ' วัน') : (isNew ? 'ยังไม่ปลูก' : '—'))}${kpi('น้ำล่าสุด', wD !== null ? (wD === 0 ? 'วันนี้' : wD + ' วันก่อน') : 'ยังไม่มี', wc && wc.c === 'red' ? 'is-due' : '')}${kpi('ฉีดยารวม', totalSprayTanks ? r1(totalSprayTanks) + ' ถัง' : '0 ถัง')}</div>
+        ${next || note || W.length ? `<div class="task-card ${an.isOngoing ? 'st-doing' : an.isUrg ? 'st-due' : 'st-ok'}"><div class="next-card-row"><div style="min-width:0;flex:1">
+          ${an.isOngoing && note ? `<div class="next-kicker">กำลังทำ</div><div class="next-text" style="font-weight:600;margin-bottom:4px">${esc(note)}</div>` : ''}
+          ${next ? `<div class="next-kicker">ถัดไป</div><div class="next-text">${next}</div>` : ''}
+          ${!an.isOngoing && note ? `<div class="an-l4" style="margin-top:3px">ล่าสุด: ${esc(note)}</div>` : ''}
+          ${W.map(w => `<div class="an-l3" style="margin-top:4px;color:#5A2E8F">👁 ฝากดู: ${esc(w.reason)}${w.note ? ' · ' + esc(w.note) : ''}</div>`).join('')}</div>
+          ${an.isOngoing ? `<button type="button" class="task-inline-btn is-solid" onclick="dsLeave('${pid}');openAct('${pid}','${pn}','finish')">งานเสร็จ</button>` : ''}</div></div>` : ''}</section>`;
+      h += `<section class="action-pair-wrap"><div class="action-pair"><button type="button" class="act-btn is-primary" onclick="dsLeave('${pid}');openAct('${pid}','${pn}','new')">+ จดงานแปลงนี้</button>
+        <button type="button" class="act-btn" onclick="dsLeave('${pid}');setTimeout(()=>openFarmMap('${pid}', ${p.boundary ? 'false' : 'true'}),300)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg><span>${p.boundary ? 'ดูบนแผนที่' : 'วาดแนวแปลง'}</span></button></div>
+        <div class="map-measure-note tabular" style="display:flex;justify-content:space-between;gap:8px"><span>${p.boundary && num(p.map_rai) ? 'วัดจากแนวบนแผนที่ได้ ' + fmtRai(num(p.map_rai) * 1600) : ''}</span><button type="button" class="sec-toggle-btn" onclick="dsLeave('${pid}');openWatch('${pid}')">+ ฝากดูแปลงนี้</button></div></section>`;
+      h += `<section><div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">วิเคราะห์แปลงนี้</h2></div><span class="sec-badge is-muted">ดาวเทียม + ฝน</span></div><div class="grouped-card" id="dsAna"></div></section>`;
+      // หมวดงาน
+      const cat = (key, title, badge, sum, body, right) => `<div class="cat-acc" data-k="${key}"><div class="cat-acc-head" role="button" tabindex="0" onclick="pl5Cat(this)"><div class="cat-acc-left"><div class="cat-acc-title-row"><span class="cat-acc-title">${title}</span>${badge || ''}</div><div class="cat-acc-sum tabular">${sum}</div></div><div class="cat-acc-right">${right || ''}${PL5_DOWN}</div></div><div class="cat-acc-body is-hidden tabular">${body}</div></div>`;
+      const sub = (t, m, d, tg) => `<div class="sub-row"><div class="sub-row-left"><div class="sub-row-title"><span>${t}</span>${tg || ''}</div>${m ? `<div class="sub-row-meta">${m}</div>` : ''}</div><span class="step-date">${d}</span></div>`;
+      const empty = t => `<div class="cat-empty-note">${t}</div>`;
+      const badge = (t, c) => `<span class="sec-badge ${c || 'is-muted'} tabular">${t}</span>`;
+      // 1) เตรียมดิน: ขั้นหลัก ✓/○ + งานรถเสริม ★
+      const MAIN = ['ผาน 7', 'ริปเปอร์', 'ผาน 4', 'ชักร่อง', 'อุ้มร่อง', 'ครูดร่อง'];
+      const main = steps.filter(k => MAIN.includes(k)), extra = steps.filter(k => !MAIN.includes(k));
+      const arr = k => k === 'ชักร่อง' ? plant : (trac[k] || []);
+      const isDone = k => arr(k).length || (k === 'ชักร่อง' && p.plant_date);
+      const nDone = main.filter(isDone).length;
+      const stepRow = (k, star) => { const a = arr(k), lbl = esc(TRAC_LBL[k] || k);
+        if (a.length) { const r = dRange(a), last = a[a.length - 1]; return `<div class="step-item"><div class="step-item-left"><span class="step-mark ${star ? 'extra' : 'done'}">${star ? '★' : '✓'}</span><div><div class="step-name">${lbl}</div><div class="step-meta">${esc([paren(last), r.length > 1 ? r.length + ' ช่วง' : ''].filter(Boolean).join(' · ')) || '&nbsp;'}${star ? ' · งานบำรุงเสริม' : ''}</div></div></div><span class="step-date">${dsy(last)}</span></div>`; }
+        if (k === 'ชักร่อง' && p.plant_date) return `<div class="step-item"><div class="step-item-left"><span class="step-mark done">✓</span><div><div class="step-name">${lbl}</div><div class="step-meta">จากวันปลูก</div></div></div><span class="step-date">${dsy(p.plant_date)}</span></div>`;
+        return `<div class="step-item is-pending"><div class="step-item-left"><span class="step-mark pending">○</span><div><div class="step-name">${lbl}</div><div class="step-meta">ยังไม่มีบันทึก</div></div></div><span class="step-date">รอทำ</span></div>`; };
+      let prep = `<div class="step-progress-bar tabular"><div class="step-segments">${main.map(k => `<span class="step-seg${isDone(k) ? ' is-done' : ''}"></span>`).join('')}</div><span style="font-size:12px;font-weight:600;color:var(--brand-dark)">ทำแล้ว ${nDone}/${main.length} ขั้นหลัก</span></div><div class="step-list tabular">`;
+      prep += main.map(k => stepRow(k)).join('') + extra.map(k => stepRow(k, 1)).join('');
+      prep += subFert.length ? `<div class="step-item"><div class="step-item-left"><span class="step-mark done">✓</span><div><div class="step-name">ฝังปุ๋ย</div><div class="step-meta">${esc(paren(subFert[subFert.length - 1]))}</div></div></div><span class="step-date">${dsy(subFert[subFert.length - 1])}</span></div>`
+        : '<div class="step-item is-pending"><div class="step-item-left"><span class="step-mark pending">○</span><div><div class="step-name">ฝังปุ๋ย</div><div class="step-meta">ยังไม่มีบันทึก</div></div></div><span class="step-date">รอทำ</span></div>';
+      prep += weed.map(w => { const m = String(w).match(/^(\S+): (.*)$/); return `<div class="step-item"><div class="step-item-left"><span class="step-mark extra">★</span><div><div class="step-name">${esc(m ? m[2] : w)}</div><div class="step-meta">งานรถบำรุงเสริม</div></div></div><span class="step-date">${dsy(m ? m[1] : '')}</span></div>`; }).join('') + '</div>';
+      const prepSum = main.map(k => esc((TRAC_LBL[k] || k).replace(/\s*\(.*\)$/, '')) + (isDone(k) ? ' ✓' : '')).join(' · ');
+      let cats = cat('prep', 'เตรียมดิน / ปลูก / รถบำรุง', badge(`ทำแล้ว ${nDone}/${main.length} ขั้น`, nDone === main.length ? 'is-ok' : 'is-muted'), prepSum, prep);
+      // 2) น้ำ & ฝน (ใหม่ → เก่า)
+      const wr = dRange(waterDates).reverse();
+      cats += cat('water', 'น้ำ & ฝน', wr.length ? badge(`${wr.length} รอบ`) : '', wr.length ? `ล่าสุด ${p.last_water_date ? dShort(beToISO(p.last_water_date)) : ds(wr[0])}` : 'ยังไม่มีประวัติ',
+        wr.length ? wr.map((w, i) => { const m = String(w).match(/^(.*?)\s*\((.*)\)$/) || [w, w, ''], rg = String(m[1]).split('–'), end = rg[rg.length - 1], rain = /ฝน/.test(m[2]);
+          return sub(`รอบ ${wr.length - i}`, esc(String(m[2]).replace(/^[^\p{L}]+/u, '')), rg.length > 1 ? `${+rg[0].slice(0, 2)}–${ds(end)}` : ds(end), `<span class="work-tag ${rain ? 'rain' : 'water'}">${rain ? '🌧 ฝนตก' : 'ขึ้นน้ำ'}</span>`); }).join('') : empty('ยังไม่มีบันทึกน้ำ/ฝน'));
+      // 3) ปุ๋ย 4) ฉีดยา 5) งานคน
+      const lst = a => a.slice().reverse().map(x => sub(esc(x.t) + (x.q ? ` <b>${esc(x.q)}</b>` : ''), x.who ? esc(x.who) : '', dsy(x.d))).join('');
+      const lastF = fertList[fertList.length - 1];
+      cats += cat('fert', 'ใส่ปุ๋ย / บำรุง', fertList.length ? badge(`${fertList.length} ครั้ง`) : '', fertList.length ? `${totalFertBags ? `รวม ~${r1(totalFertBags)} กระสอบ · ` : ''}ล่าสุด ${dsy(lastF.d)} ${esc(lastF.t)}` : 'ยังไม่มีประวัติ', fertList.length ? lst(fertList) : empty('ยังไม่มีบันทึกการใส่ปุ๋ยในแปลงนี้'));
+      const uk = Object.keys(used), lastS = sprayList[sprayList.length - 1];
+      const sprayDoing = an.isOngoing && /ฉีด/.test(note);
+      cats += cat('spray', 'ฉีดยาคุมหญ้า', (sprayList.length ? badge(`${sprayList.length} ครั้ง`) : '') + (sprayDoing ? '<span class="st-pill doing">กำลังทำ</span>' : ''), sprayList.length ? `${dsy(lastS.d)} ${esc(lastS.t)}${lastS.who ? ' · ' + esc(lastS.who) : ''}` : 'ยังไม่มีประวัติ',
+        (sprayList.length ? lst(sprayList) : empty('ยังไม่มีบันทึกการฉีดยา')) + (uk.length ? `<div class="sub-row" style="background:#F6F8F6"><div class="sub-row-left"><div class="sub-row-title">ยา / ปุ๋ย ที่ใช้จริง (จากสต็อก)</div><div class="sub-row-meta">${uk.map(n => `${esc(n)} <b>${fmtQty(invItem(n) || { unit: '' }, used[n])}</b>`).join(' · ')}</div></div></div>` : ''));
+      if (labor.length) cats += cat('labor', 'งานคน: ถากหญ้า / ซ่อมอ้อย', badge(`${labor.length} ครั้ง`), ['ถากหญ้า', 'ซ่อมอ้อย'].map(t => { const n = labor.filter(x => x.k === t).length; return n ? `${t} ${n} ครั้ง` : ''; }).filter(Boolean).join(' · ') || `${labor.length} ครั้ง`,
+        labor.slice().reverse().map(x => { const v = String(x.v).replace(/<[^>]+>/g, ''), m = v.match(/^(\d\d\/\d\d\/\d{4})\s*:?\s*(.*)$/), t = (m ? m[2] : v).split(/\s+โดย\s+/); return sub(esc(t[0] || x.k), t[1] ? esc(t[1]) : '', dsy(m ? m[1] : '')); }).join(''));
+      // 6) ตัดอ้อย 7) ผลผลิต
+      const lastH = harvList[harvList.length - 1];
+      cats += cat('cut', 'ตัดอ้อย & ส่งโรงงาน', harvList.length ? badge(`${harvList.length} ครั้ง`) : '', harvList.length ? (totalTons ? `${r1(totalTons)} ตัน · ${(totalTons / parseFloat(p.area_rai || 1)).toFixed(1)} ตัน/ไร่${totalTrips ? ' · ' + totalTrips + ' เที่ยว' : ''}` : `ล่าสุด ${dsy(lastH.d)} ${esc(lastH.t)}${lastH.who ? ' · ' + esc(lastH.who) : ''}`) : 'ยังไม่ตัดฤดูนี้', harvList.length ? lst(harvList) : empty('ยังไม่มีประวัติตัดอ้อย'));
+      const Y = (gData.yields || []).filter(y => y.plot_id === pid).sort((a, b) => (beToISO(b.cut_date) || '').localeCompare(beToISO(a.cut_date) || ''));
+      const yt = Y.reduce((t, y) => t + num(y.tons), 0);
+      cats += cat('yield', `⚖️ ผลผลิตส่งโรงงาน (${Y.length})`, '', Y.length ? `รวม ${r1(yt)} ตัน` : 'ยังไม่มี · ตัดเสร็จแล้วรู้น้ำหนักจากโรงงาน กด + บันทึก',
+        (Y.length ? Y.map(y => { const r = ylRai(y), tpr = r > 0 ? (num(y.tons) / r).toFixed(2) : '-';
+          return `<div class="sub-row"><div class="sub-row-left"><div class="sub-row-title">${num(y.tons)} ตัน · ${tpr} ตัน/ไร่${num(y.ccs) ? ' · CCS ' + num(y.ccs) : ''}</div><div class="sub-row-meta">${esc(y.stage || '')} · ${esc(y.season || '')}${y.cut_date ? ' · ตัด ' + esc(dsy(y.cut_date)) : ''}${y.note ? ' · ' + esc(y.note) : ''}</div>
+            <div style="display:flex;gap:6px;margin-top:6px"><button type="button" class="task-inline-btn" onclick="openYield('${pid}','${qa(y.yield_id)}')">แก้</button><button type="button" class="task-inline-btn" style="color:#B42318" onclick="delYield('${qa(y.yield_id)}','${pid}')">ลบ</button></div></div></div>`; }).join('') : empty('ยังไม่มี · พอตัดเสร็จและรู้น้ำหนักจากโรงงาน กดปุ่ม + บันทึกผลผลิต'))
+        + ((gData.yields || []).length ? `<div style="padding:8px 12px"><div class="an-l1" style="margin-bottom:4px">เทียบทั้งไร่ (ทุกแปลงที่บันทึก)</div>${yieldCompareHtml()}</div>` : ''),
+        `<button type="button" class="task-inline-btn is-doing" onclick="event.stopPropagation();openYield('${pid}')">+ บันทึกผลผลิต</button>`);
+      h += `<section><div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">หมวดงานในแปลง</h2></div><button type="button" class="sec-toggle-btn" onclick="pl5CatAll(this)">กางทั้งหมด</button></div><div class="grouped-card">${cats}</div></section>`;
+      if (extraHtml) h += `<section>${extraHtml}</section>`;
+      h += `<section><div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">ประวัติงาน</h2></div></div><div id="dsHist"></div></section>`;
+      return h;
+    }
+    function pl5Hist(pid, el) {
+      const all = gData.activities.filter(a => a.plot_id === pid).map(l => ({ l, t: dsT(l) })).sort((a, b) => b.t - a.t);
+      const nRain = all.filter(x => x.l.activity_group === 'ฝนตก').length, nWork = all.length - nRain;
+      const L = all.filter(x => dsFilt === 'all' || (dsFilt === 'rain') === (x.l.activity_group === 'ฝนตก'));
+      const runs = [], lastOf = {};
+      L.forEach(x => { const k = [x.l.activity_group, x.l.activity_detail, x.l.operator, x.l.equipment].join('|');
+        const g = lastOf[k]; if (g && g.a - x.t <= 2 * 864e5) { g.a = x.t; g.items.push(x); } else runs.push(lastOf[k] = { k, a: x.t, b: x.t, items: [x] }); });
+      const seg = (v, t, n) => `<button type="button" class="seg-btn${dsFilt === v ? ' active' : ''}" onclick="dsFilt='${v}';dsHist('${pid}')">${t} <span class="seg-cnt tabular">${n}</span></button>`;
+      const TAG = { 'ฉีดยา': 'spray', 'ขึ้นน้ำ': 'water', 'รถไถ': 'tractor', 'ตัดอ้อย': 'cut', 'ใส่ปุ๋ย': 'fert', 'ฝนตก': 'rain', 'งานคน': 'labor' };
+      let h = `<div class="seg-bar is-3col" role="tablist" style="margin-bottom:9px">${seg('work', 'งาน', nWork)}${seg('rain', '🌧 ฝน', nRain)}${seg('all', 'ทั้งหมด', all.length)}</div>`;
+      const byY = []; runs.forEach(r => { const y = new Date(r.b).getFullYear() + 543; let g = byY.find(x => x.y === y); if (!g) byY.push(g = { y, r: [] }); g.r.push(r); });
+      if (!runs.length) h += '<div class="grouped-card"><div style="padding:16px;text-align:center;color:var(--ink-3);font-size:13.5px">ยังไม่มีประวัติในหมวดนี้</div></div>';
+      byY.forEach(G => {
+        h += `<div class="grouped-card" style="margin-bottom:10px"><div class="tl-year-bar tabular"><span>ปี ${G.y}</span><span>${G.r.length} แถว</span></div>`;
+        G.r.forEach(r => {
+          const l = r.items[0].l, lb = grpLabel(l), rain = l.activity_group === 'ฝนตก', A = new Date(r.a), B = new Date(r.b);
+          const dt = r.a === r.b ? `${B.getDate()} ${TH_MON[B.getMonth()]}` : A.getMonth() === B.getMonth() ? `${A.getDate()}–${B.getDate()} ${TH_MON[B.getMonth()]}` : `${A.getDate()} ${TH_MON[A.getMonth()]}–${B.getDate()} ${TH_MON[B.getMonth()]}`;
+          const qs = r.items.map(x => String(x.l.quantity || '').match(/^([\d.]+)\s*(\S+)$/)).filter(Boolean), qu = qs.length && qs.every(m => m[2] === qs[0][2]) ? `${r1(qs.reduce((a, m) => a + parseFloat(m[1]), 0))} ${qs[0][2]}` : '';
+          const key = r.k + r.b, op = dsOpen[key], mmS = rain ? r.items.reduce((t, x) => t + (parseFloat((String(x.l.remark).match(/~?([\d.]+)\s*มม/) || [])[1]) || 0), 0) : 0;
+          const who = [l.operator, eqS(l.equipment)].filter(v => v && v !== '-' && v !== 'ธรรมชาติ').map(esc).join(' · ');
+          const chs = l.activity_group === 'ฉีดยา' ? logChems(r.items.map(x => x.l)) : '';
+          const ongo = /กำลังทำ/.test(String(l.remark || '')) && !/เสร็จ/.test(String(l.remark || ''));
+          const title = rain ? (mmS ? `~${r1(mmS)} มม.` : 'ฝนตก') : esc(l.activity_detail === '-' ? lb : l.activity_detail);
+          const det = [qu ? `<b>${esc(qu)}</b>` : '', who, chs ? esc(chs) : ''].filter(Boolean).join(' · ');
+          h += `<div class="tl-item${op ? ' is-menu-open' : ''}"><div class="tl-row" data-k="${esc(key)}" onclick="dsOpen[this.dataset.k]=!dsOpen[this.dataset.k];dsHist('${pid}')">
+            <div class="tl-date-col tabular"><span class="tl-date-main">${dt}</span><span class="tl-date-year">${String(G.y).slice(2)}</span>${r.items.length > 1 ? `<span class="tl-span-pill">${r.items.length} วัน</span>` : ''}</div>
+            <div class="tl-work-col"><div class="tl-tag-line"><span class="work-tag ${TAG[rain ? 'ฝนตก' : lb] || 'tractor'}">${rain ? '🌧 ฝนตก' : esc(lb)}</span>${ongo ? '<span class="st-pill doing" style="padding:0 7px;font-size:11px">กำลังทำ</span>' : ''}</div><div class="tl-work-title">${title}</div>${det ? `<div class="tl-work-detail">${det}</div>` : ''}</div>
+            <button type="button" class="tl-more-btn" aria-label="ดู/แก้ไข" aria-expanded="${!!op}">${op ? '⌃' : '⋯'}</button></div>`;
+          if (op) h += `<div class="ds-x" style="margin:0 10px 10px;border-radius:10px;border-top:1px solid #1F5E3B">${r.items.map(x => { const q = x.l.quantity && x.l.quantity !== '-' ? ` · <b>${esc(x.l.quantity)}</b>` : '', hr = hireOf(x.l) ? ` · ${esc(hireTxt(hireOf(x.l)))}` : '', xc = r.items.length > 1 && x.l.activity_group === 'ฉีดยา' ? logChems([x.l]) : '';
+            const eo = calLogOpen === x.l.log_id;
+            return `<div class="ds-xi" onclick="event.stopPropagation();dsEdit('${pid}','${qa(x.l.log_id)}')"><div><b>${dsD(x.t, 1)}</b>${q}${hr}${xc ? `<small>${esc(xc)}</small>` : ''}<small>${esc(rmkClean(x.l.remark)) || '–'}</small></div><span>${eo ? 'ปิด ⌃' : 'แก้ไข / ลบ ›'}</span></div>${eo ? `<div class="ds-ed" onclick="event.stopPropagation()">${calEditHtml({ logs: [x.l] }, id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id)}</div>` : ''}`; }).join('')}</div>`;
+          h += '</div>';
+        });
+        h += '</div>';
+      });
+      el.innerHTML = h;
     }
 
     // ===== ประวัติงานในหน้าดูแปลง: รายการบรรทัดเดียว · วันติดกันงานเดียวกันรวมเป็นแถวเดียว · แตะ = กางรายวัน · ฝนแยกตัวกรอง =====
@@ -5883,6 +6345,7 @@
     function dsD(t, yr) { const d = new Date(t); return `${d.getDate()} ${TH_MON[d.getMonth()]}${yr ? ' ' + String(d.getFullYear() + 543).slice(2) : ''}`; }
     function dsHist(pid) {
       const el = $('dsHist'); if (!el) return;
+      if (PLOTS_V) return pl5Hist(pid, el); // หน้าแปลง v5
       const all = gData.activities.filter(a => a.plot_id === pid).map(l => ({ l, t: dsT(l) })).sort((a, b) => b.t - a.t);
       const nRain = all.filter(x => x.l.activity_group === 'ฝนตก').length, nWork = all.length - nRain;
       const L = all.filter(x => dsFilt === 'all' || (dsFilt === 'rain') === (x.l.activity_group === 'ฝนตก'));

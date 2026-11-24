@@ -2829,6 +2829,124 @@
 .fm5 .status-info,.td5 .status-info{min-width:0;flex:1}
 .fm5 .status-title,.td5 .status-title{font-size:14.5px;font-weight:600;color:#16241B;line-height:1.3}
 .fm5 .status-sub,.td5 .status-sub{font-size:12.5px;color:#4B5A51;margin-top:1px;line-height:1.34}
+/* ก้อน 4 (24 พ.ย. 69) แผงล่างแผนที่ที่เหลือ — แบบ drafts subpages-map2-v1 */
+.fm5{--danger:#B91C1C;--danger-soft:#FEF2F2;--danger-border:#FECACA;--brand-mid:#A8CBB5}
+.fm5 .drawer-title{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fm5 .grouped-card.is-danger-accent{border-color:var(--danger-border);border-left:4px solid var(--danger)}
+.fm5 .setting-row{padding:8px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-size:13.5px}
+.fm5 .setting-row+.setting-row,.fm5 .setting-row+.status-row,.fm5 .status-row+.setting-row,.fm5 .sat-score-row+.date-stepper-mini+.status-row{border-top:1px solid #EEF2EE}
+.fm5 .setting-label{color:var(--ink-2);font-weight:500;flex-shrink:0}
+.fm5 .setting-val{color:var(--ink);font-weight:700;text-align:right;line-height:1.35;min-width:0;overflow-wrap:anywhere}
+.fm5 .setting-val a{color:var(--brand)}
+.fm5 .setting-val.is-muted{color:var(--ink-3);font-weight:500}
+.fm5 .task-card.st-danger{border-color:var(--danger-border);border-left:4px solid var(--danger);background:#FFFBFB}
+.fm5 .task-card.st-ok{border-color:var(--brand-mid);border-left:4px solid var(--brand);background:#F6FBF8}
+.fm5 .task-card.st-amber{border-color:var(--due-border);border-left:4px solid var(--due);background:#FFFDF8}
+.fm5 .an-l2.is-danger{color:var(--danger)}.fm5 .an-l2.is-ok{color:var(--brand-dark)}
+.fm5 .reason-list{margin:2px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--ink);line-height:1.36}
+.fm5 .st-pill.danger{background:var(--danger-soft);color:var(--danger)}.fm5 .st-pill.muted{background:#EDF2EE;color:var(--ink-2)}.fm5 .st-pill.done{background:var(--brand-soft);color:var(--brand-dark)}.fm5 .st-pill.amber{background:var(--due-soft);color:var(--due)}
+.fm5 .drawer-title .st-pill{font-size:11.5px;font-weight:700}
+.fm5 .spot-feedback-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fm5 .spot-feedback-grid .task-inline-btn{height:38px;width:100%}
+.fm5 .task-inline-btn.is-solid{border-color:var(--brand);background:var(--brand);color:#fff}
+.fm5 .task-inline-btn.is-danger{border-color:var(--danger-border);background:var(--danger-soft);color:var(--danger)}
+.fm5 .task-inline-btn.is-water{border-color:#BAE6FD;background:#E0F2FE;color:#0369A1}
+.fm5 .task-inline-btn:disabled{opacity:.45}
+.fm5 .plot-action-row.is-wrap{flex-wrap:wrap}
+.fm5 .sat-score-row{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fm5 .sat-score-right{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0}
+.fm5 .sat-big-num{font-size:26px;font-weight:700;line-height:1.05}
+.fm5 .date-stepper-mini{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-top:1px solid #E9EFEA;background:#FAFBF9}
+.fm5 .date-stepper-mini b{font-size:13.5px;color:var(--ink);text-align:center}.fm5 .date-stepper-mini b small{display:block;font-weight:500;color:var(--due);font-size:11.5px}
+.fm5 .step-btn-sm{width:44px;height:38px;border-radius:9px;border:1px solid var(--border);background:#fff;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.fm5 .step-btn-sm:disabled{opacity:.35}
+.fm5 .dmg-rec{margin:0;padding:10px 12px 10px 13px;background:#FFFDF8;border:1px solid var(--due-border);border-left:4px solid var(--due);border-radius:var(--radius);font-size:13px;color:var(--ink);line-height:1.4}
+.fm5 .dmg-rec small{color:var(--ink-3);font-size:11.5px}
+.fm5 .sat-flag{margin:0;font-size:13px;color:var(--due);font-weight:600}
+.fm5 .fm5-note{font-size:13px;color:var(--ink);line-height:1.4;padding:0 2px}
+.fm5 .fm-rbar,.fm5 .fm-hint{background:rgba(255,255,255,.97);border:1px solid var(--border);border-radius:13px;box-shadow:0 4px 12px rgba(20,46,30,.12),0 1px 3px rgba(20,46,30,.06);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.fm5 .fm-hint{padding:8px 11px;font-size:13.5px;color:var(--ink);line-height:1.38}
+.fm5 .fm-hint b{font-weight:700}
+.fm5 .fm-rbar .fm-rseg{background:#E6ECE7;border-radius:9px;padding:2px;gap:2px}
+.fm5 .fm-rbar .fm-rseg button{border-radius:7px;font-weight:600;color:var(--ink-2)}
+.fm5 .fm-rbar .fm-rseg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.fm5 .fm-rbar small{color:var(--ink-3)}
+.fm5 .fm-gpsrow{display:flex;align-items:center;gap:8px}
+.fm5 .fm-gpsrow .status-row{flex:1}
+.fm5 .fm-gpsrow .fm-acc{margin-right:12px}
+.fm5 .fm-dmg{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px}
+.fm5 .fm5-form .setting-row{align-items:center}
+.fm5 .fm5-form input{border:0;background:transparent;text-align:right;font-size:16px;font-weight:600;color:var(--ink);min-width:0;flex:1;padding:2px 0}
+.fm5 .fm5-form input::placeholder{color:var(--ink-3);font-weight:500}
+/* ก้อน 5 (24 พ.ย. 69) รายละเอียดดาวเทียม / น้ำในดิน / ฝนประจำพื้นที่ — แบบ drafts subpages-data2-v1 · ทุกคลาสอยู่ใต้ .v5d */
+.v5d{--danger:#B91C1C;--danger-soft:#FEF2F2;--danger-border:#FECACA;--water:#0369A1;--water-soft:#E0F2FE;--water-border:#BAE6FD;display:flex;flex-direction:column;gap:12px}
+.v5d .an-l1{font-size:12px;font-weight:600;color:var(--ink-3);line-height:1.3}
+.v5d .an-l2{font-size:16px;font-weight:700;line-height:1.3;color:var(--ink)}.v5d .an-l2.is-ok{color:var(--brand-dark)}
+.v5d .an-l3{font-size:13.5px;color:var(--ink);line-height:1.42}
+.v5d .an-l4{font-size:12px;color:var(--ink-3);line-height:1.4}
+.v5d .sec-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 2px -4px}
+.v5d .sec-badge.is-muted{background:#EAEFE9;color:var(--ink-2);font-weight:500}.v5d .sec-badge.is-ok{background:var(--brand-soft);color:var(--brand-dark)}
+.v5d .seg-bar{margin:0;grid-template-columns:repeat(3,minmax(0,1fr))}.v5d .seg-bar.is-2col{grid-template-columns:repeat(2,minmax(0,1fr))}
+.v5d .task-inline-btn{height:36px;padding:0 11px;border-radius:9px;border:1px solid var(--border);background:#fff;color:var(--ink);font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;flex:1 0 auto}
+.v5d .task-inline-btn.is-doing{border-color:#A8CBB5;background:var(--brand-soft);color:var(--brand-dark)}
+.v5d .task-inline-btn.is-water{border-color:var(--water-border);background:var(--water-soft);color:var(--water)}
+.v5d .v5d-hero{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.v5d .v5d-hn{font-size:17px;font-weight:700;color:var(--ink);line-height:1.25}.v5d .v5d-hm{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.v5d .v5d-hr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}.v5d .v5d-hs{font-size:30px;font-weight:700;line-height:1}
+.v5d .v5d-hr .task-inline-btn{height:32px;flex:none}
+.v5d .v5d-flag{background:#FFFDF8;border:1px solid var(--due-border);border-left:4px solid var(--due);border-radius:12px;padding:8px 11px;font-size:13.5px;font-weight:600;color:var(--due)}
+.v5d .v5d-view{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);overflow:hidden}
+.v5d .v5d-sw{padding:9px 12px;border:0;border-bottom:1px solid #E9EFEA;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;font-weight:600;color:var(--ink);background:none;width:100%;text-align:left}
+.v5d .v5d-sw small{font-weight:500;color:var(--ink-3);font-size:12px}
+.v5d .v5d-cv{background:#F8FAF8;padding:12px;display:flex;align-items:center;justify-content:center;min-height:200px}
+.v5d .v5d-cv .sat-img{margin:0;width:100%;background:none}
+.v5d .v5d-view .sat-nx{margin:8px 10px 0}.v5d .v5d-view .sat-cmp{margin:8px 10px 10px}
+.v5d .v5d-lg{padding:9px 12px;border-top:1px solid #E9EFEA;display:flex;flex-direction:column;gap:4px}
+.v5d .v5d-lg .sat-legend{margin:0}.v5d .v5d-lg .sat-say,.v5d .v5d-lg .sat-note{margin:2px 0 0}
+.v5d .v5d-step{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-top:1px solid #E9EFEA;background:#FAFBF9}
+.v5d .v5d-sb{width:44px;height:44px;border-radius:11px;border:1px solid var(--border);background:#fff;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.v5d .v5d-sb:disabled{opacity:.35}
+.v5d .v5d-sm{text-align:center;flex:1;min-width:0}.v5d .v5d-sm b{display:block;font-size:15px;color:var(--ink)}.v5d .v5d-sm small{font-size:12px;color:var(--ink-3)}
+.v5d .v5d-m2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.v5d .v5d-mc{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);padding:11px 12px;display:flex;flex-direction:column;gap:2px}
+.v5d .v5d-mb{font-size:26px;font-weight:700;line-height:1.1;margin:2px 0;color:var(--ink)}
+.v5d .v5d-ms{font-size:13.5px;font-weight:700;color:var(--ink)}.v5d .v5d-mn{font-size:12px;color:var(--ink-2);line-height:1.35;margin-top:2px}
+.v5d .v5d-cb{padding:11px 12px 12px}
+.v5d .v5d-pad{padding:11px 13px}
+.v5d .v5d-tag{font-size:11px;font-weight:700;padding:0 6px;border-radius:5px;line-height:1.55;display:inline-flex;align-items:center;gap:3px}
+.v5d .v5d-tag.is-sand{background:#F6EFE0;color:#7A5919;border:1px dashed #E6D2A2}.v5d .v5d-tag.is-basin{background:var(--water-soft);color:var(--water)}
+.v5d .sacc+.sacc{border-top:1px solid #E9EFEA}
+.v5d .shead{width:100%;padding:10px 12px;border:0;background:none;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;color:inherit}
+.v5d .sleft{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.v5d .sname{display:flex;align-items:center;flex-wrap:wrap;gap:5px}.v5d .sname .sn{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.28}
+.v5d .strack{width:100%;max-width:175px;height:6px;border-radius:999px;background:#E8EDE9;overflow:hidden}.v5d .strack i{display:block;height:100%;border-radius:999px}
+.v5d .sright{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.v5d .smm{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.v5d .smm small{font-size:12px;font-weight:700;color:var(--ink-2)}
+.v5d .smm .st-pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px}
+.v5d .schev{color:var(--ink-3);display:inline-flex;transition:transform .15s}.v5d .sacc.is-open .schev{transform:rotate(180deg)}
+.v5d .sbody{border-top:1px solid #EAEFEA;background:#FAFBF9;padding:11px 12px 12px}
+.v5d .sbody .sw-det{margin:0;padding:0;border:0;background:none;font-size:13.5px;line-height:1.45;display:flex;flex-direction:column;gap:4px}
+.v5d .v5d-brow{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:6px}.v5d .v5d-brow::-webkit-scrollbar{display:none}
+.v5d .v5d-brow .task-inline-btn{flex:1 1 0;min-width:0;padding:0 6px;font-size:12.5px}
+.v5d .sim-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+.v5d .sim-label{font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+.v5d .sim-in{width:100%;height:40px;padding:0 10px;border-radius:10px;border:1.5px solid var(--border);background:#fff;color:var(--ink);font-size:16px;font-weight:700;outline:none}
+.v5d .sim-in:focus{border-color:var(--brand)}
+.v5d .sim-res{padding:10px 12px;border-radius:12px;background:#EEF4F0;border:1px solid #C6D8CC;font-size:13.5px;line-height:1.45}
+.v5d .zchips{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px}.v5d .zchips::-webkit-scrollbar{display:none}
+.v5d .zchip{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink-2);font-size:14px;font-weight:600;white-space:nowrap;flex-shrink:0;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+.v5d .zchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.v5d .ychips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.v5d .ychip{font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:8px;background:#F2F5F2;border:1px solid #E2E9E3;color:var(--ink)}
+.v5d .age-table{width:100%;border-collapse:collapse}
+.v5d .age-table th{font-size:12px;font-weight:700;color:var(--ink-3);text-align:left;padding:9px 10px 8px;background:#F7F9F7;border-bottom:1px solid #E8EEE9;vertical-align:bottom;line-height:1.25}
+.v5d .age-table th:not(:first-child),.v5d .age-table td:not(:first-child){text-align:right;white-space:nowrap}
+.v5d .age-table td{padding:10px;border-bottom:1px solid #EEF2EE;vertical-align:top;font-size:13.5px}
+.v5d .age-table tr:last-child td{border-bottom:0}
+.v5d .age-n{font-weight:700;color:var(--ink);display:flex;align-items:center;flex-wrap:wrap;gap:5px}.v5d .age-s{font-size:12px;color:var(--ink-3);margin-top:2px}
+.v5d .age-v{font-weight:700;font-size:14px;color:var(--ink)}.v5d .age-v.is-danger{color:var(--danger)}.v5d .age-v.is-due{color:var(--due)}
+.v5d .tfoot{padding:9px 12px 11px;background:#FAFBF9;border-top:1px solid #EAEFEA;font-size:12px;color:var(--ink-3);line-height:1.42}
+.v5d .clim-bar{cursor:pointer}
+.v5d .sw-card{margin:0}
 .td5 .ios-switch{width:46px;height:27px;border-radius:999px;border:none;padding:2px;background:#CFD8D2;position:relative;flex-shrink:0;transition:background .18s ease}
 .td5 .ios-switch[aria-checked="true"]{background:#1F5E3B}
 .td5 .ios-switch-thumb{display:block;width:23px;height:23px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.22);transition:transform .18s cubic-bezier(.22,1,.36,1)}
@@ -9588,7 +9706,7 @@ Export.table.toDrive({
       if (type === 'อ้อยตอ') return age < 45 ? { k: 0.5, n: 'ตั้งต้น' } : age < 120 ? { k: 0.6, n: 'พักตัว' } : age < 225 ? { k: 0.9, n: 'แตกกอ' } : age < 330 ? { k: 1.25, n: 'ย่างปล้อง' } : { k: 0.75, n: 'สุกแก่' };
       return age < 30 ? { k: 0.4, n: 'ตั้งต้น' } : age < 170 ? { k: 0.8, n: 'แตกกอ' } : age < 295 ? { k: 1.25, n: 'ย่างปล้อง' } : { k: 0.75, n: 'สุกแก่' };
     }
-    let climData = null, climBusy = false, climErr = '', climArea = '', climPlot = '';
+    let climData = null, climBusy = false, climErr = '', climArea = '', climPlot = '', climMon = -1;
     const TH_MON_S = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     function openClim(area) {
       if (area) climArea = area;
@@ -9614,26 +9732,29 @@ Export.table.toDrive({
       if (!climData) { B.innerHTML = `<div class="srow-s p-2">${climErr ? esc(climErr) + ` <a href="#" onclick="event.preventDefault();climLoad()">ลองใหม่</a>` : 'กำลังดึงฝนย้อนหลัง 6 ปี…'}</div>`; return; }
       const A = climData.areas; if (!A.length) { B.innerHTML = '<div class="srow-s p-2">ยังไม่มีพิกัดแปลง</div>'; return; }
       const a = A.find(x => x.loc === climArea) || A[0]; climArea = a.loc;
-      const chips = `<div class="ch-chips mb-2" style="flex-wrap:nowrap;overflow-x:auto">${A.map(x => `<button type="button" class="ch-chip${x.loc === a.loc ? ' on' : ''}" style="flex:none" onclick="climArea='${qa(x.loc)}';climPlot='';climRender()">${esc(x.loc)}</button>`).join('')}</div>`;
+      const chips = `<div class="zchips">${A.map(x => `<button type="button" class="zchip${x.loc === a.loc ? ' on' : ''}" onclick="climArea='${qa(x.loc)}';climPlot='';climMon=-1;climRender()">${esc(x.loc)}</button>`).join('')}</div>`;
       const M = m => a.months[m] || a.months[String(m)] || { mm: 0, et: 4, heavy: 0 };
       // กราฟฝนรายเดือน
       const W = 340, H = 150, bw = W / 12, mx = Math.max(...[...Array(12)].map((_, i) => M(i + 1).mm), 100);
-      let g = '';
+      let g = ''; const sel = climMon >= 0 && climMon < 12 ? climMon : -1;
       for (let i = 0; i < 12; i++) {
-        const v = M(i + 1).mm, h = v / mx * (H - 40), c = v < 50 ? '#D9B77A' : v >= 250 ? '#1F4E9E' : '#5A9EF2';
-        g += `<rect x="${i * bw + 3}" y="${H - 20 - h}" width="${bw - 6}" height="${h}" rx="3" fill="${c}"/><text x="${i * bw + bw / 2}" y="${H - 24 - h}" font-size="10" text-anchor="middle" fill="#333">${v}</text><text x="${i * bw + bw / 2}" y="${H - 6}" font-size="9.5" text-anchor="middle" fill="#6B736E">${TH_MON_S[i]}</text>`;
+        const v = M(i + 1).mm, h = v / mx * (H - 40), c = i === sel ? '#1F5E3B' : v < 50 ? '#D9B77A' : v >= 250 ? '#1F4E9E' : '#5A9EF2';
+        g += `<g class="clim-bar" onclick="climMon=${i === sel ? -1 : i};climRender()"><rect x="${i * bw}" y="0" width="${bw}" height="${H}" fill="transparent"/><rect x="${i * bw + 3}" y="${H - 20 - h}" width="${bw - 6}" height="${h}" rx="3" fill="${c}"/><text x="${i * bw + bw / 2}" y="${H - 24 - h}" font-size="10" text-anchor="middle" font-weight="${i === sel ? 700 : 400}" fill="${i === sel ? '#15452A' : '#333'}">${v}</text><text x="${i * bw + bw / 2}" y="${H - 6}" font-size="9.5" text-anchor="middle" font-weight="${i === sel ? 700 : 400}" fill="${i === sel ? '#16241B' : '#6B736E'}">${TH_MON_S[i]}</text></g>`;
       }
       const hv = [...Array(12)].map((_, i) => [i, M(i + 1).heavy]).filter(x => x[1] >= 0.3).map(x => `${TH_MON_S[x[0]]} ${x[1]} วัน`).join(' · ');
-      const c1 = `<div class="sw-card"><div class="fw-bold">ฝนเฉลี่ยรายเดือน (มม.)</div><div class="srow-s mb-1">${climData.from}–${String(climData.to).slice(0, 4)} · ${esc(a.loc)}</div>
-        <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}</svg>
+      const sm = sel >= 0 ? M(sel + 1) : null;
+      const c1 = `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">ฝนเฉลี่ยรายเดือน (มม.)</h2><span class="sec-badge is-muted tabular">${climData.from}–${String(climData.to).slice(0, 4)} · ${esc(a.loc)}</span></div></div>
+        <div class="grouped-card v5d-cb"><svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}</svg>
         <div class="sw-leg"><span><i style="background:#D9B77A"></i>แล้ง &lt;50</span><span><i style="background:#5A9EF2"></i>ฝน</span><span><i style="background:#1F4E9E"></i>หนัก ≥250 เสี่ยงขัง</span></div>
-        ${hv ? `<div class="mt-1" style="font-size:13.5px">วันฝนหนัก (≥40 มม./วัน) เฉลี่ยต่อปี: ${hv}</div>` : ''}</div>`;
+        <div class="an-l3 tabular mt-1">${sm ? `เดือน <b>${TH_MON_S[sel]}</b> ฝนเฉลี่ยราว <b>${sm.mm} มม.</b>${sm.heavy >= 0.3 ? ` · วันฝนหนัก (≥40 มม./วัน) ~${sm.heavy} วัน/ปี` : ''}` : 'แตะแท่ง = ดูตัวเลขเดือนนั้น'}</div>
+        ${hv ? `<div class="an-l4 mt-1">วันฝนหนัก (≥40 มม./วัน) เฉลี่ยต่อปี: ${hv}</div>` : ''}</div>`;
       // ฝนแรก
       const fr = a.firstRain || {}, med = climFirstMed(a), yrs = Object.keys(fr).sort();
-      const c2 = `<div class="sw-card"><div class="fw-bold">🌧️ ฝนแรก (เริ่มหน้าฝน)</div>
-        <div style="font-size:15px">ปกติมาราว <b>${md2(med)}</b> · เร็วสุด ${md2(Object.values(fr).sort((x, y) => mdNum(x) - mdNum(y))[0] || med)} · ช้าสุด ${md2(Object.values(fr).sort((x, y) => mdNum(y) - mdNum(x))[0] || med)}</div>
-        <div class="d-flex flex-wrap gap-2 mt-1" style="font-size:13px">${yrs.map(y => `<span class="sw-yr">${+y + 543 - 2500}: ${md2(fr[y])}</span>`).join('')}</div>
-        <div class="srow-s mt-1">นับวันแรกตั้งแต่ เม.ย. ที่ฝนรวม 10 วันถึง 50 มม.</div></div>`;
+      const c2 = `<div class="grouped-card v5d-pad"><div class="an-l1">🌧️ ฝนแรก (เริ่มหน้าฝน) · ${esc(a.loc)}</div>
+        <div class="an-l2 is-ok tabular" style="margin-top:2px">ปกติมาราว ${md2(med)}</div>
+        <div class="an-l3 tabular">เร็วสุด <b>${md2(Object.values(fr).sort((x, y) => mdNum(x) - mdNum(y))[0] || med)}</b> · ช้าสุด <b>${md2(Object.values(fr).sort((x, y) => mdNum(y) - mdNum(x))[0] || med)}</b></div>
+        <div class="ychips tabular">${yrs.map(y => `<span class="ychip">${+y + 543 - 2500}: ${md2(fr[y])}</span>`).join('')}</div>
+        <div class="an-l4" style="margin-top:8px">นับวันแรกตั้งแต่ เม.ย. ที่ฝนรวม 10 วันถึง 50 มม.</div></div>`;
       // อายุแปลงตอนฝนแรก / ต้น ก.ย.
       const plots = gData.plots.filter(p => a.plots.includes(p.plot_id));
       const ageAt = (p, md) => { const pl = beToISO(p.plant_date); if (!pl) return null; const y = +pl.slice(0, 4); let t = new Date(`${y}-${md}`); if (t < new Date(pl)) t = new Date(`${y + 1}-${md}`); return Math.round((t - new Date(pl)) / 864e5); };
@@ -9641,12 +9762,13 @@ Export.table.toDrive({
       const rows = plots.map(p => {
         const f = ageAt(p, med), s = ageAt(p, '09-01'), wet = plotTags(p).includes('น้ำขังง่าย');
         const bad = (f !== null && f < 90) || (s !== null && s < 180);
-        return `<tr><td>${esc(p.plot_name)}${wet ? ' <span class="sw-pr">💧</span>' : ''}<div class="srow-s">${p.cane_type === 'อ้อยตอ' ? 'ไว้ตอ' : 'ปลูก'} ${p.plant_date && p.plant_date !== '-' ? thDate(beToISO(p.plant_date)) : '-'}</div></td>
-          <td style="color:${f !== null && f < 90 ? (wet ? '#B3261E' : '#B4630B') : 'inherit'}">${mo(f)}</td><td style="color:${s !== null && s < 180 ? (wet ? '#B3261E' : '#B4630B') : 'inherit'}">${mo(s)}</td></tr>`;
+        const tone = (v, lim) => v !== null && v < lim ? (wet ? ' is-danger' : ' is-due') : '';
+        return `<tr><td><div class="age-n"><span>${esc(p.plot_name)}</span>${wet ? '<span class="v5d-tag is-basin">💧 แอ่ง</span>' : ''}</div><div class="age-s tabular">${p.cane_type === 'อ้อยตอ' ? 'ไว้ตอ' : 'ปลูก'} ${p.plant_date && p.plant_date !== '-' ? thDate(beToISO(p.plant_date)) : '-'}</div></td>
+          <td><span class="age-v tabular${tone(f, 90)}">${mo(f)}</span></td><td><span class="age-v tabular${tone(s, 180)}">${mo(s)}</span></td></tr>`;
       }).join('');
-      const c3 = `<div class="sw-card"><div class="fw-bold">อายุอ้อยตอนเข้าหน้าฝน</div>
-        <table class="sw-tb"><tr><th>แปลง</th><th>ฝนแรก ~${md2(med)}</th><th>1 ก.ย. (ฝนหนัก)</th></tr>${rows || '<tr><td colspan="3">ไม่มีแปลง</td></tr>'}</table>
-        <div class="srow-s mt-1">สีส้ม/แดง = อายุน้อยกว่า 3 ด. ตอนฝนแรก หรือน้อยกว่า 6 ด. ตอน ก.ย. (แดง = แปลงน้ำขังง่าย) · อ้อยช่วงงอก แตกกอ ย่างปล้องช่วงแรก ถ้าน้ำท่วมยอด 2–5 วัน ตายได้ราวครึ่ง</div></div>`;
+      const c3 = `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">อายุอ้อยตอนเข้าหน้าฝน</h2><span class="sec-badge is-due">${esc(a.loc)}</span></div></div><div class="grouped-card">
+        <table class="age-table"><thead><tr><th>แปลง</th><th>ฝนแรก<br>~${md2(med)}</th><th>1 ก.ย.<br>(ฝนหนัก)</th></tr></thead><tbody>${rows || '<tr><td colspan="3">ไม่มีแปลง</td></tr>'}</tbody></table>
+        <div class="tfoot">สีส้ม/แดง = อายุน้อยกว่า 3 ด. ตอนฝนแรก หรือน้อยกว่า 6 ด. ตอน ก.ย. (แดง = แปลงน้ำขังง่าย) · อ้อยช่วงงอก แตกกอ ย่างปล้องช่วงแรก ถ้าน้ำท่วมยอด 2–5 วัน ตายได้ราวครึ่ง</div></div>`;
       // ต้องขึ้นน้ำกี่ครั้ง: จำลองน้ำในดินรายวันทีละปีจากฝนจริง (แบบเดียวกับหน้า "น้ำในดิน") — ไม่ใช้ฝนเฉลี่ยรายเดือน (ซ่อนฝนทิ้งช่วง + นับฝนหนักที่ไหลทิ้งว่าใช้ได้)
       const pp = plots.find(p => p.plot_id === climPlot) || plots.find(p => beToISO(p.plant_date)) || plots[0];
       let c4 = '';
@@ -9657,10 +9779,10 @@ Export.table.toDrive({
         let inner = '';
         if (!D) { climDailyLoad(a.loc); inner = `<div class="srow-s">${climDErr[a.loc] ? esc(climDErr[a.loc]) + ` <a href="#" onclick="event.preventDefault();delete climDErr['${qa(a.loc)}'];climRender()">ลองใหม่</a>` : 'กำลังดึงฝนรายวัน 6 ปี…'}</div>`; }
         else inner = climIrrHtml(pp, climIrr(pp, D));
-        c4 = `<div class="sw-card"><div class="text-muted" style="font-size:12.5px">💧 ต้องขึ้นน้ำกี่ครั้ง (จำลองจากฝนจริงรายวัน)</div>${pchips}
+        c4 = `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">💧 ต้องขึ้นน้ำกี่ครั้ง</h2><span class="sec-badge is-muted">จำลองจากฝนจริงรายวัน</span></div></div><div class="sw-card">${pchips}
           <div class="srow-s mb-1">${pp.cane_type === 'อ้อยตอ' ? 'ไว้ตอ' : 'ปลูก'} ${thDate(beToISO(pp.plant_date))} · ถ้าปลูก/ไว้ตอวันเดียวกันในแต่ละปีที่ผ่านมา</div>${inner}</div>`;
       }
-      B.innerHTML = chips + c2 + c3 + c1 + c4 + `<div class="srow-s">ข้อมูลฝนย้อนหลัง: Open-Meteo (แบบจำลอง ช่องละ ~10–25 กม. พื้นที่ใกล้กันจึงได้ค่าใกล้เคียงกัน) · ช่วงระยะอ้อย: กรมวิชาการเกษตร (ศูนย์วิจัยพืชไร่นครสวรรค์)</div>`;
+      B.innerHTML = `<div class="v5d">` + chips + c2 + c3 + c1 + c4 + `<div class="an-l4">ข้อมูลฝนย้อนหลัง: Open-Meteo (แบบจำลอง ช่องละ ~10–25 กม. พื้นที่ใกล้กันจึงได้ค่าใกล้เคียงกัน) · ช่วงระยะอ้อย: กรมวิชาการเกษตร (ศูนย์วิจัยพืชไร่นครสวรรค์)</div></div>`;
     }
     // ===== 📋 ขั้นตอนอ้อยใหม่ / อ้อยตอ (flowchart แก้ได้ · มีทางแยก · สถานะแต่ละแปลงดูจากบันทึกจริง + คำตอบรายแปลง) =====
     // ทำแล้ว = มีบันทึกกลุ่ม/คำตรง ในช่วง f−20 ถึง t+45 วัน · ถึงคิว = อายุอยู่ในช่วงและยังไม่มีบันทึก · เลยช่วงไม่มีบันทึก = เทา (ไม่เตือนแดง)
@@ -11809,8 +11931,7 @@ Export.table.toDrive({
       if (r.overF >= 10) ln.push(`⚠️ ถ้าฝนตกตามพยากรณ์ 3 วันนี้ น้ำจะเกินที่ดินรับได้ราว ${mm(r.overF)} มม.`);
       return `<div class="sw-det">${soilChart(r)}${ln.map(x => `<div>${x}</div>`).join('')}
         ${r.prone.length ? `<div class="sw-prone">💧 แปลงนี้มีจุดเสี่ยงน้ำขัง: ${r.prone.join(' · ')} <span style="opacity:.75">(แตะวันที่ = ดูภาพวันนั้นบนแผนที่)</span></div>` : ''}
-        <div class="d-flex gap-2 mt-2"><button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="soilToSpots('${r.p.plot_id}')">🗺️ จุดน้ำขังบนแผนที่</button><button type="button" class="btn btn-sm btn-outline-success flex-fill" onclick="hideModal('soilModal');setTimeout(()=>openSat('plot|${r.p.plot_id}'),300)">🛰️ ภาพดาวเทียม</button></div>
-        <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2 fw-bold" onclick="hideModal('soilModal');setTimeout(()=>wpOpen('plot','${r.p.plot_id}','soil'),300)">💧 แผนน้ำแปลงนี้ (หัว/ท้าย คลอง ทางลาด)</button></div>`;
+        <div class="v5d-brow"><button type="button" class="task-inline-btn is-water" onclick="soilToSpots('${r.p.plot_id}')">จุดน้ำขังบนแผนที่</button><button type="button" class="task-inline-btn is-doing" onclick="hideModal('soilModal');setTimeout(()=>openSat('plot|${r.p.plot_id}'),300)">ภาพดาวเทียม</button><button type="button" class="task-inline-btn" onclick="hideModal('soilModal');setTimeout(()=>wpOpen('plot','${r.p.plot_id}','soil'),300)">แผนน้ำแปลงนี้</button></div></div>`;
     }
     function soilSeeDate(id, d) {
       hideModal('soilModal'); fmSatMode = 'n';
@@ -11832,17 +11953,18 @@ Export.table.toDrive({
     function soilSimSet(k, v) { soilSim[k] = v; soilRender(); }
     function soilRender() {
       const B = $('soil-body'); if (!B) return;
-      const ch = (k, v, t) => `<button type="button" class="ch-chip${soilSim[k] === v ? ' on' : ''}" onclick="soilSimSet('${k}',${typeof v === 'string' ? `'${v}'` : v})">${t}</button>`;
-      const sim = `<div class="sw-card"><div class="fw-bold mb-1">🧮 ลองสมมติฝน</div>
-        <div class="ch-chips mb-1">${ch('soil', 'sand', 'ดินทราย')}${ch('soil', 'norm', 'ดินทั่วไป')}</div>
-        <div class="ch-chips mb-2">${ch('kc', 0.4, 'อ้อยเล็ก')}${ch('kc', 0.8, 'อ้อยกลาง')}${ch('kc', 1.25, 'อ้อยโต')}</div>
-        <label class="sw-in"><span>ฝนแต่ละวัน (มม.)</span><input type="text" inputmode="decimal" value="${esc(soilSim.rain)}" onchange="soilSim.rain=this.value;soilRender()"></label>
-        <div class="sw-sim">${soilSimRun()}</div></div>`;
+      const ch = (k, v, t) => `<button type="button" class="seg-btn${soilSim[k] === v ? ' active' : ''}" onclick="soilSimSet('${k}',${typeof v === 'string' ? `'${v}'` : v})">${t}</button>`;
+      const sim = `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">ลองสมมติฝน</h2><span class="sec-badge is-muted">คำนวณสด</span></div></div>
+        <div class="grouped-card"><div class="sim-body">
+        <div><div class="sim-label">ชนิดดิน</div><div class="seg-bar is-2col">${ch('soil', 'sand', `ดินทราย (~${SOIL_CAP.sand} มม.)`)}${ch('soil', 'norm', `ดินทั่วไป (~${SOIL_CAP.norm} มม.)`)}</div></div>
+        <div><div class="sim-label">ระยะอ้อย</div><div class="seg-bar">${ch('kc', 0.4, 'อ้อยเล็ก')}${ch('kc', 0.8, 'อ้อยกลาง')}${ch('kc', 1.25, 'อ้อยโต')}</div></div>
+        <label style="margin:0"><div class="sim-label">ฝนแต่ละวัน (มม.) · คั่นด้วย ,</div><input class="sim-in tabular" type="text" inputmode="decimal" value="${esc(soilSim.rain)}" onchange="soilSim.rain=this.value;soilRender()"></label>
+        <div class="sim-res">${soilSimRun()}</div></div></div>`;
       const intro = `<div class="sw-card sw-intro"><b>ดินเหมือนถังเก็บน้ำ</b> ฝนกับการขึ้นน้ำเติมถัง อ้อยกับแดดดึงออกทุกวัน
         ดินทรายถังเล็ก (~${SOIL_CAP.sand} มม.) ดินทั่วไป (~${SOIL_CAP.norm} มม.) ฝนที่เกินถังจะไหลออก ซึมลึก หรือขังในจุดที่เป็นแอ่ง
         <div class="srow-s mt-1">ค่าประมาณจากฝน Open-Meteo + วันขึ้นน้ำ/ฝนตกที่บันทึกในแอป · ดินทรายดูจากป้าย "ทราย" ของแปลง</div>
         <button type="button" class="status-row is-clickable v5-clim" onclick="openClim()"><div class="status-row-left"><span class="status-icon-box is-water">${FM5I.ch}</span><div class="status-info"><div class="status-title">ฝนรายเดือน · ฝนแรก · น้ำที่อ้อยต้องการ</div><div class="status-sub">สถิติฝน 2020–2026 และอายุอ้อยตอนเข้าหน้าฝน</div></div></div>${FM5I.chev}</button></div>`;
-      if (!soilWx) { B.innerHTML = intro + `<div class="srow-s p-2">${soilErr ? esc(soilErr) + ` <a href="#" onclick="event.preventDefault();soilLoad(soilRender)">ลองใหม่</a>` : 'กำลังโหลดฝนย้อนหลัง 3 สัปดาห์…'}</div>` + sim; return; }
+      if (!soilWx) { B.innerHTML = `<div class="v5d">${intro}<div class="srow-s p-2">${soilErr ? esc(soilErr) + ` <a href="#" onclick="event.preventDefault();soilLoad(soilRender)">ลองใหม่</a>` : 'กำลังโหลดฝนย้อนหลัง 3 สัปดาห์…'}</div>${sim}</div>`; return; }
       const groups = {}, order = [];
       gData.plots.forEach(p => { const r = soilCalc(p); if (!r) return; const l = plotLoc(p.plot_name); if (!groups[l]) { groups[l] = []; order.push(l); } groups[l].push(r); });
       const rank = { wet: 0, dry: 1, dry1: 2, ok: 3, stop: 4, cut: 5, none: 6 };
@@ -11850,19 +11972,19 @@ Export.table.toDrive({
       let h = (anyStop ? `<div class="sw-card v5-ban"><div class="v5-l1">ช่วงตัดน้ำก่อนเก็บเกี่ยว · พ.ย.–ธ.ค.</div><div class="v5-l2">ช่วงใกล้ตัด งดให้น้ำ</div><div class="v5-l3">ยกเว้นอ้อยใหม่อายุ &lt; 6 เดือน · ดินแห้งลงช่วงนี้เป็นเรื่องปกติ</div></div>` : '') + intro;
       order.forEach(l => {
         const rs = groups[l].sort((a, b) => rank[a.st] - rank[b.st] || a.pct - b.pct), r0 = rs[0];
-        h += `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(l)}</span><span style="font-weight:500;color:#6B736E;font-size:13px">ฝน 7 วัน ${Math.round(r0.rain7)} มม. · พยากรณ์ ${Math.round(r0.rainF)} มม.</span></div><div class="srow-box">`;
+        h += `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">${esc(l)}</h2></div><span class="sec-badge is-muted tabular">ฝน 7 วัน ${Math.round(r0.rain7)} มม. · พยากรณ์ ${Math.round(r0.rainF)} มม.</span></div><div class="grouped-card">`;
         rs.forEach(r => {
           let [lb, c, bg] = SOIL_ST[r.st]; const open = soilOpen === r.p.plot_id, cap = r.sand ? SOIL_CAP.sand : SOIL_CAP.norm;
           if (r.st === 'stop') [lb, c, bg] = r.pct >= 0.5 ? SOIL_ST.ok : r.pct >= 0.25 ? SOIL_ST.dry1 : SOIL_ST.dry; // งดน้ำบอกครั้งเดียวบนหัว แถวบอกสภาพดินจริง
           const right = r.st === 'wet' ? `น้ำเกิน ${Math.round(r.over3)} มม.` : r.st === 'stop' ? `${Math.round(Math.min(1, r.pct) * cap)} / ${cap} มม.` : r.st === 'cut' || r.st === 'none' ? '' : r.pct >= 0.5 ? `ชื้นอีก ~${r.left} วัน` : 'ควรขึ้นน้ำ';
-          h += `<div class="sw-row${open ? ' open' : ''}"><button type="button" class="sw-main" onclick="soilOpen=soilOpen==='${r.p.plot_id}'?'':'${r.p.plot_id}';soilRender()">
-            <span class="sw-l"><span class="sw-n">${esc(r.p.plot_name)}${r.sand ? ' <span class="prow-tag">ทราย</span>' : ''}${r.prone.length ? ' <span class="sw-pr">💧แอ่ง</span>' : ''}</span>
-            <span class="sw-bar"><i style="width:${Math.round(Math.min(1, r.pct) * 100)}%;background:${c}"></i></span></span>
-            <span class="sw-r"><span class="st-pill" style="color:${c};background:${bg}">${lb}</span><small class="tabular">${right}</small></span></button>${open ? soilDetail(r) : ''}</div>`;
+          h += `<div class="sacc${open ? ' is-open' : ''}"><button type="button" class="shead" onclick="soilOpen=soilOpen==='${r.p.plot_id}'?'':'${r.p.plot_id}';soilRender()" aria-expanded="${open}">
+            <div class="sleft"><div class="sname"><span class="sn">${esc(r.p.plot_name)}</span>${r.sand ? '<span class="v5d-tag is-sand">ทราย</span>' : ''}${r.prone.length ? '<span class="v5d-tag is-basin">💧 แอ่ง</span>' : ''}</div>
+            <div class="strack"><i style="width:${Math.max(4, Math.round(Math.min(1, r.pct) * 100))}%;background:${c}"></i></div></div>
+            <div class="sright"><div class="smm"><span class="st-pill" style="color:${c};background:${bg}">${lb}</span>${right ? `<small class="tabular">${right}</small>` : ''}</div><span class="schev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span></div></button>${open ? `<div class="sbody">${soilDetail(r)}</div>` : ''}</div>`;
         });
         h += '</div>';
       });
-      B.innerHTML = h + sim;
+      B.innerHTML = `<div class="v5d">${h}${sim}</div>`;
     }
     // ภาพสีแปลงจาก Apps Script: รวมคำขอที่เข้ามาใกล้ๆ กันเป็นก้อนเดียว (getSatImages) · ภาพเดียวกันขอครั้งเดียว · weak = โหมดหาจุดอ่อน
     const satWait = {}; let satBatch = [], satTimer = null;
@@ -11930,7 +12052,7 @@ Export.table.toDrive({
     let satListY = 0;
     function satHdr() {
       const hd = $('satModal').querySelector('.modal-header'); if (!hd) return;
-      v5Back(hd, mPar.satModal, satBack, satSelK && (satFromList || !mPar.satModal) ? 'ดาวเทียม' : '');
+      v5Back(hd, mPar.satModal, satBack, satSelK && (satFromList || !mPar.satModal) ? 'ทุกแปลง' : '');
       const t = hd.querySelector('.modal-title'); if (t) t.textContent = satSelK ? ((satInfo.items.find(i => i.key === satSelK) || {}).name || 'ดาวเทียม') : 'ดาวเทียมรายแปลง';
     }
     function satOpen(key, fromList) {
@@ -12015,9 +12137,9 @@ Export.table.toDrive({
         const cmp = pm === null || x.land ? '' : cur.ndvi >= pm + 0.08 ? `เขียวกว่า${x.type}แปลงอื่น` : cur.ndvi <= pm - 0.08 ? `เขียวน้อยกว่า${x.type}แปลงอื่น` : `ใกล้เคียง${x.type}แปลงอื่น`;
         const leaf = cur.ndre === null ? '–' : cur.ndre.toFixed(2);
         const leafW = cur.ndre === null ? '' : cur.ndvi < 0.5 ? 'ยังดูไม่ได้ (ใบยังไม่คลุม)' : cur.ndre >= 0.35 ? 'ใบเข้ม แข็งแรง' : cur.ndre >= 0.25 ? 'ปกติ' : 'ใบซีด ควรไปดู';
-        tiles = `<div class="sat-tiles">
-          <div class="sat-tile"><small>ความเขียว</small><div class="v" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b>${satLevel(cur.ndvi)}</b>${cmp ? `<small>${cmp}${pm !== null ? ` (${pm.toFixed(2)})` : ''}</small>` : ''}</div>
-          <div class="sat-tile"><small>ใบสมบูรณ์</small><div class="v">${leaf}</div><b>${leafW}</b><small>ความเข้มของสีใบ</small></div>
+        tiles = `<div class="v5d-m2">
+          <div class="v5d-mc"><span class="an-l1">ความเขียว</span><span class="v5d-mb tabular" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</span><span class="v5d-ms">${satLevel(cur.ndvi)}</span>${cmp ? `<span class="v5d-mn tabular">${cmp}${pm !== null ? ` (${pm.toFixed(2)})` : ''}</span>` : ''}</div>
+          <div class="v5d-mc"><span class="an-l1">ใบสมบูรณ์</span><span class="v5d-mb tabular">${leaf}</span><span class="v5d-ms">${leafW || '–'}</span><span class="v5d-mn">ความเข้มของสีใบ</span></div>
         </div>`;
       }
       const key = W ? `<div class="sat-key2"><span><i style="background:#CC261F"></i>อ่อนกว่ามาก</span><span><i style="background:#F58C33"></i>อ่อนกว่าเล็กน้อย</span><span><i style="background:#EDE6B8"></i>ปกติ</span><span><i style="background:#2E8C38"></i>ดีกว่าส่วนอื่น</span></div>`
@@ -12028,25 +12150,41 @@ Export.table.toDrive({
         const byY = {};
         x.radar.forEach(r => { const y = r.d.slice(0, 4), o = byY[y] = byY[y] || { n: 0, w: 0 }; o.n++; if (r.water >= 0.3) o.w++; });
         const ys = Object.keys(byY).sort();
-        years = `<div class="sat-h">เรดาร์ย้อนหลัง: เห็นน้ำขังกี่ครั้ง</div><div class="sat-card">${ys.length ? ys.map(y => `<div class="d-flex justify-content-between"><span>ปี ${+y + 543}</span><b>${byY[y].w} จาก ${byY[y].n} ภาพ</b></div>`).join('') : '<small>ยังไม่มีข้อมูลเรดาร์</small>'}<small class="d-block mt-1">เห็นเฉพาะน้ำบนดินโล่ง ใต้พืชสูงมองไม่เห็น</small></div>`;
+        years = `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">เรดาร์ย้อนหลัง: เห็นน้ำขังกี่ครั้ง</h2></div></div><div class="grouped-card v5d-pad">${ys.length ? ys.map(y => `<div class="d-flex justify-content-between an-l3"><span>ปี ${+y + 543}</span><b>${byY[y].w} จาก ${byY[y].n} ภาพ</b></div>`).join('') : '<div class="an-l4">ยังไม่มีข้อมูลเรดาร์</div>'}<div class="an-l4 mt-1">เห็นเฉพาะน้ำบนดินโล่ง ใต้พืชสูงมองไม่เห็น</div></div>`;
       }
-      $('sat-body').innerHTML = `
-        <div class="d-flex justify-content-between align-items-center"><button type="button" class="btn btn-link px-0 fw-bold" style="color:var(--green);text-decoration:none" onclick="satFromList=false;satList()">ทุกแปลง</button>
-          <button type="button" class="btn btn-sm btn-outline-success fw-bold" style="border-radius:10px" onclick="satToMap('${qa(x.key)}')">🗺️ บนแผนที่</button></div>
-        <div class="d-flex justify-content-between align-items-start gap-2"><div><h5 class="mb-0 fw-bold">${esc(x.name)}</h5><small class="text-muted">${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}${cur ? ' · ภาพ ' + satD(cur.d) : ''}</small></div>
-          ${cur ? `<div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div>` : ''}</div>
-        ${x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag mt-1">⚠️ ${esc(f)}</div>`).join('')}
-        <div class="sat-seg"><button type="button" class="${W || Bm ? '' : 'on'}" onclick="satSetMode('n')">สีปกติ</button><button type="button" class="${W ? 'on' : ''}" onclick="satSetMode('w')">หาจุดอ่อน</button>${x.land ? '' : `<button type="button" class="${Bm ? 'on' : ''}" onclick="satSetMode('b')">แห้งลง</button>`}</div>
-        ${x.land ? '' : Bm ? `<div class="sat-cmpsw"><span>เทียบก่อน–หลัง <small>(แห้งลงเทียบสองภาพเสมอ)</small></span></div>` : `<button type="button" class="sat-cmpsw" onclick="satCmpSet(!satCmp)"><span>เทียบก่อน–หลัง</span><span class="fm-sw ${satCmp ? 'on' : ''}"></span></button>`}
-        ${C ? `<div class="sat-nx"><button type="button" onclick="satNext(-1)" aria-label="แปลงก่อนหน้า">‹ แปลงก่อน</button><span>${(i => i + 1)(satInfo.items.filter(i => !i.land && i.last).findIndex(o => o.key === x.key))}/${satInfo.items.filter(i => !i.land && i.last).length}</span><button type="button" onclick="satNext(1)" aria-label="แปลงถัดไป">แปลงถัดไป ›</button></div><div class="sat-cmp"><div><div class="sat-cl">ก่อน · ${bef ? satDs(bef.d) : '-'}</div><div class="sat-img" id="satImgB">${bef ? '<small class="text-muted">กำลังโหลด…</small>' : '<small class="text-muted">ไม่มีภาพ</small>'}</div></div>
-          <div><div class="sat-cl">หลัง · ${cur ? satDs(cur.d) : '-'}</div><div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลด…</small>' : ''}</div></div></div>`
-        : `<div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลดภาพ…</small>' : '<small class="text-muted">ยังไม่มีภาพใสของแปลงนี้</small>'}</div>`}
-        ${C && !W ? (Bm ? `<div class="sat-key2"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>` : '') : key}${say}
-        ${C && cur ? `<div class="sat-h">ภาพก่อน</div><div class="sat-dates" id="satDatesB">${x.good.filter(q => q.d < cur.d).slice(-12).map(q => `<button type="button" class="${bef && q.d === bef.d ? 'on' : ''}" onclick="satPickB('${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('')}</div>` : ''}
-        ${dates.length ? `<div class="sat-h">${C ? 'ภาพหลัง' : 'เลือกวันที่ (ภาพที่ไม่มีเมฆบัง)'}</div><div class="sat-dates" id="satDates">${chips}</div>` : ''}
+      const SV = p => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="${p}"/></svg>`;
+      const stp = (L, d, fn, sub) => { const i = L.findIndex(q => q.d === d), pv = i > 0 ? L[i - 1] : null, nx = i >= 0 && i < L.length - 1 ? L[i + 1] : null;
+        return `<div class="v5d-step"><button type="button" class="v5d-sb" ${pv ? `onclick="${fn}('${pv.d}')"` : 'disabled'} aria-label="ภาพก่อนหน้า">${SV('15 18 9 12 15 6')}</button>
+          <div class="v5d-sm"><b class="tabular">${d ? satD(d) : '-'}</b><small>${sub}</small></div>
+          <button type="button" class="v5d-sb" ${nx ? `onclick="${fn}('${nx.d}')"` : 'disabled'} aria-label="ภาพถัดไป">${SV('9 18 15 12 9 6')}</button></div>`; };
+      const toList = satFromList || !mPar.satModal; // ปุ่ม ‹ บนหัวพากลับรายการอยู่แล้ว
+      const st0 = x.land ? null : x.flags.length ? ['is-due', 'ควรไปดู'] : ['is-ok', 'ปกติ'];
+      const ws = x.wetSeen || [], CH = '<span class="chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+      const hRow = (ic, cls, t, sub) => `<div class="status-row"><div class="status-row-left"><span class="status-icon-box ${cls}" aria-hidden="true">${ic}</span><div class="status-info"><div class="status-title">${t}</div>${sub ? `<div class="status-sub tabular">${sub}</div>` : ''}</div></div></div>`;
+      const hist = x.land ? '' : `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">ประวัติน้ำขัง / จุดเปลี่ยน</h2></div><span class="sec-badge ${st0[0]}">${st0[1]}</span></div>
+        <div class="grouped-card">${x.flags.length ? x.flags.map(f => hRow('⚠️', 'is-muted', esc(f), x.last ? 'ภาพ ' + satD(x.last.d) : '')).join('') : hRow('✓', 'is-ok', 'ไม่พบจุดผิดปกติในภาพล่าสุด', x.last ? `เทียบกับแปลงอื่นและภาพก่อนหน้า · ภาพ ${satD(x.last.d)}` : '')}
+          ${hRow('💧', 'is-water', ws.length ? `ดาวเทียมเคยเห็นน้ำบนแปลง ${ws.length} ภาพ` : 'ไม่เคยเห็นน้ำขังในภาพที่มี', ws.length ? ws.slice(-4).map(satDs).join(' · ') + ' · นับตอนอ้อยเล็ก/หลังตัด' : 'ใต้อ้อยสูงมองไม่เห็นน้ำ · นับตอนอ้อยเล็ก/หลังตัด')}
+          ${dmg.map(o => hRow(dmgT(o.type)[1], 'is-muted', `${esc(o.type)} · ${esc(thDate(beToISO(String(o.date).split(' ')[0])) || o.date)}`, [num(o.map_rai) ? '≈ ' + fmtRai(num(o.map_rai) * 1600) : 'ยังไม่ได้วาดแนว', esc(o.note || '')].filter(Boolean).join(' · '))).join('')}</div>`;
+      $('sat-body').innerHTML = `<div class="td5 v5b v5d">
+        <div class="v5d-hero"><div style="min-width:0"><div class="v5d-hn">${esc(x.name)}</div><div class="v5d-hm tabular">${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}${cur ? ' · ภาพ ' + satD(cur.d) : ''}</div></div>
+          <div class="v5d-hr">${cur ? `<span class="v5d-hs tabular" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</span>` : ''}<button type="button" class="task-inline-btn is-doing" onclick="satToMap('${qa(x.key)}')">🗺 บนแผนที่</button></div></div>
+        ${x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="v5d-flag">⚠️ ${esc(f)}</div>`).join('')}
+        <div class="seg-bar${x.land ? ' is-2col' : ''}"><button type="button" class="seg-btn${W || Bm ? '' : ' active'}" onclick="satSetMode('n')">สีปกติ</button><button type="button" class="seg-btn${W ? ' active' : ''}" onclick="satSetMode('w')">หาจุดอ่อน</button>${x.land ? '' : `<button type="button" class="seg-btn${Bm ? ' active' : ''}" onclick="satSetMode('b')">แห้งลง</button>`}</div>
+        <div class="v5d-view">
+          ${x.land ? '' : Bm ? `<div class="v5d-sw"><span>เทียบก่อน–หลัง <small>(แห้งลงเทียบสองภาพเสมอ)</small></span></div>` : `<button type="button" class="v5d-sw" onclick="satCmpSet(!satCmp)"><span>เทียบก่อน–หลัง</span><span class="ios-switch" role="switch" aria-checked="${satCmp ? 'true' : 'false'}"><span class="ios-switch-thumb"></span></span></button>`}
+          ${C ? `<div class="sat-nx"><button type="button" onclick="satNext(-1)" aria-label="แปลงก่อนหน้า">‹ แปลงก่อน</button><span>${(i => i + 1)(satInfo.items.filter(i => !i.land && i.last).findIndex(o => o.key === x.key))}/${satInfo.items.filter(i => !i.land && i.last).length}</span><button type="button" onclick="satNext(1)" aria-label="แปลงถัดไป">แปลงถัดไป ›</button></div><div class="sat-cmp"><div><div class="sat-cl">ก่อน · ${bef ? satDs(bef.d) : '-'}</div><div class="sat-img" id="satImgB">${bef ? '<small class="text-muted">กำลังโหลด…</small>' : '<small class="text-muted">ไม่มีภาพ</small>'}</div></div>
+            <div><div class="sat-cl">หลัง · ${cur ? satDs(cur.d) : '-'}</div><div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลด…</small>' : ''}</div></div></div>`
+          : `<div class="v5d-cv"><div class="sat-img" id="satImg">${cur ? '<small class="text-muted">กำลังโหลดภาพ…</small>' : '<small class="text-muted">ยังไม่มีภาพใสของแปลงนี้</small>'}</div></div>`}
+          ${(C && !W ? (Bm ? `<div class="sat-key2"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>` : '') : key) + say ? `<div class="v5d-lg">${C && !W ? (Bm ? `<div class="sat-key2"><span><i style="background:#9E100A"></i>แห้งตายแรง (ไฟ/ยา)</span><span><i style="background:#F05A14"></i>ใบแห้งลงชัด</span></div>` : '') : key}${say}</div>` : ''}
+          ${C && cur ? stp(x.good.filter(q => q.d < cur.d).slice(-12), bef && bef.d, 'satPickB', 'ภาพก่อน') : ''}
+          ${dates.length ? stp(dates, cur && cur.d, 'satPick', C ? 'ภาพหลัง' : 'ภาพที่ไม่มีเมฆบัง') : ''}
+        </div>
         ${tiles}
-        <div class="sat-h">ความเขียว 12 เดือน</div><div class="sat-card">${satChart(x, cur)}</div>
-        ${years}`;
+        <div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">กราฟความเขียว 12 เดือน</h2><span class="sec-badge is-muted">Sentinel-2</span></div></div>
+        <div class="grouped-card v5d-cb">${satChart(x, cur)}</div>
+        ${hist}${years}
+        ${toList ? '' : `<div class="grouped-card"><button type="button" class="status-row is-clickable" onclick="satFromList=false;satList()"><div class="status-row-left"><span class="status-icon-box is-ok" aria-hidden="true">🛰️</span><div class="status-info"><div class="status-title">ดาวเทียมทุกแปลง</div><div class="status-sub">รายการทุกแปลง เรียงตามที่ควรไปดู</div></div></div>${CH}</button></div>`}
+      </div>`;
       const dd = $('satDates'); if (dd) dd.scrollLeft = dd.scrollWidth;
       const db = $('satDatesB'); if (db) db.scrollLeft = db.scrollWidth;
       const live = (m, a, b) => satSelK === x.key && satMode === m && (!b || satSelD === b) && (!a || satBefD === a);
@@ -12354,28 +12492,36 @@ Export.table.toDrive({
       const p = gData.plots.find(q => q.plot_id === x.id), r = p && soilCalc(p); if (!r) return '';
       return `<br><b>น้ำในดินตอนนี้: ${SOIL_ST[r.st][0]}</b>${r.st === 'wet' ? ` (ฝนเกินที่ดินรับได้ ~${Math.round(r.over3)} มม. → จุดสีฟ้าเข้มมีโอกาสขัง)` : r.overF >= 10 ? ` · ถ้าฝนตกตามพยากรณ์ น้ำจะเกิน ~${Math.round(r.overF)} มม.` : ''}`;
     }
-    function fmSatSheet(x, btns, still) {
+    function fmSatSheet(x, btns, still) { // ก้อน 4 สถานะ 4: แบบ subpages-map2 (ตัวเลขใหญ่ขวา · ‹ วันที่ › · การ์ดเหตุการณ์ · ปุ่มเล็ก)
       const W = fmSatMode === 'w', d = fmSatDate[x.key] || x.last.d, cur = x.good.find(q => q.d === d) || x.last;
       const peers = satInfo.items.filter(o => !o.land && o.key !== x.key && o.type === x.type).map(o => (o.good.find(q => q.d === cur.d) || {}).ndvi).filter(v => v != null);
       const pm = peers.length >= 3 ? satMed(peers) : null;
       const cmp = pm === null || x.land ? '' : cur.ndvi >= pm + 0.08 ? `เขียวกว่า${x.type}แปลงอื่นวันเดียวกัน` : cur.ndvi <= pm - 0.08 ? `เขียวน้อยกว่า${x.type}แปลงอื่นวันเดียวกัน` : `ใกล้เคียง${x.type}แปลงอื่นวันเดียวกัน`;
       const weak = W && cur.weak !== null ? (cur.ndvi < 0.5 ? 'ใบยังไม่คลุม ดูจุดอ่อนยังไม่แม่น' : satWeakBad(cur) ? `⚠️ ราว ${Math.round(cur.weak * 100)}% ของแปลงอ่อนกว่าส่วนอื่น (สีแดง/ส้ม)` : (gData.damages || []).some(d => d.plot_id === x.id && pPath(d.boundary).length >= 3) ? `✅ นอกรอยเสียหาย ส่วนอื่นใกล้เคียงกัน (อ่อน ${Math.round(cur.weak * 100)}% ของแปลง)` : `✅ ทั้งแปลงใกล้เคียงกัน`) : '';
-      const dates = x.good.slice(-12);
-      const chips = dates.map(q => `<button type="button" class="${q.d === cur.d ? 'on' : ''}" onclick="fmSatPick('${qa(x.key)}','${q.d}')"><span class="dot" style="background:${satColor(q.ndvi)}"></span>${satDs(q.d)}</button>`).join('');
-      const latest = cur.d === x.last.d;
-      return `<div class="fm-sheet${still ? '' : ' fm-sheet-in'}${fmSheetMin ? ' fm-min' : ''}" style="${still ? 'animation:none' : ''}"><button type="button" class="grab"><span class="g-min">▴ ขยายข้อมูลแปลง</span><span class="g-max">▾ ย่อ</span></button>
-        <div class="shd"><div><div class="fw-bold" style="font-size:17px">${esc(x.name)}</div><small>${x.land ? 'ที่ดินที่จะเช่า' : x.type}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''}</small>
-          <div style="font-size:13px;margin-top:2px">ภาพ <b>${satD(cur.d)}</b>${latest ? ' (ล่าสุด)' : ` <span class="old">· ภาพเก่า</span>`}</div></div>
-          <div class="big"><small class="text-muted" style="font-size:12px">ความเขียว</small><div class="sat-bignum" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</div><b style="color:${satColor(cur.ndvi)}">${satLevel(cur.ndvi)}</b></div></div>
-        ${cmp ? `<div style="font-size:13.5px;margin-top:4px">${cmp}${pm !== null ? ` <span class="text-muted">(แปลงอื่น ${pm.toFixed(2)})</span>` : ''}</div>` : ''}
-        ${weak ? `<div style="font-size:13.5px;margin-top:2px">${weak}</div>` : ''}
+      const dates = x.good.slice(-12), i = dates.findIndex(q => q.d === cur.d), latest = cur.d === x.last.d;
+      const pv = i > 0 ? dates[i - 1] : null, nx = i >= 0 && i < dates.length - 1 ? dates[i + 1] : null;
+      const lv = satLevel(cur.ndvi), pc = cur.ndvi < 0.4 ? 'amber' : cur.ndvi < 0.55 ? 'muted' : 'done';
+      const SV = (p) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="${p}"/></svg>`;
+      const cmpRow = fmSatMode === 'f' || x.land ? '' : fm5Row('<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>', 'is-ok', 'เทียบภาพก่อน–หลัง', 'หน้าดาวเทียมรายแปลง', `satOpenCmp('${qa(x.key)}')`);
+      return fm5Sheet(esc(x.name), `${x.land ? 'ที่ดินดูไว้' : esc(x.type)}${x.rai ? ' · ' + esc(x.rai) + ' ไร่' : ''} · ภาพ ${satD(cur.d)}${latest ? ' (ล่าสุด)' : ''}`, true,
+        `<div class="grouped-card"><div class="sat-score-row"><div class="status-info"><div class="an-l1">ความเขียว${pm !== null ? ' · เทียบวันเดียวกัน' : ''}</div>
+            ${cmp ? `<div class="an-l3 tabular" style="margin-top:2px">${cmp}${pm !== null ? ` (แปลงอื่น <strong>${pm.toFixed(2)}</strong>)` : ''}</div>` : ''}
+            ${weak ? `<div class="an-l3" style="margin-top:2px">${weak}</div>` : ''}</div>
+          <div class="sat-score-right"><span class="sat-big-num tabular" style="color:${satColor(cur.ndvi)}">${cur.ndvi.toFixed(2)}</span><span class="st-pill ${pc}" style="margin-top:3px">${lv}</span></div></div>
+          <div class="date-stepper-mini"><button type="button" class="step-btn-sm" ${pv ? `onclick="fmSatPick('${qa(x.key)}','${pv.d}')"` : 'disabled'} aria-label="ภาพก่อนหน้า">${SV('15 18 9 12 15 6')}</button>
+            <b class="tabular">${satD(cur.d)}${latest ? ' (ล่าสุด)' : '<small>ภาพเก่า</small>'}</b>
+            <button type="button" class="step-btn-sm" ${nx ? `onclick="fmSatPick('${qa(x.key)}','${nx.d}')"` : 'disabled'} aria-label="ภาพถัดไป">${SV('9 18 15 12 9 6')}</button></div>
+          ${cmpRow}</div>
         ${fmSatMode === 'b' ? burnSheetLine(x) : ''}
-        ${fmCmpHtml(x, cur)}
         ${dmgRecHtml(x)}
         ${latest ? x.flags.filter(f => !/^มีส่วนที่อ่อน/.test(f) || !W).map(f => `<div class="sat-flag">⚠️ ${esc(f)}</div>`).join('') : ''}
-        ${fmSatMode === 'f' ? `<div class="sw-prone mt-2" style="font-size:13.5px">สีฟ้าบนแปลง = จุดที่ดาวเทียมเคยเห็นน้ำบนผิวดินใน 2 ปี ยิ่งเข้มยิ่งขังบ่อย (= แอ่ง) · ไม่มีสี = ไม่เคยเห็นน้ำ หรือช่วงนั้นอ้อยสูงบังอยู่${spotSoilLine(x)}</div>`
-          : ''}
-        <div class="d-flex gap-2 mt-2">${btns}</div></div>`;
+        ${fmSatMode === 'f' ? `<div class="task-card st-ok"><div class="an-l1">น้ำขังจากดาวเทียม 2 ปี</div><div class="an-l3">สีฟ้าบนแปลง = จุดที่ดาวเทียมเคยเห็นน้ำบนผิวดิน ยิ่งเข้มยิ่งขังบ่อย (= แอ่ง) · ไม่มีสี = ไม่เคยเห็นน้ำ หรือช่วงนั้นอ้อยสูงบังอยู่${spotSoilLine(x)}</div></div>` : ''}
+        <div class="plot-action-row">${btns}</div>`);
+    }
+    // แถวแผนน้ำ + รถเข้าได้ไหม ใต้แผง (ก้อน 4)
+    function fm5WpSpot(kind, id, lat, lng) {
+      const n = wpPlan(id).feats.length;
+      return `<div class="grouped-card fm-wp">${fm5Row(FM5I.wa, 'is-water', kind === 'land' ? 'แผนน้ำที่ดินนี้' : 'แผนน้ำแปลงนี้', n ? `วาดแล้ว ${n} รายการ` : 'หัว/ท้ายแปลง คลอง ทางลาด', `wpFromFm('${kind}','${qa(id)}')`)}${hasXY(lat, lng) ? fm5Row(FM5I.tr, 'is-ok', 'ตรงที่แตะ รถเข้าได้ไหม', 'ดูว่าดินแฉะ/น้ำขังไหม จากฝนและบันทึกในแอป', `spotOpen(fmTap||{lat:${+lat},lng:${+lng}},fmTap?'จุดที่แตะ':'กลางแปลง')`) : ''}</div>`;
     }
     // แผงล่าง: บรรทัดเดียว + ปุ่มเข้าโหมดเทียบเต็มจอ (19 พ.ย. 69 ผู้ใช้: เลือกก่อน–หลังในแผงกดยาก รก → ไปโหมดเต็ม)
     function fmCmpHtml(x, cur) {
@@ -12783,16 +12929,16 @@ Export.table.toDrive({
       if (kmItems) { kmPanel(); return; }
       H.style.display = 'none';
       if (fmSpot) { P.innerHTML = spotPanel(); return; }
-      const nav = (la, ln) => `<a class="btn btn-outline-success flex-fill" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>`;
+      const nav = (la, ln) => hasXY(la, ln) ? `<a class="task-inline-btn" href="${gmNav(la, ln)}" target="_blank" rel="noopener">นำทาง</a>` : '';
       if (fmSel && fmSel.kind === 'plot') {
         const p = gData.plots.find(x => x.plot_id === fmSel.id);
         if (!p) { fmSel = null; return fmPanel(still); } // แปลงหายหลังโหลดใหม่
         const diff = num(p.area_rai) ? ` · ในระบบ ${num(p.area_rai)} ไร่` : '';
         const sx = fmSatOn && fmSatItem('plot', p.plot_id);
         if (sx && sx.last) {
-          P.innerHTML = fmSatSheet(sx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)">กราฟ 12 เดือน</button>
+          P.innerHTML = fmSatSheet(sx, `<button type="button" class="task-inline-btn is-doing" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('plot|${p.plot_id}'),300)">กราฟ 12 เดือน</button>
             ${nav(p.center_lat, p.center_lng)}
-            <button type="button" class="btn btn-outline-success flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still) + `<div class="mt-2 fm-wp">${wpBtnHtml('plot', p.plot_id)}${spotBtn(p.center_lat, p.center_lng)}</div>`;
+            <button type="button" class="task-inline-btn" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openDossier('${p.plot_id}'),300)">ดูแปลง</button>`, still).replace(/<\/div><\/div>$/, fm5WpSpot('plot', p.plot_id, p.center_lat, p.center_lng) + '</div></div>');
           const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
           return;
         }
@@ -12825,16 +12971,19 @@ Export.table.toDrive({
         const p = gData.plots.find(o => o.plot_id === x.plot_id), t = dmgT(x.type);
         const pct = p && num(p.area_rai) && num(x.map_rai) ? Math.round(num(x.map_rai) / num(p.area_rai) * 100) : 0;
         const old = (gData.damages || []).filter(o => o.plot_id === x.plot_id && o.dmg_id !== x.dmg_id && pPath(o.boundary).length < 3);
-        const dr = (l, v) => v ? `<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #F0E3E0"><span style="color:#6B736E;flex:none">${l}</span><b style="text-align:right;font-size:16px">${v}</b></div>` : '';
-        P.innerHTML = `<div style="border:1.5px solid #E9B4AE;border-radius:14px;padding:10px 14px 4px;background:#FFF9F7;margin-bottom:10px">
-            <div class="fw-bold" style="font-size:18px;color:#B3261E;padding-bottom:6px">${t[1]} ${esc(x.type)}${p ? ' · ' + esc(p.plot_name) : ''}</div>
-            ${dr('วันที่เกิด', esc(thDate(beToISO(x.date)) || x.date))}${dr('พื้นที่เสียหาย', num(x.map_rai) ? '≈ ' + fmtRai(num(x.map_rai) * 1600) : '')}
-            ${dr('คิดเป็น', pct ? `${pct}% ของแปลง (${r1(num(p.area_rai))} ไร่)` : '')}${dr('หมายเหตุ', esc(x.note))}
-            <div class="srow-s" style="padding:6px 0;border-top:1px solid #F0E3E0">พื้นที่วัดจากแนวที่วาดบนแผนที่ · เป็นค่าประมาณ</div></div>
-          ${old.map(o => `<button type="button" class="btn btn-outline-danger fw-bold w-100 mb-2" onclick="fmMergeDmg('${qa(x.dmg_id)}','${qa(o.dmg_id)}')">รวมกับ "${esc(o.type)} ${esc(thDate(beToISO(o.date)) || o.date)}" ที่ยังไม่ได้วาด (ใช้วันที่ ${esc(thDate(beToISO(o.date)) || o.date)})</button>`).join('')}
-          <div class="d-flex gap-2"><button type="button" class="btn btn-outline-secondary" onclick="fmSel={kind:'plot',id:'${p ? p.plot_id : ''}'};fmRender()">← กลับ</button>
-          <button type="button" class="btn btn-outline-success fw-bold flex-fill" onclick="fmStartDmg('','${qa(x.dmg_id)}')">แก้ไข</button>
-          <button type="button" class="btn btn-outline-danger" onclick="fmDelDmg('${qa(x.dmg_id)}')">ลบ</button></div>`;
+        const dr = (l, v) => v ? `<div class="setting-row"><span class="setting-label">${l}</span><span class="setting-val tabular">${v}</span></div>` : '';
+        const sx = p && satInfo && fmSatItem('plot', p.plot_id), d0 = beToISO(String(x.date || '').split(' ')[0]);
+        const br = sx && burnPairOf(sx), brr = br && burnRes[sx.id + '|' + br.A + '|' + br.B];
+        const satRow = brr && !brr.cloud && br.B >= d0 ? `<div class="status-row" style="background:#FAFBF9"><div class="status-row-left"><span class="status-icon-box is-muted" aria-hidden="true">🛰️</span><div class="status-info"><div class="status-title tabular">${brr.rai < 0.2 ? 'ไม่เห็นจุดแห้งลง' : `แห้งลง ~${r1(brr.dmg || brr.rai)} ไร่`} (${satDs(br.A)} → ${satDs(br.B)})</div><div class="an-l4">ดาวเทียมเทียบภาพใสสองภาพล่าสุด · ต้องดูหน้างานประกอบ</div></div></div></div>` : '';
+        P.innerHTML = fm5Sheet(`<span>${t[1]} ${esc(x.type)}${p ? ' · ' + esc(p.plot_name) : ''}</span>${pct ? `<span class="st-pill danger tabular">${pct}% ของแปลง</span>` : ''}`,
+          `${esc(thDate(d0) || x.date)}${num(x.map_rai) ? ' · ≈ ' + fmtRai(num(x.map_rai) * 1600) : ''}`, false,
+          `<div class="grouped-card is-danger-accent">${dr('วันที่เกิด', esc(thDate(d0) || x.date))}${dr('พื้นที่เสียหาย', num(x.map_rai) ? '≈ ' + fmtRai(num(x.map_rai) * 1600) : '')}
+            ${dr('คิดเป็น', pct ? `${pct}% ของแปลง (${r1(num(p.area_rai))} ไร่)` : '')}${dr('หมายเหตุ', esc(x.note))}${satRow}
+            <div class="setting-row"><span class="an-l4">พื้นที่วัดจากแนวที่วาดบนแผนที่ · เป็นค่าประมาณ</span></div></div>
+          ${old.length ? `<div class="grouped-card">${old.map(o => fm5Row('<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>', 'is-muted', `รวมกับ ${esc(o.type)} ${esc(thDate(beToISO(o.date)) || o.date)} ที่ยังไม่ได้วาด`, `ใช้วันที่ ${esc(thDate(beToISO(o.date)) || o.date)} · ผูกแนวที่วาดเข้ากับบันทึกเดิม`, `fmMergeDmg('${qa(x.dmg_id)}','${qa(o.dmg_id)}')`)).join('')}</div>` : ''}
+          <div class="plot-action-row"><button type="button" class="task-inline-btn" onclick="fmSel={kind:'plot',id:'${p ? p.plot_id : ''}'};fmRender()">‹ กลับ</button>
+          <button type="button" class="task-inline-btn is-doing" onclick="fmStartDmg('','${qa(x.dmg_id)}')">แก้ไข</button>
+          <button type="button" class="task-inline-btn is-danger" onclick="fmDelDmg('${qa(x.dmg_id)}')">ลบ</button></div>`);
         return;
       }
       if (fmSel && fmSel.kind === 'land') {
@@ -12842,17 +12991,19 @@ Export.table.toDrive({
         if (!l) { fmSel = null; return fmPanel(still); }
         const lx = fmSatOn && fmSatItem('land', l.land_id);
         if (lx && lx.last) {
-          P.innerHTML = fmSatSheet(lx, `<button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('land|${l.land_id}'),300)">กราฟ + น้ำขังย้อนหลัง</button>${nav(l.center_lat, l.center_lng)}`, still) + `<div class="mt-2">${wpBtnHtml('land', l.land_id)}${spotBtn(l.center_lat, l.center_lng)}</div>`;
+          P.innerHTML = fmSatSheet(lx, `<button type="button" class="task-inline-btn is-doing" onclick="fmEdit=null;hideModal('farmMapModal');setTimeout(()=>openSat('land|${l.land_id}'),300)">กราฟ + น้ำขังย้อนหลัง</button>${nav(l.center_lat, l.center_lng)}`, still).replace(/<\/div><\/div>$/, fm5WpSpot('land', l.land_id, l.center_lat, l.center_lng) + '</div></div>');
           const dd = $('fmSatDates'); if (dd) { const on = dd.querySelector('.on'); dd.scrollLeft = on ? on.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2 : dd.scrollWidth; }
           return;
         }
-        P.innerHTML = `<div class="fw-bold">${esc(l.name)} <span class="srow-s">· ${fmtRai(num(l.map_rai) * 1600)}</span></div>
-          <div class="srow-s mb-2">${[l.owner ? 'เจ้าของ ' + esc(l.owner) : '', l.phone ? `<a href="tel:${esc(l.phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B">${esc(l.phone)}</a>` : '', esc(l.note)].filter(Boolean).join(' · ') || 'ที่ดินดูไว้'}</div>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmStartEdit('land','${l.land_id}')">แก้</button>
+        const tel = l.phone ? `<a href="tel:${esc(l.phone.replace(/[^\d+]/g, ''))}">${esc(l.phone)}</a>` : '';
+        P.innerHTML = fm5Sheet(`<span>${esc(l.name)}</span><span class="st-pill muted">ที่ดินดูไว้</span>`, num(l.map_rai) ? fmtRai(num(l.map_rai) * 1600) : '', true,
+          `<div class="grouped-card"><div class="setting-row"><span class="setting-label">เนื้อที่วัดจากแผนที่</span><span class="setting-val tabular">${num(l.map_rai) ? fmtRai(num(l.map_rai) * 1600) : '—'}</span></div>
+            ${l.owner || tel ? `<div class="setting-row"><span class="setting-label">เจ้าของ / เบอร์โทร</span><span class="setting-val">${[esc(l.owner), tel].filter(Boolean).join(' · ')}</span></div>` : `<div class="setting-row"><span class="setting-label">เจ้าของ / เบอร์โทร</span><span class="setting-val is-muted">ยังไม่ได้จด · แตะแก้เพื่อเพิ่ม</span></div>`}
+            ${l.note ? `<div class="setting-row"><span class="setting-label">หมายเหตุ</span><span class="setting-val">${esc(l.note)}</span></div>` : ''}</div>
+          <div class="plot-action-row"><button type="button" class="task-inline-btn is-doing" onclick="fmStartEdit('land','${l.land_id}')">แก้</button>
             ${nav(l.center_lat, l.center_lng)}
-            <button type="button" class="btn btn-outline-danger" id="btnLandDel" onclick="fmDelLand('${l.land_id}')">ลบ</button>
-          </div><div class="mt-2">${wpBtnHtml('land', l.land_id)}${spotBtn(l.center_lat, l.center_lng)}</div>`;
+            <button type="button" class="task-inline-btn is-danger" id="btnLandDel" onclick="fmDelLand('${l.land_id}')">ลบ</button></div>
+          ${fm5WpSpot('land', l.land_id, l.center_lat, l.center_lng)}`);
         return;
       }
       P.innerHTML = fmTools ? fm5Sheet('เครื่องมือ', 'วาดขอบแปลง · วัดที่ดิน · นำเข้า', false, fmPickHtml(), `<button type="button" class="sec-toggle-btn" onclick="fmTools=false;fmPanel()">‹ กลับ</button>`)
@@ -12947,19 +13098,17 @@ Export.table.toDrive({
       const f3 = r1(rows.filter(r => r.fut).slice(0, 3).reduce((a, r) => a + r.rain, 0));
       return { v, why, pct, f3, wait: ck && !rainAfter ? 0 : Math.max(0, needD - dr) };
     }
-    function spotPanel() {
-      const sp = fmSpot, w = sp.where, r = sp.res, ic = { 'ยังไม่ควรเข้า': ['🔴', '#B3261E', '#FBE3E1'], 'ก้ำกึ่ง ลองเดินดู': ['🟠', '#B4630B', '#FCEFDD'], 'น่าจะเข้าได้': ['🟢', '#1F7A45', '#E3F2E8'] };
-      const head = `<div class="d-flex align-items-center gap-2 mb-1"><div class="fw-bold flex-fill" style="font-size:17px">🚜 รถเข้า${sp.src}ได้ไหม</div><button type="button" class="btn btn-sm btn-outline-secondary" onclick="spotClose()">ปิด</button></div>
-        <div class="srow-s mb-2">${esc(w.name)} · ${sp.ll.lat.toFixed(5)}, ${sp.ll.lng.toFixed(5)}</div>`;
-      if (!r) return head + (sp.err ? `<button type="button" class="btn btn-outline-success w-100" onclick="spotOpen(fmSpot.ll,fmSpot.src)">${sp.err}</button>` : '<div class="srow-s py-2">⏳ กำลังดึงฝนของจุดนี้…</div>');
-      const c = ic[r.v];
-      const st = ['น้ำขัง', 'แฉะ เข้าไม่ได้', 'ชื้น ก้ำกึ่ง', 'หมาด เข้าได้'];
-      return head + `<div style="border-radius:14px;padding:10px 14px;background:${c[2]};margin-bottom:8px">
-          <div class="fw-bold" style="font-size:19px;color:${c[1]}">${c[0]} ${r.v}${r.v === 'ยังไม่ควรเข้า' && r.wait ? ` · รออีก ~${r.wait} วัน` : ''}</div>
-          ${r.why.map(x => `<div style="font-size:14px;padding-top:3px">– ${esc(x)}</div>`).join('')}
-          <div style="font-size:14px;padding-top:3px">– ฝนพยากรณ์ 3 วัน ~${r.f3} มม.${r.f3 >= 5 ? ' (ถ้าตก ต้องนับวันใหม่)' : ''}</div></div>
-        <div class="srow-s mb-1">ค่าประมาณ — ลองขุดลึกคืบ ปั้นดินแตกร่วน = เข้าได้ · เหนียวติดมือ/มีน้ำซึม = รอ · ดูแล้วกดบอกผล แอปจะจำจุดนี้</div>
-        <div class="d-flex flex-wrap gap-2">${st.map(x => `<button type="button" class="btn btn-sm ${SPOT_WET.test(x) ? 'btn-outline-danger' : 'btn-outline-success'} flex-fill" onclick="spotSave('${x}',this)">${x}</button>`).join('')}</div>`;
+    function spotPanel() { // ก้อน 4 สถานะ 3: การ์ดผล แดง/ส้ม/เขียว + เหตุผลเป็นข้อ + ปุ่มบอกผล 2×2
+      const sp = fmSpot, w = sp.where, r = sp.res, ic = { 'ยังไม่ควรเข้า': ['🔴', 'st-danger', 'is-danger', 'danger', 'ไม่ควรเข้า'], 'ก้ำกึ่ง ลองเดินดู': ['🟠', 'st-amber', 'is-due', 'amber', 'ดูหน้างานก่อน'], 'น่าจะเข้าได้': ['🟢', 'st-ok', 'is-ok', 'done', 'เข้าได้'] };
+      const head = (body) => fm5Sheet(`🚜 รถเข้า${sp.src}ได้ไหม`, `${esc(w.name)} · ${sp.ll.lat.toFixed(5)}, ${sp.ll.lng.toFixed(5)}`, false, body, `<button type="button" class="sec-toggle-btn" onclick="spotClose()">ปิด</button>`);
+      if (!r) return head(sp.err ? `<button type="button" class="task-inline-btn is-doing" style="width:100%" onclick="spotOpen(fmSpot.ll,fmSpot.src)">${sp.err}</button>` : '<div class="an-l3" style="padding:6px 2px">⏳ กำลังดึงฝนของจุดนี้…</div>');
+      const c = ic[r.v] || ic['ก้ำกึ่ง ลองเดินดู'];
+      const st = [['น้ำขัง', 'is-danger'], ['แฉะ เข้าไม่ได้', 'is-danger'], ['ชื้น ก้ำกึ่ง', 'is-due'], ['หมาด เข้าได้', 'is-doing']];
+      return head(`<div class="task-card ${c[1]}"><div class="an-l1">ผลประเมินจากฝนจริง ความชื้นดิน และประวัติจุดนี้</div>
+          <div class="an-l2 ${c[2]}"><span class="tabular">${c[0]} ${r.v}${r.v === 'ยังไม่ควรเข้า' && r.wait ? ` · รออีก ~${r.wait} วัน` : ''}</span><span class="st-pill ${c[3]}">${c[4]}</span></div>
+          <ul class="reason-list tabular">${r.why.map(x => `<li>${esc(x)}</li>`).join('')}<li>ฝนพยากรณ์ 3 วัน ~${r.f3} มม.${r.f3 >= 5 ? ' (ถ้าตก ต้องนับวันใหม่)' : ''}</li></ul>
+          <div class="an-l4" style="margin-top:3px">ค่าประมาณ — ลองขุดลึกคืบ ปั้นดินแตกร่วน = เข้าได้ · เหนียวติดมือ/มีน้ำซึม = รอ · ดูแล้วกดบอกผล แอปจะจำจุดนี้</div></div>
+        <div class="spot-feedback-grid" role="group" aria-label="บอกผลหน้างาน">${st.map(x => `<button type="button" class="task-inline-btn ${x[1]}" onclick="spotSave('${x[0]}',this)">${x[0]}</button>`).join('')}</div>`);
     }
     function spotSave(state, btn) {
       const sp = fmSpot; if (!sp || !sp.res) return;
@@ -13040,44 +13189,43 @@ Export.table.toDrive({
       if (onlyArea) return;
       fmHdr();
       if (e.ask) {
-        $('fmPanel').innerHTML = `<div class="fw-bold mb-2">ทิ้ง ${e.pts.length} หมุดที่ปักไว้?</div><div class="d-flex gap-2">
-          <button type="button" class="btn btn-outline-danger fw-bold flex-fill" onclick="fmExitEdit()">ทิ้งหมุด</button>
-          <button type="button" class="btn btn-success fw-bold flex-fill" onclick="fmEdit.ask=0;fmEditPanel()">วาดต่อ</button></div>`;
+        $('fmPanel').innerHTML = fm5Sheet(`ทิ้ง ${e.pts.length} หมุดที่ปักไว้?`, esc(e.name || ''), false, `<div class="plot-action-row">
+          <button type="button" class="task-inline-btn is-danger" onclick="fmExitEdit()">ทิ้งหมุด</button>
+          <button type="button" class="task-inline-btn is-solid" onclick="fmEdit.ask=0;fmEditPanel()">วาดต่อ</button></div>`);
         return;
       }
       if (e.kind === 'dmg') { // G: 2 ขั้น วาด → รายละเอียด
         const ok = e.pts.length >= 3;
-        $('fmPanel').innerHTML = e.step === 'info' ? `<div class="fm-dmg mb-2">
+        const T5 = e.step === 'info' ? 'รายละเอียดจุดเสียหาย' : 'วาดแนวจุดเสียหาย';
+        $('fmPanel').innerHTML = fm5Sheet(T5, `${esc(e.name)} · ${e.pts.length} หมุด${e.pts.length >= 3 ? ' · ≈ ' + fmtRai(m2) : ''}`, false, e.step === 'info' ? `<div class="fm-dmg">
           <div class="fm-dseg">${DMG_T.map(t => `<button type="button" class="${e.dmg.type === t[0] ? 'on' : ''}" onclick="fmEdit.dmg.type='${t[0]}';fmEdit.name='${t[0]}'+(fmEdit.name.includes(' · ')?' · '+fmEdit.name.split(' · ')[1]:'');fmEditPanel()">${t[1]} ${t[0]}</button>`).join('')}</div>
           <label class="fm-drow"><span>วันที่เกิด</span><input type="date" value="${esc(e.dmg.date)}" onchange="fmEdit.dmg.date=this.value"></label>
           <label class="fm-drow"><span>หมายเหตุ</span><input type="text" value="${esc(e.dmg.note)}" placeholder="เช่น คนแอบเผา ยอดยังเขียว" oninput="fmEdit.dmg.note=this.value"></label>
-        </div><div class="d-flex gap-2">
-          <button type="button" class="btn btn-outline-secondary fw-bold" onclick="fmEdit.step='draw';fmEditPanel()">← แก้แนว</button>
-          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnFmSave" onclick="fmSave()">บันทึก (≈ ${fmtRai(m2)})</button></div>`
-        : `<div class="fm-pinbar mb-2"><button type="button" class="btn btn-primary fw-bold flex-fill" id="btnFmPin" onclick="fmPinHere()">📍 ปักตรงที่ยืน</button><span id="fmGpsAcc" class="fm-acc ${fmAccCls(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}">${fmAccTxt(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}</span></div>
-          <div class="d-flex gap-2">
-          <button type="button" class="btn btn-outline-secondary" ${e.pts.length ? '' : 'disabled'} onclick="fmEdit.pts.pop();fmDrawEdit()">↶ ลบหมุดล่าสุด</button>
-          <button type="button" class="btn btn-success fw-bold flex-fill" ${ok ? '' : 'disabled'} onclick="fmEdit.step='info';fmEditPanel()">${ok ? `ถัดไป (${e.pts.length} หมุด ≈ ${fmtRai(m2)})` : `ปักอีก ${3 - e.pts.length} หมุด`}</button></div>`;
+        </div><div class="plot-action-row">
+          <button type="button" class="task-inline-btn" onclick="fmEdit.step='draw';fmEditPanel()">‹ แก้แนว</button>
+          <button type="button" class="task-inline-btn is-solid" id="btnFmSave" onclick="fmSave()">บันทึก (≈ ${fmtRai(m2)})</button></div>`
+        : `<div class="grouped-card fm-gpsrow"><button type="button" class="status-row is-clickable" id="btnFmPin" onclick="fmPinHere()"><div class="status-row-left"><span class="status-icon-box is-water" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div class="status-info"><div class="status-title">ปักตรงที่ยืน</div><div class="status-sub">เพิ่มมุมจาก GPS ตอนนี้</div></div></div></button><span id="fmGpsAcc" class="fm-acc ${fmAccCls(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}">${fmAccTxt(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}</span></div>
+          <div class="plot-action-row">
+          <button type="button" class="task-inline-btn" ${e.pts.length ? '' : 'disabled'} onclick="fmEdit.pts.pop();fmDrawEdit()">↶ ลบหมุดล่าสุด</button>
+          <button type="button" class="task-inline-btn is-solid" ${ok ? '' : 'disabled'} onclick="fmEdit.step='info';fmEditPanel()">${ok ? `ถัดไป (${e.pts.length} หมุด ≈ ${fmtRai(m2)})` : `ปักอีก ${3 - e.pts.length} หมุด`}</button></div>`);
         return;
       }
-      $('fmPanel').innerHTML = `${e.kind === 'land' ? `<div class="row g-2 mb-2">
-          <div class="col-6"><input class="form-control" id="ld_name" placeholder="ชื่อที่ดิน" value="${esc(e.land.name)}" oninput="fmEdit.land.name=this.value"></div>
-          <div class="col-6"><input class="form-control" id="ld_owner" placeholder="เจ้าของ" value="${esc(e.land.owner)}" oninput="fmEdit.land.owner=this.value"></div>
-          <div class="col-6"><input class="form-control" id="ld_phone" type="tel" placeholder="เบอร์" value="${esc(e.land.phone)}" oninput="fmEdit.land.phone=this.value"></div>
-          <div class="col-6"><input class="form-control" id="ld_note" placeholder="หมายเหตุ เช่น ค่าเช่า" value="${esc(e.land.note)}" oninput="fmEdit.land.note=this.value"></div>
+      const lrow = (l, id, ph, v, k, ty) => `<label class="setting-row"><span class="setting-label">${l}</span><input id="${id}" ${ty ? `type="${ty}"` : ''} placeholder="${ph}" value="${esc(v)}" oninput="fmEdit.land.${k}=this.value"></label>`;
+      $('fmPanel').innerHTML = fm5Sheet(e.kind === 'land' ? (e.id ? 'แก้ที่ดิน' : 'วัดที่ดิน') : e.kind === 'dmg' ? 'จุดเสียหาย' : 'แก้ขอบแปลง', `${esc(e.name || 'ที่ดินใหม่')} · ${e.pts.length} หมุดมุม`, false, `${e.kind === 'land' ? `<div class="grouped-card fm5-form">
+          ${lrow('ชื่อที่ดิน', 'ld_name', 'เช่น ตลาดนัด', e.land.name, 'name')}${lrow('เจ้าของ', 'ld_owner', 'ชื่อ', e.land.owner, 'owner')}${lrow('เบอร์โทร', 'ld_phone', '08x-xxx-xxxx', e.land.phone, 'phone', 'tel')}${lrow('หมายเหตุ', 'ld_note', 'เช่น ค่าเช่า', e.land.note, 'note')}
         </div>` : ''}
         ${e.kind === 'dmg' ? `<div class="fm-dmg mb-2">
           <div class="fm-dseg">${DMG_T.map(t => `<button type="button" class="${e.dmg.type === t[0] ? 'on' : ''}" onclick="fmEdit.dmg.type='${t[0]}';fmEdit.name='${t[0]}'+(fmEdit.name.includes(' · ')?' · '+fmEdit.name.split(' · ')[1]:'');fmEditPanel()">${t[1]} ${t[0]}</button>`).join('')}</div>
           <label class="fm-drow"><span>วันที่เกิด</span><input type="date" value="${esc(e.dmg.date)}" onchange="fmEdit.dmg.date=this.value"></label>
           <label class="fm-drow"><span>หมายเหตุ</span><input type="text" value="${esc(e.dmg.note)}" placeholder="เช่น คนแอบเผา ยอดยังเขียว" oninput="fmEdit.dmg.note=this.value"></label>
         </div>` : ''}
-        <div class="fm-pinbar mb-2"><button type="button" class="btn btn-primary fw-bold flex-fill" id="btnFmPin" onclick="fmPinHere()">📍 ปักตรงที่ยืน</button><span id="fmGpsAcc" class="fm-acc ${fmAccCls(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}">${fmAccTxt(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}</span></div>
-        <div class="d-flex gap-2">
-          <button type="button" class="btn btn-outline-secondary" onclick="fmEdit.pts.pop();fmDrawEdit()">↶ ลบหมุดล่าสุด</button>
-          <button type="button" class="btn btn-outline-danger" onclick="if(!fmEdit.pts.length||confirm('ล้างมุมทั้งหมด?')){fmEdit.pts=[];fmDrawEdit()}">ล้าง</button>
-          <button type="button" class="btn btn-outline-secondary" onclick="fmExitEdit()">ยกเลิก</button>
-          <button type="button" class="btn btn-success fw-bold flex-fill" id="btnFmSave" onclick="fmSave()">บันทึก</button>
-        </div>`;
+        <div class="grouped-card fm-gpsrow"><button type="button" class="status-row is-clickable" id="btnFmPin" onclick="fmPinHere()"><div class="status-row-left"><span class="status-icon-box is-water" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div class="status-info"><div class="status-title">ปักตรงที่ยืน</div><div class="status-sub">เพิ่มมุมจาก GPS ตอนนี้</div></div></div></button><span id="fmGpsAcc" class="fm-acc ${fmAccCls(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}">${fmAccTxt(rkLastPos && Date.now() - (rkLastPos.t || 0) < 20000 ? rkLastPos.acc : null)}</span></div>
+        <div class="plot-action-row">
+          <button type="button" class="task-inline-btn" ${e.pts.length ? '' : 'disabled'} onclick="fmEdit.pts.pop();fmDrawEdit()">↶ ลบหมุดล่าสุด</button>
+          <button type="button" class="task-inline-btn is-danger" onclick="if(!fmEdit.pts.length||confirm('ล้างมุมทั้งหมด?')){fmEdit.pts=[];fmDrawEdit()}">ล้าง</button>
+          <button type="button" class="task-inline-btn" onclick="fmExitEdit()">ยกเลิก</button>
+          <button type="button" class="task-inline-btn is-solid" id="btnFmSave" onclick="fmSave()">บันทึก</button>
+        </div>`);
     }
     function fmSave() {
       const e = fmEdit, path = e.pts.map(p => p[0].toFixed(6) + ',' + p[1].toFixed(6)).join(';');

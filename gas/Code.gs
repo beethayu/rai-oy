@@ -1267,6 +1267,7 @@ ${pages.length > 1 ? `- รูปทั้ง ${pages.length} รูปคือ
 - ส่วนลด/ลดราคา: แยกเป็น 1 บรรทัด item "ส่วนลด" (ใส่รายละเอียดต่อท้ายได้ เช่น "ส่วนลด ตันละ 100") amount เป็นลบ qty 0 unit ""
 - ปุ๋ย: qty/unit ใช้จำนวนกระสอบเป็นหลัก (1 ตัน = 20 กระสอบ 50 กก.) ถ้าบิลเขียนเป็นตัน ให้แปลงเป็นกระสอบ และ stock_qty เป็นกระสอบ
 - อ่านไม่ออกใส่ amount 0 / ห้ามเดาจากอากาศ / ถ้าไม่ใช่บิลให้ items เป็น []
+- เพิ่มคีย์ "unsure": รายชื่อช่องที่ลายมือไม่ชัดหรือต้องเดา ใช้ "date" "shop" หรือ "items.<ลำดับเริ่ม 0>.item|qty|amount" เช่น ["shop","items.2.amount"] · อ่านชัดทุกช่องใส่ []
 รายการสต็อก:
 ${inv.join('\n')}
 ${aliases.length ? `ชื่อในบิลที่ผู้ใช้เคยจับคู่กับสต็อกแล้ว (เจอชื่อเดียวกัน/คล้ายกันให้ใช้ตามนี้):
@@ -1303,6 +1304,7 @@ ${assets.join('\n')}`;
     stock_qty: invNames.has(it.stock_item) ? (Number(it.stock_qty) || 0) : 0,
     asset: asNames.has(it.asset) ? it.asset : (veh && it.category !== 'ปุ๋ย' && it.category !== 'ยา' ? veh : '')
   }));
+  data.unsure = (Array.isArray(data.unsure) ? data.unsure : []).map(String).filter(x => /^(date|shop|items\.\d+\.(item|qty|amount))$/.test(x)).slice(0, 30);
   data.vehicle = veh;
   data.photo_id = photoIds;
   data.pages = pages.length;

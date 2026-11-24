@@ -2984,6 +2984,8 @@ body.tabS .hd-btns .ibtn-rain svg{display:none}
 body.tabS .hd-btns .ibtn-add{background:#fff;border-color:#fff;color:#15452A;font-size:14px!important;font-weight:700;min-width:0!important}
 body.tabS .tiles,body.tabS .t-none{display:none!important}
 body.tabS .sec-hd h1{display:none}
+body.tabS.tdA-on .wrap{margin-top:0;border-radius:0;padding-top:12px}
+body.tabS.tdA-on .hd{padding-bottom:10px}
 body.tabS .sec-hd{justify-content:flex-end}
 body.tabS .sec-hd:has(#sec-sub:empty){display:none}
 /* ก้อน 7 แชตบันทึกงาน (log-chat-v1) */
@@ -3009,6 +3011,7 @@ body.tabS .sec-hd:has(#sec-sub:empty){display:none}
 #log-view.v6 .ch-ask{background:#FAFBF9;border-top:1px solid #EEF2EE}
 #log-view.v6 .ch-ask b{font-size:13.5px;color:var(--ink-2)}
 #log-view.v6 .ch-chip{border-color:#A8CBB5;color:var(--brand-dark);font-weight:600;font-size:14px;min-height:36px}
+#log-view.v6 .ch-chip.on{color:#fff;background:var(--brand);border-color:var(--brand)}
 #log-view.v6 .ch-acts .btn-success{background:var(--brand);border-color:var(--brand);border-radius:11px}
 #log-view.v6 .ch-acts .btn-light{background:#EFF3F0;border-color:#EFF3F0;border-radius:11px}
 #log-view.v6 .ch-ex{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;padding:11px 12px;min-height:44px}
@@ -3043,7 +3046,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #actModal .modal-body>label.small:first-of-type{margin-top:4px!important}
 #actModal .a6-plot{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid #DCE3DC;border-radius:14px;padding:11px 13px;box-shadow:0 1px 2px rgba(20,46,30,.06);margin-bottom:6px}
 #actModal .a6-plot span{font-size:14px;font-weight:600;color:#46594E;flex:none}#actModal .a6-plot b{font-size:15px;color:#15452A;text-align:right}
-#actModal .btn-group[role=group]{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;background:#E5EBE6;border-radius:11px}
+#actModal .btn-group[role=group]{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:3px;background:#E5EBE6;border-radius:11px}
 #actModal .btn-group[role=group] .btn{border:0!important;border-radius:8px!important;background:transparent;color:#46594E;font-size:14px;height:38px;padding:0 4px;display:flex;align-items:center;justify-content:center;box-shadow:none}
 #actModal .btn-group[role=group] .btn-check:checked+.btn{background:#fff;color:#16241B;box-shadow:0 1px 3px rgba(20,46,30,.12)}
 #actModal .grp-btn{flex:0 0 auto!important;border-radius:999px!important;border:1px solid #DCE3DC!important;background:#fff!important;color:#16241B!important;font-weight:600;font-size:14.5px;min-height:40px;padding:0 14px}
@@ -3131,6 +3134,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #chemModal .chem-tr{padding-left:13px;padding-right:13px}
 #chemModal .chem-th{background:#F7F9F7}
 #chemModal .chem-care{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:8px 10px;color:#9A3412}
+#billModal .b6-un{background:#FFF7ED!important;border-color:#F59E0B!important;box-shadow:0 0 0 1px #F59E0B}
+#billModal .b6-note{font-size:13px;color:#9A3412;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:6px 10px;margin-bottom:8px}
+#chemModal .c6-rb{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:#E8F3EC;color:#15452A;white-space:nowrap}#chemModal .c6-rb.is-o{background:#FFF1E6;color:#C2410C}
 #chemModal .chem-src{border-top:1px solid #EEF2EE;padding-top:6px;margin-top:8px}
 /* ก้อน 13 อากาศ + น้ำตาล หน้าเดียว (wx-sugar-v1) */
 #wxModal .modal-body{background:#F4F6F3}
@@ -3143,6 +3149,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #wxModal .card-sec h6{font-size:15px;font-weight:700;color:#16241B}
 #wxModal .wx-grid-box{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-left:0;padding-right:6px}
 #wxModal .wx-gn{padding-left:9px}
+#wxModal .wx-gn.on{color:#1F5E3B;font-weight:700;box-shadow:inset 3px 0 0 #1F5E3B,-16px 0 0 #fff,3px 0 0 #fff,6px 0 6px -3px rgba(20,46,30,.14)!important}
 #wxModal .wx-grid{grid-template-columns:86px repeat(7,56px)!important;width:max-content}
 #wxModal .wx-gn{position:sticky;left:0;z-index:3;background:#fff;box-shadow:3px 0 6px -3px rgba(20,46,30,.12)}
 #wxModal .wx-grid>div:first-child{position:sticky;left:0;z-index:3;background:#fff}
@@ -3154,6 +3161,15 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #setModal .card-sec h6{font-size:15px;font-weight:700;color:#16241B}
 #setModal .form-control,#setModal .form-select{font-size:16px;border-radius:10px;border-color:#DCE3DC}
 #setModal #btnSetSave{background:#1F5E3B;border-color:#1F5E3B;border-radius:12px;height:48px}
+#setModal .sw6-sel{display:none}
+#setModal .sw6{flex:none;width:52px;height:32px;border-radius:999px;border:0;background:#D5DCD6;position:relative;transition:background .2s;padding:0}
+#setModal .sw6::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s}
+#setModal .sw6.on{background:#2E9B5A}#setModal .sw6.on::after{left:23px}
+#setModal .card-sec:has(.opt-chip),#setModal .card-sec:has([id^=list_]){display:flex;flex-direction:column}
+#setModal .card-sec [id^=list_]{order:1;margin-bottom:8px}#setModal .card-sec .input-group{order:2;margin-bottom:0!important}
+#setModal .opt-chip{background:#fff;border:1px solid #DCE3DC;font-size:14.5px;min-height:38px;padding:3px 4px 3px 12px}
+#setModal .opt-chip button{width:30px;height:30px;background:#F4F6F3;color:#6D7B72}
+#setModal .card-sec .input-group .form-control{min-height:40px}
 #plan-body .p6-sec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 2px 7px}
 #plan-body .p6-sec:first-child{margin-top:2px}
 #plan-body .p6-sec b{font-size:15px;color:#16241B;display:flex;align-items:center;gap:7px}
@@ -3366,10 +3382,12 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 
           <label class="small fw-bold text-muted mb-1">สถานะของงาน</label>
           <div class="btn-group w-100 mb-2" role="group">
-            <input type="radio" class="btn-check" name="status_mode" id="mode_ongoing" autocomplete="off">
-            <label class="btn btn-outline-primary fw-bold btn-sm py-2" for="mode_ongoing">เริ่มทำ / ยังไม่เสร็จ</label>
-            <input type="radio" class="btn-check" name="status_mode" id="mode_done" autocomplete="off" checked>
+            <input type="radio" class="btn-check" name="status_mode" id="mode_ongoing" autocomplete="off" onchange="actPlanMode()">
+            <label class="btn btn-outline-primary fw-bold btn-sm py-2" for="mode_ongoing">ทำค้าง</label>
+            <input type="radio" class="btn-check" name="status_mode" id="mode_done" autocomplete="off" checked onchange="actPlanMode()">
             <label class="btn btn-outline-success fw-bold btn-sm py-2" for="mode_done">ทำเสร็จแล้ว</label>
+            <input type="radio" class="btn-check" name="status_mode" id="mode_plan" autocomplete="off" onchange="actPlanMode()">
+            <label class="btn btn-outline-success fw-bold btn-sm py-2" for="mode_plan" id="mode_plan_lb">วางแผน</label>
           </div>
 
           <label class="small fw-bold text-muted mb-1">ประเภทงาน</label>
@@ -3507,7 +3525,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           </div>
 
           <div class="row g-2 mb-2">
-            <div class="col-6"><small class="fw-bold">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt" onchange="syncTags()">
+            <div class="col-6"><small class="fw-bold" id="act_dt_lb">วันที่ทำ</small><input type="date" class="form-control form-control-sm" id="act_dt" onchange="syncTags()">
               <div id="act_dt2_wrap"><small class="fw-bold">ถึงวันที่ <span class="fw-normal text-muted">(ถ้าทำหลายวัน)</span></small><input type="date" class="form-control form-control-sm" id="act_dt2" onchange="syncTags()"></div></div>
             <div class="col-6"><small class="fw-bold">หมายเหตุ</small><input type="text" class="form-control form-control-sm" id="act_rmk" placeholder="พิมพ์เพิ่มได้" oninput="syncTags()"></div>
           </div>
@@ -3851,7 +3869,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
             <div class="msub mb-2" id="set_status"></div>
             <div class="ln-blk">
               <div class="ln-hd"><div><b>🌅 สรุปตอนเช้า</b><div class="msub mb-0">วันนี้ต้องทำอะไร · ถึงรอบน้ำ/ฉีดยา · รถเสีย · ยาใกล้หมด · อากาศ</div></div>
-                <select class="form-select" id="set_enabled"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
+                <select class="form-select sw6-sel" id="set_enabled"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select><button type="button" class="sw6" data-for="set_enabled" role="switch" aria-label="เปิด/ปิด" onclick="sw6Tap(this)"></button></div>
               <div class="ln-row"><span>เวลาส่ง</span><input type="time" class="form-control" id="set_time"></div>
               <div class="d-flex gap-2"><button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewLine()" id="btnPrev">ดูตัวอย่าง</button>
                 <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="testLine()" id="btnTest">ส่งเข้า LINE ตอนนี้</button></div>
@@ -3859,7 +3877,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
             </div>
             <div class="ln-blk">
               <div class="ln-hd"><div><b>🌇 สรุปตอนเย็น</b><div class="msub mb-0">วันนี้ทำอะไรไปแล้ว · ใครทำ แปลงไหน · รถ · ยาที่ใช้</div></div>
-                <select class="form-select" id="set_evening"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select></div>
+                <select class="form-select sw6-sel" id="set_evening"><option value="เปิด">เปิด</option><option value="ปิด">ปิด</option></select><button type="button" class="sw6" data-for="set_evening" role="switch" aria-label="เปิด/ปิด" onclick="sw6Tap(this)"></button></div>
               <div class="ln-row"><span>เวลาส่ง</span><b>ประมาณ 17:00</b></div>
               <div class="d-flex gap-2"><button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="previewEve()" id="btnPrevE">ดูตัวอย่าง</button>
                 <button type="button" class="btn btn-outline-success flex-fill fw-bold" onclick="sendEveNow()" id="btnSendE">ส่งเข้า LINE ตอนนี้</button></div>
@@ -4507,7 +4525,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const old = age !== null && age > 30 && items.some(it => it.stock_item);
       if (old) items.forEach(it => { it.stock_item = ''; it.stock_qty = 0; });
       billDraft = { pages, date: d.date || '', shop: d.shop || (prev ? prev.shop : ''), photo_id: d.photo_id || '', note: prev ? prev.note : '',
-        total: num(d.total), err: d.error || '', oldNoStock: old ? age : 0, items };
+        total: num(d.total), err: d.error || '', oldNoStock: old ? age : 0, items, unsure: (d.unsure || []).filter(x => !/^items\./.test(x)) };
+      (d.unsure || []).forEach(x => { const m = String(x).match(/^items\.(\d+)\.(item|qty|amount)$/); if (m && items[+m[1]]) (items[+m[1]]._un = items[+m[1]]._un || []).push(m[2]); });
       if (billFor) { billDraft.forAsset = billFor; items.forEach(it => { if (!isDisc(it) && (it.category === 'อะไหล่' || it.category === 'อื่นๆ')) { it.category = 'อะไหล่'; it.asset = it.asset || billFor; } }); billMatch(); }
       renderBill(); showM('billModal');
     }
@@ -4566,14 +4585,14 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const opt = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
       return `<div class="bill-row bl-c">
         <div class="d-flex gap-2 align-items-center mb-2">
-          <input class="form-control form-control-sm fw-bold" aria-label="ชื่อรายการ" placeholder="ชื่อรายการ" value="${esc(it.item)}" oninput="billSet(${i},'item',this.value)">
+          <input class="form-control form-control-sm fw-bold${(it._un || []).includes('item') ? ' b6-un' : ''}" aria-label="ชื่อรายการ" placeholder="ชื่อรายการ" value="${esc(it.item)}" oninput="billSet(${i},'item',this.value);this.classList.remove('b6-un')">
           <button type="button" class="bl-x" aria-label="ลบรายการนี้" onclick="billDel(${i})">✕</button>
         </div>
         <div class="bl-g">
           <label><span>หมวด</span><select class="form-select form-select-sm" onchange="billSet(${i},'category',this.value,true)">${BILL_CATS.map(c => opt(c, c, c === it.category)).join('')}</select></label>
-          <label><span>จำนวน</span><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.qty || ''}" oninput="billSet(${i},'qty',this.value)"></label>
+          <label><span>จำนวน</span><input type="number" inputmode="decimal" class="form-control form-control-sm${(it._un || []).includes('qty') ? ' b6-un' : ''}" value="${it.qty || ''}" oninput="billSet(${i},'qty',this.value);this.classList.remove('b6-un')"></label>
           <label><span>หน่วย</span><input class="form-control form-control-sm" value="${esc(it.unit)}" oninput="billSet(${i},'unit',this.value)"></label>
-          <label><span>รวม (บาท)</span><input type="number" inputmode="decimal" class="form-control form-control-sm" value="${it.amount || ''}" oninput="billSet(${i},'amount',this.value)"></label>
+          <label><span>รวม (บาท)</span><input type="number" inputmode="decimal" class="form-control form-control-sm${(it._un || []).includes('amount') ? ' b6-un' : ''}" value="${it.amount || ''}" oninput="billSet(${i},'amount',this.value);this.classList.remove('b6-un')"></label>
         </div>
         ${STOCK_CAT[it.category] ? `
         <div class="bl-s"><span title="รับเข้าสต็อก">📥</span>
@@ -4601,12 +4620,13 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       $('bill-body').innerHTML = `
         ${b.edit ? '<div class="small text-muted mb-2">แก้แล้วกดบันทึก ยอดสต็อก/ประวัติรถจะปรับตามให้เอง (รูปบิลไม่หาย)</div>'
           : b.err ? `<div class="alert alert-warning py-2 small">AI อ่านบิลไม่สำเร็จ กรอกเองได้ (${esc(b.err).slice(0, 120)})</div>` : '<div class="small text-muted mb-2">AI อ่านให้แล้ว ลายมืออาจอ่านผิด ตรวจตัวเลขให้ตรงบิลก่อนกดบันทึก</div>'}
+        ${!b.edit && ((b.unsure || []).length || b.items.some(x => (x._un || []).length)) ? '<div class="b6-note">ช่องสีส้ม = AI อ่านไม่ชัด เดาไว้ ตรวจกับบิลก่อนบันทึก</div>' : ''}
         <div id="bl_chk">${billChk(b, sum)}</div>
         ${b.oldNoStock ? `<div class="alert alert-secondary py-2 small mb-2">บิลนี้ผ่านมา ${b.oldNoStock} วันแล้ว ของน่าจะใช้ไปแล้ว จึง<b>ไม่รับเข้าสต็อก</b> ถ้ายังมีของเหลือ เลือก "รับเข้าสต็อก" เองได้ในแต่ละรายการ</div>` : ''}
         ${b.edit ? '' : `<button type="button" class="btn btn-sm btn-outline-success w-100 mb-3" onclick="pickBill(true)">📷 เพิ่มหน้าบิล (บิลมีหลายใบ) · ตอนนี้ ${(b.pages || []).length || 1} หน้า</button>`}
         <div class="row g-2 mb-2">
-          <div class="col-6"><div class="bill-lbl">วันที่ในบิล</div><input type="date" class="form-control form-control-sm" id="bl_date" value="${beToISO(b.date) || todayISO()}"></div>
-          <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm" id="bl_shop" list="bl_shops" value="${esc(b.shop)}" placeholder="ชื่อร้าน">
+          <div class="col-6"><div class="bill-lbl">วันที่ในบิล</div><input type="date" class="form-control form-control-sm${(b.unsure || []).includes('date') ? ' b6-un' : ''}" id="bl_date" value="${beToISO(b.date) || todayISO()}" onchange="this.classList.remove('b6-un')"></div>
+          <div class="col-6"><div class="bill-lbl">ร้าน</div><input class="form-control form-control-sm${(b.unsure || []).includes('shop') ? ' b6-un' : ''}" id="bl_shop" list="bl_shops" value="${esc(b.shop)}" placeholder="ชื่อร้าน" oninput="this.classList.remove('b6-un')">
             <datalist id="bl_shops">${[...new Set((gData.expenses || []).map(e => e.shop).filter(x => x && x !== '-'))].map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
         </div>
         <div class="bl-pay"><button type="button" class="${b.pay !== 'ค้างจ่าย' ? 'on' : ''}" onclick="billKeep();billDraft.pay=${"''"};renderBill()">💵 จ่ายแล้ว</button><button type="button" class="${b.pay === 'ค้างจ่าย' ? 'on o' : ''}" onclick="billKeep();billDraft.pay='ค้างจ่าย';renderBill()">📒 ค้างร้าน (จ่ายทีหลัง)</button></div>
@@ -4837,7 +4857,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       $('plan-body').style.display = t === 'plan' ? '' : 'none'; $('setPane').style.display = t === 'set' ? '' : 'none';
     }
     function setBackLbl() { $('setModal').dataset.back = { urgent: 'วันนี้', all: 'แปลง', table: 'แปลง', log: 'บันทึก', fleet: 'รถ/คน', stock: 'สต็อก' }[curTab] || 'ย้อน'; }
-    function openSet() { $('set_build').innerText = buildTxt(APP_BUILD); setTab('set'); setBackLbl(); showM('setModal'); }
+    function sw6Sync() { document.querySelectorAll('#setModal .sw6').forEach(b => { const on = $(b.dataset.for).value === 'เปิด'; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
+    function sw6Tap(b) { const sel = $(b.dataset.for); sel.value = sel.value === 'เปิด' ? 'ปิด' : 'เปิด'; sw6Sync(); saveSettingsUI(true); }
+    function openSet() { sw6Sync(); $('set_build').innerText = buildTxt(APP_BUILD); setTab('set'); setBackLbl(); showM('setModal'); }
     function openPlan(inPage) {
       setTab('plan'); if (!inPage) { $('set_build').innerText = buildTxt(APP_BUILD); setBackLbl(); showM('setModal'); }
       const body = $('plan-body');
@@ -6234,12 +6256,12 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     }
     // หัวแท็บเตี้ย: ทุกแท็บยกเว้นวันนี้ (kicker = แปลง · ไร่ · วันที่ / ชื่อหน้า)
     function hdS(t) {
-      const on = t !== 'urgent'; document.body.classList.toggle('tabS', on);
+      const on = true; document.body.classList.toggle('tabS', on); // 24 พ.ย. 69 ผู้ใช้: หัววันนี้กับแปลงไม่เท่ากัน → หัวเตี้ยทุกแท็บ
       document.body.classList.toggle('tabLog', t === 'log'); document.body.classList.toggle('logChat', t === 'log' && logMode === 'chat'); if ($('hdBkIn')) $('hdBkIn').max = todayISO();
       const add = document.querySelector('.hd-addt'); if (add) add.textContent = on ? '+ จด' : '+';
       if (!on || typeof gData === 'undefined' || !gData || !gData.plots) return;
       const n = new Date(), rai = gData.plots.reduce((t, p) => t + num(p.area_rai), 0);
-      const T = { all: 'แปลงทั้งหมด', table: 'ตารางสรุปทุกแปลง', log: 'บันทึกงาน', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย' };
+      const T = { urgent: 'วันนี้', all: 'แปลงทั้งหมด', table: 'ตารางสรุปทุกแปลง', log: 'บันทึกงาน', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย' };
       $('hd-st').innerText = T[t] || '';
       $('hd-sk').innerText = `${gData.plots.length} แปลง · ${r1(rai)} ไร่ · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
     }
@@ -7869,7 +7891,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const tot = used.reduce((a, s) => a + -num(s.change_qty), 0);
         const inF = L.formulas.filter(f => f.items.includes(c.id)).map(f => f.t);
         h += `<div class="chem-c" id="chem_${c.id}">
-          <div class="chem-ct"><span>${esc(c.name)}</span>${kind(c.kind)}</div>
+          <div class="chem-ct"><span>${esc(c.name)}</span>${kind(c.kind)}${chemRateBadge(c, it, pt, L)}</div>
           <div class="chem-ca">${esc(c.active)}</div>
           <div class="chem-row"><span>ทำอะไร</span><b>${esc(c.does)}</b></div>
           <div class="chem-row"><span>หญ้า</span><b>${esc(c.weeds)}</b></div>
@@ -7887,6 +7909,14 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       });
       h += `<div class="chem-note">อัตราตามฉลากจะเพิ่มเมื่อส่งรูปฉลากด้านที่มีวิธีใช้ · ข้อมูลยาแก้ได้ บอกในแชตกับ Claude</div>`;
       B.innerHTML = h;
+    }
+    // ก้อน 12: ป้ายเทียบอัตราที่ไร่ผสมกับฉลาก (คิดแบบเดียวกับแถว "ผู้ผลิตแนะนำ")
+    function chemRateBadge(c, it, pt, L) {
+      const r = c.rate; if (!r || !pt || !it || it.unit !== r.unit) return '';
+      let st;
+      if (r.conc) { const k = pt / L.tankL; st = k < r.conc[0] * 0.95 ? -1 : k > r.conc[1] * 1.05 ? 1 : 0; }
+      else { const pr = pt * L.perRai; st = pr < r.lo * 0.95 ? -1 : pr > r.hi * 1.05 ? 1 : 0; }
+      return ` <span class="c6-rb ${st ? 'is-o' : ''}">${st < 0 ? 'น้อยกว่าที่แนะนำ' : st > 0 ? 'มากกว่าที่แนะนำ' : 'อยู่ในช่วงฉลาก'}</span>`;
     }
     var chemPane = 'f';
     function chemGo(id, pre) { const p = (pre || 'chem_') === 'chemf_' ? 'f' : 'c'; if (chemPane !== p) { chemPane = p; chemRender(); return requestAnimationFrame(() => requestAnimationFrame(() => chemGo(id, pre))); } const el = $((pre || 'chem_') + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
@@ -8107,7 +8137,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         let st = assetMap[pm] || 'พร้อมใช้';
         return `<div class="form-check form-check-inline"><input class="form-check-input pm-chk" type="checkbox" value="${pm}" id="pm_${i}"><label class="form-check-label" for="pm_${i}">${pm} ${st === 'พร้อมใช้' ? '<span class="text-success">(ว่าง)</span>' : `<span class="text-danger fw-bold">(${st})</span>`}</label></div>`;
       }).join('');
-      $('worker_chks').innerHTML = ['ตัวเอง/แฟน', ...workers].map((w, i) => `<div class="form-check form-check-inline"><input class="form-check-input w-chk" type="checkbox" value="${w}" id="wk_${i}"><label class="form-check-label" for="wk_${i}">${w}</label></div>`).join('');
+      $('worker_chks').innerHTML = `<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="wk_all" onchange="document.querySelectorAll('.w-chk').forEach(c => { if (c.value !== 'ตัวเอง/แฟน') c.checked = this.checked; })"><label class="form-check-label" for="wk_all">ทั้งหมด</label></div>` + ['ตัวเอง/แฟน', ...workers].map((w, i) => `<div class="form-check form-check-inline"><input class="form-check-input w-chk" type="checkbox" value="${w}" id="wk_${i}"><label class="form-check-label" for="wk_${i}">${w}</label></div>`).join('');
       $('truck_chks').innerHTML = trucks.map((tr, i) => {
         let st = assetMap[tr] || 'พร้อมใช้';
         return `<div class="form-check form-check-inline"><input class="form-check-input tr-chk" type="checkbox" value="${tr}" id="tr_${i}"><label class="form-check-label" for="tr_${i}">${eqS(tr)} ${st === 'พร้อมใช้' ? '' : `<span class="text-danger">(${st})</span>`}</label></div>`;
@@ -8145,7 +8175,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         ? `เปิดอยู่ · ส่งทุกวัน ${$('set_time').value} น.${S('LAST_NOTIFY') ? ` · ส่งล่าสุด ${S('LAST_NOTIFY')}` : ''}` : 'ยังปิดอยู่';
     }
 
-    function saveSettingsUI() {
+    function saveSettingsUI(quiet) {
       const o = {
         LINE_CHANNEL_TOKEN: $('set_token').value.trim(), LINE_TARGET_ID: $('set_target').value.trim(),
         NOTIFY_ENABLED: $('set_enabled').value, NOTIFY_TIME: $('set_time').value || '04:00', EVENING_ENABLED: $('set_evening').value,
@@ -8154,7 +8184,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         CHEM_PRESET_NEW: $('set_cnew').value, CHEM_PRESET_GROW: $('set_cgrow').value,
         FERT_PRESET_BASE: $('set_fbase').value, FERT_PRESET_RATOON: $('set_frat').value
       };
-      if (o.NOTIFY_ENABLED === 'เปิด' && !o.LINE_CHANNEL_TOKEN && !S('hasToken')) return alert('ใส่ Channel access token ก่อนเปิดแจ้งเตือนครับ');
+      if (o.NOTIFY_ENABLED === 'เปิด' && !o.LINE_CHANNEL_TOKEN && !S('hasToken')) { if (quiet) { $('set_enabled').value = 'ปิด'; sw6Sync(); } return alert('ใส่ Channel access token ก่อนเปิดแจ้งเตือนครับ'); };
+      if (quiet) return call('saveSettings', [o], d => { init(d); sw6Sync(); planToast('✅ บันทึกแล้ว'); });
       call('saveSettings', [o], d => { init(d); alert('✅ บันทึกการตั้งค่าแล้ว' + (o.NOTIFY_ENABLED === 'เปิด' ? `\nLINE จะส่งสรุปทุกวันเวลา ${o.NOTIFY_TIME} น.${o.EVENING_ENABLED === 'เปิด' ? ' และสรุปงานวันนี้ ~17:00 น.' : ''}` : '')); }, $('btnSetSave'));
     }
     function previewLine() {
@@ -8229,11 +8260,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     function openAct(pid, pname, mode) {
       resetActForm();
       $('act_pid').value = pid;
-      $('actHeader').className = 'modal-header bg-success text-white py-2';
+      $('actHeader').className = 'modal-header mhd py-2';
       if (mode === 'finish') {
         
         $('actTitle').innerText = 'ปิดงาน (เสร็จแล้ว)'; $('actPlotNm').innerText = pname;
-        $('actHeader').className = 'modal-header bg-primary text-white py-2';
+        $('actHeader').className = 'modal-header mhd py-2';
         const og = gData.activities.find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
         if (og) {
           fillFormFromLog(og);
@@ -8250,7 +8281,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         $('mode_ongoing').checked = true;
         selGrp('ขึ้นน้ำ');
       }
-      bootstrap.Modal.getOrCreateInstance($('actModal')).show();
+      actPlanShow(); bootstrap.Modal.getOrCreateInstance($('actModal')).show();
     }
 
     function openEditLog(logId, pname) {
@@ -8260,11 +8291,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       $('act_pid').value = log.plot_id;
       $('edit_log_id').value = log.log_id;
       $('act_dt2_wrap').style.display = 'none';
-      $('actHeader').className = 'modal-header bg-warning text-dark py-2';
+      $('actHeader').className = 'modal-header mhd py-2';
       $('actTitle').innerText = 'แก้ไขงาน'; $('actPlotNm').innerText = pname;
       $((log.remark || '').includes('[⏳กำลังทำ]') ? 'mode_ongoing' : 'mode_done').checked = true;
       fillFormFromLog(log);
-      bootstrap.Modal.getOrCreateInstance($('actModal')).show();
+      actPlanShow(); bootstrap.Modal.getOrCreateInstance($('actModal')).show();
     }
 
     function delLog(logId, plotId) {
@@ -8346,6 +8377,27 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       placeFert();
     }
 
+    // ก้อน 8: สถานะ "วางแผน" = ไม่ลงเป็นงานจริง → สร้างนัด/เตือน (remOp) วันข้างหน้า (ผู้ใช้ 24 พ.ย. 69 "วางแผน มีก็ได้")
+    function tmrISO() { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+    function actPlanMode() {
+      const on = $('mode_plan').checked, dt = $('act_dt');
+      $('act_dt_lb').innerText = on ? 'วันที่จะทำ' : 'วันที่ทำ';
+      if (on) { dt.removeAttribute('max'); dt.min = tmrISO(); if (!dt.value || dt.value <= todayISO()) dt.value = tmrISO(); }
+      else { dt.removeAttribute('min'); dt.max = todayISO(); if (dt.value > todayISO()) dt.value = todayISO(); }
+      $('btnSaveAct').innerText = on ? 'ลงเป็นนัด/เตือน' : 'บันทึกข้อมูล';
+    }
+    function actPlanShow() { const ok = !$('edit_log_id').value; $('mode_plan').disabled = !ok; $('mode_plan_lb').style.display = ok ? '' : 'none'; actPlanMode(); }
+    function planToast(t) { let e = $('planToast'); if (!e) { e = document.createElement('div'); e.id = 'planToast'; e.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));z-index:3000;background:#15452A;color:#fff;font-weight:600;font-size:14px;padding:10px 16px;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.2);max-width:92%;text-align:center'; document.body.appendChild(e); } e.textContent = t; e.style.display = ''; clearTimeout(e._t); e._t = setTimeout(() => e.style.display = 'none', 3500); }
+    function actPlanSave(g, det, qty, wks) {
+      const iso = $('act_dt').value;
+      if (!iso || iso <= todayISO()) return alert('วางแผน ต้องเลือกวันข้างหน้า');
+      const what = g === 'อื่นๆ' || det.indexOf(g) === 0 ? det : `${g} ${det}`;
+      const text = [what, qty && qty !== '-' ? qty : '', $('actPlotNm').innerText, wks.length ? wks.join(' + ') : '', $('act_rmk').value].filter(Boolean).join(' · ').slice(0, 200);
+      const btn = $('btnSaveAct'); btn.disabled = true; btn.innerText = 'กำลังลง…';
+      callApi('remOp', [{ fn: 'add', id: 'R' + Date.now(), p: { date: iso, text, lead_days: 1 } }])
+        .then(d => { gData.reminders = d.reminders || []; hideModal('actModal'); render(); planToast(`🔔 ลงนัดวันที่ ${isoToBE(iso)} แล้ว · ขึ้นในปฏิทิน + LINE เช้า`); })
+        .catch(e => alert('❌ ' + e.message)).finally(() => { btn.disabled = false; actPlanMode(); });
+    }
     function submitAct() {
       let g = $('act_grp').value, det = 'ราดร่อง/ขึ้นน้ำ', eq = '-', qty = '-', usage = [];
       const fert = collectFert();
@@ -8380,6 +8432,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         }
         if (hire.u !== 'เหมา' && !hire.r && !confirm('ยังไม่ได้ใส่ราคาต่อหน่วย บันทึกไปก่อนแล้วค่อยแก้?')) return;
       }
+      if ($('mode_plan').checked) { let wp = []; document.querySelectorAll('.w-chk:checked').forEach(c => wp.push(c.value)); return actPlanSave(g, det, qty, wp); }
       if (!checkDate($('act_dt').value)) return;
       let wks = []; document.querySelectorAll('.w-chk:checked').forEach(c => wks.push(c.value));
 
@@ -9240,6 +9293,19 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const miss = (it.chemMiss || []).length ? `<div class="ch-warn">ยังไม่รู้อัตราต่อถังของ ${it.chemMiss.map(esc).join(', ')} — ไม่ตัดสต็อกตัวนี้</div>` : '';
       return pl + `<div class="ch-row"><span>ยา</span><b style="font-weight:400;color:#5D6B62;font-size:13px">${t && (it.usage || []).length ? 'ตัดสต็อกเมื่อบันทึก' : ''}</b></div><div class="ch-chems">${live ? '' : area}${rows}${note ? `<div class="ch-cn">${note}</div>` : ''}${miss}</div>`;
     }
+    // ก้อน 7: แก้ค่าในการ์ดตรวจทีละช่อง (แตะช่องแล้วพิมพ์/เลือก) ไม่ต้องพิมพ์สั่งแชตใหม่ · ช่องที่ AI เดา = สีส้ม แก้แล้วหายส้ม
+    function chEd(l, v, k, mi, i, guess, date) {
+      return `<label class="ch-row ch-erow"><span>${l}</span><input class="${guess ? 'ch-guess' : ''}" ${date ? `type="date" max="${todayISO()}"` : 'type="text" placeholder="แตะใส่"'} value="${esc(v)}" onchange="chatItSet(${mi},${i},'${k}',this.value)"></label>`;
+    }
+    function chatItSet(mi, i, k, v) { const it = chat.msgs[mi].items[i]; v = String(v || '').trim(); if (k === 'date' && (!v || v > todayISO())) v = todayISO(); it[k] = k === 'quantity' && !v ? '-' : v; it.unsure = (it.unsure || []).filter(x => x !== k); chatSave(); chatRender(); }
+    var chWkOpen = '';
+    function chWkHtml(it, i, mi, guess) {
+      const key = mi + '_' + i, cur = it.workers || [], open = chWkOpen === key;
+      const all = [...new Set(['ตัวเอง/แฟน', ...(gData.assets || []).filter(a => a.category === 'Worker').map(a => a.name), ...cur])];
+      return `<div class="ch-row ch-wk"><span>คน</span><b class="${guess ? 'ch-guess' : ''}" onclick="chWkOpen=chWkOpen==='${key}'?'':'${key}';chatRender()" style="cursor:pointer">${esc(cur.join(', ') || 'แตะเลือก')} <u style="font-weight:500;color:#1F5E3B">${open ? 'เสร็จ' : 'แก้'}</u></b></div>`
+        + (open ? `<div class="ch-chips" style="margin:4px 0 6px">${all.map(w => `<button type="button" class="ch-chip${cur.includes(w) ? ' on' : ''}" onclick="chatWk(${mi},${i},'${qa(w)}')">${cur.includes(w) ? '✓ ' : ''}${esc(w)}</button>`).join('')}</div>` : '');
+    }
+    function chatWk(mi, i, w) { const it = chat.msgs[mi].items[i], a = it.workers || []; it.workers = a.includes(w) ? a.filter(x => x !== w) : a.concat(w); it.unsure = (it.unsure || []).filter(x => x !== 'workers'); chatSave(); chatRender(); }
     function chItemHtml(it, i, mi, live) {
       const pn = ids => (ids || []).map(id => (chPlot(id) || { plot_name: id }).plot_name).join(', ');
       const un = k => it.unsure.includes(k);
@@ -9249,10 +9315,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       if (it.type === 'activity') {
         const g = it.group === 'รถไถเตรียมดิน/บำรุง' ? 'รถไถ' : it.group;
         h = `<div class="ch-t">${CH_ICON[it.group] || '📝'} ${esc(g)}${it.detail && it.detail !== '-' && it.group !== 'ฝนตก' ? ' · ' + esc(it.detail) : ''}${it.ongoing ? ' <span class="pill pill-doing">กำลังทำ</span>' : ''}</div>`
-          + row('แปลง', pn(it.plots), 'plots') + row('คน', (it.workers || []).join(', '), 'workers') + row('รถ/เครื่อง', eqS((it.equipment || []).join(', ')), 'equipment')
-          + row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity') + (it.qtyFrom ? `<div class="ch-cn">คิดจาก ${esc(it.qtyFrom)}</div>` : '') + chChemHtml(it, i, mi, live)
+          + row('แปลง', pn(it.plots), 'plots') + (live && it.group !== 'ฝนตก' ? chWkHtml(it, i, mi, un('workers')) : row('คน', (it.workers || []).join(', '), 'workers')) + row('รถ/เครื่อง', eqS((it.equipment || []).join(', ')), 'equipment')
+          + (live && it.group !== 'ฝนตก' && it.group !== 'ฉีดยา' ? chEd('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity', mi, i, un('quantity')) : row('จำนวน', it.quantity && it.quantity !== '-' ? it.quantity : '', 'quantity')) + (it.qtyFrom ? `<div class="ch-cn">คิดจาก ${esc(it.qtyFrom)}</div>` : '') + chChemHtml(it, i, mi, live)
           + (h2 => h2 ? row('รถจ้าง', `${h2.by || '?'} · ${h2.u === 'เหมา' ? 'เหมา' : (h2.r ? baht(h2.r) : '?') + ' บาท/' + h2.u} · รวม ${baht(h2.q.reduce((s, q) => s + (h2.u === 'เหมา' ? q : q * h2.r), 0))} บาท`, 'hire') : '')(chHire(it))
-          + row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date') + row('หมายเหตุ', it.remark, 'remark');
+          + (live && !it.date_to ? chEd('วันที่', it.date || todayISO(), 'date', mi, i, un('date'), 1) : row('วันที่', dt(it.date) + (it.date_to && it.date_to > (it.date || '') ? '–' + thDate(it.date_to) : ''), 'date'))
+          + (live ? chEd('หมายเหตุ', it.remark || '', 'remark', mi, i, un('remark')) : row('หมายเหตุ', it.remark, 'remark'));
       } else if (it.type === 'stock_in' || it.type === 'stock_count') {
         const f = n => (Math.round(n * 10) / 10).toLocaleString('th-TH'), cnt = it.type === 'stock_count';
         const pre = cnt ? 0 : ((chat.msgs[mi] || {}).items || []).filter(x => x.type === 'stock_count' && x.name === it.name).reduce((a, x) => a + x.packs * x.ps, 0);
@@ -14689,7 +14756,7 @@ Export.table.toDrive({
       h += `<div class="wx-grid-box"><div class="wx-grid" style="grid-template-columns: 76px repeat(${days.length}, minmax(0, 1fr))"><div></div>`;
       days.forEach((d, i) => { const t = thDay(d).split(' '); h += `<div class="wx-gh ${i === wxSelD ? 'on' : ''}">${d === today ? 'วันนี้' : t[0]}<small>${t[1]}</small></div>`; });
       locs.forEach((l, a) => {
-        h += `<div class="wx-gn">${esc(l.loc)}</div>`;
+        h += `<div class="wx-gn${a === wxSelA ? ' on' : ''}" onclick="wxPick(${a},${wxSelD})" style="cursor:pointer">${esc(l.loc)}</div>`;
         days.forEach((d, i) => { const c = cell(a, d);
           h += `<button type="button" class="wx-gc ${a === wxSelA && i === wxSelD ? 'on' : ''}" style="background:${c.bg};color:${c.fg}" onclick="wxPick(${a},${i})"><b>${c.top}</b><small>${c.sub}</small></button>`; });
       });

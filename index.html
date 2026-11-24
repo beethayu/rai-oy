@@ -730,7 +730,7 @@
     .vh-qb{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
     .vh-qb textarea{flex:1;font-size:16px;border:1px solid #D3D1C6;border-radius:20px;padding:9px 14px;resize:none;font-family:inherit;background:#FCFCFA;max-height:120px;line-height:1.35}
     .vh-qb .ch-send{flex:none}
-    .vh-dp{position:relative;overflow:hidden;cursor:pointer}
+    .vh-dp{position:relative;overflow:hidden;cursor:pointer;flex:none}
     .vh-dp input{position:absolute;inset:0;opacity:0;-webkit-appearance:none;appearance:none;min-width:0;width:100%;height:100%}
     .vh-qc{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
     .vh-chip{font:inherit;font-size:14px;font-weight:600;border:1.5px solid #D3D1C6;background:#fff;color:#4A544E;border-radius:20px;padding:4px 12px}
@@ -3060,6 +3060,64 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #actModal .rtag,#actModal .ltag{border-radius:999px;border:1px solid #DCE3DC;background:#fff;font-weight:600}
 #actModal .modal-footer{background:#F4F6F3;border-top:1px solid #E2E8E3}
 #actModal #btnSaveAct{background:#1F5E3B;border-color:#1F5E3B;border-radius:12px;height:48px;font-size:16px}
+/* ก้อน 9 รถ/คน + ใช้ร่วมกับสต็อก (fleet-v1 / stock-v1): แถว srow แบบ grouped-card */
+#fleet-view.v6 .seg-bar,#stock-view.v6 .seg-bar{margin-bottom:4px}
+.v6 .f6-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 2px 7px}
+.v6 .f6-h b{font-size:15px;color:var(--ink);display:flex;align-items:center;gap:7px}
+.v6 .f6-free{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--brand-soft);color:var(--brand-dark)}.v6 .f6-free.is-0{background:var(--due-soft);color:var(--due)}
+.v6 .f6-fold{height:32px;padding:0 10px;border-radius:9px;border:1px solid var(--border);background:#fff;font-size:13px;font-weight:600;color:var(--ink-2)}
+.v6 .srow-box{border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);background:#fff}
+.v6 .srow-box>.srow+.srow{border-top:1px solid #EEF2EE}
+.v6 .srow-main{align-items:flex-start;padding:11px 12px;min-height:52px}
+.v6 .srow-n{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.3}
+.v6 .srow-s{font-size:13px;color:var(--ink-3);line-height:1.4}
+#fleet-view.v6 .srow-l>.srow-s:nth-child(2){color:var(--ink);font-weight:600;font-size:13.5px}
+.v6 .srow-bad{box-shadow:inset 4px 0 0 #C0392B;background:#FFFBFA}
+.v6 .srow-main .pill{font-size:12.5px;font-weight:700;padding:2px 9px;margin-top:1px}
+.v6 .pill-urgent{background:#FDECEC;color:#B91C1C}
+.v6 .srow-act{padding:0 12px 12px}
+.v6 .srow-act .btn{border-radius:10px;min-height:40px}
+.v6 .f6-foot{display:flex;gap:8px;margin-top:14px}.v6 .f6-foot button{flex:1;height:42px;border-radius:11px;border:1px solid var(--border);background:#fff;font-weight:600;font-size:14px;color:var(--ink-2)}
+.v6 .f6-foot button.is-main{flex:none;padding:0 14px;border-color:var(--brand);color:var(--brand-dark)}
+#fleet-view.v6 #wsum-box{border-radius:var(--radius)!important;border-color:var(--border)!important;box-shadow:var(--shadow)}
+/* ก้อน 10 รายละเอียดรถ (asset-v1) */
+#assetHistModal .modal-body{background:#F4F6F3}
+#assetHistModal .vh6-hero{background:#fff;border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);padding:12px 13px;margin-bottom:10px}
+#assetHistModal .vh6-hero .vh-top{margin:0 0 3px}
+#assetHistModal .vh6-hero .vh-pl{font-size:20px;color:#16241B}
+#assetHistModal .vh6-s{font-size:13px;color:#6D7B72;line-height:1.4}
+#assetHistModal .vh6-ed{margin-top:9px;height:34px;padding:0 11px;border-radius:9px;border:1px solid #A8CBB5;background:#E8F3EC;color:#15452A;font-weight:700;font-size:13.5px}
+#assetHistModal .vh-t{border-color:#DCE3DC;border-radius:12px;box-shadow:0 1px 2px rgba(20,46,30,.05);padding:9px 10px}
+#assetHistModal .vh-t b{font-size:15.5px}
+#assetHistModal .vh6-bat{background:#fff;border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);padding:11px 12px;margin:0 0 10px;display:flex;align-items:flex-start;gap:11px}
+#assetHistModal .vh6-ic{width:36px;height:36px;border-radius:10px;background:#E8F3EC;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+#assetHistModal .vh6-bat .vh6-k{font-size:12px;color:#6D7B72;font-weight:600}#assetHistModal .vh6-bat .vh6-v{font-size:15.5px;font-weight:700;color:#15452A;line-height:1.35}
+#assetHistModal .vh6-bat .vh6-bt{display:flex;gap:6px;margin-top:7px}
+#assetHistModal .vh6-bat .vh-chip{border-radius:9px;border:1px solid #DCE3DC;padding:4px 12px;font-size:13.5px}
+#assetHistModal .vh6-bat .vh-chip+.vh-chip{background:#E8F3EC;border-color:#A8CBB5;color:#15452A}
+#assetHistModal .vh-cd{border-color:#DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+#assetHistModal .vh-gh{font-size:15px;color:#16241B;margin:14px 2px 7px}
+#assetHistModal .vh-gh span+span{font-size:12px;font-weight:600;background:#E5EBE6;border-radius:999px;padding:1px 8px;color:#46594E}
+#assetHistModal .vh-foot{background:#fff;border-top:1px solid #DCE3DC}
+/* ก้อน 11 สต็อก & ค่าใช้จ่าย (stock-v1) */
+#stock-view.v6 .chem-open,#stock-view.v6 .s6-bill{display:flex;align-items:center;gap:11px;width:100%;border:1px solid var(--border);background:#fff;color:inherit;border-radius:var(--radius);box-shadow:var(--shadow);padding:11px 12px;margin:10px 0 2px;text-align:left}
+#stock-view.v6 .chem-open>span:first-child,#stock-view.v6 .s6-ic{width:36px;height:36px;border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+#stock-view.v6 .chem-open b,#stock-view.v6 .s6-bill b{font-size:15px}#stock-view.v6 .chem-open small,#stock-view.v6 .s6-bill small{font-size:12.5px;color:var(--ink-3);display:block}
+#stock-view.v6 .chem-open>span:last-child,#stock-view.v6 .s6-bill>i{color:var(--ink-3);font-size:20px;font-style:normal;margin-left:auto}
+#stock-view.v6 .s6-zero{box-shadow:inset 4px 0 0 #F59E0B}
+#stock-view.v6 .s6-zero .srow-q{color:var(--due)}
+#stock-view.v6 .s6-out{display:inline-block;margin-top:3px;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--due-soft);color:var(--due)}
+#stock-view.v6 .srow-q{font-size:15px;text-align:right}
+#stock-view.v6 .srow-tag.bad{background:#FDECEC;color:#B91C1C}
+#stock-view.v6 .s6-m{display:grid;grid-template-columns:1.4fr 1fr;gap:9px}
+#stock-view.v6 .s6-mc{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 12px}
+#stock-view.v6 .s6-mc i{font-style:normal;font-size:12.5px;color:var(--ink-3);font-weight:600}#stock-view.v6 .s6-mc b.s6-big{display:block;font-size:26px;line-height:1.2;margin:2px 0}
+#stock-view.v6 .s6-mc small{font-size:12px;color:var(--ink-2);line-height:1.5}#stock-view.v6 .s6-mc small b{color:var(--ink)}
+#stock-view.v6 .s6-mc.is-prev b.s6-big{color:var(--ink-3)}
+#stock-view.v6 .exp-bill{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #EEF2EE;cursor:pointer}
+#stock-view.v6 .exp-bill:last-child{border-bottom:0}
+#stock-view.v6 .s6-bd{font-size:12px;color:var(--ink-3)}#stock-view.v6 .s6-bs{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.3}#stock-view.v6 .s6-bi{font-size:12.5px;color:var(--ink-3)}
+#stock-view.v6 .exp-bill>b{font-size:15px;white-space:nowrap}
 /* ก้อน 6 ตาราง */
 #table-view.v6{background:none!important;box-shadow:none!important;padding:0!important}
 .v6 .tb6-bk{border:0;background:none;color:var(--brand);font-weight:700;font-size:13px;padding:0;min-height:30px}
@@ -3168,8 +3226,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       </div>
     </div>
     </div>
-    <div id="fleet-view" style="display:none;"></div>
-    <div id="stock-view" style="display:none;"></div>
+    <div id="fleet-view" class="v6" style="display:none;"></div>
+    <div id="stock-view" class="v6" style="display:none;"></div>
     <div id="table-view" style="display:none;" class="table-responsive bg-white p-2 rounded shadow-sm"></div>
   </div>
   </div>
@@ -3538,7 +3596,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     </div>
   </div>
 
-  <div class="modal fade" id="assetHistModal" tabindex="-1">
+  <div class="modal fade v5h" id="assetHistModal" tabindex="-1" data-back="รถ/คน">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
@@ -4616,14 +4674,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const n = new Date(), ym = (m, y) => `/${pad(m)}/${y + 543}`;
       const thisM = ym(n.getMonth() + 1, n.getFullYear()), pm = new Date(n.getFullYear(), n.getMonth() - 1, 1), lastM = ym(pm.getMonth() + 1, pm.getFullYear());
       const sumBy = suf => { const o = {}; (gData.expenses || []).filter(e => String(e.timestamp).endsWith(suf)).forEach(e => { o[e.category] = (o[e.category] || 0) + num(e.amount); }); return o; };
-      const block = (title, o) => { const tot = Object.values(o).reduce((a, b) => a + b, 0);
-        return `<div class="col-6"><div class="fw-bold small">${title}</div><div class="bill-total">${baht(tot)}</div>${BILL_CATS.filter(c => o[c]).map(c => `<div class="exp-cat small"><span>${c}</span><b>${baht(o[c])}</b></div>`).join('') || '<div class="small text-muted">-</div>'}</div>`; };
-      return `<div class="bg-white p-3 rounded shadow-sm border mb-3">
-        <h6 class="fw-bold mb-2">💸 ค่าใช้จ่าย (บาท)</h6>
-        <div class="row g-3 mb-2">${block('เดือนนี้', sumBy(thisM))}${block('เดือนก่อน', sumBy(lastM))}</div>
-        <div class="fw-bold small mt-2">บิลล่าสุด</div>
-        ${bills.slice(0, 15).map(b => `<div class="exp-bill" onclick="openBillView('${qa(b.id)}')"><div><b>${esc(b.date)}</b> · ${esc(b.shop)}<div class="small text-muted">${esc(b.items.map(i => i.item).join(', ')).slice(0, 70)}</div></div><b class="text-nowrap">${baht(b.total)}</b></div>`).join('')}
-      </div>`;
+      const block = (title, o, prev) => { const tot = Object.values(o).reduce((a, b) => a + b, 0);
+        return `<div class="s6-mc${prev ? ' is-prev' : ''}"><i>${title}</i><b class="s6-big">${baht(tot)}</b><small>${BILL_CATS.filter(c => o[c]).map(c => `${c} <b>${baht(o[c])}</b>`).join(' · ') || '—'}</small></div>`; };
+      return `<div class="sec-head"><h2>ค่าใช้จ่าย (บาท)</h2></div><div class="s6-m">${block('เดือนนี้', sumBy(thisM))}${block('เดือนก่อน', sumBy(lastM), 1)}</div>
+        <div class="sec-head"><h2>บิลล่าสุด <span class="sec-badge">${Math.min(15, bills.length)} บิล</span></h2></div>
+        <div class="srow-box">${bills.slice(0, 15).map(b => `<div class="exp-bill" onclick="openBillView('${qa(b.id)}')"><div style="min-width:0"><div class="s6-bd">${esc(b.date)}</div><div class="s6-bs">${esc(b.shop)}</div><div class="s6-bi">${esc(b.items.map(i => i.item).join(', ')).slice(0, 70)}</div></div><b>${baht(b.total)} บ.</b></div>`).join('')}</div>`;
     }
 
     function openBillView(id) {
@@ -7081,6 +7136,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
               <button type="button" class="linkbtn muted" onclick="delAssetLog('${qa(l.log_id)}','${qa(l.asset_name)}')">ลบรายการนี้</button></span></span></div>`;
     }
 
+    var fleetFold = (() => { try { return JSON.parse(localStorage.getItem('raioy_fleetFold') || '[]'); } catch (e) { return []; } })();
+    function fleetFoldT(t) { fleetFold = fleetFold.includes(t) ? fleetFold.filter(x => x !== t) : fleetFold.concat(t); try { localStorage.setItem('raioy_fleetFold', JSON.stringify(fleetFold)); } catch (e) {} renderFleet(); }
     function renderFleet() {
       const activeMap = getActiveDeployments(), dm = downMap();
       const assets = gData.assets || [];
@@ -7121,7 +7178,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         if (!subs.length && last) subs.push(`ล่าสุด ${esc(last.timestamp)} · ${esc(last.event_type)}`);
         return `<div class="srow ${!isOk ? 'srow-bad' : ''} ${open ? 'open' : ''}">
           <button type="button" class="srow-main" onclick="${a.category === 'Worker' ? 'tglFleet' : 'openAssetHist'}('${qa(a.name)}')">
-            <span class="srow-l"><span class="srow-n">${icon} ${esc(eqS(a.name))}${dash(a.trailer_plate) ? ' <span style="font-size:13px;font-weight:600;color:#1F5E3B;white-space:nowrap">· พ่วง</span>' : ''}</span>${eqS(a.name) !== a.name ? `<span class="srow-s">${esc(a.name)}</span>` : ''}${dash(a.trailer_plate) ? `<span class="srow-s" style="color:#1F2A23"><span style="white-space:nowrap">แม่ <b>${esc(dash(a.plate) || '?')}</b></span> + <span style="white-space:nowrap">ลูก <b>${esc(dash(a.trailer_plate))}</b></span></span>` : dash(a.plate) ? `<span class="srow-s">ทะเบียน ${esc(a.plate)}</span>` : ''}${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
+            <span class="srow-l"><span class="srow-n">${esc(eqS(a.name))}${dash(a.trailer_plate) ? ' <span style="font-size:13px;font-weight:600;color:#1F5E3B;white-space:nowrap">· พ่วง</span>' : ''}</span>${eqS(a.name) !== a.name ? `<span class="srow-s">${esc(a.name)}</span>` : ''}${dash(a.trailer_plate) ? `<span class="srow-s" style="color:#1F2A23"><span style="white-space:nowrap">แม่ <b>${esc(dash(a.plate) || '?')}</b></span> + <span style="white-space:nowrap">ลูก <b>${esc(dash(a.trailer_plate))}</b></span></span>` : dash(a.plate) ? `<span class="srow-s">ทะเบียน ${esc(a.plate)}</span>` : ''}${subs.length ? `<span class="srow-s">${subs.join(' · ')}</span>` : ''}</span>
             ${pill}
           </button>
           ${open ? `<div class="srow-act">
@@ -7134,14 +7191,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
             </div></div>` : ''}
         </div>`;
       };
-      const grp = (t, list, icon) => list.length ? `<div class="srow-h" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${t}</span><span style="font-weight:500;color:#6B736E;font-size:14px;">ว่าง ${countFree(list)}/${list.length}</span></div><div class="srow-box">${list.map(a => row(a, icon)).join('')}</div>` : '';
+      const grp = (t, list, icon) => { if (!list.length) return ''; const fr = countFree(list), fold = fleetFold.includes(t);
+        return `<div class="f6-h"><b>${t} <span class="f6-free${fr ? '' : ' is-0'}">ว่าง ${fr}/${list.length}</span></b><button type="button" class="f6-fold" onclick="fleetFoldT('${qa(t)}')">${fold ? '▴ ขยาย' : '▾ ย่อ'}</button></div>${fold ? '' : `<div class="srow-box">${list.map(a => row(a, icon)).join('')}</div>`}`; };
 
-      let html = `<div class="seg mb-2">
-          <button type="button" class="${fleetPane === 'mach' ? 'on' : ''}" onclick="setFleetPane('mach')">รถ/เครื่อง${mIssue ? ` <span class="seg-dot">${mIssue}</span>` : ''}</button>
-          <button type="button" class="${fleetPane === 'work' ? 'on' : ''}" onclick="setFleetPane('work')">คนงาน${wIssue ? ` <span class="seg-dot">${wIssue}</span>` : ''}</button>
-          <button type="button" class="${fleetPane === 'reg' ? 'on' : ''}" onclick="setFleetPane('reg')">ทะเบียน${regDue().length ? ` <span class="seg-dot">${regDue().length}</span>` : ''}</button>
-          <button type="button" class="${fleetPane === 'rock' ? 'on' : ''}" onclick="setFleetPane('rock')">หินคลุก${rockOpenN() ? ` <span class="seg-dot" style="background:#C77700">${rockOpenN()}</span>` : ''}</button>
-        </div>`;
+      const fsb = (k, t, n, c) => `<button type="button" class="seg-btn${fleetPane === k ? ' active' : ''}" onclick="setFleetPane('${k}')">${t}${n ? ` <span class="seg-badge"${c ? ` style="background:${c}"` : ''}>${n}</span>` : ''}</button>`;
+      let html = `<div class="seg-bar">${fsb('mach', 'รถ/เครื่อง', mIssue)}${fsb('work', 'คนงาน', wIssue)}${fsb('reg', 'ทะเบียน', regDue().length)}${fsb('rock', 'หินคลุก', rockOpenN(), '#C77700')}</div>`;
       if (fleetPane === 'reg') {
         html += regPaneHtml();
       } else if (fleetPane === 'rock') {
@@ -7151,9 +7205,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       } else {
         html += grp('สิบล้อ', trucks, '🚛') + grp('รถไถ', tractors, '🚜') + grp('หกล้อ / กระบะ (ใช้ในไร่)', cars, '🚚') + grp('พญานาค', pumps, '🐍') + grp('รถที่บ้าน', homes, '🚗') + grp('มอเตอร์ไซค์', motos, '🛵');
         const logs = groupAssetLogs((gData.assetLogs || []).filter(l => { const a = assets.find(x => x.name === l.asset_name); return !a || a.category !== 'Worker'; }));
-        html += `<div class="d-flex gap-2 mt-3">
-            <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="tglFleetLog()">${fleetLogOpen ? 'ซ่อน' : 'ดู'}ประวัติซ่อม / บำรุงทั้งหมด</button>
-            <button class="btn btn-sm btn-outline-success" onclick="new bootstrap.Modal($('setModal')).show()">+ เพิ่มรถ/เครื่อง</button>
+        html += `<div class="f6-foot">
+            <button type="button" onclick="tglFleetLog()">${fleetLogOpen ? 'ซ่อน' : 'ดู'}ประวัติซ่อม / บำรุงทั้งหมด</button>
+            <button type="button" class="is-main" onclick="new bootstrap.Modal($('setModal')).show()">+ เพิ่มรถ/เครื่อง</button>
           </div>
           ${fleetLogOpen ? `<div class="srow-box mt-2">${logs.slice(0, 60).map(l => logRow(l, true)).join('') || '<div class="p-3 text-muted">ยังไม่มีประวัติ</div>'}</div>` : ''}`;
       }
@@ -7521,7 +7575,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const vis = vehVisits(name), mt = vehMaint(a), yr = todayISO().slice(0, 4);
       const CAT = { Truck: 'สิบล้อ', Tractor: 'รถไถ', Car: 'รถใช้ในไร่', Home: 'รถที่บ้าน', Moto: 'มอเตอร์ไซค์', Pump: 'เครื่องสูบน้ำ' };
       const ICON = { Truck: '🚛', Tractor: '🚜', Car: '🚚', Home: '🚗', Moto: '🛵', Pump: '🐍' };
-      $('ahTitle').innerHTML = `${ICON[a.category] || '🔧'} ${esc(eqS(a.name))} <span style="font-weight:500;font-size:14px;opacity:.85">· ${esc(CAT[a.category] || '')}</span>`;
+      $('ahTitle').innerText = `${eqS(a.name)} · ${CAT[a.category] || ''}`;
       const cost = (gData.expenses || []).filter(e => e.asset === name && beToISO(e.timestamp).slice(0, 4) === yr).reduce((t, e) => t + num(e.amount), 0)
         + (gData.assetLogs || []).filter(l => l.asset_name === name && beToISO(l.timestamp).slice(0, 4) === yr).reduce((t, l) => t + vehAmt(l.detail), 0);
       const mile = (gData.assetLogs || []).filter(l => l.asset_name === name).map(l => vehMile(l.detail)).find(Boolean);
@@ -7529,15 +7583,16 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const tile = (k, v, col) => `<div class="vh-t"><i>${k}</i><b${col ? ` style="color:${col}"` : ''}>${v}</b></div>`;
       const plate = [dash(a.plate) ? esc(a.plate) : '', dash(a.trailer_plate) ? 'พ่วง ' + esc(a.trailer_plate) : ''].filter(Boolean).join(' + ');
       const hasBat = a.category === 'Tractor' || a.category === 'Truck';
-      let h = `<div class="vh-top"><div class="vh-pl">${plate || '<span style="color:#8A918C">ไม่มีทะเบียน</span>'}</div>${isOk ? '<span class="pill pill-normal">ว่าง</span>' : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`}</div>`;
+      let h = `<div class="vh6-hero"><div class="vh-top"><div class="vh-pl">${esc(eqS(a.name))}</div>${isOk ? '<span class="pill pill-normal">ว่าง</span>' : `<span class="pill pill-urgent">${esc(a.status)}${since !== null ? ' ' + since + ' วัน' : ''}</span>`}</div>
+        <div class="vh6-s">${[esc(CAT[a.category] || ''), plate ? 'ทะเบียน ' + plate : 'ไม่มีทะเบียน', dash(a.model) ? esc(a.model) : 'ยังไม่ได้ใส่ยี่ห้อ/รุ่น/ปี'].join(' · ')}</div>${vehModelEd ? '' : `<button type="button" class="vh6-ed" onclick="vehModelEd=true;vehRender()">แก้ข้อมูลรถ ▾</button>`}</div>`;
       h += vehModelEd ? `<div class="vh-cd"><div class="vh-k">ยี่ห้อ / รุ่น / ปี (ไว้โชว์ร้านอะไหล่)</div><div class="vh-form" style="margin-top:6px"><div class="vh-fr"><input id="vhModel" class="vh-in" style="text-align:left" value="${esc(dash(a.model))}" placeholder="เช่น Isuzu FXZ 360 ปี 2015"></div></div><div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" id="vhModelSv" onclick="vehModelSave()">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehModelEd=false;vehRender()">ยกเลิก</button></div></div>`
-        : `<div class="vh-note vh-batr"><span class="vh-batt">${dash(a.model) ? '🚚 ' + esc(a.model) : '<span style="color:#8A918C">ยังไม่ได้ใส่ยี่ห้อ/รุ่น/ปี</span>'}</span><button type="button" class="vh-chip" onclick="vehModelEd=true;vehRender()">${dash(a.model) ? 'แก้' : '+ ใส่'}</button></div>`;
+        : '';
       h += `<div class="vh-tiles">${tile('ภาษีหมด', ri ? dShort(beToISO(a.reg_expire)) + ' ' + vehYY(beToISO(a.reg_expire)) : '—', ri ? (ri.d < 0 ? '#A3271B' : ri.d <= 90 ? '#B35C00' : '') : '#8A918C')}${tile(a.category === 'Tractor' ? 'ชม./ไมล์ล่าสุด' : 'ไมล์ล่าสุด', mile ? mile.toLocaleString('en-US') : 'ยังไม่จด', mile ? '' : '#8A918C')}${tile('ค่าซ่อมปีนี้', cost ? baht(cost) + ' บ.' : '0 บ.', cost ? '' : '#8A918C')}</div>`;
       if (hasBat) {
         const bd = calcDays(a.battery_date), bn = a.battery_info && a.battery_info !== '-' ? String(a.battery_info).replace('(' + a.name + ')', '').replace(/^แบต\s*/, '').trim() : '';
         h += vehBatEd ? `<div class="vh-cd"><div class="vh-k">แบตเตอรี่คันนี้</div><div class="vh-form" style="margin-top:6px"><div class="vh-fr"><span>แบตลูกไหน</span><input id="vhBat" class="vh-in" value="${esc(bn)}" placeholder="เช่น แบตลูกที่ 1 (GS 120A)"></div><div class="vh-fr"><span>วันที่ใส่</span><input id="vhBatD" class="vh-in" type="date" value="${beToISO(a.battery_date) || ''}"></div></div>
             <div class="vh-2b" style="margin-top:8px"><button type="button" class="bigbtn bigbtn-main" id="vhBatSv" onclick="vehBatSave()">บันทึก</button><button type="button" class="bigbtn bigbtn-out" onclick="vehBatEd=false;vehRender()">ยกเลิก</button></div></div>`
-          : `<div class="vh-note vh-batr"><span class="vh-batt">🔋 แบต ${esc(bn || 'ยังไม่ระบุ')}${bd !== null && bn ? ` · ใช้มา ${bd} วัน` : ''}</span><button type="button" class="vh-chip" onclick="vehBatEd=true;vehRender()">แก้</button><button type="button" class="vh-chip" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button></div>`;
+          : `<div class="vh6-bat"><div class="vh6-ic">🔋</div><div style="min-width:0;flex:1"><div class="vh6-k">แบตเตอรี่</div><div class="vh6-v">${esc(bn || 'ยังไม่ระบุ')}${bd !== null && bn ? ` · ใช้มา ${bd} วัน` : ''}</div><div class="vh6-bt"><button type="button" class="vh-chip" onclick="vehBatEd=true;vehRender()">แก้</button><button type="button" class="vh-chip" onclick="hideModal('assetHistModal');openBatModal()">สลับแบต</button></div></div></div>`;
       }
       // ✏️ จดเรื่องคันนี้ตรงนี้เลย (22 พ.ย. 69 ผู้ใช้ขอ: งานเล็กน้อย เช่น ชาร์จแบต / เตรียมเอาไปเช็คร้าน…) — บันทึกตรง ไม่ผ่าน AI
       const qd = vehQDate || todayISO(), qn = dayDiff(todayISO(), qd);
@@ -7749,18 +7804,20 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       B.innerHTML = h;
     }
     function chemGo(id, pre) { const el = $((pre || 'chem_') + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
+    var stockFold = (() => { try { return JSON.parse(localStorage.getItem('raioy_stockFold') || '[]'); } catch (e) { return []; } })();
+    function stockFoldT(t) { stockFold = stockFold.includes(t) ? stockFold.filter(x => x !== t) : stockFold.concat(t); try { localStorage.setItem('raioy_stockFold', JSON.stringify(stockFold)); } catch (e) {} renderStock(); }
     function renderStock() {
       const inv = gData.inventory || [];
       const bad = inv.filter(it => ['neg', 'low'].includes(stockState(it)));
       const sb = $('s-cnt'); sb.style.display = bad.length ? 'inline-block' : 'none'; sb.innerText = bad.length;
 
-      let html = `<div class="seg mb-3">
-          <button type="button" class="${stockPane === 'stock' ? 'on' : ''}" onclick="setStockPane('stock')">สต็อก${bad.length ? ` <span class="seg-dot">${bad.length}</span>` : ''}</button>
-          <button type="button" class="${stockPane === 'money' ? 'on' : ''}" onclick="setStockPane('money')">ค่าใช้จ่าย / บิล</button>
+      let html = `<div class="seg-bar">
+          <button type="button" class="seg-btn${stockPane === 'stock' ? ' active' : ''}" onclick="setStockPane('stock')">สต็อก${bad.length ? ` <span class="seg-badge">${bad.length}</span>` : ''}</button>
+          <button type="button" class="seg-btn${stockPane === 'money' ? ' active' : ''}" onclick="setStockPane('money')">ค่าใช้จ่าย / บิล</button>
         </div>`;
 
       if (stockPane === 'money') {
-        html += `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-3" style="font-size:18px;border-radius:14px;" onclick="billFor='';pickBill()">🧾 ถ่ายรูปบิล ให้ AI ลงให้</button>${debtHtml()}${expenseHtml()}`;
+        html += `<button type="button" class="s6-bill" onclick="billFor='';pickBill()"><span class="s6-ic">📷</span><span><b>ถ่ายรูปบิล ให้ AI ลงให้</b><small>อ่านชื่อร้าน รายการ และยอดเงินให้อัตโนมัติ</small></span><i>›</i></button>${debtHtml()}${expenseHtml()}`;
         $('stock-view').innerHTML = html;
         return;
       }
@@ -7772,10 +7829,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const flag = st === 'neg' ? '<span class="srow-tag bad">ติดลบ</span>' : st === 'low' ? '<span class="srow-tag bad">ใกล้หมด</span>' : '';
         const l = (gData.stockLogs || []).find(x => x.item_name === it.name && String(x.ref_log_id || '').indexOf('⚖') === 0);
         const sub = l ? `นับล่าสุด ${esc(l.timestamp)}` : '<span style="color:#8A4100">ยังไม่เคยนับ</span>';
-        return `<div class="srow ${st === 'neg' || st === 'low' ? 'srow-bad' : ''} ${open ? 'open' : ''}">
+        return `<div class="srow ${st === 'neg' || st === 'low' ? 'srow-bad' : q === 0 ? 's6-zero' : ''} ${open ? 'open' : ''}">
           <button type="button" class="srow-main" onclick="tglStockRow('${qa(it.item_id)}')">
             <span class="srow-l"><span class="srow-n">${esc(it.name)} ${flag}</span><span class="srow-s">${sub}</span></span>
-            <span class="srow-q ${q < 0 ? 'text-danger' : q === 0 ? 'srow-zero' : ''}">${fmtQty(it, q)}${pt > 0 && q > 0 ? `<span class="srow-s d-block text-end">≈ ${Math.floor(q / pt)} ถัง</span>` : ''}</span>
+            <span class="srow-q ${q < 0 ? 'text-danger' : ''}">${fmtQty(it, q)}${pt > 0 && q > 0 ? `<span class="srow-s d-block text-end">≈ ${Math.floor(q / pt)} ถัง</span>` : ''}${q === 0 && st !== 'neg' && st !== 'low' ? '<span class="d-block text-end"><span class="s6-out">หมด</span></span>' : ''}</span>
           </button>
           ${open ? `<div class="srow-act">
             ${it.note ? `<div class="small text-muted mb-2">${esc(it.note)}${pt > 0 ? ` · ใช้ ${pt} ${esc(it.unit)}/ถัง` : ''}</div>` : ''}
@@ -7789,7 +7846,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       [['Chemical', 'ยาฉีด'], ['Fertilizer', 'ปุ๋ย'], ['Fuel', 'น้ำมัน'], ['Other', 'อื่นๆ']].forEach(([c, t]) => {
         const list = inv.filter(it => c === 'Other' ? !['Chemical', 'Fertilizer', 'Fuel'].includes(it.category) : it.category === c);
         if (c === 'Chemical') html += `<button type="button" class="chem-open" onclick="openChemLib()"><span>🧪</span><span><b>คลังยา + สูตรของไร่</b><small>ยาแต่ละตัวทำอะไร · ผสมเท่าไร · ใช้ตอนไหน</small></span><span>›</span></button>`;
-        if (list.length) html += `<div class="srow-h">${t}</div><div class="srow-box">${list.map(row).join('')}</div>`;
+        if (list.length) { const z = list.filter(it => num(it.stock) <= 0).length, fold = stockFold.includes(t); list.sort((x, y) => (num(x.stock) > 0 ? 0 : 1) - (num(y.stock) > 0 ? 0 : 1));
+          html += `<div class="f6-h"><b>${t} <span class="f6-free${z ? ' is-0' : ''}">${z ? `หมด/0 · ${z}` : list.length + ' รายการ'}</span></b><button type="button" class="f6-fold" onclick="stockFoldT('${t}')">${fold ? '▴ ขยาย' : '▾ ย่อ'}</button></div>${fold ? '' : `<div class="srow-box">${list.map(row).join('')}</div>`}`; }
       });
       html += `<div class="d-flex gap-2 mt-3">
           <button class="btn btn-sm btn-outline-success flex-fill" onclick="openItem('')">+ เพิ่มรายการของ</button>

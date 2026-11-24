@@ -2211,6 +2211,276 @@
     .tdA .cal-hint { font-size: 13px; color: var(--td-muted); margin: 6px 0 10px; }
     .tdA .cal-add { min-height: 44px; border-radius: 10px; border: 1.5px dashed var(--td-green); background: var(--td-card); color: var(--td-green); font-size: 14px; font-weight: 700; margin-top: 4px; }
     .tdA .cal-ghost { background: var(--td-green); color: #fff; border: 0; }
+    /* ===== หน้าวันนี้ v5 (Gemini today-sugarcane-v5 · 24 พ.ย. 69) — CSS จากไฟล์แบบ ใส่ .td5 นำหน้า ===== */
+.td5{--brand: #1F5E3B;
+      --brand-dark: #15452A;
+      --brand-soft: #E8F3EC;
+      --brand-mid: #A8CBB5;
+      --bg: #F4F5F1;
+      --surface: #FFFFFF;
+      --surface-note: #EEF4F0;
+      --ink: #16241B;
+      --ink-2: #46594E;
+      --ink-3: #6D7B72;
+      --line: #B8C6BC;
+      --line-soft: #D3DDD6;
+      --border: #DCE3DC;
+      --ask: #6D28D9;
+      --ask-soft: #F3EEFF;
+      --ask-border: #C4B5FD;
+      --due: #C2410C;
+      --due-soft: #FFF1E6;
+      --due-border: #FDBA74;
+      --nolog-bg: #F6EFE0;
+      --nolog-ink: #7A5919;
+      --nolog-border: #E6D2A2;
+      --brown-ink: #6B3410;
+      --water: #0369A1;
+      --water-soft: #E0F2FE;
+      --water-border: #BAE6FD;
+      --cut: #15803D;
+      --car: #B45309;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+      --shadow-md: 0 4px 12px rgba(20, 46, 30, 0.08), 0 1px 2px rgba(20, 46, 30, 0.04);
+      --tab-h: 58px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);}
+.td5 button,.td5 input,.td5 select,.td5 textarea{font-family: inherit;}
+.td5 input,.td5 select,.td5 textarea{font-size: 16px;}
+.td5 .tabular{font-variant-numeric: tabular-nums;}
+.td5 .sec-head{display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; padding: 0 2px;}
+.td5 .sec-title-wrap{display: flex; align-items: center; gap: 7px; min-width: 0;}
+.td5 .sec-title{margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em;}
+.td5 .sec-head-right{display: flex; align-items: center; gap: 6px; flex-shrink: 0;}
+.td5 .sec-badge{font-size: 12.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: #E5ECE6; color: var(--brand-dark); line-height: 1.45; white-space: nowrap;}
+.td5 .sec-badge.is-ask{background: var(--ask-soft); color: var(--ask);}
+.td5 .sec-badge.is-due{background: var(--due-soft); color: var(--due);}
+.td5 .sec-badge.is-ok{background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .sec-badge.is-muted{background: #EAEFE9; color: var(--ink-2); font-weight: 500;}
+.td5 .sec-mini-btn{height: 28px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--nolog-border); background: var(--nolog-bg); color: var(--nolog-ink); font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; transition: transform 0.1s;}
+.td5 .sec-mini-btn:active{transform: scale(0.96);}
+.td5 .sec-toggle-btn{height: 28px; padding: 0 7px; border: none; background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 3px; border-radius: 8px; cursor: pointer;}
+.td5 .sec-toggle-btn:active{background: rgba(31, 94, 59, 0.08);}
+.td5 .reg-banner{width: 100%; padding: 9px 11px; background: var(--due-soft); border: 1px solid var(--due-border); border-radius: 12px; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; text-align: left; transition: transform 0.1s, background 0.15s;}
+.td5 .reg-banner:active{transform: scale(0.988); background: #FFE5D0;}
+.td5 .reg-banner-txt{font-size: 13.5px; font-weight: 600; color: #7C2D12; line-height: 1.35; min-width: 0;}
+.td5 .reg-banner-txt .reg-sub{font-weight: 500; color: #9A3412;}
+.td5 .seg-bar{display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 3px; background: #E5EBE6; border-radius: 11px; margin-bottom: 10px;}
+.td5 .seg-btn{height: 34px; border: none; border-radius: 8px; background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.16s, color 0.16s, box-shadow 0.16s; white-space: nowrap; padding: 0 4px;}
+.td5 .seg-btn.active{background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(20, 46, 30, 0.1);}
+.td5 .seg-cnt{font-size: 11.5px; font-weight: 600; color: var(--ink-3);}
+.td5 .seg-btn.active .seg-cnt{color: var(--brand);}
+.td5 .appt-strip{width: 100%; padding: 10px 12px; margin-bottom: 9px; background: var(--surface-note); border: 1px solid #C6D8CC; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; text-align: left; transition: transform 0.1s, background 0.15s;}
+.td5 .appt-strip:active{transform: scale(0.988); background: #E2EFE7;}
+.td5 .appt-strip.is-done{opacity: 0.65; border-style: dashed;}
+.td5 .appt-left{display: flex; align-items: center; gap: 9px; min-width: 0;}
+.td5 .appt-tag{font-size: 12.5px; font-weight: 700; padding: 2px 8px; border-radius: 7px; background: var(--brand); color: #FFFFFF; flex-shrink: 0;}
+.td5 .appt-text{font-size: 15px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.td5 .appt-strip.is-done .appt-text{text-decoration: line-through; color: var(--ink-3);}
+.td5 .chev{color: var(--ink-3); flex-shrink: 0; display: inline-flex; align-items: center; transition: transform 0.2s ease;}
+.td5 .task-list{display: flex; flex-direction: column; gap: 8px;}
+.td5 .task-card{width: 100%; padding: 11px 12px 11px 13px; background: var(--surface); border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius); box-shadow: var(--shadow); text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: transform 0.1s, background 0.15s, opacity 0.2s; position: relative;}
+.td5 .task-card:active{transform: scale(0.992);}
+.td5 .task-card.st-doing{border-left-color: var(--brand);}
+.td5 .task-card.st-due{border-left-color: var(--due); background: #FFFEFC;}
+.td5 .task-card.st-watch{border-left-color: #B45309; background: #FFFDF8; border-color: #E7DCC2; border-left-width: 4px;}
+.td5 .task-card.is-completed{opacity: 0.58; border-left-color: var(--brand-mid); background: #F9FBF9;}
+.td5 .task-top{display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;}
+.td5 .task-title-line{display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-width: 0;}
+.td5 .task-title{font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.28;}
+.td5 .task-card.is-completed .task-title{text-decoration: line-through; color: var(--ink-2);}
+.td5 .st-pill{font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex-shrink: 0; line-height: 1.35;}
+.td5 .st-pill.doing{background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .st-pill.due{background: var(--due-soft); color: var(--due);}
+.td5 .st-pill.watch{background: #FEF3C7; color: #92400E;}
+.td5 .st-pill.done{background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .pulse-dot{width: 7px; height: 7px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.55); animation: livePulse 2s infinite;}
+@keyframes livePulse{
+      0% { box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.5); }
+      70% { box-shadow: 0 0 0 5px rgba(31, 94, 59, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(31, 94, 59, 0); }
+    }
+.td5 .task-meta{font-size: 13.5px; color: var(--ink-2); line-height: 1.38; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px;}
+.td5 .task-meta strong{font-weight: 600; color: var(--ink);}
+.td5 .plot-chips{display: flex; flex-wrap: wrap; align-items: center; gap: 5px;}
+.td5 .plot-chip{font-size: 12.5px; font-weight: 600; padding: 1px 7px; border-radius: 6px; background: #EDF2EE; color: var(--brand-dark); border: 1px solid #D9E5DC; line-height: 1.45;}
+.td5 .task-bottom-row{display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px;}
+.td5 .task-bottom-left{min-width: 0; flex: 1; font-size: 13px; color: var(--ink-2);}
+.td5 .task-inline-btn{height: 31px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border); background: #F6F8F6; color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 3px; transition: transform 0.1s, background 0.15s;}
+.td5 .task-inline-btn:active{transform: scale(0.95);}
+.td5 .task-inline-btn.is-doing{border-color: var(--brand-mid); background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .task-inline-btn.is-due{border-color: var(--due-border); background: var(--due-soft); color: var(--due);}
+.td5 .task-inline-btn.is-watch{border-color: var(--nolog-border); background: var(--nolog-bg); color: var(--nolog-ink);}
+.td5 .task-inline-btn.is-undo{border-color: var(--border); background: #FFFFFF; color: var(--ink-2);}
+.td5 .water-meter{display: flex; align-items: center; gap: 8px; width: 100%;}
+.td5 .water-bar-track{flex: 1; height: 6px; border-radius: 999px; background: #F4E6DA; overflow: hidden; max-width: 100px;}
+.td5 .water-bar-fill{height: 100%; width: 100%; border-radius: 999px; background: linear-gradient(90deg, #EA580C, #C2410C);}
+.td5 .sat-callout{display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--nolog-ink); background: var(--nolog-bg); padding: 3px 9px; border-radius: 8px; width: fit-content;}
+.td5 .grouped-card{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;}
+.td5 .status-row{padding: 11px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative;}
+.td5 .status-row + .status-row{border-top: 1px solid #E9EFEA;}
+.td5 .status-row.is-clickable{cursor: pointer;}
+.td5 .status-row.is-clickable:active{background: #F8FAF8;}
+.td5 .status-row.is-warn-bg{background: #FFFDF2;}
+.td5 .status-row.is-warn-bg:active{background: #FEF8DC;}
+.td5 .status-row-left{display: flex; align-items: flex-start; gap: 10px; min-width: 0; flex: 1;}
+.td5 .status-icon-box{width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;}
+.td5 .status-icon-box.is-night{background: #EEF2F7; color: #334155;}
+.td5 .status-icon-box.is-car{background: var(--due-soft); color: var(--due);}
+.td5 .status-icon-box.is-audit{background: var(--ask-soft); color: var(--ask);}
+.td5 .status-icon-box.is-ok{background: var(--brand-soft); color: var(--brand);}
+.td5 .status-icon-box.is-fuel{background: #EDF2EE; color: var(--brand-dark);}
+.td5 .status-icon-box.is-fuel-low{background: #FEF3C7; color: #B45309;}
+.td5 .status-icon-box.is-gravel{background: #EFECE6; color: #57534E;}
+.td5 .status-info{min-width: 0; flex: 1;}
+.td5 .status-title-row{display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
+.td5 .status-title{font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.3;}
+.td5 .status-sub{font-size: 13px; color: var(--ink-2); margin-top: 2px; line-height: 1.35;}
+.td5 .status-sub.is-warn-txt{color: var(--nolog-ink); font-weight: 500;}
+.td5 .mini-pill-amber{font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: #FEF3C7; color: #92400E;}
+.td5 .mini-pill-purple{font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--ask-soft); color: var(--ask);}
+.td5 .row-action-btn{height: 36px; padding: 0 11px; border-radius: 10px; border: 1px solid var(--border); background: #F8FAF8; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.1s, background 0.15s;}
+.td5 .row-action-btn:active{transform: scale(0.96);}
+.td5 .row-action-btn.is-due{border-color: var(--due-border); background: var(--due-soft); color: var(--due);}
+.td5 .row-action-btn.is-ask{border-color: var(--ask-border); background: var(--ask-soft); color: var(--ask);}
+.td5 .row-action-btn.is-brand{border-color: var(--brand-mid); background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .row-action-btn.is-ghost{border-color: #D5DDD7; background: #FFFFFF; color: var(--ink-2);}
+.td5 .telemetry-grid{display: grid; grid-template-columns: 1.32fr 1fr; gap: 9px;}
+.td5 .tele-card{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 12px 11px; box-shadow: var(--shadow); text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 7px; min-width: 0; transition: transform 0.1s, border-color 0.15s;}
+.td5 .tele-card:active{transform: scale(0.982); border-color: var(--brand-mid);}
+.td5 .tele-head{display: flex; align-items: center; justify-content: space-between; gap: 6px;}
+.td5 .tele-label{font-size: 13px; font-weight: 600; color: var(--ink-2); display: inline-flex; align-items: center; gap: 5px;}
+.td5 .tele-value-row{display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;}
+.td5 .tele-big{font-size: 23px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1;}
+.td5 .tele-unit{font-size: 13px; font-weight: 600; color: var(--ink-2);}
+.td5 .tele-delta{font-size: 12px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .tele-sub{font-size: 13px; color: var(--ink-2); line-height: 1.32;}
+.td5 .rain-strip-7d{display: flex; align-items: center; justify-content: space-between; gap: 3px; padding-top: 3px; border-top: 1px dashed #E4EBE5;}
+.td5 .rain-day-dot{display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--ink-3); font-weight: 500;}
+.td5 .rain-day-dot span.pip{width: 6px; height: 6px; border-radius: 50%; background: #D7E0D9;}
+.td5 .rain-day-dot.is-today span.pip{background: var(--brand);}
+.td5 .sparkline-wrap{height: 24px; width: 100%; display: flex; align-items: flex-end;}
+.td5 .rain-ask-card{background: #F4FAFF; border: 1.5px solid var(--water-border); border-radius: var(--radius); padding: 12px 13px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 9px; transition: background 0.2s, border-color 0.2s;}
+.td5 .rain-ask-card.is-answered{background: var(--surface); border-color: var(--brand-mid); border-width: 1px;}
+.td5 .rain-ask-top{display: flex; align-items: flex-start; gap: 8px;}
+.td5 .rain-ask-ico{width: 28px; height: 28px; border-radius: 8px; background: var(--water-soft); color: var(--water); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;}
+.td5 .rain-ask-title{font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.35;}
+.td5 .rain-ask-hint{font-size: 12.5px; color: var(--ink-3); margin-top: 2px;}
+.td5 .rain-ask-btns{display: flex; gap: 8px;}
+.td5 .rain-choice-btn{flex: 1; height: 36px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--water-border); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.1s;}
+.td5 .rain-choice-btn:active{transform: scale(0.97);}
+.td5 .rain-choice-btn.is-yes{border-color: var(--water); background: var(--water); color: #FFFFFF;}
+.td5 .rain-choice-btn.is-no{border-color: var(--border); background: #FFFFFF; color: var(--ink-2);}
+.td5 .ask-stack{display: flex; flex-direction: column; gap: 8px;}
+.td5 .ask-card{background: #FCF9FF; border: 1.5px solid var(--ask-border); border-radius: var(--radius); padding: 12px 13px; box-shadow: 0 2px 8px rgba(109, 40, 217, 0.07); display: flex; flex-direction: column; gap: 10px; transition: background 0.2s, border-color 0.2s;}
+.td5 .ask-card.is-answered{background: var(--surface); border-color: var(--brand-mid); border-width: 1px; box-shadow: var(--shadow);}
+.td5 .ask-q-row{display: flex; align-items: flex-start; gap: 8px;}
+.td5 .ico-diamond{width: 10px; height: 10px; background: var(--ask); transform: rotate(45deg); border-radius: 2px; margin-top: 5px; flex-shrink: 0; transition: background 0.2s;}
+.td5 .ask-card.is-answered .ico-diamond{background: var(--brand);}
+.td5 .ask-q-text{font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.35; flex: 1;}
+.td5 .ask-btn-row{display: flex; align-items: center; gap: 8px;}
+.td5 .ask-choice-btn{flex: 1; height: 38px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--ask-border); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: transform 0.1s, background 0.15s, border-color 0.15s;}
+.td5 .ask-choice-btn:active{transform: scale(0.97);}
+.td5 .ask-choice-btn.is-primary{border-color: var(--brand); background: var(--brand); color: #FFFFFF;}
+.td5 .ask-choice-btn.is-secondary{border-color: var(--ask-border); background: var(--ask-soft); color: var(--ask);}
+.td5 .ask-input-row{display: flex; align-items: center; gap: 8px;}
+.td5 .num-field-wrap{flex: 1; position: relative; display: flex; align-items: center;}
+.td5 .num-field{width: 100%; height: 40px; padding: 0 46px 0 12px; border-radius: 10px; border: 1.5px solid var(--ask-border); background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 600; outline: none; transition: border-color 0.15s;}
+.td5 .num-field:focus{border-color: var(--ask);}
+.td5 .num-unit{position: absolute; right: 12px; font-size: 13px; font-weight: 600; color: var(--ink-3); pointer-events: none;}
+.td5 .ask-save-btn{height: 40px; padding: 0 16px; border-radius: 10px; border: none; background: var(--ask); color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, opacity 0.15s;}
+.td5 .ask-save-btn:active{transform: scale(0.97);}
+.td5 .ask-answered-bar{display: flex; align-items: center; justify-content: space-between; gap: 8px;}
+.td5 .ask-ans-pill{font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-dark); display: inline-flex; align-items: center; gap: 5px;}
+.td5 .ask-undo-btn{height: 32px; padding: 0 9px; border: 1px solid var(--border); border-radius: 8px; background: #FFFFFF; color: var(--ink-2); font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0;}
+.td5 .harvest-card{background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;}
+.td5 .harvest-trigger{width: 100%; padding: 12px 13px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; transition: background 0.15s;}
+.td5 .harvest-trigger:active{background: #F8FAF8;}
+.td5 .harvest-line{display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; font-size: 14.5px; color: var(--ink); line-height: 1.35; min-width: 0;}
+.td5 .harvest-main-count{font-weight: 700; color: var(--ink);}
+.td5 .harvest-ready-txt{font-weight: 700; color: var(--brown-ink);}
+.td5 .harvest-oldest{font-size: 13px; color: var(--ink-2);}
+.td5 .harvest-card.is-open .harvest-chev{transform: rotate(90deg);}
+.td5 .harvest-list{border-top: 1px solid #E9EFEA; background: #FAFBF9; padding: 4px 12px 8px;}
+.td5 .harvest-item{width: 100%; padding: 8px 2px; border: none; border-bottom: 1px solid #ECEFEA; background: transparent; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; text-align: left; font-size: 14px;}
+.td5 .harvest-item:last-child{border-bottom: none;}
+.td5 .harvest-item-name{font-weight: 600; color: var(--ink);}
+.td5 .harvest-item-right{display: flex; align-items: center; gap: 7px; flex-shrink: 0;}
+.td5 .harvest-age{font-size: 13px; color: var(--ink-2); font-weight: 500;}
+.td5 .harvest-pill{font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px;}
+.td5 .harvest-pill.ready{background: #F4E6D8; color: var(--brown-ink);}
+.td5 .harvest-pill.wait{background: #EDF2EE; color: var(--ink-2); font-weight: 500;}
+.td5 .sheet-backdrop{position: fixed; inset: 0; z-index: 2100; background: rgba(16, 32, 22, 0.45); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; justify-content: center; align-items: flex-end;}
+.td5 .sheet-backdrop.open{opacity: 1; pointer-events: auto;}
+.td5 .sheet-panel{width: 100%; max-width: 390px; max-height: 84dvh; background: var(--surface); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.16); padding-bottom: var(--safe-bottom); will-change: transform;}
+.td5 .sheet-backdrop.open .sheet-panel{transform: translateY(0);}
+.td5 .sheet-panel.is-dragging{transition: none;}
+.td5 .sheet-drag-zone{padding-top: 8px; cursor: grab; touch-action: none; flex-shrink: 0;}
+.td5 .sheet-handle{width: 38px; height: 4px; border-radius: 999px; background: #D0D8D2; margin: 0 auto 6px;}
+.td5 .sheet-header{padding: 4px 14px 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-shrink: 0;}
+.td5 .sheet-title{font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.3;}
+.td5 .sheet-subtitle{font-size: 13px; color: var(--ink-2); margin-top: 2px;}
+.td5 .sheet-close{width: 36px; height: 36px; border-radius: 10px; border: none; background: #EFF3F0; color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
+.td5 .sheet-close:active{background: #E0E7E2;}
+.td5 .sheet-body{padding: 14px 16px 22px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 12px;}
+.td5 .detail-box{padding: 11px 13px; border-radius: 12px; background: #F7F9F7; border: 1px solid var(--border); font-size: 14.5px; color: var(--ink);}
+.td5 .detail-box.is-warn{background: #FFFBEB; border-color: #FCD34D;}
+.td5 .detail-box.is-ask{background: var(--ask-soft); border-color: var(--ask-border);}
+.td5 .detail-box.is-due{background: var(--due-soft); border-color: var(--due-border);}
+.td5 .detail-label{font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 5px;}
+.td5 .sheet-btn-stack{display: flex; flex-direction: column; gap: 8px; margin-top: 2px;}
+.td5 .sheet-btn{flex: 1; height: 42px; padding: 0 14px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.1s;}
+.td5 .sheet-btn:active{transform: scale(0.985);}
+.td5 .sheet-btn.primary{border-color: var(--brand); background: var(--brand); color: #FFFFFF;}
+.td5 .sheet-btn.danger{border-color: #DC2626; background: #FEF2F2; color: #B91C1C;}
+.td5 .sheet-btn.danger-text{border-color: #FECACA; background: #FFFFFF; color: #DC2626;}
+.td5 .sheet-btn.ask{border-color: var(--ask); background: var(--ask); color: #FFFFFF;}
+.td5 .form-group{display: flex; flex-direction: column; gap: 5px;}
+.td5 .form-label{font-size: 13px; font-weight: 600; color: var(--ink-2);}
+.td5 .form-input,.td5 .form-select{width: 100%; height: 42px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); font-size: 16px; outline: none;}
+.td5 .form-input:focus,.td5 .form-select:focus{border-color: var(--brand);}
+.td5 .chip-row{display: flex; flex-wrap: wrap; gap: 6px;}
+.td5 .preset-chip{height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: #F6F8F6; color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;}
+.td5 .check-grid{display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px;}
+.td5 .check-plot-item{display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink);}
+.td5 .check-plot-item input[type="checkbox"]{width: 18px; height: 18px; accent-color: var(--brand); margin: 0; flex-shrink: 0;}
+.td5 .check-plot-item.checked{border-color: var(--brand); background: var(--brand-soft); color: var(--brand-dark);}
+.td5 .hist-row{display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid #EAEFEA; font-size: 13.5px;}
+.td5 .hist-row:last-child{border-bottom: none; padding-bottom: 0;}
+.td5 .wx-row{display: grid; grid-template-columns: 62px 1fr 56px 56px; align-items: center; padding: 9px 2px; border-bottom: 1px solid #EEF2EE; font-size: 14px;}
+.td5 .wx-row:last-child{border-bottom: none;}
+.td5 .is-hidden{display: none !important;}
+/* ---- หน้าวันนี้ v5: ส่วนต่อเข้าแอป (ไม่ได้มาจากไฟล์แบบ) ---- */
+.td5 { font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--ink); }
+.td5 .td5-stack { display: flex; flex-direction: column; gap: 15px; padding-bottom: 8px; }
+.td5 .td5-stack > section { min-width: 0; }
+.td5 button { color: inherit; font-family: inherit; }
+.td5 .rain-day-dot span.pip.r1 { background: #7DD3FC; } .td5 .rain-day-dot span.pip.r2 { background: var(--water); }
+.td5 .rain-day-dot.is-today span.pip.r1, .td5 .rain-day-dot.is-today span.pip.r2 { box-shadow: 0 0 0 2px var(--brand); }
+.td5 .tele-delta.is-dn { background: #FDECEC; color: #B42318; }
+.td5 .tele-card.is-on { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand) inset; }
+.td5 .td5-more { margin-top: 10px; }
+.td5 .td5-ask-n { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; line-height: 1.4; }
+.td5 .td5-ask-pl { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.td5 .td5-ask-pl:first-of-type { border-top: 0; }
+.td5 .td5-ask-pn { font-weight: 600; font-size: 14.5px; min-width: 0; }
+.td5 .td5-ask-pb { display: flex; gap: 6px; flex-shrink: 0; } .td5 .td5-ask-pb .ask-choice-btn { min-height: 36px; padding: 0 12px; font-size: 14px; flex: none; }
+.td5 .td5-none { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; color: var(--ink-2); font-size: 14px; }
+.td5 .td5-dim { font-size: 13px; color: var(--ink-2); margin-top: 6px; line-height: 1.45; }
+.td5 .td5-pl-r { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; border-top: 1px solid var(--line-soft); font-size: 14.5px; }
+.td5 .td5-pl-r:first-child { border-top: 0; }
+.td5 .td5-pl-b { display: flex; gap: 6px; flex-shrink: 0; }
+.td5 .td5-dq-b { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.td5 .sheet-backdrop { top: env(safe-area-inset-top, 0px); }
+.td5 .sheet-panel { max-width: 560px; }
+.td5 .task-inline-btn { white-space: nowrap; } .td5 .row-action-btn { white-space: nowrap; min-width: 52px; }
+#plot-list.td5 { background: var(--bg); }
+.td5 .sheet-body > * { flex-shrink: 0; } .td5 .sheet-btn-stack .sheet-btn { flex: none; min-height: 44px; }
+/* ปฏิทินเดิม (แบบ A) ใส่กรอบการ์ดแบบ v5 */
+.td5 .td5-cal > .srow-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin: 0; }
+
   </style>
 </head>
 <body>
@@ -4547,6 +4817,7 @@
       const t = last ? logWho(last) : names; return { team: t, auto: t.length > 1 };
     }
     function todayHtml(rows, logsBy) {
+      if (HOME_V === '5') return td5Html(rows, logsBy); // หน้าวันนี้ v5 (24 พ.ย. 69)
       const byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
       const ws = (gData.watches || []).filter(w => byId[w.plot_id]);
       const doing = rows.filter(r => r.st.isOngoing), urg = rows.filter(r => !r.st.isOngoing && r.st.isUrg);
@@ -4617,7 +4888,7 @@
       const dq = dqItems(), dqH = dqHtml(head, dq); // ตรวจข้อมูล: มีจุดต้องเช็ก = ขึ้นต่อจากต้องทำวันนี้ · ปกติ = ท้ายหน้า
       return top + todo + (dq.length ? dqH : '') + calHtml(head) + guardHtml(head) + fuelHtml(head) + nearCutMini(head) + h + (dq.length ? '' : dqH);
     }
-    let HOME_V = 'A'; // F แบบ A (ผู้ใช้เลือก 16 พ.ย. 69 06:34) · '' = แบบเดิม
+    let HOME_V = '5'; // '5' = v5 Gemini (24 พ.ย. 69 ผู้ใช้ชอบ) · 'A' = แบบ A (16 พ.ย.) · '' = แบบเดิม
     function nearCutMini(head) {
       const L = nearCutList(); if (!L.length) return '';
       if (cutAll) return nearCutHtml(head);
@@ -4625,6 +4896,327 @@
       return head('รอตัดฤดูนี้', '') + `<div class="srow-box"><div class="srow"><button type="button" class="srow-main" onclick="cutAll=true;render()">
         <span class="srow-l"><span class="srow-n">${L.length} แปลง${nr ? ` · <b style="color:#8A5A0B">ครบตัด ${nr}</b>` : ' · ยังไม่มีแปลงครบตัด'}</span>
         <span class="srow-s">แก่สุด ${esc(o.p.plot_name)} ${esc(ageTxt(o.age))}</span></span><span style="color:#6B736E">›</span></button></div></div>`;
+    }
+
+    // ===== หน้าวันนี้ v5 (Gemini today-sugarcane-v5 · 24 พ.ย. 69 ผู้ใช้ชอบ "สวยดี") — หน้าตาตามแบบ ข้อมูล/ปุ่มต่อฟังก์ชันจริงเดิม =====
+    // CSS: .td5 ท้าย <style> (ตัดมาจากไฟล์แบบ ใส่ .td5 นำหน้าทุกตัว) · ปฏิทิน/รายชม.อากาศ ใช้ของแบบ A เดิม (#plot-list มีทั้ง .tdA และ .td5)
+    // แตะการ์ด = แผ่นล่าง (td5Open) รายละเอียด + ปุ่มจริง · ปุ่มเล็กในแถว = ทำเลย (ดูแล้ว/บันทึก) หรือเปิดแผ่นล่างยืนยัน (ลงเสร็จ)
+    let td5F = 'all', td5Cut = false, td5Ctx = {};
+    const td5Fold = k => { try { return !!JSON.parse(localStorage.getItem('raioy_td5fold') || '{}')[k]; } catch (e) { return false; } };
+    function td5Tgl(k) { let o = {}; try { o = JSON.parse(localStorage.getItem('raioy_td5fold') || '{}'); } catch (e) {} o[k] = !o[k]; try { localStorage.setItem('raioy_td5fold', JSON.stringify(o)); } catch (e) {} render(); }
+    const TD5_CHEV = '<span class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>';
+    const TD5_IC = {
+      drop: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0369A1" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7l5.6 7.4a7 7 0 1 1-11.2 0L12 2.7z"/></svg>',
+      rain: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 13v8M8 13v8M12 15v8M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>',
+      night: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+      fuel: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M14 11h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/><path d="M6 9h5v4H6z"/><path d="M2 22h13"/></svg>',
+      gravel: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4-8 5 4 4-6 5 10H3z"/><path d="M2 20h20"/></svg>',
+      car: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17v2M18 17v2M4 13l2-6h12l2 6v4H4z"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/></svg>',
+      auditWarn: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>',
+      auditOk: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+      phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
+    };
+    const td5Head = (t, badge, right) => `<div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">${t}</h2>${badge || ''}</div>${right ? `<div class="sec-head-right">${right}</div>` : ''}</div>`;
+    const td5FoldBtn = k => { const f = td5Fold(k); return `<button type="button" class="sec-toggle-btn" aria-expanded="${!f}" onclick="td5Tgl('${k}')">${f ? '▴ ขยาย' : '▾ พับ'}</button>`; };
+    const td5Row = (o) => `<div class="status-row${o.click ? ' is-clickable' : ''}${o.warn ? ' is-warn-bg' : ''}"${o.click ? ` onclick="${o.click}"` : ''}><div class="status-row-left"><div class="status-icon-box ${o.icCls}" aria-hidden="true">${o.ic}</div>
+      <div class="status-info"><div class="status-title-row"><span class="status-title">${o.t}</span>${o.pill || ''}</div>${o.s ? `<div class="status-sub tabular${o.warn ? ' is-warn-txt' : ''}">${o.s}</div>` : ''}${o.s2 || ''}</div></div>${o.btn || (o.click ? TD5_CHEV : '')}</div>`;
+    const td5Chips = names => `<div class="plot-chips">${names.map(n => `<span class="plot-chip tabular">${esc(n)}</span>`).join('')}</div>`;
+    // ชื่อแปลงในชิป: ตัดชื่อพื้นที่ออกเมื่อหัวการ์ดบอกพื้นที่แล้ว (ชื่อเต็มอยู่ในแผ่นล่าง)
+    const td5Sub = (nm, loc) => { const s = String(nm).replace(loc, '').replace(/^\s*\(|\)\s*$/g, '').trim(); return s || nm; };
+    const td5Where = P => { const L = {}; P.forEach(p => { const l = plotLoc(p.plot_name); (L[l] = L[l] || []).push(p); }); const ks = Object.keys(L);
+      return ks.length === 1 ? { zone: ks[0], chips: P.length > 1 ? P.map(p => td5Sub(p.plot_name, ks[0])) : [] } : { zone: ks.join(' · '), chips: P.map(p => p.plot_name) }; };
+
+    function td5Html(rows, logsBy) {
+      const t0 = todayISO(), byId = {}; rows.forEach(r => { byId[r.p.plot_id] = r; });
+      td5Ctx = { tasks: {} };
+      let h = '';
+      // 1) ใกล้หมดทะเบียน
+      const rd = regDue();
+      if (rd.length) h += `<button type="button" class="reg-banner" onclick="fleetPane='reg';switchTab('fleet');renderFleet();uiSave()"><span class="reg-banner-txt tabular">🪪 ใกล้หมดทะเบียน ${rd.length} คัน · ${rd.slice(0, 2).map(i => esc(i.label)).join(', ')} <span class="reg-sub">${rd.slice(0, 2).map(i => regInfo(i.exp).txt).join(' · ')}</span></span><span class="chev" style="color:#9A3412">${TD5_CHEV.replace('<span class="chev">', '').replace(/<\/span>$/, '')}</span></button>`;
+      // 2) ฝน + น้ำตาล
+      h += `<section>${td5Head('ฝนและราคาน้ำตาล')}<div class="telemetry-grid">${td5RainCard()}${td5SugarCard()}</div>${td5Detail()}</section>`;
+      // 3) ฝนตกจริงไหม
+      wxRainAsk().forEach(a => {
+        h += `<section><div class="rain-ask-card"><div class="rain-ask-top"><div class="rain-ask-ico" aria-hidden="true">${TD5_IC.rain}</div><div style="min-width:0;flex:1;">
+          <div class="rain-ask-title">${a.lb}พยากรณ์ฝน ${r1x(a.max)} มม. แถว${esc(a.areas.map(x => x.loc).join(', '))} · ตกจริงไหม?</div>
+          <div class="rain-ask-hint">ค่าประมาณจากพยากรณ์ · ${a.ids.length} แปลงยังไม่ได้ลงฝน</div></div></div>
+          <div class="rain-ask-btns"><button type="button" class="rain-choice-btn is-yes" onclick="openRain(${JSON.stringify(a.ids).replace(/"/g, "'")},'${a.iso}','(ฝนจากพยากรณ์ ~${r1x(a.max)} มม.)')">ตกจริง</button>
+          <button type="button" class="rain-choice-btn is-no" onclick="wxRainSkip('${a.iso}')">ไม่ตก</button></div></div></section>`;
+      });
+      // 4) แอปถาม (ขั้นตอนรายแปลง + น้ำมันที่ยังไม่ได้จด)
+      h += td5AskHtml();
+      // 5) ต้องทำวันนี้
+      h += td5TasksHtml(rows, logsBy, byId);
+      // 6) ตรวจข้อมูล (พบจุด = ต่อจากงาน · ปกติ = ท้ายหน้า)
+      const dq = dqItems(), dqH = td5DqHtml(dq);
+      if (dq.length) h += dqH;
+      // 7) ปฏิทิน (ของเดิม แบบ A — ลากเปลี่ยนวัน/แก้ในที่ยังใช้ได้)
+      const offToday = calSel && calSel !== t0 || calYM && calYM !== t0.slice(0, 7);
+      h += `<section>${td5Head('ปฏิทินงานเดือนนี้', '', (offToday ? `<button type="button" class="sec-mini-btn" onclick="calSel='';calYM='';render()">กลับวันนี้</button>` : '') + td5FoldBtn('cal'))}
+        ${td5Fold('cal') ? '' : `<div class="td5-cal">${calHtml(() => '')}</div>`}</section>`;
+      // 8) เฝ้าไร่
+      const G = guardOpen();
+      if (G.length) h += `<section>${td5Head('เฝ้าไร่')}<div class="grouped-card">${G.map(g => {
+        const st = guardStat(g), P = guardPlots(g).map(id => gData.plots.find(p => p.plot_id === id)).filter(Boolean);
+        const cut = P.length && P.every(p => String(p.status_note || '').includes('✅ ตัดอ้อย'));
+        return td5Row({ click: `td5Guard('${qa(g.guard_id)}')`, icCls: 'is-night', ic: TD5_IC.night, t: `เฝ้าไร่ · ${esc(guardWhere(g))}`, pill: st.nights ? `<span class="mini-pill-amber tabular">คืนที่ ${st.nights}</span>` : '',
+          s: cut ? 'แปลงตัดครบแล้ว — กดเลิกเฝ้าได้' : `${esc(g.workers || 'ไม่ระบุคน')} · เฝ้าจนกว่าจะตัด`, warn: cut,
+          btn: `<button type="button" class="row-action-btn is-ghost" onclick="event.stopPropagation();guardEnd('${qa(g.guard_id)}',this)">เลิกเฝ้า</button>` });
+      }).join('')}</div></section>`;
+      // 9) น้ำมัน
+      const B = fuelShown();
+      if (B.length) h += `<section>${td5Head('น้ำมัน', '<span class="sec-badge is-muted">ค่าประมาณ</span>')}<div class="grouped-card">${B.map((b, i) => {
+        const warn = b.pump && b.st === 'now' ? 'เครื่องสูบน้ำมันน่าจะใกล้หมด เติมก่อนผสมยารอบถัดไป' : b.pump && b.st === 'soon' ? 'เครื่องสูบ: พรุ่งนี้ต้องเติม' : b.st === 'now' ? 'ต้องให้น้ำมันก่อนฉีดรอบถัดไป' : b.st === 'soon' ? 'พอฉีดวันนี้ ถ้าพรุ่งนี้ฉีดต่อต้องเติม' : '';
+        return td5Row({ click: `td5Fuel(${i})`, icCls: warn ? 'is-fuel-low' : 'is-fuel', ic: TD5_IC.fuel, t: b.pump ? 'เบนซิน · เครื่องสูบน้ำ' : 'เบนซิน + 2T · ' + esc(b.team.join(' + ')), s: esc(warn || fuelShort(b)), warn: !!warn });
+      }).join('')}</div></section>`;
+      // 10) รอตัดฤดูนี้
+      const L = nearCutList();
+      if (L.length) {
+        const nr = L.filter(r => r.ripe).length, o = L[0];
+        h += `<section>${td5Head('รอตัดฤดูนี้')}<div class="harvest-card${td5Cut ? ' is-open' : ''}"><button type="button" class="harvest-trigger" aria-expanded="${td5Cut}" onclick="td5Cut=!td5Cut;render()">
+          <div class="harvest-line tabular"><span class="harvest-main-count">${L.length} แปลง</span><span>·</span>${nr ? `<span class="harvest-ready-txt">ครบตัด ${nr}</span>` : '<span>ยังไม่มีแปลงครบตัด</span>'}<span>·</span><span class="harvest-oldest">แก่สุด ${esc(o.p.plot_name)} อายุ ${esc(ageTxt(o.age))}</span></div>
+          <span class="chev harvest-chev">${TD5_CHEV.replace('<span class="chev">', '').replace(/<\/span>$/, '')}</span></button>
+          ${td5Cut ? `<div class="harvest-list">${L.map(r => `<button type="button" class="harvest-item tabular" onclick="openDossier('${r.p.plot_id}')"><span class="harvest-item-name">${esc(r.p.plot_name)}</span><span class="harvest-item-right"><span class="harvest-age">${esc(ageTxt(r.age))}</span><span class="harvest-pill ${r.ripe ? 'ready' : 'wait'}">${r.ripe ? 'ครบตัด' : 'รอตัด'}</span></span></button>`).join('')}</div>` : ''}</div></section>`;
+      }
+      // 11) งานหินคลุก
+      const rk = (gData.rockPoints || []).filter(r => r.status !== 'ลงเสร็จ');
+      if (rk.length) {
+        const wait = rk.filter(r => r.status !== 'กำลังลง').length, doing = rk.length - wait;
+        h += `<section>${td5Head('งานหินคลุก')}<div class="grouped-card">${td5Row({ click: 'goRock()', icCls: 'is-gravel', ic: TD5_IC.gravel, t: `${[...new Set(rk.map(r => r.member))].length} สมาชิก · ${rk.length} จุด ยังไม่เสร็จ`,
+          s: [wait ? 'รอลง ' + wait : '', doing ? 'กำลังลง ' + doing : ''].filter(Boolean).join(' · '), btn: `<button type="button" class="row-action-btn is-brand" onclick="event.stopPropagation();goRock()">ดูงาน</button>` })}</div></section>`;
+      }
+      // 12) รถค้างซ่อม (จอด/อยู่ร้าน ตาม downMap เดียวกับแท็บรถ)
+      const DM = downMap(), dn = Object.keys(DM).filter(n => (gData.assets || []).some(a => a.name === n));
+      if (dn.length) h += `<section>${td5Head('รถค้างซ่อม')}<div class="grouped-card">${dn.map(n => {
+        const lg = (gData.assetLogs || []).find(l => l.asset_name === n && isDown(l.event_type || '')) || {}, d0 = beToISO(DM[n]), days = d0 ? dayDiff(d0, t0) : 0;
+        const issue = [lg.issue_detail, lg.event_type].map(x => plain(String(x || ''))).find(x => x && x !== '-') || '';
+        const call1 = (gData.reminders || []).some(r => r.status !== 'done' && r.on_event === 'อยู่ร้าน:' + n);
+        return td5Row({ click: `vehOpen('${qa(n)}')`, icCls: 'is-car', ic: TD5_IC.car, t: `${esc(n)} ${/ร้าน|ช่าง|อู่/.test(lg.event_type || '') ? 'ค้างซ่อมที่ร้าน' : 'จอดซ่อม'}`, pill: days ? `<span class="mini-pill-amber tabular">${days} วัน</span>` : '',
+          s: `${issue ? esc(issue) + ' · ' : ''}ตั้งแต่ ${d0 ? esc(dShort(d0)) : esc(DM[n])}`,
+          btn: `<button type="button" class="row-action-btn ${call1 ? 'is-due' : 'is-ghost'}" onclick="event.stopPropagation();vehOpen('${qa(n)}')">${call1 ? TD5_IC.phone + '<span>โทรเช็ค</span>' : 'ดูรถ'}</button>` });
+      }).join('')}</div></section>`;
+      if (!dq.length) h += dqH;
+      return `<div class="td5-stack">${h}</div>`;
+    }
+
+    // --- ฝน/น้ำตาล การ์ดคู่ · แตะ = กางรายละเอียดเต็มแถวข้างใต้ (ของแบบ A เดิม: 7 วัน + รายชม. / ราคาอ้อยคาด)
+    function td5LastRain() {
+      let last = '';
+      (gData.rainLog || []).forEach(r => { if (num(r.rain_mm) >= 1) { const d = beToISO(r.timestamp); if (d && d > last) last = d; } });
+      (gData.activities || []).forEach(a => { if (/ฝน/.test(a.activity_group || '')) { const d = beToISO(String(a.timestamp || '').split(' ')[0]); if (d && d <= todayISO() && d > last) last = d; } });
+      return last;
+    }
+    function td5RainCard() {
+      const locs = wxLocs();
+      if (!locs.length) return `<button type="button" class="tele-card" onclick="wxUseMyLoc()"><div class="tele-head"><span class="tele-label">${TD5_IC.drop} ฝน</span>${TD5_CHEV}</div><div class="tele-sub">แตะเพื่อใช้ตำแหน่งมือถือ</div></button>`;
+      wxLoad();
+      const lr = td5LastRain(), lrTxt = lr ? `ล่าสุด ${dShort(lr)}${dayDiff(lr, todayISO()) >= 2 ? ` · ${dayDiff(lr, todayISO())} วันไม่มีฝน` : ''}` : '';
+      if (!wxData || wxData.key !== wxKey(locs)) return `<button type="button" class="tele-card" onclick="${wxErr ? 'wxLoad(true);render()' : 'openWx()'}"><div class="tele-head"><span class="tele-label">${TD5_IC.drop} ฝนวันนี้</span>${TD5_CHEV}</div><div class="tele-value-row"><span class="tele-big">–</span></div><div class="tele-sub">${wxErr ? 'โหลดพยากรณ์ไม่ได้ · แตะลองใหม่' : 'กำลังโหลด…'}</div>${lrTxt ? `<div class="tele-sub">${lrTxt}</div>` : ''}</button>`;
+      const today = todayISO(); let best = null;
+      wxData.res.forEach((r, i) => { const k = r.daily.time.indexOf(today); if (k < 0) return; const o = { i, k, r, pop: num(r.daily.precipitation_probability_max[k]), mm: num(r.daily.precipitation_sum[k]) }; if (!best || o.mm > best.mm || (o.mm === best.mm && o.pop > best.pop)) best = o; });
+      if (!best) return '';
+      const D = best.r.daily, dots = [];
+      for (let j = best.k; j < D.time.length && dots.length < 7; j++) {
+        const dd = new Date(D.time[j] + 'T00:00:00'), p = Math.max(...wxData.res.map(r => { const k = r.daily.time.indexOf(D.time[j]); return k < 0 ? 0 : num(r.daily.precipitation_probability_max[k]); }));
+        dots.push(`<div class="rain-day-dot${j === best.k ? ' is-today' : ''}"><span>${TH_DAY[dd.getDay()]}</span><span class="pip${p >= 60 ? ' r2' : p >= 30 ? ' r1' : ''}"></span></div>`);
+      }
+      return `<button type="button" class="tele-card${wxInline ? ' is-on' : ''}" onclick="wxInline=!wxInline;sgInline=false;render()"><div class="tele-head"><span class="tele-label">${TD5_IC.drop} ฝนวันนี้</span><span class="chev">${wxInline ? '▴' : TD5_CHEV}</span></div>
+        <div class="tele-value-row tabular"><span class="tele-big">${best.mm >= 0.1 ? r1x(best.mm) : 0}</span><span class="tele-unit">มม. · ${Math.round(best.pop)}%</span></div>
+        <div class="tele-sub">${lrTxt || 'พยากรณ์' + (wxData.res.length > 1 ? ' · ' + esc(locs[best.i].loc) : '')}</div>
+        <div class="rain-strip-7d tabular" aria-label="โอกาสฝน 7 วัน">${dots.join('')}</div></button>`;
+    }
+    function td5SugarCard() {
+      sugarLoad();
+      if (!sugar) return `<button type="button" class="tele-card" onclick="${sugarErr ? 'sugarLoad(true);render()' : 'openSugar()'}"><div class="tele-head"><span class="tele-label">น้ำตาลโลก</span>${TD5_CHEV}</div><div class="tele-value-row"><span class="tele-big">–</span></div><div class="tele-sub">${sugarErr ? 'โหลดไม่ได้ · แตะลองใหม่' : 'กำลังโหลด…'}</div></button>`;
+      const up = sugar.chg >= 0, S = (sugar.series || []).slice(-20).map(x => num(x[1])).filter(Boolean);
+      let spark = '';
+      if (S.length > 2) {
+        const mn = Math.min(...S), mx = Math.max(...S), X = i => 2 + i * 106 / (S.length - 1), Y = v => mx === mn ? 12 : 21 - (v - mn) / (mx - mn) * 17;
+        const pts = S.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+        spark = `<div class="sparkline-wrap" aria-hidden="true"><svg viewBox="0 0 110 24" width="100%" height="24" preserveAspectRatio="none"><defs><linearGradient id="td5sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1F5E3B" stop-opacity="0.22"/><stop offset="100%" stop-color="#1F5E3B" stop-opacity="0.01"/></linearGradient></defs>
+          <path d="M${pts.replace(/ /g, ' L')} L108,24 L2,24 Z" fill="url(#td5sg)"/><polyline points="${pts}" fill="none" stroke="#1F5E3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${X(S.length - 1).toFixed(1)}" cy="${Y(S[S.length - 1]).toFixed(1)}" r="2.7" fill="#1F5E3B"/></svg></div>`;
+      }
+      return `<button type="button" class="tele-card${sgInline ? ' is-on' : ''}" onclick="sgInline=!sgInline;wxInline=false;render()"><div class="tele-head"><span class="tele-label">น้ำตาลโลก</span><span class="chev">${sgInline ? '▴' : TD5_CHEV}</span></div>
+        <div class="tele-value-row tabular"><span class="tele-big">${sugar.price}</span><span class="tele-unit">¢/ปอนด์</span></div>
+        <div class="tele-sub tabular" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><span class="tele-delta${up ? '' : ' is-dn'}">${up ? '+' : ''}${num(sugar.chg).toFixed(2)}</span><span>เมื่อวาน ${num(sugar.prev).toFixed(2)}</span></div>${spark}</button>`;
+    }
+    function td5Detail() { // รายละเอียดที่กาง (ใช้ตัววาดเดิมของแบบ A แล้วตัดเอาเฉพาะส่วนรายละเอียด)
+      const s = wxInline ? wxStripHtml() : sgInline ? sugarStripHtml() : ''; const i = s.indexOf('<div class="td-wx-detail">');
+      return i < 0 ? '' : `<div class="td5-more td-card">${s.slice(i, s.lastIndexOf('</div>'))}</div>`;
+    }
+
+    // --- แอปถาม
+    function td5AskHtml() {
+      const G = {};
+      gData.plots.forEach(p => { let q = []; try { q = flAsks(p); } catch (e) {} q.forEach(x => { const k = flCtx(p).i.type + '|' + x.s.id; (G[k] = G[k] || { s: x.s, type: flCtx(p).i.type, ps: [] }).ps.push(p); }); });
+      const L = Object.values(G), NR = fuelNoRec(); let n = NR.length; L.forEach(g => { n += g.ps.length; });
+      if (!n) return '';
+      const cards = L.map(g => {
+        if (g.ps.length === 1) { const p = g.ps[0];
+          return `<div class="ask-card"><div class="ask-q-row"><span class="ico-diamond" aria-hidden="true"></span><div class="ask-q-text">${esc(p.plot_name)} · ${esc(g.s.q || g.s.n)}${flPrevAns(p, g.s)}</div></div>
+            <div class="ask-btn-row">${g.s.o.map((o, i) => `<button type="button" class="ask-choice-btn ${i ? 'is-secondary' : 'is-primary'}" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</div>
+            <div class="td5-ask-n">${esc(g.s.n)} · ${esc(g.type)} · ตอบแล้วแก้ได้ในเมนูแปลง › ขั้นตอน</div></div>`; }
+        return `<div class="ask-card"><div class="ask-q-row"><span class="ico-diamond" aria-hidden="true"></span><div class="ask-q-text">${esc(g.s.q || g.s.n)}</div></div>
+          ${g.ps.map(p => `<div class="td5-ask-pl"><span class="td5-ask-pn">${esc(p.plot_name)}${flPrevAns(p, g.s)}</span><span class="td5-ask-pb">${g.s.o.map(o => `<button type="button" class="ask-choice-btn is-secondary" onclick="flAnswer('${qa(p.plot_id)}','${qa(g.s.id)}','${qa(o.v)}')">${esc(o.l)}</button>`).join('')}</span></div>`).join('')}
+          <div class="td5-ask-n">${esc(g.s.n)} · ${esc(g.type)}</div></div>`;
+      }).concat(NR.map((x, i) => `<div class="ask-card"><div class="ask-q-row"><span class="ico-diamond" aria-hidden="true"></span><div class="ask-q-text">น้ำมันที่ให้${esc(x.who)} กี่ลิตร?</div></div>
+          <div class="ask-input-row"><div class="num-field-wrap"><input type="number" inputmode="decimal" min="0" step="0.5" class="num-field tabular" id="td5fq${i}" placeholder="ใส่ตัวเลข" aria-label="จำนวนลิตรน้ำมัน"><span class="num-unit">ลิตร</span></div>
+          <button type="button" class="ask-save-btn" onclick="td5FuelGive(${i},this)">บันทึก</button></div>
+          <div class="td5-ask-n">ฉีดอยู่ (ล่าสุด ${esc(dShort(x.last))}) แต่ยังไม่ได้จดการให้น้ำมัน · จดแล้วแอปคิดให้ว่าเหลือเท่าไร</div></div>`));
+      return `<section>${td5Head('แอปถาม', `<span class="sec-badge is-ask tabular">รอตอบ ${n}</span>`)}<div class="ask-stack">${cards.join('')}</div></section>`;
+    }
+    function td5FuelGive(i, btn) {
+      const x = fuelNoRec()[i], q = num(($('td5fq' + i) || {}).value);
+      if (!x) return render(); if (!(q > 0)) { alert('ใส่จำนวนลิตรก่อน'); return; }
+      const id = 'F' + Date.now();
+      call('chatApply', [[{ fn: 'fuel', id, p: { item: FUEL_ITEM, qty: q, team: x.who, date: isoToBE(todayISO()) } }], 'f' + id], d => { init(d); render(); }, btn);
+    }
+
+    // --- ต้องทำวันนี้: นัด + การ์ดงาน (กำลังทำรวมตามงานชุดเดียวกัน · ถึงคิวรวมตามงาน+พื้นที่ · ฝากดูทีละแปลง)
+    function td5TasksHtml(rows, logsBy, byId) {
+      const t0 = todayISO(), T = [];
+      const doing = rows.filter(r => r.st.isOngoing), urg = rows.filter(r => !r.st.isOngoing && r.st.isUrg);
+      const DG = {};
+      doing.forEach(({ p }) => {
+        const og = (logsBy[p.plot_id] || []).find(a => (a.remark || '').includes('[⏳กำลังทำ]'));
+        const det = og && og.activity_detail && og.activity_detail !== '-' ? og.activity_detail : '';
+        const title = og ? (det || og.activity_group) : plain(String(p.status_note || '').replace('[กำลังทำ]', '')) || 'กำลังทำ';
+        const k = og ? [og.activity_group, det, logWho(og).join('+'), String(og.timestamp).split(' ')[0]].join('|') : 'p' + p.plot_id;
+        (DG[k] = DG[k] || { st: 'doing', title, grp: og ? og.activity_group : '', who: og ? logWho(og).join(' + ') : '', start: og ? beToISO(og.timestamp) : '', ogs: [], P: [] }).P.push(p);
+        if (og) DG[k].ogs.push(og);
+      });
+      Object.values(DG).forEach(g => T.push(g));
+      const UG = {};
+      urg.forEach(({ p, st }) => {
+        const wc = waterChip(p, st, calcDays(p.plant_date), calcDays(p.last_water_date)), water = wc && wc.c === 'red';
+        const fl = (st.flow || []).length ? st.flow.map(s => s.n).join(', ') : '';
+        const txt = water ? wc.t : plain(st.next), k = water ? 'w' + p.plot_id : txt + '|' + plotLoc(p.plot_name);
+        (UG[k] = UG[k] || { st: 'due', title: water ? 'ให้น้ำ · ' + p.plot_name : txt, water, sub: water ? wc.t : '', fl, hint: wxHint(p, st), P: [] }).P.push(p);
+      });
+      Object.values(UG).forEach(g => T.push(g));
+      (gData.watches || []).filter(w => byId[w.plot_id]).forEach(w => T.push({ st: 'watch', w, title: byId[w.plot_id].p.plot_name, P: [byId[w.plot_id].p] }));
+      T.forEach((g, i) => { g.id = 't' + i; td5Ctx.tasks[g.id] = g; });
+      const rems = (gData.reminders || []).filter(r => { const d = beToISO(r.date); return d && d <= t0 && dayDiff(d, t0) <= 30; });
+      td5Ctx.rems = rems;
+      const cnt = k => T.filter(g => g.st === k).length, n = T.length + rems.length;
+      if (!T.some(g => td5F === 'all' || g.st === td5F)) td5F = 'all';
+      const seg = (k, t, c) => `<button type="button" class="seg-btn${td5F === k ? ' active' : ''}" onclick="td5F='${k}';render()">${t} <span class="seg-cnt tabular">${c}</span></button>`;
+      let b = rems.map((r, i) => { const d = beToISO(r.date), late = d < t0 && r.repeat !== 'วัน';
+        return `<button type="button" class="appt-strip" onclick="td5Rem(${i})"><div class="appt-left"><span class="appt-tag">${late ? 'เลย ' + dayDiff(d, t0) + ' วัน' : 'นัดวันนี้'}</span><span class="appt-text">${esc(r.text)}</span></div>${TD5_CHEV}</button>`; }).join('');
+      if (T.length) b += `<div class="seg-bar">${seg('all', 'ทั้งหมด', T.length)}${seg('doing', 'กำลังทำ', cnt('doing'))}${seg('due', 'ถึงคิว', cnt('due'))}${seg('watch', 'ฝากดู', cnt('watch'))}</div>
+        <div class="task-list">${T.filter(g => td5F === 'all' || g.st === td5F).map(td5Card).join('')}</div>`;
+      if (!n) b += `<div class="td5-none">วันนี้ไม่มีแปลงถึงคิว ไม่มีงานค้าง ไม่มีฝากดู</div>`;
+      return `<section>${td5Head('ต้องทำวันนี้', n ? `<span class="sec-badge tabular">${n} งาน</span>` : '', `<button type="button" class="sec-mini-btn" onclick="openWatch('')">+ ฝากดู</button>` + td5FoldBtn('tasks'))}${td5Fold('tasks') ? '' : b}</section>`;
+    }
+    function td5Card(g) {
+      const W = td5Where(g.P), id = g.id;
+      const btn = (cls, act, t) => `<button type="button" class="task-inline-btn ${cls}" onclick="event.stopPropagation();${act}">${t}</button>`;
+      let mid = '', pill = '';
+      if (g.st === 'doing') {
+        const since = g.start ? dayDiff(g.start, todayISO()) : null;
+        pill = `<span class="st-pill doing"><span class="pulse-dot"></span>กำลังทำ</span>`;
+        mid = `<div class="task-meta"><strong>${esc(W.zone)}${g.P.length > 1 ? ' ' + g.P.length + ' แปลง' : ''}</strong>${g.who ? `<span>· ${esc(g.who)}</span>` : ''}${g.start ? `<span>· ${g.start > todayISO() ? 'ลงวันล่วงหน้า ' + esc(dShort(g.start)) : 'เริ่ม ' + esc(dShort(g.start)) + (since ? ` (${since} วัน)` : '')}</span>` : ''}</div>
+          <div class="task-bottom-row">${W.chips.length ? td5Chips(W.chips) : '<span></span>'}${btn('is-doing', `td5Task('${id}')`, 'ลงเสร็จ')}</div>`;
+      } else if (g.st === 'due') {
+        pill = `<span class="st-pill due">ถึงคิว</span>`;
+        mid = (g.water ? `<div class="task-meta"><span style="color:var(--due);font-weight:600" class="tabular">${esc(g.sub)}</span></div>`
+          : `<div class="task-meta"><strong>${esc(W.zone)}${g.P.length > 1 ? ' ' + g.P.length + ' แปลง' : ''}</strong>${W.chips.length ? `<span class="plot-chips" style="display:inline-flex">${W.chips.map(n => `<span class="plot-chip tabular">${esc(n)}</span>`).join('')}</span>` : ''}</div>`)
+          + `<div class="task-bottom-row"><div class="task-bottom-left">${g.fl ? '📋 ' + esc(g.fl) : ''}${g.P.length === 1 ? g.hint : ''}</div>${btn('is-due', g.P.length === 1 ? `openAct('${g.P[0].plot_id}','${qa(g.P[0].plot_name)}','new')` : `td5Task('${id}')`, '+ บันทึก')}</div>`;
+      } else {
+        const w = g.w, ago = calcDays(w.created);
+        pill = `<span class="st-pill watch">ฝากดู</span>`;
+        mid = `<div class="task-meta">${w.note ? esc(w.note) + ' · ' : ''}ฝากไว้${ago ? ' ' + ago + ' วันก่อน' : 'วันนี้'}</div>
+          <div class="task-bottom-row"><div class="sat-callout">→ ${esc(w.reason)}</div>${btn('is-watch', `doneWatch('${qa(w.watch_id)}',this)`, 'ดูแล้ว')}</div>`;
+      }
+      return `<div class="task-card st-${g.st}" role="button" tabindex="0" onclick="td5Task('${id}')"><div class="task-top"><div class="task-title-line"><span class="task-title">${esc(g.title)}</span></div>${pill}</div>${mid}</div>`;
+    }
+
+    // --- แผ่นล่าง (แบบ v5: เด้งขึ้นเนียน · ลากลงปิด · แตะพื้นหลังปิด)
+    function td5El() {
+      let r = $('td5Sheet'); if (r) return r;
+      r = document.createElement('div'); r.id = 'td5Sheet'; r.className = 'td5';
+      r.innerHTML = `<div class="sheet-backdrop" id="td5Bd" aria-hidden="true"><div class="sheet-panel" id="td5Pn" role="dialog" aria-modal="true" aria-labelledby="td5T">
+        <div class="sheet-drag-zone" id="td5Dz"><div class="sheet-handle"></div><div class="sheet-header"><div><div class="sheet-title" id="td5T"></div><div class="sheet-subtitle" id="td5S"></div></div>
+        <button type="button" class="sheet-close" aria-label="ปิด" onclick="td5Close()">×</button></div></div><div class="sheet-body" id="td5B"></div></div></div>`;
+      document.body.appendChild(r);
+      const bd = $('td5Bd'), pn = $('td5Pn'), dz = $('td5Dz'); let y0 = 0, dy = 0, on = false;
+      bd.addEventListener('click', e => { if (e.target === bd) td5Close(); });
+      dz.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; dy = 0; on = true; pn.classList.add('is-dragging'); }, { passive: true });
+      dz.addEventListener('touchmove', e => { if (!on) return; dy = Math.max(0, e.touches[0].clientY - y0); pn.style.transform = `translateY(${dy}px)`; }, { passive: true });
+      dz.addEventListener('touchend', e => { if (!on) return; on = false; pn.classList.remove('is-dragging'); if (dy > 64) { e.preventDefault(); td5Close(); } else pn.style.transform = ''; }, { passive: false });
+      return r;
+    }
+    function td5Open(t, s, body) {
+      td5El(); $('td5T').textContent = t; $('td5S').textContent = s || ''; $('td5S').style.display = s ? 'block' : 'none';
+      $('td5B').innerHTML = body; $('td5B').scrollTop = 0; $('td5Pn').style.transform = '';
+      requestAnimationFrame(() => { $('td5Bd').classList.add('open'); $('td5Bd').setAttribute('aria-hidden', 'false'); });
+    }
+    function td5Close() { const b = $('td5Bd'); if (!b) return; $('td5Pn').style.transform = ''; b.classList.remove('open'); b.setAttribute('aria-hidden', 'true'); }
+    const td5Box = (lb, html, cls) => `<div class="detail-box${cls ? ' ' + cls : ''}"><div class="detail-label">${lb}</div>${html}</div>`;
+    const td5Btn = (t, act, cls) => `<button type="button" class="sheet-btn${cls ? ' ' + cls : ''}" onclick="td5Close();${act}">${t}</button>`;
+
+    function td5Task(id) {
+      const g = td5Ctx.tasks[id]; if (!g) return;
+      const W = td5Where(g.P), plots = td5Box(`แปลง (${g.P.length})`, `<div class="td5-pl">${g.P.map(p => `<div class="td5-pl-r"><span>${esc(p.plot_name)}</span><span class="td5-pl-b">${g.st === 'doing' && g.P.length > 1 ? `<button type="button" class="task-inline-btn is-doing" onclick="td5Close();openAct('${p.plot_id}','${qa(p.plot_name)}','finish')">เสร็จแปลงนี้</button>` : g.st === 'due' && g.P.length > 1 ? `<button type="button" class="task-inline-btn is-due" onclick="td5Close();openAct('${p.plot_id}','${qa(p.plot_name)}','new')">+ บันทึก</button>` : ''}<button type="button" class="task-inline-btn" onclick="td5Close();openDossier('${p.plot_id}')">ดูแปลง</button></span></div>`).join('')}</div>`);
+      if (g.st === 'doing') {
+        const one = g.P.length === 1, canAll = g.ogs.length === g.P.length && g.ogs.length > 0;
+        td5Open(g.title, `กำลังทำ · ${W.zone}${g.who ? ' · ' + g.who : ''}`,
+          td5Box('รายละเอียดงาน', `<div>${esc(g.grp ? g.grp + (g.title !== g.grp ? ' · ' + g.title : '') : g.title)}</div>${g.start ? `<div class="td5-dim">เริ่ม ${esc(dShort(g.start))}${g.who ? ' · ' + esc(g.who) : ''}</div>` : ''}`) + plots
+          + `<div class="sheet-btn-stack">${one ? td5Btn('ลงเสร็จ (เปิดฟอร์มงานเสร็จ)', `openAct('${g.P[0].plot_id}','${qa(g.P[0].plot_name)}','finish')`, 'primary')
+            : canAll ? `<button type="button" class="sheet-btn primary" onclick="td5FinishAll('${id}',this)">ลงเสร็จวันนี้ ทั้ง ${g.P.length} แปลง</button>` : ''}
+            ${one ? td5Btn('+ บันทึกงานอื่น', `openAct('${g.P[0].plot_id}','${qa(g.P[0].plot_name)}','new')`) : ''}</div>
+            ${!one && canAll ? '<div class="td5-dim" style="margin-top:8px">เสร็จไม่พร้อมกัน = กด "เสร็จแปลงนี้" ทีละแปลงด้านบน</div>' : ''}`);
+      } else if (g.st === 'due') {
+        const one = g.P.length === 1;
+        td5Open(g.title, `ถึงคิว · ${W.zone}${one ? '' : ' · ' + g.P.length + ' แปลง'}`,
+          td5Box('ทำไมถึงคิว', `<div>${esc(g.water ? g.sub : g.title)}</div>${g.fl ? `<div class="td5-dim">📋 ขั้นตอน: ${esc(g.fl)}</div>` : ''}${one && g.hint ? `<div class="td5-dim">${g.hint}</div>` : ''}`, 'is-due') + plots
+          + (one ? `<div class="sheet-btn-stack">${td5Btn('+ บันทึกงาน', `openAct('${g.P[0].plot_id}','${qa(g.P[0].plot_name)}','new')`, 'primary')}</div>` : ''));
+      } else {
+        const w = g.w, p = g.P[0], ago = calcDays(w.created);
+        const act = w.reason !== 'ไปดูอาการ' ? td5Btn('+ บันทึก' + esc(w.reason === 'น้ำขัง สูบออก' ? 'สูบน้ำ' : w.reason), `actFromWatch('${p.plot_id}','${qa(w.reason)}')`, 'primary') : td5Btn('+ บันทึกงาน', `openAct('${p.plot_id}','${qa(p.plot_name)}','new')`, 'primary');
+        td5Open(p.plot_name, `ฝากดู · ${w.reason}`, td5Box('ข้อมูลฝากดู', `<div>${esc(w.note || w.reason)}</div><div class="td5-dim">ฝากไว้${ago ? ' ' + ago + ' วันก่อน' : 'วันนี้'}</div>`, 'is-warn')
+          + `<div class="sheet-btn-stack">${act}${td5Btn('ดูแล้ว', `doneWatch('${qa(w.watch_id)}')`)}${td5Btn('ดูแปลง', `openDossier('${p.plot_id}')`)}${td5Btn('ยกเลิกฝากดู', `cancelWatchUi('${qa(w.watch_id)}')`, 'danger-text')}</div>`);
+      }
+    }
+    function td5FinishAll(id, btn) {
+      const g = td5Ctx.tasks[id]; if (!g) return;
+      const ops = g.ogs.map(og => ({ fn: 'finish', log_id: og.log_id, keep: og.activity_group === 'ฉีดยา', date: isoToBE(todayISO()) }));
+      call('chatApply', [ops, 'fin' + Date.now()], d => { td5Close(); init(d); render(); }, btn);
+    }
+    function td5Rem(i) {
+      const r = (td5Ctx.rems || [])[i]; if (!r) return;
+      const d = beToISO(r.date), t0 = todayISO();
+      const sub = [d < t0 && r.repeat !== 'วัน' ? `เลยมา ${dayDiff(d, t0)} วัน` : 'นัดวันนี้', r.time ? r.time + ' น.' : '', r.repeat ? repTxt(r.repeat) : ''].filter(Boolean).join(' · ');
+      td5Open(r.text, sub, `<div class="sheet-btn-stack">${td5Btn('ทำแล้ว → จดเป็นงาน', `remToLog('${qa(r.rem_id)}')`, 'primary')}${td5Btn('ทำแล้ว', `remDo('done','${qa(r.rem_id)}')`)}${td5Btn('ลบนัดนี้', `remDo('del','${qa(r.rem_id)}')`, 'danger-text')}</div>`);
+    }
+    function td5Guard(id) {
+      const g = (gData.guards || []).find(x => x.guard_id === id); if (!g) return;
+      const P = guardPlots(g).map(x => gData.plots.find(p => p.plot_id === x)).filter(Boolean);
+      td5Open(`เฝ้าไร่ · ${guardWhere(g)}`, g.workers || '', td5Box('สรุป', `<div>${esc(guardLine(g))}</div>`) + td5Box(`แปลง (${P.length})`, `<div>${P.map(p => esc(p.plot_name)).join(', ')}</div>${g.note ? `<div class="td5-dim">${esc(g.note)}</div>` : ''}`)
+        + `<div class="sheet-btn-stack">${td5Btn('เลิกเฝ้าวันนี้', `guardEnd('${qa(id)}')`, 'primary')}${td5Btn('ลบ (ลงผิด)', `guardDel('${qa(id)}')`, 'danger-text')}</div>`);
+    }
+    function td5Fuel(i) {
+      const b = fuelShown()[i]; if (!b) return;
+      td5Open(b.pump ? 'เบนซิน · เครื่องสูบน้ำ' : 'เบนซิน + 2T · ' + b.team.join(' + '), 'ค่าประมาณ', td5Box('สรุป', `<div>${esc(fuelLine(b))}</div>`)
+        + td5Box('วิธีคิด', `<div class="td5-dim" style="margin:0">${b.pump ? `เบนซินล้วน สูบน้ำใส่ถัง 200 ลิตรผสมยา · เติมจนเต็มทุกครั้ง แล้วพิมพ์ในแชต "เติมน้ำมันเครื่องสูบ … ลิตร"${b.rate ? ` · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร` : ''}` : `เบนซิน ${r1(fuelL())} ลิตร/ถัง · ใช้ต่อวัน ≈ ${r1(b.perDay)} ลิตร (เฉลี่ยวันที่ฉีดล่าสุด) · ให้เพิ่ม: พิมพ์ในแชต "ให้น้ำมัน${esc(b.team[0])} 4 ลิตร"`}</div>`)
+        + `<div class="sheet-btn-stack">${td5Btn('ลบการให้ล่าสุด (ลงผิด)', `fuelUndo('${qa(b.lastGive.ref)}','${qa(dShort(b.lastGive.iso) + ' ' + r1(b.lastGive.qty) + ' ลิตร')}')`, 'danger-text')}</div>`);
+    }
+    function td5DqHtml(L) {
+      const ok = !L.length;
+      return `<section>${ok ? td5Head('ตรวจข้อมูล') : ''}<div class="grouped-card">${td5Row({ click: 'td5Dq()', icCls: ok ? 'is-ok' : 'is-audit', ic: ok ? TD5_IC.auditOk : TD5_IC.auditWarn, t: 'ตรวจข้อมูลอัตโนมัติ',
+        pill: ok ? '<span class="sec-badge is-ok">ไม่พบจุดผิด</span>' : `<span class="mini-pill-purple tabular">พบ ${L.length} จุด</span>`,
+        s: ok ? `ตรวจ ${DQ_DAYS} วันล่าสุดเรียบร้อย` : esc(L[0].t + (L[0].s ? ': ' + L[0].s : '')),
+        btn: `<button type="button" class="row-action-btn ${ok ? 'is-ghost' : 'is-ask'}" onclick="event.stopPropagation();td5Dq()">${ok ? 'ดู' : 'ดู'}</button>` })}</div></section>`;
+    }
+    function td5Dq() {
+      const L = dqItems(), what = 'บันทึกซ้ำ · งานค้างนาน · ลงวันข้างหน้า · น้ำมันไม่มีงานฉีด · สต็อกติดลบ · ดาวเทียมแห้งลงไม่มีบันทึก';
+      if (!L.length) return td5Open('ตรวจข้อมูลอัตโนมัติ', 'ไม่พบจุดผิด', td5Box(`สิ่งที่ตรวจ (${DQ_DAYS} วันล่าสุด)`, `<div>${what}</div><div class="td5-dim">ตรวจเองทุกครั้งที่เปิดหน้านี้</div>`));
+      td5Open('ตรวจข้อมูลอัตโนมัติ', `พบ ${L.length} จุดควรเช็ก`, L.map(o => {
+        const k = esc(qa(o.k)), go = o.iso ? `<button type="button" class="task-inline-btn is-due" onclick="td5Close();dqGo('${k}')">ดูในปฏิทิน ${esc(dShort(o.iso))}</button>`
+          : o.stock ? `<button type="button" class="task-inline-btn is-due" onclick="td5Close();switchTab('stock')">ไปหน้าสต็อก</button>` : o.pid ? `<button type="button" class="task-inline-btn is-due" onclick="td5Close();dqBurnMap('${qa(o.pid)}')">ดูจุดแห้งบนแผนที่</button>` : '';
+        return `<div class="detail-box is-warn"><div class="detail-label">${o.ic} ${esc(o.t)}</div><div>${esc(o.s)}</div>${o.x ? `<div class="td5-dim">${esc(o.x)}</div>` : ''}
+          <div class="td5-dq-b">${go}<button type="button" class="task-inline-btn" onclick="td5Close();dqDismiss('${k}')">ถูกแล้ว ไม่ต้องเตือน</button></div></div>`;
+      }).join('') + `<div class="td5-dim">ตรวจ: ${what}</div>`);
     }
 
     // ===== 🔎 ตรวจข้อมูลอัตโนมัติ (19 พ.ย. 69 ผู้ใช้: "ต้องเช็คทุกอย่างเหนื่อย") — การ์ดเดียวบนหน้าวันนี้ ขึ้นทุกวัน
@@ -4819,7 +5411,7 @@
 
       chkHtml = rainListHtml();
 
-      $('plot-list').innerHTML = html; $('plot-list').classList.toggle('tdA', curTab === 'urgent' && !!HOME_V); document.body.classList.toggle('tdA-on', curTab === 'urgent'); // หน้าวันนี้แบบ A (Gemini 24 พ.ย. 69)
+      $('plot-list').innerHTML = html; $('plot-list').classList.toggle('tdA', curTab === 'urgent' && !!HOME_V); $('plot-list').classList.toggle('td5', curTab === 'urgent' && HOME_V === '5'); document.body.classList.toggle('tdA-on', curTab === 'urgent'); // หน้าวันนี้แบบ A (Gemini 24 พ.ย. 69)
       $('chk-list').innerHTML = chkHtml; rainSync();
       const total = nUrg + nDoing + (gData.watches || []).length + (gData.reminders || []).filter(r => { const d = beToISO(r.date); return r.status !== 'done' && d && d <= todayISO() && dayDiff(d, todayISO()) <= 30; }).length; // นับนัดด้วย ให้ตรงกับหัว "ต้องทำวันนี้"
       $('u-cnt').innerText = total; $('u-cnt').style.display = total ? 'inline-flex' : 'none';

@@ -3118,6 +3118,52 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #stock-view.v6 .exp-bill:last-child{border-bottom:0}
 #stock-view.v6 .s6-bd{font-size:12px;color:var(--ink-3)}#stock-view.v6 .s6-bs{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.3}#stock-view.v6 .s6-bi{font-size:12.5px;color:var(--ink-3)}
 #stock-view.v6 .exp-bill>b{font-size:15px;white-space:nowrap}
+/* ก้อน 12 คลังยา (chemlib-v1) */
+#chemModal .modal-body{background:#F4F6F3!important}
+#chemModal .seg-bar{margin-bottom:10px}
+#chemModal .c6-strip{background:#fff;border:1px solid #DCE3DC;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#46594E;margin-bottom:10px;box-shadow:0 1px 2px rgba(20,46,30,.05)}
+#chemModal .c6-strip b{color:#16241B}
+#chemModal .chem-f,#chemModal .chem-c{border-color:#DCE3DC;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+#chemModal .chem-f{padding:0;overflow:hidden}
+#chemModal .chem-f .chem-fw{font-size:12.5px;color:#6D7B72;margin:0;padding:11px 13px 0}
+#chemModal .chem-f .chem-ft{font-size:17px;color:#15452A;padding:2px 13px 10px}
+#chemModal .chem-tb{border-top:1px solid #E9EFEA}
+#chemModal .chem-tr{padding-left:13px;padding-right:13px}
+#chemModal .chem-th{background:#F7F9F7}
+#chemModal .chem-care{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:8px 10px;color:#9A3412}
+#chemModal .chem-src{border-top:1px solid #EEF2EE;padding-top:6px;margin-top:8px}
+/* ก้อน 13 อากาศ + น้ำตาล หน้าเดียว (wx-sugar-v1) */
+#wxModal .modal-body{background:#F4F6F3}
+#wxModal #wx-in>.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px;background:#E5EBE6;border-radius:11px;margin-bottom:10px}
+#wxModal #wx-in>.seg button{height:34px;padding:0;border-radius:8px;font-size:13.5px;color:#46594E}
+#wxModal #wx-in>.seg button.on{background:#fff;color:#16241B;box-shadow:0 1px 3px rgba(20,46,30,.1)}
+#wxModal .wx-grid-box,#wxModal .card-sec{background:#fff;border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+#wxModal .wx-gc.on{outline:2px solid #1F5E3B;outline-offset:-2px}
+#wxModal .wx-boxes>div{background:#fff!important;border:1px solid #DCE3DC;border-radius:12px}
+#wxModal .card-sec h6{font-size:15px;font-weight:700;color:#16241B}
+#wxModal .wx-grid-box{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#wxModal .wx-grid{grid-template-columns:86px repeat(7,56px)!important;width:max-content}
+#wxModal .wx-gn{position:sticky;left:0;z-index:1;background:#fff;box-shadow:3px 0 6px -3px rgba(20,46,30,.12)}
+#wxModal .wx-grid>div:first-child{position:sticky;left:0;z-index:1;background:#fff}
+#wxModal .wx-gc small{white-space:nowrap}
+#wxModal .sg-big{font-size:28px;font-weight:700;line-height:1.15}
+/* ก้อน 14 แผนงาน + ตั้งค่า หน้าเดียว (plan-settings-v1) */
+#setModal .modal-body{background:#F4F6F3}
+#setModal .card-sec{background:#fff;border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+#setModal .card-sec h6{font-size:15px;font-weight:700;color:#16241B}
+#setModal .form-control,#setModal .form-select{font-size:16px;border-radius:10px;border-color:#DCE3DC}
+#setModal #btnSetSave{background:#1F5E3B;border-color:#1F5E3B;border-radius:12px;height:48px}
+#plan-body .p6-sec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 2px 7px}
+#plan-body .p6-sec:first-child{margin-top:2px}
+#plan-body .p6-sec b{font-size:15px;color:#16241B;display:flex;align-items:center;gap:7px}
+#plan-body .p6-n{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:#E5EBE6;color:#46594E}
+#plan-body .p6-up{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:#E5EBE6;color:#46594E}
+#plan-body .p6-card{background:#fff;border:1px solid #DCE3DC;border-left:4px solid #C7D1C9;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);padding:11px 12px 11px 13px;margin-bottom:9px}
+#plan-body .p6-card.next{border-left-color:#1F5E3B}#plan-body .p6-card.wait{border-left-color:#0369A1;background:#F3F9FD;border-color:#BAE6FD}#plan-body .p6-card.done{opacity:.8}
+#plan-body .p6-card .plan-dot{font-size:12px;padding:1px 9px;display:inline-block;margin-bottom:5px}
+#plan-body .pd-next{background:#FFF1E6;color:#C2410C}#plan-body .pd-wait{background:#E0F2FE;color:#0369A1}
+#plan-body .p6-card .plan-t{font-size:15.5px;font-weight:700;color:#16241B;line-height:1.35}
+#plan-body .p6-card .plan-n{font-size:13.5px;color:#46594E;margin-top:3px}
 /* ก้อน 6 ตาราง */
 #table-view.v6{background:none!important;box-shadow:none!important;padding:0!important}
 .v6 .tb6-bk{border:0;background:none;color:var(--brand);font-weight:700;font-size:13px;padding:0;min-height:30px}
@@ -3168,7 +3214,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
         <button type="button" class="ibtn ibtn-ghost ibtn-add" aria-label="บันทึกงาน" style="font-size:24px;font-weight:600;min-width:48px" onclick="openPick()"><span class="hd-addt">+</span></button><!-- F แบบ A (16 พ.ย. 69): แผนน้ำ/แบตรถ ย้ายไป ⚙ -->
         <label class="ibtn ibtn-ghost hd-bk" aria-label="ลงวันย้อนหลัง">ลงวันย้อนหลัง<input type="date" id="hdBkIn" onchange="hdBkSet(this)"></label>
-        <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="$('set_build').innerText=buildTxt(APP_BUILD);showM('setModal')">
+        <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="openSet()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
       </div>
     </div>
@@ -3728,28 +3774,18 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     </div>
   </div>
 
-  <div class="modal fade" id="planModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
-      <div class="modal-content">
-        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
-          <h6 class="modal-title fw-bold">แผนงานที่คุยไว้</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-3" id="plan-body">กำลังโหลด…</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="setModal" tabindex="-1">
+  <div class="modal fade v5h" id="setModal" tabindex="-1" data-back="ย้อน">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
-          <h6 class="modal-title">ตั้งค่า</h6>
+          <h6 class="modal-title" id="setTitle">ตั้งค่า</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3 mbody">
+        <div class="modal-body p-3 mbody v6">
+          <div class="seg-bar" id="setSeg"></div>
+          <div id="plan-body" style="display:none">กำลังโหลด…</div>
+          <div id="setPane">
           <div class="d-flex gap-2 mb-3">
-            <button type="button" class="btn btn-outline-success fw-bold flex-fill py-2" onclick="hideModal('setModal');setTimeout(openPlan,300)">💧 แผนน้ำ</button>
             <button type="button" class="btn btn-outline-success fw-bold flex-fill py-2" onclick="hideModal('setModal');setTimeout(openBatModal,300)">🔋 แบตรถ</button>
           </div>
           <div class="card-sec" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -3838,6 +3874,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
             <div class="srow-s mb-2">ตอนนี้ข้อมูลดาวเทียมลงเองทุกเช้าแล้ว ปุ่มนี้ไว้ใช้กับ Earth Engine เท่านั้น</div>
             <button type="button" class="btn btn-sm btn-outline-secondary w-100" style="border-radius:12px;" onclick="copyEeScript()">คัดลอกสคริปต์ดาวเทียม (Earth Engine)</button>
           </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3917,14 +3954,14 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     </div>
   </div>
 
-  <div class="modal fade" id="wxModal" tabindex="-1">
+  <div class="modal fade v5h" id="wxModal" tabindex="-1" data-back="วันนี้">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
-          <h6 class="modal-title">พยากรณ์อากาศ</h6>
+          <h6 class="modal-title" id="wxTitle">พยากรณ์อากาศ</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3 mbody" id="wx-body"></div>
+        <div class="modal-body p-3 mbody v6" id="wx-body"><div class="seg-bar" id="wxTopSeg"></div><div id="wx-in"></div><div id="sugar-body"></div></div>
       </div>
     </div>
   </div>
@@ -3957,11 +3994,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       </div>
     </div>
   </div>
-  <div class="modal fade" id="chemModal" tabindex="-1">
+  <div class="modal fade v5h" id="chemModal" tabindex="-1" data-back="สต็อก">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header mhd py-2"><h6 class="modal-title">🧪 คลังยา + สูตรของไร่</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body" style="background:#F4F3EC" id="chem-body"></div>
+        <div class="modal-header mhd py-2"><h6 class="modal-title">คลังยา + สูตรของไร่</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body v6" style="background:#F4F3EC" id="chem-body"></div>
       </div>
     </div>
   </div>
@@ -3995,18 +4032,6 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3 mbody" id="sat-body"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="sugarModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
-      <div class="modal-content">
-        <div class="modal-header mhd py-2">
-          <h6 class="modal-title">ราคาน้ำตาล → ราคาอ้อย</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-3 mbody" id="sugar-body"></div>
       </div>
     </div>
   </div>
@@ -4750,15 +4775,24 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     }
 
     // แผนงาน: อ่าน roadmap.json ใน repo เดียวกัน (Claude อัปเดตทุกครั้งที่คุยตกลงกัน)
-    function openPlan() {
-      showM('planModal');
+    // ก้อน 14: แผนงาน + ตั้งค่า อยู่หน้าเดียว (setModal) สลับด้วยแถบบน
+    var setTabV = 'set';
+    function setTab(t) {
+      setTabV = t; $('setTitle').innerText = t === 'plan' ? 'แผนงานที่คุยไว้' : 'ตั้งค่า';
+      $('setSeg').innerHTML = [['plan', 'แผนงานที่คุยไว้'], ['set', 'ตั้งค่า']].map(([k, l]) => `<button type="button" class="seg-btn${t === k ? ' active' : ''}" onclick="${k === 'plan' ? 'openPlan(1)' : 'setTab(\'set\')'};document.querySelector('#setModal .modal-body').scrollTop=0">${l}</button>`).join('');
+      $('plan-body').style.display = t === 'plan' ? '' : 'none'; $('setPane').style.display = t === 'set' ? '' : 'none';
+    }
+    function setBackLbl() { $('setModal').dataset.back = { urgent: 'วันนี้', all: 'แปลง', table: 'แปลง', log: 'บันทึก', fleet: 'รถ/คน', stock: 'สต็อก' }[curTab] || 'ย้อน'; }
+    function openSet() { $('set_build').innerText = buildTxt(APP_BUILD); setTab('set'); setBackLbl(); showM('setModal'); }
+    function openPlan(inPage) {
+      setTab('plan'); if (!inPage) { $('set_build').innerText = buildTxt(APP_BUILD); setBackLbl(); showM('setModal'); }
       const body = $('plan-body');
       fetch('roadmap.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
         const LBL = { next: ['pd-next', 'ทำต่อไป'], wait: ['pd-wait', 'รอคุณ'], later: ['pd-later', 'ไว้ทีหลัง'], done: ['pd-done', 'เสร็จแล้ว'] };
-        body.innerHTML = `<div class="small text-muted mb-2">อัปเดต ${esc(j.updated || '')}</div>` + (j.sections || []).map(sec =>
-          `<div class="plan-sec">${esc(sec.title)}</div>` + (sec.items || []).map(it => {
+        body.innerHTML = (j.sections || []).map((sec, si) =>
+          `<div class="p6-sec"><b>${esc(sec.title)} <span class="p6-n">${(sec.items || []).length}</span></b>${si === 0 ? `<span class="p6-up">อัปเดต ${esc(j.updated || '')}</span>` : ''}</div>` + (sec.items || []).map(it => {
             const l = LBL[it.status] || LBL.later;
-            return `<div class="plan-it"><span class="plan-dot ${l[0]}">${l[1]}</span><div><div class="plan-t">${esc(it.t)}</div>${it.n ? `<div class="plan-n">${esc(it.n)}</div>` : ''}</div></div>`;
+            return `<div class="p6-card ${it.status || 'later'}"><span class="plan-dot ${l[0]}">${l[1]}</span><div class="plan-t">${esc(it.t)}</div>${it.n ? `<div class="plan-n">${esc(it.n)}</div>` : ''}</div>`;
           }).join('')).join('');
       }).catch(() => { body.innerHTML = '<div class="text-muted">โหลดแผนงานไม่ได้ ลองใหม่อีกครั้ง</div>'; })
         .finally(() => {
@@ -7207,7 +7241,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const logs = groupAssetLogs((gData.assetLogs || []).filter(l => { const a = assets.find(x => x.name === l.asset_name); return !a || a.category !== 'Worker'; }));
         html += `<div class="f6-foot">
             <button type="button" onclick="tglFleetLog()">${fleetLogOpen ? 'ซ่อน' : 'ดู'}ประวัติซ่อม / บำรุงทั้งหมด</button>
-            <button type="button" class="is-main" onclick="new bootstrap.Modal($('setModal')).show()">+ เพิ่มรถ/เครื่อง</button>
+            <button type="button" class="is-main" onclick="openSet()">+ เพิ่มรถ/เครื่อง</button>
           </div>
           ${fleetLogOpen ? `<div class="srow-box mt-2">${logs.slice(0, 60).map(l => logRow(l, true)).join('') || '<div class="p-3 text-muted">ยังไม่มีประวัติ</div>'}</div>` : ''}`;
       }
@@ -7770,15 +7804,16 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const L = chemLib, byId = {}; L.items.forEach(c => { byId[c.id] = c; });
       const amt = (c, k) => { const it = chemInv(c), pt = it ? num(it.per_tank) : 0; return pt ? `${baht(pt * k)} ${esc(it.unit)}` : '<span class="chem-miss">ยังไม่ได้ใส่</span>'; };
       const kind = k => { const s = CHEM_K[k] || CHEM_K['คุม']; return `<span class="chem-k" style="background:${s[0]};color:${s[1]}">${esc(k)}</span>`; };
-      let h = `<div class="chem-h">สูตรของไร่ <small>ต่อถัง ${L.tankL} ลิตร · ต่อไร่ คิดที่ ${L.perRai} ถัง/ไร่</small></div>`;
-      L.formulas.forEach(f => {
-        h += `<div class="chem-f" id="chemf_${f.id}"><div class="chem-ft">${esc(f.t)}</div><div class="chem-fw">${esc(f.when)}</div>
+      const cs = (k, t) => `<button type="button" class="seg-btn${chemPane === k ? ' active' : ''}" onclick="chemPane='${k}';chemRender();$('chem-body').scrollTop=0">${t}</button>`;
+      let h = `<div class="seg-bar">${cs('f', `สูตรของไร่ (${L.formulas.length})`)}${cs('c', `คลังยาแต่ละตัว (${L.items.length})`)}</div>`;
+      if (chemPane === 'f') h += `<div class="c6-strip">ต่อถัง <b>${L.tankL} ลิตร</b> · ต่อไร่ คิดที่ <b>${L.perRai} ถัง/ไร่</b></div>`;
+      if (chemPane === 'f') L.formulas.forEach(f => {
+        h += `<div class="chem-f" id="chemf_${f.id}"><div class="chem-fw">${esc(f.when)}</div><div class="chem-ft">${esc(f.t)}</div>
           <div class="chem-tb"><div class="chem-tr chem-th"><span>ยา</span><span>ต่อถัง</span><span>ต่อไร่</span></div>
           ${f.items.map(id => { const c = byId[id]; return c ? `<button type="button" class="chem-tr" onclick="chemGo('${id}')"><span><b>${esc(c.name)}</b> ${kind(c.kind)}<small class="chem-ta">${esc(c.active)}</small></span><span>${amt(c, 1)}</span><span>${f.noRai ? '–' : amt(c, L.perRai)}</span></button>` : ''; }).join('')}</div></div>`;
       });
-      h += `<div class="chem-note">${esc(L.perRaiNote)} · อัตราต่อถังมาจากรายการสต็อก (แก้ได้ที่ แท็บสต็อก → แตะยา → แก้ไข)</div>
-        <div class="chem-h mt-3">ยาแต่ละตัว</div>`;
-      L.items.forEach(c => {
+      if (chemPane === 'f') h += `<div class="chem-note">${esc(L.perRaiNote)} · อัตราต่อถังมาจากรายการสต็อก (แก้ได้ที่ แท็บสต็อก → แตะยา → แก้ไข)</div>`;
+      if (chemPane === 'c') L.items.forEach(c => {
         const it = chemInv(c), pt = it ? num(it.per_tank) : 0, q = it ? num(it.stock) : 0;
         const used = it ? (gData.stockLogs || []).filter(s => s.item_name === it.name && num(s.change_qty) < 0) : [];
         const tot = used.reduce((a, s) => a + -num(s.change_qty), 0);
@@ -7803,7 +7838,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       h += `<div class="chem-note">อัตราตามฉลากจะเพิ่มเมื่อส่งรูปฉลากด้านที่มีวิธีใช้ · ข้อมูลยาแก้ได้ บอกในแชตกับ Claude</div>`;
       B.innerHTML = h;
     }
-    function chemGo(id, pre) { const el = $((pre || 'chem_') + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
+    var chemPane = 'f';
+    function chemGo(id, pre) { const p = (pre || 'chem_') === 'chemf_' ? 'f' : 'c'; if (chemPane !== p) { chemPane = p; chemRender(); return requestAnimationFrame(() => requestAnimationFrame(() => chemGo(id, pre))); } const el = $((pre || 'chem_') + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); } }
     var stockFold = (() => { try { return JSON.parse(localStorage.getItem('raioy_stockFold') || '[]'); } catch (e) { return []; } })();
     function stockFoldT(t) { stockFold = stockFold.includes(t) ? stockFold.filter(x => x !== t) : stockFold.concat(t); try { localStorage.setItem('raioy_stockFold', JSON.stringify(stockFold)); } catch (e) {} renderStock(); }
     function renderStock() {
@@ -14572,14 +14608,14 @@ Export.table.toDrive({
       const locs = wxLocs();
       if (!locs.length) return wxUseMyLoc();
       wxSelA = Math.min(i || 0, locs.length - 1); wxSelD = 0; wxShowHrs = false;
-      wxRender(); showM('wxModal'); wxLoad();
+      wxTop = 'wx'; wxRender(); showM('wxModal'); wxLoad();
     }
     function wxPick(a, d) { wxSelA = a; wxSelD = d; wxShowHrs = false; wxRender(); }
     function wxSetMode(m) { wxMode = m; wxRender(); }
     const wxRainCol = p => p >= 80 ? ['#2F6FB3', '#FFFFFF'] : p >= 60 ? ['#7FB0E3', '#10233A'] : p >= 30 ? ['#C9DDF3', '#10233A'] : ['#EEF4FA', '#10233A'];
     const wxWindCol = g => g >= 30 ? ['#C2410C', '#FFFFFF'] : g >= 20 ? ['#F6B26B', '#3A1D00'] : ['#FFF1DC', '#3A1D00'];
     function wxRender() {
-      const locs = wxLocs(), B = $('wx-body');
+      const locs = wxLocs(), B = $('wx-in'); wxTopSet(wxTop);
       if (!wxData || wxData.key !== wxKey(locs)) {
         B.innerHTML = `<div class="msub">${wxErr ? 'โหลดพยากรณ์ไม่ได้ (' + esc(wxErr) + ')' : 'กำลังโหลดพยากรณ์…'}</div>${wxErr ? '<button class="btn btn-success w-100" onclick="wxLoad(true)">ลองใหม่</button>' : ''}`;
         return;
@@ -14667,7 +14703,7 @@ Export.table.toDrive({
         if (!d || !d.price) throw new Error('ไม่มีราคา');
         sugar = Object.assign(d, { got: Date.now() }); lsSet('raioy_sugar', JSON.stringify(sugar));
       }).catch(e => { sugarErr = e.message || 'โหลดไม่ได้'; sugarErrAt = Date.now(); })
-        .finally(() => { sugarLoading = false; if (curTab === 'urgent') render(); if ($('sugarModal').classList.contains('show')) sugarRender(); });
+        .finally(() => { sugarLoading = false; if (curTab === 'urgent') render(); if ($('wxModal').classList.contains('show') && wxTop === 'sugar') sugarRender(); });
     }
 
     const SUGAR_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>';
@@ -14681,7 +14717,14 @@ Export.table.toDrive({
         <button type="button" class="td-btn-out td-wx-more" onclick="openSugar()">กราฟ · ย้อนหลัง ›</button></div>` : '';
       return tdaStrip('sgInline=!sgInline;render()', TDA_IC.sugar, 'ราคาน้ำตาลโลก · คาดอ้อย', `${sugar.price} ¢/lb · คาด ≈ ${cp} บ./ตัน`, `<span class="${up ? 'sg-up' : 'sg-dn'}">${up ? '+' : ''}${num(sugar.chg).toFixed(2)}</span>`, body);
     }
-    function openSugar() { sugarRender(); showM('sugarModal'); sugarLoad(); }
+    // ก้อน 13: อากาศ + น้ำตาล อยู่หน้าเดียว (wxModal) สลับด้วยแถบบน
+    var wxTop = 'wx';
+    function wxTopSet(t) {
+      wxTop = t; $('wxTitle').innerText = t === 'wx' ? 'พยากรณ์อากาศ' : 'ราคาน้ำตาล → อ้อย';
+      $('wxTopSeg').innerHTML = [['wx', 'พยากรณ์อากาศ'], ['sugar', 'ราคาน้ำตาล → อ้อย']].map(([k, l]) => `<button type="button" class="seg-btn${wxTop === k ? ' active' : ''}" onclick="${k === 'wx' ? "wxTop='wx';wxRender()" : 'openSugar(1)'};$('wx-body').scrollTop=0">${l}</button>`).join('');
+      $('wx-in').style.display = t === 'wx' ? '' : 'none'; $('sugar-body').style.display = t === 'sugar' ? '' : 'none';
+    }
+    function openSugar(inPage) { wxTopSet('sugar'); sugarRender(); if (!inPage) showM('wxModal'); sugarLoad(); if (!wxData && wxLocs().length) try { wxRender(); wxLoad(); } catch (e) {} }
 
     // กราฟจุด: แกน x = น้ำตาล ¢/ปอนด์, แกน y = ราคาอ้อย บาท/ตัน, เส้นแนวโน้ม + จุด "ตอนนี้"
     function sugarScatterSvg(now) {

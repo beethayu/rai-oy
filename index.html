@@ -3138,13 +3138,14 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #wxModal #wx-in>.seg button{height:34px;padding:0;border-radius:8px;font-size:13.5px;color:#46594E}
 #wxModal #wx-in>.seg button.on{background:#fff;color:#16241B;box-shadow:0 1px 3px rgba(20,46,30,.1)}
 #wxModal .wx-grid-box,#wxModal .card-sec{background:#fff;border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06)}
-#wxModal .wx-gc.on{outline:2px solid #1F5E3B;outline-offset:-2px}
+#wxModal .wx-gc.on{outline:2.5px solid #1F2A24;outline-offset:-2.5px;box-shadow:none}
 #wxModal .wx-boxes>div{background:#fff!important;border:1px solid #DCE3DC;border-radius:12px}
 #wxModal .card-sec h6{font-size:15px;font-weight:700;color:#16241B}
-#wxModal .wx-grid-box{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#wxModal .wx-grid-box{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-left:0;padding-right:6px}
+#wxModal .wx-gn{padding-left:9px}
 #wxModal .wx-grid{grid-template-columns:86px repeat(7,56px)!important;width:max-content}
-#wxModal .wx-gn{position:sticky;left:0;z-index:1;background:#fff;box-shadow:3px 0 6px -3px rgba(20,46,30,.12)}
-#wxModal .wx-grid>div:first-child{position:sticky;left:0;z-index:1;background:#fff}
+#wxModal .wx-gn{position:sticky;left:0;z-index:3;background:#fff;box-shadow:3px 0 6px -3px rgba(20,46,30,.12)}
+#wxModal .wx-grid>div:first-child{position:sticky;left:0;z-index:3;background:#fff}
 #wxModal .wx-gc small{white-space:nowrap}
 #wxModal .sg-big{font-size:28px;font-weight:700;line-height:1.15}
 /* ก้อน 14 แผนงาน + ตั้งค่า หน้าเดียว (plan-settings-v1) */
@@ -3164,6 +3165,59 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 #plan-body .pd-next{background:#FFF1E6;color:#C2410C}#plan-body .pd-wait{background:#E0F2FE;color:#0369A1}
 #plan-body .p6-card .plan-t{font-size:15.5px;font-weight:700;color:#16241B;line-height:1.35}
 #plan-body .p6-card .plan-n{font-size:13.5px;color:#46594E;margin-top:3px}
+/* รอบ 3 เก็บตก: แท็บย่อยรถ/คน (คนงาน · ทะเบียน · หินคลุก) ตาม fleet-v1 */
+#wxModal .wx-gn,#wxModal .wx-grid>div:first-child{box-shadow:-16px 0 0 #fff,3px 0 0 #fff,6px 0 6px -3px rgba(20,46,30,.14)!important}
+#wxModal .wx-gn{align-self:stretch;display:flex;align-items:center;padding-right:4px}
+#wxModal .wx-grid>div:first-child{align-self:stretch}
+.v6 .ws6-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 2px 8px}
+.v6 .ws6-hd b{font-size:15px;color:var(--ink)}
+.v6 .ws6-cp{height:32px;padding:0 11px;border-radius:9px;border:1px solid #A8CBB5;background:var(--brand-soft);color:var(--brand-dark);font-weight:700;font-size:13px}
+.v6 .ws6-dt{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:13px;color:var(--ink-3)}
+.v6 .ws6-dt input{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:38px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:16px;padding:0 10px;color:var(--ink)}
+.v6 .ws6-r{padding:11px 12px;cursor:pointer;font-size:14px;line-height:1.5;color:var(--ink)}
+.v6 .ws6-r+.ws6-r{border-top:1px solid #EEF2EE}
+.v6 .ws6-t{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.v6 .ws6-t b{font-size:15.5px}
+.v6 .ws6-ar{width:28px;height:28px;border-radius:50%;background:#EEF2EE;color:var(--ink-2);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.v6 .ws6-r .small,.v6 .ws6-r .text-muted{color:var(--ink-3)!important}
+.v6 .ws6-det{margin:8px -12px -11px;padding:9px 12px;background:#F7F9F7;border-top:1px solid #EEF2EE;font-size:13.5px}
+.v6 .ws6-foot{font-size:12.5px;color:var(--ink-3);margin:8px 2px 0;line-height:1.45}
+#fleet-view.v6 .rg-sum{border-color:var(--border);box-shadow:var(--shadow);margin-bottom:10px}
+#fleet-view.v6 .rg-sum.is-soon{background:#FFFBF5;border-color:var(--due-border)}#fleet-view.v6 .rg-sum.is-late{background:#FFF8F7;border-color:#F5B5AE}
+#fleet-view.v6 .rg-t{font-size:17px}
+#fleet-view.v6 .rg-sum .cmp-go{display:none}
+#fleet-view.v6 .rg6-share{display:flex;align-items:center;gap:11px;width:100%;border:1px solid var(--border);background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 12px;margin-bottom:4px;text-align:left;color:var(--ink);font-weight:700;font-size:15px}
+#fleet-view.v6 .rg6-share span{width:34px;height:34px;border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;flex:none}
+#fleet-view.v6 .rg6-share i{margin-left:auto;color:var(--ink-3);font-style:normal;font-size:20px}
+#fleet-view.v6 .rg-h{color:var(--ink);margin:16px 2px 7px}
+#fleet-view.v6 .rg-add{color:var(--brand);font-size:13.5px}
+#fleet-view.v6 .rg-plate{border:0;padding:0;margin-right:4px;font-size:13.5px;background:none}
+#fleet-view.v6 .rg-row{padding:10px 12px}
+#fleet-view.v6 .rg-tag{border-radius:999px;padding:2px 10px;display:inline-flex;flex-direction:column;align-items:flex-end}
+#fleet-view.v6 .rg-tag b{font-size:12.5px}#fleet-view.v6 .rg-tag small{font-size:11.5px;font-weight:500}
+#fleet-view.v6 .rg-ok{background:var(--brand-soft);color:var(--brand-dark)}#fleet-view.v6 .rg-soon{background:var(--due-soft);color:var(--due)}
+#fleet-view.v6 .rg-far{font-size:12.5px;font-weight:600;background:#EEF2EE;color:var(--ink-2);border-radius:999px;padding:2px 10px}
+.v6 .rk6{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 13px;margin-bottom:4px}
+.v6 .rk6-k{font-size:12.5px;color:var(--ink-3);font-weight:600}
+.v6 .rk6-p{font-size:14px;color:var(--ink-2);line-height:1.5;margin:6px 0 10px}
+.v6 .rk6-add{width:100%;height:46px;border:0;border-radius:12px;background:var(--brand);color:#fff;font-weight:700;font-size:16px}
+.v6 .rk6-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 2px 7px;font-size:15px;font-weight:700;color:var(--ink)}
+.v6 .rk6-h a{color:var(--brand);font-size:13.5px;font-weight:700;text-decoration:none}
+/* หน้าต่างที่เหลือ → หน้าเต็ม v5 (ชิ้นเก่า card-sec/seg/ปุ่ม/ช่องกรอก ในหน้าต่าง v5h) */
+.v5h .modal-body .card-sec{background:#fff;border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+.v5h .modal-body .card-sec h6{font-size:15px;font-weight:700;color:#16241B}
+.v5h .modal-body .form-control,.v5h .modal-body .form-select{font-size:16px;border-radius:10px;border-color:#DCE3DC;min-height:42px}
+.v5h .modal-body input[type=date]{-webkit-appearance:none;appearance:none;min-width:0}
+.v5h .btn-success{background:#1F5E3B;border-color:#1F5E3B;border-radius:12px}
+.v5h .btn-outline-success{border-color:#A8CBB5;color:#15452A;border-radius:10px}.v5h .btn-outline-success:active{background:#E8F3EC;color:#15452A}
+.v5h .modal-body .srow-box{border:1px solid #DCE3DC;border-radius:14px;box-shadow:0 1px 2px rgba(20,46,30,.06);background:#fff}
+.v5h .modal-body .srow-h{font-size:15px;font-weight:700;color:#16241B;margin:16px 2px 7px}
+.v5h .modal-body .seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:3px;background:#E5EBE6;border-radius:11px}
+.v5h .modal-body .seg button{height:36px;padding:0 4px;border-radius:8px;font-size:14px;color:#46594E}
+.v5h .modal-body .seg button.on{background:#fff;color:#16241B;box-shadow:0 1px 3px rgba(20,46,30,.1)}
+.v5h .modal-body .bg-light{background:#fff!important;border:1px solid #DCE3DC!important;border-radius:14px!important}
+.v5h .modal-body .alert{border-radius:12px}
+.v5h .modal-footer .btn{border-radius:12px;min-height:46px}
 /* ก้อน 6 ตาราง */
 #table-view.v6{background:none!important;box-shadow:none!important;padding:0!important}
 .v6 .tb6-bk{border:0;background:none;color:var(--brand);font-weight:700;font-size:13px;padding:0;min-height:30px}
@@ -3494,10 +3548,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
   </div>
 
   
-  <div class="modal fade" id="logInspModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal fade v5h" id="logInspModal" tabindex="-1" data-back="ย้อน">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header text-white py-2" style="background:#1F5E3B">
+        <div class="modal-header mhd py-2">
           <h6 class="modal-title fw-bold" id="inspTitle">📌 รายละเอียดงาน & บันทึกเหตุการณ์หน้างาน</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -3531,10 +3585,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
   </div>
 
   
-  <div class="modal fade" id="assetEditModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal fade v5h" id="assetEditModal" tabindex="-1" data-back="รถ/คน">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-secondary text-white py-2">
+        <div class="modal-header mhd py-2">
           <h6 class="modal-title fw-bold" id="aeTitle">🔧 อัปเดตข้อมูลรถ / พญานาค / คนงาน</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -3615,10 +3669,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     </div>
   </div>
 
-  <div class="modal fade" id="regModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+  <div class="modal fade v5h" id="regModal" tabindex="-1" data-back="ทะเบียน">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header py-2"><h6 class="modal-title fw-bold" id="regTitle">🪪 ต่อทะเบียน</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header mhd py-2"><h6 class="modal-title fw-bold" id="regTitle">🪪 ต่อทะเบียน</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body p-3">
           <input type="hidden" id="rg_name">
           <div id="rg_newbox"><label class="small fw-bold">ชื่อรถ</label><input type="text" class="form-control mb-2" id="rg_newname" placeholder="เช่น หกล้อ ขาว / กระบะ"></div>
@@ -3657,7 +3711,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
   </div>
 
   
-  <div class="modal fade" id="batModal" tabindex="-1">
+  <div class="modal fade v5h" id="batModal" tabindex="-1" data-back="ย้อน">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
@@ -3697,10 +3751,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 
   
   <input type="file" accept="image/*" multiple id="billFile" style="display:none" onchange="onBillFile(this)">
-  <div class="modal fade" id="billModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal fade v5h" id="billModal" tabindex="-1" data-bs-backdrop="static" data-back="สต็อก">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
+        <div class="modal-header mhd py-2">
           <h6 class="modal-title fw-bold">ตรวจบิลก่อนบันทึก</h6>
           <button type="button" class="btn-close btn-close-white" onclick="cancelBill()"></button>
         </div>
@@ -3713,10 +3767,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     </div>
   </div>
 
-  <div class="modal fade" id="billView" tabindex="-1">
+  <div class="modal fade v5h" id="billView" tabindex="-1" data-back="สต็อก">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header text-white py-2" style="background:#1F5E3B;">
+        <div class="modal-header mhd py-2">
           <h6 class="modal-title fw-bold">บิล</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -3882,7 +3936,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 
   
   <input type="file" accept="image/*" multiple id="rockFile" style="display:none" onchange="onRockFile(this)">
-  <div class="modal fade" id="rockModal" tabindex="-1">
+  <div class="modal fade v5h" id="rockModal" tabindex="-1" data-back="หินคลุก">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
@@ -4054,7 +4108,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     </div>
   </div>
 
-  <div class="modal fade" id="rainModal" tabindex="-1">
+  <div class="modal fade v5h" id="rainModal" tabindex="-1" data-back="ย้อน">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header mhd py-2">
@@ -4077,10 +4131,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
   </div>
 
   
-  <div class="modal fade" id="stockModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+  <div class="modal fade v5h" id="stockModal" tabindex="-1" data-back="สต็อก">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-success text-white py-2">
+        <div class="modal-header mhd py-2">
           <h6 class="modal-title fw-bold" id="stTitle">📥 รับของเข้า</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -4105,10 +4159,10 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
   </div>
 
   
-  <div class="modal fade" id="itemModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal fade v5h" id="itemModal" tabindex="-1" data-back="สต็อก">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-dark text-white py-2">
+        <div class="modal-header mhd py-2">
           <h6 class="modal-title fw-bold" id="itTitle">📦 รายการสต็อก</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -4233,7 +4287,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       else if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
       if (id === 'satModal') return setTimeout(satHdr, 0);
       const hd = e.target.querySelector('.modal-header'); if (!hd) return;
-      if (e.target.classList.contains('v5h')) { v5Back(hd, mPar[id], () => hideModal(id), !mPar[id] && e.target.dataset.back); return; }
+      if (e.target.classList.contains('v5h')) { const tt = hd.querySelector('.modal-title'); if (tt && !tt.children.length) tt.textContent = tt.textContent.replace(/^[\p{Extended_Pictographic}\uFE0F\u200d\s]+/u, ''); v5Back(hd, mPar[id], () => hideModal(id), !mPar[id] && e.target.dataset.back); return; }
       let b = hd.querySelector('.mb-back');
       if (mPar[id]) { if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; b.onclick = () => hideModal(id); hd.prepend(b); } }
       else if (b) b.remove();
@@ -7052,10 +7106,11 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const nx = all.filter(i => ds(i) !== null && ds(i) <= 90), byD = {}; nx.forEach(i => (byD[i.exp] = byD[i.exp] || []).push(i));
       const facts = Object.keys(byD).sort((a, b) => beToISO(a).localeCompare(beToISO(b))).slice(0, 3).map(e => `<div class="rg-f"><b>${esc(dt(e))}</b> · ${byD[e].map(i => esc(eqS(i.label))).join(', ')}${byD[e].length > 1 ? ' <span class="text-muted">(ไปต่อพร้อมกันได้)</span>' : ''}</div>`).join('');
       const nextOk = !nx.length && all.filter(i => ds(i) !== null).sort((a, b) => ds(a) - ds(b))[0];
-      const sum = `<div class="rg-sum"><div class="rg-k">ภาษีรถ · ${all.filter(i => !i.tr).length} คัน</div><div class="rg-t" style="color:${tone}">${title}</div>
+      const sum = `<div class="rg-sum${late.length ? ' is-late' : soon.length ? ' is-soon' : ''}"><div class="rg-k">ภาษีรถ · ${all.filter(i => !i.tr).length} คัน</div><div class="rg-t" style="color:${tone}">${title}</div>
         ${facts || (nextOk ? `<div class="rg-f">คันถัดไป <b>${esc(eqS(nextOk.label))}</b> หมด ${esc(dt(nextOk.exp))} (อีก ${regMD(nextOk.exp)})</div>` : '')}
         <div class="rg-k mt-1">ต่อล่วงหน้าได้ 90 วันก่อนหมด · ซื้อ พ.ร.บ. ก่อน · รถยนต์ใช้งานครบ 7 ปี / มอไซค์ครบ 5 ปี ต้องตรวจ ตรอ. ก่อน</div>
-        <button type="button" class="cmp-go" onclick="regShareAll()">📤 แชร์ข้อมูลรถทุกคันเข้า LINE <span>›</span></button></div>`;
+        <button type="button" class="cmp-go" onclick="regShareAll()">📤 แชร์ข้อมูลรถทุกคันเข้า LINE <span>›</span></button></div>
+        <button type="button" class="rg6-share" onclick="regShareAll()"><span>📤</span>แชร์ข้อมูลรถทุกคันเข้า LINE<i>›</i></button>`;
       // ทุกคัน (สิบล้อ รถไร่ รถไถ รถบ้าน มอไซค์) อยู่ในช่วงต่อล่วงหน้า 90 วัน = ป้าย "ต่อได้แล้ว" · ≤30 ส้ม · เลย = แดง · ไกล = นับถอยหลังตัวเทา
       const st = i => { const d = ds(i), md = regMD(i.exp); if (d === null) return '<span class="rg-none">ใส่วันหมด ›</span>';
         return d < 0 ? `<span class="rg-tag rg-late"><b>เลยกำหนด</b><small>${md}</small></span>` : d <= 90 ? `<span class="rg-tag ${d <= 30 ? 'rg-soon' : 'rg-ok'}"><b>${d === 0 ? 'หมดวันนี้' : 'ต่อได้แล้ว'}</b><small>${d === 0 ? 'ต่อวันนี้' : 'อีก ' + md}</small></span>`
@@ -7068,7 +7123,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const ord = []; its.filter(i => !i.tr).forEach(h => { ord.push(h); its.filter(i => i.tr && i.a.name === h.a.name).forEach(x => ord.push(x)); });
         const add = c === 'Car' ? 'เพิ่มรถใช้ในไร่' : c === 'Home' ? 'เพิ่มรถส่วนตัว' : c === 'Moto' ? 'เพิ่มมอเตอร์ไซค์' : '';
         if (!ord.length && !add) return '';
-        return `<div class="rg-h"><span>${ic} ${t}</span>${add ? `<button type="button" class="rg-add" onclick="openReg('','${c}')">+ ${add}</button>` : ''}</div>
+        return `<div class="rg-h"><span>${t}</span>${add ? `<button type="button" class="rg-add" onclick="openReg('','${c}')">+ ${add}</button>` : ''}</div>
           ${ord.length ? `<div class="srow-box">${ord.map(row).join('')}</div>` : '<div class="srow-s px-1">ยังไม่มี</div>'}`; };
       return sum + REG_GRP.map(grp).join('') + `<div class="srow-s mt-3">ส่งรูปป้ายภาษีในแชต ระบบอ่านวันให้ · แตะรถเพื่อแก้ทะเบียน/วัน หรือย้ายหมวด</div>`;
     }
@@ -7235,7 +7290,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       } else if (fleetPane === 'rock') {
         html += rockPaneHtml();
       } else if (fleetPane === 'work') {
-        html += grp('คนงาน', workers, '👤') + `<div class="bg-white p-3 rounded border mt-3" id="wsum-box">${workSumHtml()}</div>`;
+        html += grp('คนงาน', workers, '👤') + `<div id="wsum-box">${workSumHtml()}</div>`;
       } else {
         html += grp('สิบล้อ', trucks, '🚛') + grp('รถไถ', tractors, '🚜') + grp('หกล้อ / กระบะ (ใช้ในไร่)', cars, '🚚') + grp('พญานาค', pumps, '🐍') + grp('รถที่บ้าน', homes, '🚗') + grp('มอเตอร์ไซค์', motos, '🛵');
         const logs = groupAssetLogs((gData.assetLogs || []).filter(l => { const a = assets.find(x => x.name === l.asset_name); return !a || a.category !== 'Worker'; }));
@@ -7250,7 +7305,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 
     // ================= สรุปงานคนงาน (ดูอย่างเดียว ใช้ตอนคิดเงิน) =================
     let wsFrom = '', wsTo = '', wsOpen = '';
+    var wsPre = 'half';
     function wsPreset(k) {
+      wsPre = k;
       const n = new Date(), y = n.getFullYear(), m = n.getMonth(), d = n.getDate();
       const iso = (yy, mm, dd) => { const t = new Date(yy, mm, dd); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; };
       if (k === 'half') { if (d <= 15) { wsFrom = iso(y, m, 1); wsTo = iso(y, m, 15); } else { wsFrom = iso(y, m, 16); wsTo = iso(y, m + 1, 0); } }
@@ -7259,7 +7316,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       else if (k === 'prevmonth') { wsFrom = iso(y, m - 1, 1); wsTo = iso(y, m, 0); }
       wsOpen = ''; $('wsum-box').innerHTML = workSumHtml();
     }
-    function wsSetRange() { wsFrom = $('ws_from').value; wsTo = $('ws_to').value; $('wsum-box').innerHTML = workSumHtml(); }
+    function wsSetRange() { wsPre = ''; wsFrom = $('ws_from').value; wsTo = $('ws_to').value; $('wsum-box').innerHTML = workSumHtml(); }
     function wsToggle(n) { wsOpen = wsOpen === n ? '' : n; $('wsum-box').innerHTML = workSumHtml(); }
     function thDate(iso) { const [y, m, d] = iso.split('-'); return `${+d} ${TH_MON[+m - 1]} ${String(+y + 543).slice(2)}`; }
     // งานนอกไร่ครึ่งวัน (18 พ.ย.): ข้อความมี "เลิกเที่ยง/ครึ่งวัน/ช่วงเช้า" หรือ "ถึง 8–12 โมง" (ไม่ใช่บ่าย/เย็น) = นับครึ่งวัน
@@ -7315,34 +7372,27 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     function workSumHtml() {
       if (!gData) return '';
       const { logs, rows } = workSumData();
-      const chip = (k, t) => `<button type="button" class="btn btn-sm btn-outline-success py-0" onclick="wsPreset('${k}')">${t}</button>`;
+      const chip = (k, t) => `<button type="button" class="seg-btn${wsPre === k ? ' active' : ''}" onclick="wsPreset('${k}')">${t}</button>`;
       const list = rows.map(r => {
         const open = wsOpen === r.w;
         const allL = r.days.flatMap(d => r.by[d]);
-        const detail = open ? `<div class="small mt-2 ps-2 border-start border-success border-3">${r.days.map(d => wsDayGroups(r.by[d], d, allL).map(g =>
+        const detail = open ? `<div class="ws6-det">${r.days.map(d => wsDayGroups(r.by[d], d, allL).map(g =>
           `<div class="py-1"><b>${thDate(d)}</b> · ${esc(g.what)}${g.tank ? ` <b style="color:#B42318">${r1(g.tank)} ถัง</b>` : ''}${g.tags.size ? ' · <b class="text-danger">' + [...g.tags].join(' ') + '</b>' : ''}`
           + (g.doneTxt ? `<br>${esc(g.doneTxt)} <b style="color:#1E7B3C">เสร็จ</b>` : '') + (g.doingTxt ? `<br>${esc(g.doingTxt)} <b style="color:#B26A00">${g.ogW}</b>` : '') + `</div>`).join('')).join('')}</div>` : '';
-        return `<div class="border-bottom py-2" style="cursor:pointer" onclick="wsToggle('${qa(r.w)}')">
-            <div class="d-flex justify-content-between align-items-center"><b class="fs-6">${esc(r.w)}</b><span class="text-muted small">${open ? '▴' : '▾'}</span></div>
+        return `<div class="ws6-r" onclick="wsToggle('${qa(r.w)}')">
+            <div class="ws6-t"><b>${esc(r.w)}</b><span class="ws6-ar">${open ? '▴' : '▾'}</span></div>
             <div${!r.days.length && r.gAt.length ? ' style="display:none"' : ''}>ทำงาน <b>${r1(r.days.length - r.half / 2)}</b> วัน${r.half ? ` <span class="text-muted small">(ครึ่งวัน ${r.half} วัน)</span>` : ''}${r.night ? ` · ค้างคืน <b>${r.night}</b> คืน` : ''}</div>
             ${r.tank ? `<div>ฉีดยา <b style="color:#B42318">${r1(r.tank)} ถัง</b>${r.mates.length ? ` <span class="text-muted small">(ทำกับ ${esc(r.mates.join(', '))} · ถังนับรวมทีม ไม่ใช่คนละ ${r1(r.tank)})</span>` : r.team.length > 1 ? ' <span class="text-muted small">(รวมทั้งทีม)</span>' : ''}</div>
             ${(c => c ? `<div class="text-muted small">${esc(c)}</div>` : '')(logChems(r.days.flatMap(d => r.by[d]).filter(l => l.activity_group === 'ฉีดยา')))}` : ''}
             ${(b => b ? `<div class="small">⛽ ${esc(fuelLine(b))} <span class="text-muted">(ค่าประมาณ)</span></div>` : '')(fuelForTeam(r.team))}
             ${r.gAt.length ? `<div>🛡️ เฝ้าไร่ ${esc(r.gAt.join(', '))} <b>${r.gNight}</b> คืน <span class="text-muted small">(นับถึงคืนนี้)</span></div>` : ''}${detail}</div>`;
-      }).join('') || '<div class="text-muted py-2">ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน</div>';
+      }).join('') || '<div class="ws6-r text-muted">ช่วงนี้ยังไม่มีงานที่บันทึกชื่อคนงาน</div>';
       return `
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="fw-bold m-0 text-success">🧾 สรุปงานคนงาน</h6>
-          <button type="button" class="btn btn-sm btn-success py-0" onclick="wsCopy()">ก๊อปส่ง LINE</button>
-        </div>
-        <div class="d-flex gap-1 flex-wrap mb-2">${chip('half', 'ครึ่งเดือนนี้')}${chip('prevhalf', 'ครึ่งเดือนก่อน')}${chip('month', 'เดือนนี้')}${chip('prevmonth', 'เดือนก่อน')}</div>
-        <div class="d-flex gap-1 align-items-center mb-2 small">
-          <input type="date" class="form-control form-control-sm" id="ws_from" value="${wsFrom}" onchange="wsSetRange()">
-          <span>ถึง</span>
-          <input type="date" class="form-control form-control-sm" id="ws_to" value="${wsTo}" onchange="wsSetRange()">
-        </div>
-        ${list}
-        <div class="small text-muted mt-2">นับวันจากงานที่บันทึก (${logs.length} รายการ) · งานหลายวันนับเฉพาะวันที่กดบันทึก ถ้าทำต่อเนื่องให้กด "+ บันทึก" ทุกวัน · กดชื่อเพื่อดูรายวัน</div>`;
+        <div class="ws6-hd"><b>สรุปงานคนงาน</b><button type="button" class="ws6-cp" onclick="wsCopy()">ก๊อปส่ง LINE</button></div>
+        <div class="seg-bar">${chip('half', 'ครึ่งเดือนนี้')}${chip('prevhalf', 'ครึ่งเดือนก่อน')}${chip('month', 'เดือนนี้')}${chip('prevmonth', 'เดือนก่อน')}</div>
+        <div class="ws6-dt"><input type="date" id="ws_from" value="${wsFrom}" onchange="wsSetRange()"><span>ถึง</span><input type="date" id="ws_to" value="${wsTo}" onchange="wsSetRange()"></div>
+        <div class="grouped-card">${list}</div>
+        <div class="ws6-foot">นับวันจากงานที่บันทึก (${logs.length} รายการ) · งานหลายวันนับเฉพาะวันที่กดบันทึก ถ้าทำต่อเนื่องให้กด "+ บันทึก" ทุกวัน · กดชื่อเพื่อดูรายวัน</div>`;
     }
 
     // สรุปคนงานรายวัน แบบเดียวกับปฏิทิน (18 พ.ย. ผู้ใช้: "ขึ้นให้ตรง อันไหนทำ อันไหนเสร็จ"): งาน + ถัง / แปลง … เสร็จ / แปลง … กำลังฉีด
@@ -9395,12 +9445,12 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     function goRock() { fleetPane = 'rock'; switchTab('fleet'); renderFleet(); uiSave(); }
 
     function rockPaneHtml() {
-      const pts = gData.rockPoints || [];
-      let h = `<button type="button" class="btn btn-success fw-bold w-100 py-3 mb-2" style="font-size:18px;border-radius:14px;" onclick="openRockNew('')">+ เพิ่มจุดลงหินคลุก</button>`;
-      if (!pts.length) return h + `<div class="msub mt-2">สมาชิกบอกจุดมา กด "+ เพิ่มจุด" ใส่ชื่อสมาชิกกับชื่อจุด ไปถึงหน้างานแล้วปักพิกัดต้นทาง/ปลายทาง ถ่ายรูปก่อนลง หลังลง ในหน้าจุดนั้นได้เลย รูปไม่ปนกัน</div>`;
+      const pts = gData.rockPoints || [], btn = `<button type="button" class="rk6-add" onclick="openRockNew('')">+ เพิ่มจุดลงหินคลุก</button>`;
+      if (!pts.length) return `<div class="rk6"><div class="rk6-k">จุดลงหินคลุก · ยังไม่มีรายการ</div><div class="rk6-p">สมาชิกบอกจุดมา กด "+ เพิ่มจุด" ใส่ชื่อสมาชิกกับชื่อจุด ไปถึงหน้างานแล้วปักพิกัดต้นทาง/ปลายทาง ถ่ายรูปก่อนลง หลังลง ในหน้าจุดนั้นได้เลย รูปไม่ปนกัน</div>${btn}</div>`;
+      let h = '';
       const trips = (gData.rockLogs || []).filter(l => l.type === 'trip').reduce((t, l) => t + num(l.trips), 0);
       const done = pts.filter(r => r.status === 'ลงเสร็จ').length;
-      h += `<div class="msub">${[...new Set(pts.map(r => r.member))].length} สมาชิก · ${pts.length} จุด · เสร็จ ${done} · รวม ${trips} เที่ยว</div>`;
+      h += `<div class="rk6"><div class="rk6-k">จุดลงหินคลุก</div><div class="rk6-p"><b>${[...new Set(pts.map(r => r.member))].length}</b> สมาชิก · <b>${pts.length}</b> จุด · เสร็จ <b>${done}</b> · รวม <b>${trips}</b> เที่ยว</div>${btn}</div>`;
       const groups = {};
       pts.forEach(r => (groups[r.member] = groups[r.member] || []).push(r));
       const order = Object.keys(groups).sort((a, b) => {
@@ -9410,7 +9460,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       order.forEach(m => {
         const list = groups[m].slice().sort((a, b) => (a.status === 'ลงเสร็จ' ? 1 : 0) - (b.status === 'ลงเสร็จ' ? 1 : 0));
         const phone = (list.find(r => r.phone) || {}).phone;
-        h += `<div class="srow-h d-flex justify-content-between align-items-baseline"><span>${esc(m)}</span>
+        h += `<div class="rk6-h"><span>${esc(m)}</span>
           <span>${phone ? `<a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}" style="color:#1F5E3B;font-size:14px;font-weight:600;text-decoration:none;">โทร ${esc(phone)}</a>` : ''}
           <button type="button" class="grp-all ms-2" onclick="openRockNew('${qa(m)}')">+ จุด</button></span></div>
           <div class="srow-box">${list.map(r => {

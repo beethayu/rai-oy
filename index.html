@@ -6803,7 +6803,7 @@
     const AS_WORDS = { Tractor: /รถไถ|แทรกเตอร์|ไถ/, Truck: /รถ|สิบล้อ|หกล้อ|กระบะ|พ่วง|ดั๊ม|ดัมพ์/, Pump: /พญานาค|ปั๊ม|ปั้ม|เครื่องสูบ/, Car: /รถ/ };
     const AS_BRAND = { kubota: /คูโบ|kubota/i, 'new holland': /นิวฮอล|ฮอลแลนด์|new holland/i, 'john deere': /จอห์น|deere/i, yanmar: /ยันม่าร์|yanmar/i, isuzu: /อีซูซุ|isuzu/i, hino: /ฮีโน่|hino/i,
       // ชื่อรถที่ผู้ใช้พิมพ์เป็นไทย (23 พ.ย. 69 "ไปเอาแจสกลับแล้ว" โดนตัดทิ้งว่าไม่ได้พูดถึง Jazz)
-      jazz: /แจ[๊็]?[สซ]|jazz/i, dragon: /ดรา[ก็]?[กอ]?อน|ดราก้อน|dragon/i, honda: /ฮอนด้า|honda/i, toyota: /โตโยต้า|toyota/i, vigo: /วีโก้|vigo/i, revo: /รีโว่|revo/i, 'd-max': /ดีแม็?กซ์|d-?max/i, ford: /ฟอร์ด|ford/i, mitsubishi: /มิตซู|mitsubishi/i, nissan: /นิสสัน|nissan/i, mazda: /มาสด้า|mazda/i };
+      jazz: /แจ[๊็]?[สซ]|jazz/i, dragon: /ดรา[ก็]?[กอ]?อน|ดราก้อน|dragon/i, honda: /ฮอนด้า|honda/i, toyota: /โตโยต้า|toyota/i, vigo: /วีโก้|vigo/i, revo: /รีโว่|revo/i, 'd-max': /ดีแม็?กซ์|d-?max/i, ford: /ฟอร์ด|ford/i, fortuner: /ฟอร์จ[ูุ]นเนอร์|ฟอจูนเนอร์|fortuner/i, camry: /แคมรี่|camry/i, yaris: /ยาริส|yaris/i, altis: /อัลติส|altis/i, everest: /เอเวอเรสต์|everest/i, ranger: /แรนเจอร์|ranger/i, pajero: /ปาเจโร่|pajero/i, triton: /ไทรทัน|triton/i, navara: /นาวาร่า|navara/i, civic: /ซีวิค|civic/i, city: /ซิตี้|\bcity\b/i, mitsubishi: /มิตซู|mitsubishi/i, nissan: /นิสสัน|nissan/i, mazda: /มาสด้า|mazda/i };
     // 19 พ.ย. 69: "รถหกล้อ…อีแอ๋ว" + รูปป้ายภาษี → AI ใส่ "เพิ่มสิบล้อ" (Truck = หมวดสิบล้อ ทั้งคันที่ใช้ในไร่และขนหิน · หกล้อ/กระบะ = Car รถใช้ในไร่) ซ้ำกับรายการต่อทะเบียนที่เพิ่มรถใหม่ให้อยู่แล้ว
     function chAddGuard(items, txt) {
       // ปิดเตือนบำรุงรถได้เฉพาะเรื่องเดียวกับที่จด (AI เคยปิด "กรองโซล่า" ตอนจดเปลี่ยนน้ำมันเครื่อง)
@@ -6828,6 +6828,18 @@
       for (let i = items.length - 1; i >= 0; i--) { const st = items[i]; if (!st || st.type !== 'asset_status') continue;
         const nt = items.find(o => o && o.type === 'asset_note' && String(o.asset || '').trim() === String(st.asset || '').trim());
         if (nt) { if (!nt.state) nt.state = st.state; if (!nt.shop && st.shop) nt.shop = st.shop; items.splice(i, 1); } }
+      // 24 พ.ย. 69 "Fortuner วันนี้ถ่ายน้ำมันเครื่อง" + รูป → AI ลง Ford สีส้ม แล้วจะเปลี่ยนทะเบียน Ford เป็นของ Fortuner: มีรูปก็ห้ามข้ามชื่อรถที่ผู้ใช้พิมพ์
+      // ข้อความเอ่ยยี่ห้อ/รุ่น แต่รถที่ AI เลือกไม่ตรง → ย้ายไปคันที่ตรง (มีคันเดียว) · ไม่มีในแอป = ทิ้งพร้อมบอก
+      const named = Object.keys(AS_BRAND).filter(b => AS_BRAND[b].test(t));
+      if (named.length) for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg', 'asset_todo'].includes(it.type) || !it.asset) continue;
+        const nm = String((chAsset(it.asset) || { name: it.asset }).name), low = nm.toLowerCase(), sh = eqS(nm);
+        if (named.some(b => low.includes(b)) || t.includes(nm) || (sh && sh.length > 2 && t.toLowerCase().includes(sh.toLowerCase()))) continue;
+        const alt = (gData.assets || []).filter(a => a.category !== 'Worker' && named.some(b => String(a.name).toLowerCase().includes(b)));
+        if (alt.length === 1) { it.asset = alt[0].name; continue; }
+        items.splice(i, 1); const w = `(ไม่ได้จดเข้า ${sh || nm} — ข้อความพูดถึง ${named.join('/')} ซึ่ง${alt.length ? 'มีหลายคัน พิมพ์ชื่อเต็ม' : 'ยังไม่มีในแอป · พิมพ์ "เพิ่มรถส่วนตัว ' + named[0] + '" ก่อน แล้วส่งใหม่'})`;
+        if (!String(r.reply || '').includes(w)) r.reply = (r.reply ? r.reply + '\n' : '') + w;
+      }
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg', 'asset_todo'].includes(it.type) || !it.asset) continue;
         const a = chAsset(it.asset) || { name: it.asset }, nm = String(a.name), sh = eqS(nm);

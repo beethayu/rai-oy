@@ -1,0 +1,3043 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F4F5F1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>วันนี้ — ไร่อ้อย 281 ไร่</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== ภาษาภาพตระกูลเดียวกับหน้าผังงานอ้อยตอ (#fcx) ===== */
+    :root {
+      --brand: #1F5E3B;
+      --brand-dark: #15452A;
+      --brand-soft: #E8F3EC;
+      --brand-mid: #A8CBB5;
+      --bg: #F4F5F1;
+      --surface: #FFFFFF;
+      --surface-note: #EEF4F0;
+      --ink: #16241B;
+      --ink-2: #46594E;
+      --ink-3: #6D7B72;
+      --line: #B8C6BC;
+      --line-soft: #D3DDD6;
+      --border: #DCE3DC;
+      --ask: #6D28D9;
+      --ask-soft: #F3EEFF;
+      --ask-border: #C4B5FD;
+      --due: #C2410C;
+      --due-soft: #FFF1E6;
+      --due-border: #FDBA74;
+      --nolog-bg: #F6EFE0;
+      --nolog-ink: #7A5919;
+      --nolog-border: #E6D2A2;
+      --water: #0369A1;
+      --water-soft: #E0F2FE;
+      --cut: #15803D;
+      --car: #B45309;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+      --shadow-md: 0 4px 12px rgba(20, 46, 30, 0.08), 0 1px 2px rgba(20, 46, 30, 0.04);
+      --tab-h: 58px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* โหมดกลางแดดจัด (เพิ่มคอนทราสต์ในตั้งค่าได้) */
+    body.sun-boost {
+      --border: #B8C5BA;
+      --ink-2: #2E4035;
+      --ink-3: #495C51;
+      --shadow: 0 1px 3px rgba(10, 26, 16, 0.12);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* iPhone: html และ body สีเดียวกับ theme-color และไม่เลื่อน */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.42;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    /* ช่องพิมพ์ 16px เสมอ กัน iPhone ซูม */
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* กรอบจอ iPhone 390x844 (เต็มจอบนมือถือ / จัดกลางสวยบนเดสก์ท็อป) */
+    .phone-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 440px) and (min-height: 700px) {
+      .phone-frame {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        width: 390px;
+        height: min(844px, calc(100dvh - 24px));
+        border-radius: 34px;
+        border: 1px solid #CFD8D0;
+        box-shadow: 0 22px 60px rgba(20, 46, 30, 0.14), 0 4px 14px rgba(20, 46, 30, 0.06);
+      }
+    }
+
+    /* แถบกันพื้นที่ใต้รอยบากด้านบน */
+    .safe-top-bar {
+      height: var(--safe-top);
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    /* กล่อง #app ที่เริ่มใต้ env(safe-area-inset-top) และเป็นตัวเลื่อนหลัก */
+    #app {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding-bottom: calc(var(--tab-h) + var(--safe-bottom) + 20px);
+    }
+
+    #app::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ===== Sticky Top Dock (กลิ่นอาย top-dock ของผังงาน แต่เป็นหัวหน้าประจำวัน) ===== */
+    .masthead {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(244, 245, 241, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 10px 14px 10px;
+      border-bottom: 1px solid rgba(31, 94, 59, 0.1);
+    }
+
+    .masthead-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .masthead-title-block {
+      min-width: 0;
+    }
+
+    .masthead-kicker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-2);
+      line-height: 1.25;
+    }
+
+    .masthead-kicker .dot-sep {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--ink-3);
+      flex-shrink: 0;
+    }
+
+    .masthead-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 1px;
+    }
+
+    .masthead-heading h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .masthead-date {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+
+    .masthead-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .hdr-btn {
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s, background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .hdr-btn:active {
+      transform: scale(0.96);
+      background: var(--brand-soft);
+    }
+
+    .hdr-btn.is-primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .hdr-btn.is-primary:active {
+      background: var(--brand-dark);
+    }
+
+    .hdr-btn.is-icon {
+      width: 36px;
+      padding: 0;
+      color: var(--ink-2);
+    }
+
+    .hdr-btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    /* ===== Main Content Flow ===== */
+    .main-stack {
+      padding: 12px 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Section Header */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+
+    .sec-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .sec-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .sec-badge {
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #E5ECE6;
+      color: var(--brand-dark);
+      line-height: 1.45;
+    }
+
+    .sec-badge.is-ask {
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .sec-badge.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .sec-badge.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .sec-toggle-btn {
+      height: 30px;
+      padding: 0 8px;
+      border: none;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .sec-toggle-btn:active {
+      background: rgba(31, 94, 59, 0.08);
+    }
+
+    /* ===== Segmented Control (แบบเดียวกับ iOS + ผังงาน) ===== */
+    .seg-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 3px;
+      padding: 3px;
+      background: #E5EBE6;
+      border-radius: 11px;
+      margin-bottom: 10px;
+    }
+
+    .seg-btn {
+      height: 34px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+      white-space: nowrap;
+      padding: 0 4px;
+    }
+
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(20, 46, 30, 0.1);
+    }
+
+    .seg-cnt {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+
+    .seg-btn.active .seg-cnt {
+      color: var(--brand);
+    }
+
+    /* ===== นัด/เตือนวันนี้ (Appointment Strip) ===== */
+    .appt-strip {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 9px;
+      background: var(--surface-note);
+      border: 1px solid #C6D8CC;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .appt-strip:active {
+      transform: scale(0.988);
+      background: #E2EFE7;
+    }
+
+    .appt-strip.is-done {
+      opacity: 0.65;
+      border-style: dashed;
+    }
+
+    .appt-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .appt-tag {
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 7px;
+      background: var(--brand);
+      color: #FFFFFF;
+      flex-shrink: 0;
+    }
+
+    .appt-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .appt-strip.is-done .appt-text {
+      text-decoration: line-through;
+      color: var(--ink-3);
+    }
+
+    .chev {
+      color: var(--ink-3);
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* ===== Task Cards (ภาษาภาพเดียวกับ .fc-node แต่จัดเพื่อหน้างานรายวัน) ===== */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-card {
+      width: 100%;
+      padding: 11px 12px 11px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.1s, background 0.15s, opacity 0.2s;
+      position: relative;
+    }
+
+    .task-card:active {
+      transform: scale(0.988);
+    }
+
+    .task-card.st-doing {
+      border-left-color: var(--brand);
+    }
+
+    .task-card.st-due {
+      border-left-color: var(--due);
+      background: #FFFEFC;
+    }
+
+    .task-card.st-watch {
+      border-left-color: #B45309;
+      background: #FFFDF8;
+      border-color: #E7DCC2;
+      border-left-width: 4px;
+    }
+
+    .task-card.is-completed {
+      opacity: 0.58;
+      border-left-color: var(--brand-mid);
+      background: #F9FBF9;
+    }
+
+    .task-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .task-title-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .task-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.28;
+    }
+
+    .task-card.is-completed .task-title {
+      text-decoration: line-through;
+      color: var(--ink-2);
+    }
+
+    .st-pill {
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.35;
+    }
+
+    .st-pill.doing {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .st-pill.due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .st-pill.watch {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .st-pill.done {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.55);
+      animation: livePulse 2s infinite;
+    }
+
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.5); }
+      70% { box-shadow: 0 0 0 5px rgba(31, 94, 59, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(31, 94, 59, 0); }
+    }
+
+    .task-meta {
+      font-size: 13.5px;
+      color: var(--ink-2);
+      line-height: 1.38;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 8px;
+    }
+
+    .task-meta strong {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .plot-chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .plot-chip {
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 6px;
+      background: #EDF2EE;
+      color: var(--brand-dark);
+      border: 1px solid #D9E5DC;
+      line-height: 1.45;
+    }
+
+    .task-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 2px;
+      font-size: 13px;
+      color: var(--ink-2);
+    }
+
+    /* แถบวัดขาดน้ำ 15/15 วัน (รายละเอียดเฉพาะตัว อ่านปุ๊บรู้ปั๊บ) */
+    .water-meter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .water-bar-track {
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: #F4E6DA;
+      overflow: hidden;
+      max-width: 112px;
+    }
+
+    .water-bar-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #EA580C, #C2410C);
+    }
+
+    .sat-callout {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--nolog-ink);
+      background: var(--nolog-bg);
+      padding: 3px 9px;
+      border-radius: 8px;
+      width: fit-content;
+    }
+
+    /* ===== Block 2: กระดานเฝ้าระวังและจุดผิดปกติ (Grouped iOS Card) ===== */
+    .grouped-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .status-row {
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+    }
+
+    .status-row + .status-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .status-row.is-clickable {
+      cursor: pointer;
+    }
+
+    .status-row.is-clickable:active {
+      background: #F8FAF8;
+    }
+
+    .status-row-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .status-icon-box.is-night {
+      background: #EEF2F7;
+      color: #334155;
+    }
+
+    .status-icon-box.is-car {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .status-icon-box.is-audit {
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .status-icon-box.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .status-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .status-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .status-sub {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    .mini-pill-amber {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .mini-pill-purple {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .row-action-btn {
+      height: 36px;
+      padding: 0 11px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #F8FAF8;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .row-action-btn:active {
+      transform: scale(0.96);
+    }
+
+    .row-action-btn.is-due {
+      border-color: var(--due-border);
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .row-action-btn.is-ask {
+      border-color: var(--ask-border);
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .row-action-btn.is-ghost {
+      border-color: #D5DDD7;
+      background: #FFFFFF;
+      color: var(--ink-2);
+    }
+
+    /* ===== Block 3: อากาศ & ราคาน้ำตาล (Asymmetric Bento Twin) ===== */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1.32fr 1fr;
+      gap: 9px;
+    }
+
+    .tele-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 12px 11px;
+      box-shadow: var(--shadow);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 7px;
+      min-width: 0;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+
+    .tele-card:active {
+      transform: scale(0.982);
+      border-color: var(--brand-mid);
+    }
+
+    .tele-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .tele-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tele-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .tele-big {
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .tele-unit {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    .tele-delta {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .tele-sub {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.32;
+    }
+
+    .rain-strip-7d {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 3px;
+      padding-top: 3px;
+      border-top: 1px dashed #E4EBE5;
+    }
+
+    .rain-day-dot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+
+    .rain-day-dot span.pip {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #D7E0D9;
+    }
+
+    .rain-day-dot.is-today span.pip {
+      background: var(--brand);
+    }
+
+    .sparkline-wrap {
+      height: 24px;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    /* ===== Block 4: แอปถาม (ใช้ภาษาภาพม่วงอ่อน + เพชรเล็ก จาก #fcx) ===== */
+    .ask-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ask-card {
+      background: #FCF9FF;
+      border: 1.5px solid var(--ask-border);
+      border-radius: var(--radius);
+      padding: 12px 13px;
+      box-shadow: 0 2px 8px rgba(109, 40, 217, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .ask-card.is-answered {
+      background: var(--surface);
+      border-color: var(--brand-mid);
+      border-width: 1px;
+      box-shadow: var(--shadow);
+    }
+
+    .ask-q-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ico-diamond {
+      width: 10px;
+      height: 10px;
+      background: var(--ask);
+      transform: rotate(45deg);
+      border-radius: 2px;
+      margin-top: 5px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .ask-card.is-answered .ico-diamond {
+      background: var(--brand);
+    }
+
+    .ask-q-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    .ask-btn-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ask-choice-btn {
+      flex: 1;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--ask-border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: transform 0.1s, background 0.15s, border-color 0.15s;
+    }
+
+    .ask-choice-btn:active {
+      transform: scale(0.97);
+    }
+
+    .ask-choice-btn.is-primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .ask-choice-btn.is-secondary {
+      border-color: var(--ask-border);
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .ask-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .num-field-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .num-field {
+      width: 100%;
+      height: 40px;
+      padding: 0 46px 0 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--ask-border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 16px; /* กัน iPhone ซูม */
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .num-field:focus {
+      border-color: var(--ask);
+    }
+
+    .num-unit {
+      position: absolute;
+      right: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-3);
+      pointer-events: none;
+    }
+
+    .ask-save-btn {
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 10px;
+      border: none;
+      background: var(--ask);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+
+    .ask-save-btn:active {
+      transform: scale(0.97);
+    }
+
+    .ask-answered-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .ask-ans-pill {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .ask-undo-btn {
+      height: 32px;
+      padding: 0 9px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #FFFFFF;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* ===== Block 5: ปฏิทิน พ.ย. 2569 ===== */
+    .cal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .cal-head {
+      padding: 12px 13px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .cal-month-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .cal-today-btn {
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid var(--brand-mid);
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .cal-legend {
+      padding: 0 13px 9px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 11px;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      border-bottom: 1px solid #EEF2EE;
+    }
+
+    .cal-leg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cat-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .cat-spray { background: #1F5E3B; }
+    .cat-fert  { background: #D97706; }
+    .cat-water { background: #0284C7; }
+    .cat-cut   { background: #DC2626; }
+    .cat-car   { background: #64748B; }
+    .cat-appt  { background: #7C3AED; }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      padding: 8px 8px 4px;
+      text-align: center;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      padding: 0 8px 10px;
+    }
+
+    .cal-cell {
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 2px 0;
+      position: relative;
+      transition: background 0.14s, transform 0.08s;
+    }
+
+    .cal-cell:active {
+      transform: scale(0.94);
+    }
+
+    .cal-cell.is-empty {
+      pointer-events: none;
+    }
+
+    .cal-day-num {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cal-cell.is-today .cal-day-num {
+      border: 1.5px solid var(--brand);
+      color: var(--brand-dark);
+      font-weight: 700;
+    }
+
+    .cal-cell.is-selected {
+      background: var(--brand-soft);
+    }
+
+    .cal-cell.is-selected .cal-day-num {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+
+    .cal-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5px;
+      min-height: 6px;
+    }
+
+    .cal-dots .cat-dot {
+      width: 5px;
+      height: 5px;
+    }
+
+    /* แผงรายการของวันที่เลือก ใต้ปฏิทิน */
+    .cal-day-panel {
+      background: #F8FAF8;
+      border-top: 1px solid var(--border);
+      padding: 11px 13px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cal-day-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .cal-day-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .cal-day-count {
+      font-size: 13px;
+      color: var(--ink-2);
+    }
+
+    .cal-event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cal-event-item {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.1s;
+    }
+
+    .cal-event-item:active {
+      transform: scale(0.985);
+    }
+
+    .cal-event-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .cal-event-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .cal-event-sub {
+      font-size: 13px;
+      color: var(--ink-2);
+    }
+
+    .cal-empty-txt {
+      font-size: 13.5px;
+      color: var(--ink-3);
+      padding: 4px 2px;
+    }
+
+    .cal-add-btn {
+      width: 100%;
+      height: 38px;
+      border-radius: 10px;
+      border: 1.5px dashed var(--brand-mid);
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .cal-add-btn:active {
+      transform: scale(0.985);
+      background: #DCECE2;
+    }
+
+    /* ===== เมนูล่าง 5 ปุ่ม หน้าตาเท่ากัน ไม่มีปุ่มนูนกลาง ===== */
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-bottom);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .nav-tab {
+      height: var(--tab-h);
+      border: none;
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 4px 2px;
+      transition: color 0.15s;
+    }
+
+    .nav-tab.active {
+      color: var(--brand);
+    }
+
+    .nav-tab svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .nav-tab span {
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    /* ===== Bottom Sheet (เนียนเหมือน #fcx ทุกจังหวะ 0.2s / 0.24s cubic-bezier) ===== */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2100;
+      background: rgba(16, 32, 22, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-panel {
+      width: 100%;
+      max-width: 390px;
+      max-height: 84dvh;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+      box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.16);
+      padding-bottom: var(--safe-bottom);
+      will-change: transform;
+    }
+
+    .sheet-backdrop.open .sheet-panel {
+      transform: translateY(0);
+    }
+
+    .sheet-panel.is-dragging {
+      transition: none;
+    }
+
+    .sheet-drag-zone {
+      padding-top: 8px;
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: #D0D8D2;
+      margin: 0 auto 6px;
+    }
+
+    .sheet-header {
+      padding: 4px 14px 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .sheet-subtitle {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+    }
+
+    .sheet-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: none;
+      background: #EFF3F0;
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sheet-close:active {
+      background: #E0E7E2;
+    }
+
+    .sheet-body {
+      padding: 14px 16px 22px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .detail-box {
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: #F7F9F7;
+      border: 1px solid var(--border);
+      font-size: 14.5px;
+      color: var(--ink);
+    }
+
+    .detail-box.is-warn {
+      background: #FFFBEB;
+      border-color: #FCD34D;
+    }
+
+    .detail-box.is-ask {
+      background: var(--ask-soft);
+      border-color: var(--ask-border);
+    }
+
+    .detail-box.is-due {
+      background: var(--due-soft);
+      border-color: var(--due-border);
+    }
+
+    .detail-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-2);
+      margin-bottom: 5px;
+    }
+
+    .sheet-btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .sheet-btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sheet-btn {
+      flex: 1;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s;
+    }
+
+    .sheet-btn:active {
+      transform: scale(0.985);
+    }
+
+    .sheet-btn.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .sheet-btn.danger {
+      border-color: #DC2626;
+      background: #FEF2F2;
+      color: #B91C1C;
+    }
+
+    .sheet-btn.ask {
+      border-color: var(--ask);
+      background: var(--ask);
+      color: #FFFFFF;
+    }
+
+    /* ฟอร์มในแผ่นล่าง */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--brand);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .preset-chip {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #F6F8F6;
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .preset-chip.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    /* ตารางอากาศในแผ่นล่าง */
+    .wx-row {
+      display: grid;
+      grid-template-columns: 62px 1fr 56px 56px;
+      align-items: center;
+      padding: 9px 2px;
+      border-bottom: 1px solid #EEF2EE;
+      font-size: 14px;
+    }
+
+    .wx-row:last-child {
+      border-bottom: none;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--tab-h) + var(--safe-bottom) + 14px);
+      transform: translateX(-50%) translateY(24px);
+      background: var(--ink);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 9px 15px;
+      border-radius: 999px;
+      z-index: 2200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+      max-width: 356px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 6px 20px rgba(16, 32, 22, 0.24);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="safe-top-bar"></div>
+
+    <!-- กล่อง #app ที่เลื่อนได้ใต้ safe-area-inset-top -->
+    <main id="app" aria-label="หน้าวันนี้ ไร่อ้อย">
+
+      <!-- 0. หัวหน้า (Sticky Masthead) -->
+      <header class="masthead">
+        <div class="masthead-row">
+          <div class="masthead-title-block">
+            <div class="masthead-kicker tabular">
+              <span>281 ไร่</span>
+              <span class="dot-sep"></span>
+              <span>25 แปลง</span>
+            </div>
+            <div class="masthead-heading">
+              <h1>วันนี้</h1>
+              <span class="masthead-date tabular">อ. 24 พ.ย. 69</span>
+            </div>
+          </div>
+
+          <div class="masthead-actions">
+            <button type="button" class="hdr-btn" id="btnLogRain" aria-label="จดฝนตก">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7l5.6 7.4a7 7 0 1 1-11.2 0L12 2.7z"/></svg>
+              <span>จดฝนตก</span>
+            </button>
+            <button type="button" class="hdr-btn is-primary" id="btnQuickAdd" aria-label="เพิ่มรายการ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span>เพิ่ม</span>
+            </button>
+            <button type="button" class="hdr-btn is-icon" id="btnSettings" aria-label="ตั้งค่า">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="main-stack">
+
+        <!-- 1. สำคัญสุด: ต้องทำวันนี้ + นัด/เตือนวันนี้ -->
+        <section aria-labelledby="sec-tasks-title">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title" id="sec-tasks-title">ต้องทำวันนี้</h2>
+              <span class="sec-badge tabular" id="taskTotalBadge">4 งาน</span>
+            </div>
+            <button type="button" class="sec-toggle-btn" id="btnToggleTasks" aria-expanded="true">
+              <span id="toggleTasksLabel">พับ</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+            </button>
+          </div>
+
+          <div id="tasksSectionBody">
+            <!-- นัด/เตือนวันนี้ -->
+            <button type="button" class="appt-strip" id="apptCard">
+              <div class="appt-left">
+                <span class="appt-tag">นัดวันนี้</span>
+                <span class="appt-text" id="apptText">ให้คนงานไปฉีดยารอบไร่</span>
+              </div>
+              <span class="chev">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </span>
+            </button>
+
+            <!-- ปุ่มแบ่งช่องกรองสถานะงาน -->
+            <div class="seg-bar" role="tablist" aria-label="กรองงานวันนี้">
+              <button type="button" class="seg-btn active" data-filter="all">ทั้งหมด <span class="seg-cnt tabular" id="cntAll">4</span></button>
+              <button type="button" class="seg-btn" data-filter="doing">กำลังทำ <span class="seg-cnt tabular" id="cntDoing">1</span></button>
+              <button type="button" class="seg-btn" data-filter="due">ถึงคิว <span class="seg-cnt tabular" id="cntDue">2</span></button>
+              <button type="button" class="seg-btn" data-filter="watch">ฝากดู <span class="seg-cnt tabular" id="cntWatch">1</span></button>
+            </div>
+
+            <!-- รายการงานวันนี้ -->
+            <div class="task-list" id="taskList"></div>
+          </div>
+        </section>
+
+        <!-- 2. ผิดปกติ / ติดตามต่อเนื่อง: เฝ้าไร่ · รถค้างซ่อม · ตรวจข้อมูลอัตโนมัติ -->
+        <section aria-labelledby="sec-status-title">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title" id="sec-status-title">ติดตามและจุดผิดปกติ</h2>
+              <span class="sec-badge is-due tabular" id="alertSummaryBadge">3 เรื่อง</span>
+            </div>
+          </div>
+
+          <div class="grouped-card">
+            <!-- รถค้างซ่อม -->
+            <div class="status-row is-clickable" id="rowCar">
+              <div class="status-row-left">
+                <div class="status-icon-box is-car" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14v-5l-2-5H7l-2 5v5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/><path d="M5 12h14"/></svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-title-row">
+                    <span class="status-title" id="carTitle">Jazz ค้างซ่อมที่ร้าน</span>
+                    <span class="mini-pill-amber tabular" id="carDaysPill">3 วัน</span>
+                  </div>
+                  <div class="status-sub" id="carSub">อาการหน้าปัด · เข้าอู่ตั้งแต่ 21 พ.ย.</div>
+                </div>
+              </div>
+              <button type="button" class="row-action-btn is-due" id="btnCallCar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>โทรเช็ค</span>
+              </button>
+            </div>
+
+            <!-- เฝ้าไร่ -->
+            <div class="status-row is-clickable" id="rowWatch">
+              <div class="status-row-left">
+                <div class="status-icon-box is-night" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-title-row">
+                    <span class="status-title" id="watchTitle">เฝ้าไร่ · คืนที่ 10</span>
+                  </div>
+                  <div class="status-sub" id="watchSub">ช่วงอ้อยใกล้ตัด</div>
+                </div>
+              </div>
+              <button type="button" class="row-action-btn is-ghost" id="btnStopWatch">เลิกเฝ้า</button>
+            </div>
+
+            <!-- ตรวจข้อมูลอัตโนมัติ -->
+            <div class="status-row is-clickable" id="rowAudit">
+              <div class="status-row-left">
+                <div class="status-icon-box is-audit" id="auditIconBox" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+                </div>
+                <div class="status-info">
+                  <div class="status-title-row">
+                    <span class="status-title">ตรวจข้อมูลอัตโนมัติ</span>
+                    <span class="mini-pill-purple tabular" id="auditCountPill">พบ 1 จุด</span>
+                  </div>
+                  <div class="status-sub" id="auditSub">บันทึกซ้ำ: ฉีดยา P10 วันที่ 22 พ.ย. 2 รายการ</div>
+                </div>
+              </div>
+              <button type="button" class="row-action-btn is-ask" id="btnAuditView">ดู</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. ฝน & ราคาน้ำตาล -->
+        <section aria-labelledby="sec-field-title">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title" id="sec-field-title">ฝนและราคาน้ำตาล</h2>
+            </div>
+          </div>
+
+          <div class="telemetry-grid">
+            <!-- การ์ดฝน/อากาศ -->
+            <button type="button" class="tele-card" id="cardWeather">
+              <div class="tele-head">
+                <span class="tele-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0369A1" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7l5.6 7.4a7 7 0 1 1-11.2 0L12 2.7z"/></svg>
+                  ฝนวันนี้
+                </span>
+                <span class="chev">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                </span>
+              </div>
+
+              <div class="tele-value-row tabular">
+                <span class="tele-big" id="rainTodayVal">0</span>
+                <span class="tele-unit">มม.</span>
+              </div>
+
+              <div class="tele-sub" id="rainMetaTxt">
+                ล่าสุด 9 พ.ย. · 7 วันไม่มีฝน
+              </div>
+
+              <div class="rain-strip-7d tabular" aria-label="แนวโน้มฝน 7 วัน">
+                <div class="rain-day-dot is-today"><span>อ.</span><span class="pip"></span></div>
+                <div class="rain-day-dot"><span>พ.</span><span class="pip"></span></div>
+                <div class="rain-day-dot"><span>พฤ</span><span class="pip"></span></div>
+                <div class="rain-day-dot"><span>ศ.</span><span class="pip"></span></div>
+                <div class="rain-day-dot"><span>ส.</span><span class="pip"></span></div>
+                <div class="rain-day-dot"><span>อา</span><span class="pip"></span></div>
+                <div class="rain-day-dot"><span>จ.</span><span class="pip"></span></div>
+              </div>
+            </button>
+
+            <!-- การ์ดราคาน้ำตาล -->
+            <button type="button" class="tele-card" id="cardSugar">
+              <div class="tele-head">
+                <span class="tele-label">น้ำตาลโลก</span>
+                <span class="chev">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                </span>
+              </div>
+
+              <div class="tele-value-row tabular">
+                <span class="tele-big">17.4</span>
+                <span class="tele-unit">¢/ปอนด์</span>
+              </div>
+
+              <div class="tele-sub tabular" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                <span class="tele-delta">+0.3</span>
+                <span>เมื่อวาน 17.1</span>
+              </div>
+
+              <div class="sparkline-wrap" aria-hidden="true">
+                <svg viewBox="0 0 110 24" width="100%" height="24" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="sgGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#1F5E3B" stop-opacity="0.22"/>
+                      <stop offset="100%" stop-color="#1F5E3B" stop-opacity="0.01"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M2,19 L18,17 L34,18 L50,14 L66,15 L82,11 L96,12 L108,5 L108,24 L2,24 Z" fill="url(#sgGrad)"/>
+                  <polyline points="2,19 18,17 34,18 50,14 66,15 82,11 96,12 108,5" fill="none" stroke="#1F5E3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="108" cy="5" r="2.7" fill="#1F5E3B"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- 4. แอปถามรอให้ตอบ -->
+        <section aria-labelledby="sec-ask-title">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title" id="sec-ask-title">แอปถาม</h2>
+              <span class="sec-badge is-ask tabular" id="askPendingBadge">รอตอบ 2</span>
+            </div>
+          </div>
+
+          <div class="ask-stack">
+            <!-- คำถามที่ 1 -->
+            <div class="ask-card" id="askCard1">
+              <div class="ask-q-row">
+                <span class="ico-diamond" aria-hidden="true"></span>
+                <div class="ask-q-text">หนองกระทู้ P18 ฉีดเสร็จแล้วหรือยัง?</div>
+              </div>
+              <div class="ask-btn-row" id="ask1Controls">
+                <button type="button" class="ask-choice-btn is-primary" data-q1="เสร็จแล้ว">เสร็จแล้ว</button>
+                <button type="button" class="ask-choice-btn is-secondary" data-q1="ยังทำอยู่">ยังทำอยู่</button>
+              </div>
+              <div class="ask-answered-bar is-hidden" id="ask1Answered">
+                <span class="ask-ans-pill" id="ask1AnsText">✓ ตอบแล้ว</span>
+                <button type="button" class="ask-undo-btn" id="ask1Undo">เปลี่ยนคำตอบ</button>
+              </div>
+            </div>
+
+            <!-- คำถามที่ 2 -->
+            <div class="ask-card" id="askCard2">
+              <div class="ask-q-row">
+                <span class="ico-diamond" aria-hidden="true"></span>
+                <div class="ask-q-text">น้ำมันที่ให้หำ+ผัน วันนี้กี่ลิตร?</div>
+              </div>
+              <div class="ask-input-row" id="ask2Controls">
+                <div class="num-field-wrap">
+                  <input type="number" inputmode="decimal" min="0" step="1" class="num-field tabular" id="fuelInput" placeholder="ใส่ตัวเลข" aria-label="จำนวนลิตรน้ำมัน" />
+                  <span class="num-unit">ลิตร</span>
+                </div>
+                <button type="button" class="ask-save-btn" id="btnSaveFuel">บันทึก</button>
+              </div>
+              <div class="ask-answered-bar is-hidden" id="ask2Answered">
+                <span class="ask-ans-pill tabular" id="ask2AnsText">✓ บันทึกแล้ว</span>
+                <button type="button" class="ask-undo-btn" id="ask2Undo">แก้ไข</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. ปฏิทิน พ.ย. 2569 -->
+        <section aria-labelledby="sec-cal-title">
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title" id="sec-cal-title">ปฏิทินงานเดือนนี้</h2>
+            </div>
+            <button type="button" class="sec-toggle-btn" id="btnToggleCal" aria-expanded="true">
+              <span id="toggleCalLabel">พับ</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+            </button>
+          </div>
+
+          <div class="cal-card" id="calCardBody">
+            <div class="cal-head">
+              <div class="cal-month-title">พฤศจิกายน 2569</div>
+              <button type="button" class="cal-today-btn" id="btnCalToday">กลับวันที่ 24</button>
+            </div>
+
+            <div class="cal-legend">
+              <span class="cal-leg-item"><span class="cat-dot cat-spray"></span>ฉีดยา</span>
+              <span class="cal-leg-item"><span class="cat-dot cat-fert"></span>ปุ๋ย</span>
+              <span class="cal-leg-item"><span class="cat-dot cat-water"></span>น้ำ</span>
+              <span class="cal-leg-item"><span class="cat-dot cat-cut"></span>ตัด</span>
+              <span class="cal-leg-item"><span class="cat-dot cat-car"></span>รถ</span>
+              <span class="cal-leg-item"><span class="cat-dot cat-appt"></span>นัด</span>
+            </div>
+
+            <div class="cal-weekdays" aria-hidden="true">
+              <span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span>
+            </div>
+
+            <div class="cal-grid tabular" id="calGrid" role="grid" aria-label="ปฏิทิน พฤศจิกายน 2569"></div>
+
+            <!-- รายการวันนั้นใต้ปฏิทิน -->
+            <div class="cal-day-panel">
+              <div class="cal-day-head">
+                <span class="cal-day-label tabular" id="calSelectedTitle">อังคาร 24 พ.ย. 69</span>
+                <span class="cal-day-count tabular" id="calSelectedCount">2 รายการ</span>
+              </div>
+              <div class="cal-event-list" id="calEventList"></div>
+              <button type="button" class="cal-add-btn" id="btnAddCalDay">+ จดงานวันที่ 24 พ.ย.</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- เมนูล่าง 5 ปุ่ม หน้าตาเท่ากัน ไม่มีปุ่มนูนกลาง -->
+    <nav class="bottom-nav" aria-label="เมนูหลัก">
+      <button type="button" class="nav-tab active" data-tab="วันนี้">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+        <span>วันนี้</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="แปลง">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg>
+        <span>แปลง</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="บันทึก">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+        <span>บันทึก</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="รถ/คน">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a3.5 3.5 0 0 1 0 6.75"/></svg>
+        <span>รถ/คน</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="สต็อก">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v9"/></svg>
+        <span>สต็อก</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- แผ่นล่าง (Bottom Sheet) แบบเดียวกับหน้าผังงาน -->
+  <div class="sheet-backdrop" id="sheetBackdrop" aria-hidden="true">
+    <div class="sheet-panel" id="sheetPanel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-drag-zone" id="sheetDragZone">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <div>
+            <div class="sheet-title" id="sheetTitle">รายละเอียด</div>
+            <div class="sheet-subtitle" id="sheetSubtitle"></div>
+          </div>
+          <button type="button" class="sheet-close" id="sheetCloseBtn" aria-label="ปิด">×</button>
+        </div>
+      </div>
+      <div class="sheet-body" id="sheetBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast แจ้งผลสั้น ๆ -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ===== ข้อมูลตัวอย่างครบชุดตามสเปก ===== */
+      const state = {
+        filter: 'all',
+        apptDone: false,
+        rainToday: 0,
+        rainLastDate: '9 พ.ย.',
+        watchActive: true,
+        watchNights: 10,
+        carInShop: true,
+        auditHasIssue: true,
+        ask1: null,
+        ask2: null,
+        selectedDay: 24,
+        sunBoost: false,
+        tasks: [
+          {
+            id: 't1',
+            status: 'doing',
+            statusLabel: 'กำลังทำ',
+            title: 'ฉีดหญ้ารอบไร่',
+            zone: 'หนองกระทู้ 4 แปลง',
+            plots: ['P10', 'P18', 'P19', 'P20'],
+            team: 'หำ + ผัน',
+            startDate: 'เริ่ม 24 พ.ย.',
+            detail: 'ฉีดคุม-ฆ่าหญ้าตามแนวขอบแปลง 4 แปลงติดกัน เริ่มลงพื้นที่เช้าวันนี้',
+            done: false
+          },
+          {
+            id: 't2',
+            status: 'due',
+            statusLabel: 'ถึงคิว',
+            title: 'ใส่ปุ๋ยตอครั้งที่ 1',
+            zone: 'โนนสูง 2 แปลง',
+            plots: ['P3', 'P5'],
+            windowText: 'ช่วงที่ควรทำ 20 พ.ย.–5 ธ.ค.',
+            detail: 'อ้อยตอเข้าช่วงแตกหน่อ ควรใส่ปุ๋ยรองพื้นรอบแรกภายใน 5 ธ.ค. เพื่อเร่งลำ',
+            done: false
+          },
+          {
+            id: 't3',
+            status: 'due',
+            statusLabel: 'ถึงคิว',
+            title: 'ให้น้ำ · ขวาถนน',
+            zone: 'ขวาถนน',
+            plots: [],
+            dryDays: 15,
+            windowText: 'ขาดน้ำ 15 วัน (ครบเกณฑ์ 15 วัน)',
+            detail: 'นับจากฝน/การให้น้ำรอบล่าสุดครบเกณฑ์ 15 วันแล้ว และ 7 วันข้างหน้าไม่มีฝน ควรเริ่มสูบน้ำเข้าแปลง',
+            done: false
+          },
+          {
+            id: 't4',
+            status: 'watch',
+            statusLabel: 'ฝากดู',
+            title: 'แปลงสำนักแจง',
+            zone: 'สำนักแจง',
+            plots: [],
+            satNote: 'ดาวเทียมเห็นแห้งลง ~1.2 ไร่ ไม่มีบันทึกช่วงนี้',
+            actionHint: 'ควรไปดูหน้างาน',
+            detail: 'ค่าความเขียว (NDVI) บริเวณมุมทิศตะวันตกของแปลงสำนักแจงลดลงประมาณ 1.2 ไร่ และไม่มีบันทึกการให้น้ำหรือเข้าตรวจในช่วง 2 สัปดาห์ที่ผ่านมา',
+            done: false
+          }
+        ],
+        /* ปฏิทิน พ.ย. 2569 (1 พ.ย. 2569 = วันอาทิตย์, 24 พ.ย. = วันอังคาร, 30 พ.ย. = วันจันทร์) */
+        calendarEvents: {
+          9:  [{ cat: 'water', catName: 'ฝนตก', title: 'ฝนตกล่าสุด 18 มม.', sub: 'บันทึกจากหน้าหลัก · ดินชุ่มทั่วไร่' }],
+          15: [{ cat: 'spray', catName: 'ฉีดยา', title: 'ฉีดยาคุมหญ้า โซนกลาง', sub: 'หำ + ผัน · แปลง P11, P12' }],
+          16: [{ cat: 'fert',  catName: 'ปุ๋ย', title: 'ขนปุ๋ยเข้าโกดัง 40 กระสอบ', sub: 'เตรียมใส่ตอ โนนสูง' }],
+          17: [{ cat: 'water', catName: 'น้ำ', title: 'สูบน้ำเข้าแปลงซ้ายถนน', sub: 'เดินเครื่อง 5 ชม.' }, { cat: 'car', catName: 'รถ', title: 'เปลี่ยนน้ำมันเครื่องรถไถ L5018', sub: 'ครบชั่วโมงทำงาน' }],
+          18: [{ cat: 'spray', catName: 'ฉีดยา', title: 'ฉีดหญ้าแปลง P8, P9', sub: 'หำ + ผัน · เสร็จครบ' }],
+          19: [{ cat: 'fert',  catName: 'ปุ๋ย', title: 'ใส่ปุ๋ยตอ แปลง P1, P2', sub: 'ชุดคนงานโนนสูง' }],
+          20: [{ cat: 'water', catName: 'น้ำ', title: 'ให้น้ำแปลงหนองกระทู้', sub: 'รอบปกติก่อนฉีดยา' }, { cat: 'cut', catName: 'ตัด', title: 'ตรวจค่าความหวานก่อนตัด', sub: 'สุ่มแปลงอ้อยแก่โซนตะวันออก' }],
+          21: [{ cat: 'car',   catName: 'รถ', title: 'ส่ง Jazz เข้าอู่ซ่อมหน้าปัด', sub: 'ร้านช่างสมชาย · นัดเช็คสายไฟ' }],
+          22: [{ cat: 'spray', catName: 'ฉีดยา', title: 'ฉีดยา P10 (พบซ้ำ 2 รายการ)', sub: 'เวลา 08:15 และ 08:18 · รอตรวจสอบ' }],
+          23: [{ cat: 'cut',   catName: 'ตัด', title: 'เคลียร์ทางรถบรรทุกอ้อย', sub: 'เตรียมรับช่วงใกล้ตัด' }, { cat: 'water', catName: 'น้ำ', title: 'เช็คท่อส่งน้ำ ขวาถนน', sub: 'เตรียมพร้อมให้น้ำรอบใหม่' }],
+          24: [
+            { cat: 'spray', catName: 'ฉีดยา', title: 'ฉีดหญ้ารอบไร่ หนองกระทู้ 4 แปลง', sub: 'P10 P18 P19 P20 · หำ + ผัน' },
+            { cat: 'appt',  catName: 'นัด', title: 'นัด: ให้คนงานไปฉีดยารอบไร่', sub: 'แจ้งเตือนประจำวันนี้' }
+          ],
+          30: [{ cat: 'appt',  catName: 'นัด', title: 'นัดตรวจคิวโควต้าโรงงานน้ำตาล', sub: 'เตรียมวางแผนตัดอ้อยรอบแรก' }]
+        }
+      };
+
+      const thaiWeekdays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+      const catMeta = {
+        spray: { label: 'ฉีดยา', cls: 'cat-spray' },
+        fert:  { label: 'ปุ๋ย',   cls: 'cat-fert' },
+        water: { label: 'น้ำ',    cls: 'cat-water' },
+        cut:   { label: 'ตัด',    cls: 'cat-cut' },
+        car:   { label: 'รถ',     cls: 'cat-car' },
+        appt:  { label: 'นัด',    cls: 'cat-appt' }
+      };
+
+      /* ===== Helpers ===== */
+      const $ = (sel) => document.querySelector(sel);
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = $('#toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+      }
+
+      /* ===== Bottom Sheet Engine (พร้อมปัดลงเพื่อปิด) ===== */
+      const backdrop = $('#sheetBackdrop');
+      const panel = $('#sheetPanel');
+      const dragZone = $('#sheetDragZone');
+
+      function openSheet({ title, subtitle = '', bodyHTML = '', onMount = null }) {
+        $('#sheetTitle').textContent = title;
+        $('#sheetSubtitle').textContent = subtitle;
+        $('#sheetSubtitle').style.display = subtitle ? 'block' : 'none';
+        $('#sheetBody').innerHTML = bodyHTML;
+        panel.style.transform = '';
+        panel.classList.remove('is-dragging');
+        backdrop.classList.add('open');
+        backdrop.setAttribute('aria-hidden', 'false');
+        if (typeof onMount === 'function') onMount($('#sheetBody'));
+      }
+
+      function closeSheet() {
+        panel.classList.remove('is-dragging');
+        panel.style.transform = '';
+        backdrop.classList.remove('open');
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      $('#sheetCloseBtn').addEventListener('click', closeSheet);
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeSheet();
+      });
+
+      // Touch swipe-down to dismiss
+      let dragStartY = 0;
+      let dragDeltaY = 0;
+      let isDraggingSheet = false;
+
+      dragZone.addEventListener('touchstart', (e) => {
+        if (!backdrop.classList.contains('open')) return;
+        dragStartY = e.touches[0].clientY;
+        dragDeltaY = 0;
+        isDraggingSheet = true;
+        panel.classList.add('is-dragging');
+      }, { passive: true });
+
+      dragZone.addEventListener('touchmove', (e) => {
+        if (!isDraggingSheet) return;
+        dragDeltaY = Math.max(0, e.touches[0].clientY - dragStartY);
+        panel.style.transform = `translateY(${dragDeltaY}px)`;
+      }, { passive: true });
+
+      dragZone.addEventListener('touchend', () => {
+        if (!isDraggingSheet) return;
+        isDraggingSheet = false;
+        panel.classList.remove('is-dragging');
+        if (dragDeltaY > 64) {
+          closeSheet();
+        } else {
+          panel.style.transform = '';
+        }
+      });
+
+      /* ===== Render Block 1: ต้องทำวันนี้ ===== */
+      function renderTasks() {
+        const list = $('#taskList');
+        const activeCount = state.tasks.filter(t => !t.done).length;
+        $('#taskTotalBadge').textContent = `${activeCount} งาน`;
+
+        $('#cntAll').textContent = state.tasks.length;
+        $('#cntDoing').textContent = state.tasks.filter(t => t.status === 'doing').length;
+        $('#cntDue').textContent = state.tasks.filter(t => t.status === 'due').length;
+        $('#cntWatch').textContent = state.tasks.filter(t => t.status === 'watch').length;
+
+        const visible = state.filter === 'all'
+          ? state.tasks
+          : state.tasks.filter(t => t.status === state.filter);
+
+        list.innerHTML = visible.map(t => {
+          const cardCls = `task-card st-${t.status}${t.done ? ' is-completed' : ''}`;
+          const pillCls = t.done ? 'st-pill done' : `st-pill ${t.status}`;
+          const pillContent = t.done
+            ? '✓ เรียบร้อย'
+            : (t.status === 'doing' ? `<span class="pulse-dot"></span>${t.statusLabel}` : t.statusLabel);
+
+          let middleHTML = '';
+          if (t.status === 'doing') {
+            middleHTML = `
+              <div class="task-meta">
+                <strong>${t.zone}</strong>
+                <span>· ${t.team}</span>
+                <span>· ${t.startDate}</span>
+              </div>
+              <div class="plot-chips">
+                ${t.plots.map(p => `<span class="plot-chip tabular">${p}</span>`).join('')}
+              </div>
+            `;
+          } else if (t.id === 't2') {
+            middleHTML = `
+              <div class="task-meta">
+                <strong>${t.zone}</strong>
+                <span class="plot-chips" style="display:inline-flex;">
+                  ${t.plots.map(p => `<span class="plot-chip tabular">${p}</span>`).join('')}
+                </span>
+              </div>
+              <div class="task-foot">
+                <span class="tabular">${t.windowText}</span>
+              </div>
+            `;
+          } else if (t.id === 't3') {
+            middleHTML = `
+              <div class="task-meta">
+                <span style="color:var(--due);font-weight:600;" class="tabular">${t.windowText}</span>
+              </div>
+              <div class="water-meter">
+                <div class="water-bar-track"><div class="water-bar-fill"></div></div>
+                <span class="tabular" style="font-size:12.5px;color:var(--ink-2);font-weight:600;">15 / 15 วัน</span>
+              </div>
+            `;
+          } else if (t.status === 'watch') {
+            middleHTML = `
+              <div class="task-meta">${t.satNote}</div>
+              <div class="sat-callout">→ ${t.actionHint}</div>
+            `;
+          } else {
+            middleHTML = `<div class="task-meta">${t.zone || ''}${t.windowText ? ' · ' + t.windowText : ''}</div>`;
+          }
+
+          return `
+            <button type="button" class="${cardCls}" data-task-id="${t.id}">
+              <div class="task-top">
+                <div class="task-title-line">
+                  <span class="task-title">${t.title}</span>
+                </div>
+                <span class="${pillCls}">${pillContent}</span>
+              </div>
+              ${middleHTML}
+            </button>
+          `;
+        }).join('');
+
+        list.querySelectorAll('.task-card').forEach(btn => {
+          btn.addEventListener('click', () => openTaskSheet(btn.dataset.taskId));
+        });
+      }
+
+      function openTaskSheet(id) {
+        const t = state.tasks.find(x => x.id === id);
+        if (!t) return;
+
+        const plotsHTML = t.plots && t.plots.length
+          ? `<div class="detail-box">
+               <div class="detail-label">แปลงที่เกี่ยวข้อง</div>
+               <div class="plot-chips">${t.plots.map(p => `<span class="plot-chip tabular">${p}</span>`).join('')}</div>
+             </div>`
+          : '';
+
+        const extraBox = t.status === 'watch'
+          ? `<div class="detail-box is-warn">
+               <div class="detail-label">สัญญาณดาวเทียม</div>
+               <div>${t.satNote}</div>
+               <div style="margin-top:6px;font-weight:600;color:var(--nolog-ink);">คำแนะนำ: ${t.actionHint}</div>
+             </div>`
+          : (t.id === 't3'
+            ? `<div class="detail-box is-due">
+                 <div class="detail-label">เกณฑ์ความชื้น</div>
+                 <div>${t.windowText} · พยากรณ์ 7 วันข้างหน้าไม่มีฝน</div>
+               </div>`
+            : '');
+
+        const primaryLabel = t.done
+          ? 'ย้อนกลับเป็นยังไม่เสร็จ'
+          : (t.status === 'watch' ? 'บันทึกว่าไปดูหน้างานแล้ว' : (t.status === 'due' ? 'สั่งเริ่มงานวันนี้' : 'บันทึกว่าเสร็จแล้ว'));
+
+        openSheet({
+          title: t.title,
+          subtitle: `${t.statusLabel}${t.zone ? ' · ' + t.zone : ''}${t.team ? ' · ' + t.team : ''}`,
+          bodyHTML: `
+            <div class="detail-box">
+              <div class="detail-label">รายละเอียดงาน</div>
+              <div>${t.detail}</div>
+              ${t.windowText && t.id !== 't3' ? `<div style="margin-top:6px;font-size:13px;color:var(--ink-2);">${t.windowText}</div>` : ''}
+            </div>
+            ${plotsHTML}
+            ${extraBox}
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn primary" id="sheetTaskPrimary">${primaryLabel}</button>
+              <button type="button" class="sheet-btn" id="sheetTaskNote">จดบันทึกเพิ่มเติม</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#sheetTaskPrimary').addEventListener('click', () => {
+              if (!t.done && t.status === 'due') {
+                t.status = 'doing';
+                t.statusLabel = 'กำลังทำ';
+                t.startDate = 'เริ่ม 24 พ.ย.';
+                t.team = t.team || 'สั่งงานแล้ววันนี้';
+                showToast(`เริ่มงาน "${t.title}" แล้ว`);
+              } else {
+                t.done = !t.done;
+                showToast(t.done ? `บันทึก "${t.title}" เรียบร้อย` : `เปิดงาน "${t.title}" อีกครั้ง`);
+              }
+              renderTasks();
+              closeSheet();
+            });
+            body.querySelector('#sheetTaskNote').addEventListener('click', () => {
+              closeSheet();
+              showToast('เปิดช่องจดบันทึกงานแล้ว');
+            });
+          }
+        });
+      }
+
+      // Segmented filter buttons
+      document.querySelectorAll('.seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.filter = btn.dataset.filter;
+          renderTasks();
+        });
+      });
+
+      // พับ/กาง ต้องทำวันนี้
+      $('#btnToggleTasks').addEventListener('click', () => {
+        const body = $('#tasksSectionBody');
+        const hidden = body.classList.toggle('is-hidden');
+        $('#toggleTasksLabel').textContent = hidden ? 'กางดู' : 'พับ';
+        $('#btnToggleTasks').setAttribute('aria-expanded', String(!hidden));
+        $('#btnToggleTasks svg').style.transform = hidden ? 'rotate(180deg)' : '';
+      });
+
+      // นัดวันนี้
+      $('#apptCard').addEventListener('click', () => {
+        openSheet({
+          title: 'ให้คนงานไปฉีดยารอบไร่',
+          subtitle: 'นัด/เตือนวันนี้ · อ. 24 พ.ย. 69',
+          bodyHTML: `
+            <div class="detail-box">
+              <div class="detail-label">รายละเอียดนัด</div>
+              <div>แจ้งทีมหำ + ผัน ฉีดยารอบไร่โซนหนองกระทู้ช่วงเช้า ลมเบาไม่มีฝน</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn primary" id="btnToggleAppt">${state.apptDone ? 'ยกเลิกเครื่องหมายเสร็จ' : 'ติ๊กว่าแจ้งคนงานแล้ว'}</button>
+              <button type="button" class="sheet-btn" id="btnShiftAppt">เลื่อนนัดไปพรุ่งนี้</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnToggleAppt').addEventListener('click', () => {
+              state.apptDone = !state.apptDone;
+              $('#apptCard').classList.toggle('is-done', state.apptDone);
+              showToast(state.apptDone ? 'ติ๊กนัดวันนี้เรียบร้อย' : 'เปิดนัดวันนี้อีกครั้ง');
+              closeSheet();
+            });
+            body.querySelector('#btnShiftAppt').addEventListener('click', () => {
+              showToast('เลื่อนนัดไปวันที่ 25 พ.ย. แล้ว');
+              closeSheet();
+            });
+          }
+        });
+      });
+
+      /* ===== Block 2: ติดตาม & ผิดปกติ ===== */
+      function updateAlertCount() {
+        let count = 0;
+        if (state.carInShop) count++;
+        if (state.watchActive) count++;
+        if (state.auditHasIssue) count++;
+        const badge = $('#alertSummaryBadge');
+        if (count === 0) {
+          badge.textContent = 'ปกติทั้งหมด';
+          badge.className = 'sec-badge is-ok';
+        } else {
+          badge.textContent = `${count} เรื่อง`;
+          badge.className = 'sec-badge is-due tabular';
+        }
+      }
+
+      function renderStatusBlock() {
+        // เฝ้าไร่
+        if (state.watchActive) {
+          $('#watchTitle').textContent = `เฝ้าไร่ · คืนที่ ${state.watchNights}`;
+          $('#watchSub').textContent = 'ช่วงอ้อยใกล้ตัด';
+          $('#btnStopWatch').textContent = 'เลิกเฝ้า';
+        } else {
+          $('#watchTitle').textContent = 'ปิดโหมดเฝ้าไร่แล้ว';
+          $('#watchSub').textContent = 'จบการเฝ้าที่คืนที่ 10';
+          $('#btnStopWatch').textContent = 'เปิดใหม่';
+        }
+
+        // รถ Jazz
+        if (state.carInShop) {
+          $('#carTitle').textContent = 'Jazz ค้างซ่อมที่ร้าน';
+          $('#carDaysPill').classList.remove('is-hidden');
+          $('#carSub').textContent = 'อาการหน้าปัด · เข้าอู่ตั้งแต่ 21 พ.ย.';
+          $('#btnCallCar').innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>โทรเช็ค</span>`;
+          $('#btnCallCar').className = 'row-action-btn is-due';
+        } else {
+          $('#carTitle').textContent = 'Jazz รับรถกลับแล้ว';
+          $('#carDaysPill').classList.add('is-hidden');
+          $('#carSub').textContent = 'ซ่อมหน้าปัดเสร็จเรียบร้อย';
+          $('#btnCallCar').textContent = 'ดูประวัติ';
+          $('#btnCallCar').className = 'row-action-btn is-ghost';
+        }
+
+        // ตรวจข้อมูลอัตโนมัติ
+        if (state.auditHasIssue) {
+          $('#auditIconBox').className = 'status-icon-box is-audit';
+          $('#auditCountPill').textContent = 'พบ 1 จุด';
+          $('#auditCountPill').className = 'mini-pill-purple tabular';
+          $('#auditSub').textContent = 'บันทึกซ้ำ: ฉีดยา P10 วันที่ 22 พ.ย. 2 รายการ';
+          $('#btnAuditView').textContent = 'ดู';
+          $('#btnAuditView').className = 'row-action-btn is-ask';
+        } else {
+          $('#auditIconBox').className = 'status-icon-box is-ok';
+          $('#auditCountPill').textContent = 'ไม่พบจุดผิด';
+          $('#auditCountPill').className = 'sec-badge is-ok';
+          $('#auditSub').textContent = 'ข้อมูลล่าสุดทั้งหมดตรงกันดี';
+          $('#btnAuditView').textContent = 'ตรวจอีก';
+          $('#btnAuditView').className = 'row-action-btn is-ghost';
+        }
+        updateAlertCount();
+      }
+
+      // โทรเช็ค Jazz
+      function openCarSheet() {
+        openSheet({
+          title: 'Jazz ค้างซ่อมที่ร้าน (หน้าปัด)',
+          subtitle: state.carInShop ? 'ค้างอยู่ที่ร้าน 3 วัน · ตั้งแต่ 21 พ.ย.' : 'รับรถกลับเข้าไร่แล้ว',
+          bodyHTML: `
+            <div class="detail-box is-due">
+              <div class="detail-label">อาการที่ส่งซ่อม</div>
+              <div>หน้าปัดไฟเตือนติด-ดับไม่สม่ำเสมอ ส่งร้านช่างสมชายเช็คชุดสายไฟและเรือนไมล์</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn primary" id="btnDialShop">โทรหาร้านช่างสมชาย (081-xxx-4412)</button>
+              <button type="button" class="sheet-btn" id="btnToggleCarDone">${state.carInShop ? 'บันทึกว่ารับรถกลับแล้ว' : 'เปลี่ยนกลับเป็นค้างซ่อม'}</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnDialShop').addEventListener('click', () => {
+              showToast('กำลังต่อสายร้านช่างสมชาย…');
+            });
+            body.querySelector('#btnToggleCarDone').addEventListener('click', () => {
+              state.carInShop = !state.carInShop;
+              renderStatusBlock();
+              showToast(state.carInShop ? 'ตั้งสถานะค้างซ่อมอีกครั้ง' : 'บันทึกว่ารับรถ Jazz กลับแล้ว');
+              closeSheet();
+            });
+          }
+        });
+      }
+      $('#rowCar').addEventListener('click', openCarSheet);
+      $('#btnCallCar').addEventListener('click', (e) => { e.stopPropagation(); openCarSheet(); });
+
+      // เฝ้าไร่
+      function openWatchSheet() {
+        openSheet({
+          title: state.watchActive ? `เฝ้าไร่ คืนที่ ${state.watchNights}` : 'โหมดเฝ้าไร่ปิดอยู่',
+          subtitle: 'ช่วงอ้อยใกล้ตัด',
+          bodyHTML: `
+            <div class="detail-box">
+              <div class="detail-label">สถานะปัจจุบัน</div>
+              <div>${state.watchActive ? 'นับต่อเนื่องมาแล้ว 10 คืน (เริ่ม 14 พ.ย.) เพื่อเฝ้าระวังไฟไหม้และพื้นที่อ้อยแก่ใกล้ตัด' : 'ปิดการนับคืนเฝ้าไร่ชั่วคราว สามารถกดเปิดต่อได้ทันที'}</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn ${state.watchActive ? 'danger' : 'primary'}" id="btnConfirmWatch">${state.watchActive ? 'ยืนยันเลิกเฝ้าไร่' : 'เริ่มนับเฝ้าไร่อีกครั้ง'}</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnConfirmWatch').addEventListener('click', () => {
+              state.watchActive = !state.watchActive;
+              renderStatusBlock();
+              showToast(state.watchActive ? 'เปิดโหมดเฝ้าไร่คืนที่ 10 ต่อแล้ว' : 'เลิกเฝ้าไร่เรียบร้อย');
+              closeSheet();
+            });
+          }
+        });
+      }
+      $('#rowWatch').addEventListener('click', openWatchSheet);
+      $('#btnStopWatch').addEventListener('click', (e) => { e.stopPropagation(); openWatchSheet(); });
+
+      // ตรวจข้อมูลอัตโนมัติ
+      function openAuditSheet() {
+        if (!state.auditHasIssue) {
+          openSheet({
+            title: 'ตรวจข้อมูลอัตโนมัติ',
+            subtitle: 'ไม่พบจุดผิด',
+            bodyHTML: `
+              <div class="detail-box">
+                <div class="detail-label">ผลตรวจล่าสุด</div>
+                <div>ตรวจสอบบันทึกงาน 25 แปลงย้อนหลัง 30 วันแล้ว ไม่พบรายการซ้ำหรือข้อมูลตกหล่น</div>
+              </div>
+              <div class="sheet-btn-stack">
+                <button type="button" class="sheet-btn" id="btnRestoreAuditDemo">จำลองกลับไปมีจุดซ้ำ 1 จุด</button>
+              </div>
+            `,
+            onMount(body) {
+              body.querySelector('#btnRestoreAuditDemo').addEventListener('click', () => {
+                state.auditHasIssue = true;
+                renderStatusBlock();
+                closeSheet();
+                showToast('คืนค่าตัวอย่าง "พบ 1 จุด" แล้ว');
+              });
+            }
+          });
+          return;
+        }
+
+        openSheet({
+          title: 'พบข้อมูลซ้ำ 1 จุด',
+          subtitle: 'ฉีดยา P10 · วันที่ 22 พ.ย. 69 (2 รายการ)',
+          bodyHTML: `
+            <div class="detail-box is-ask">
+              <div class="detail-label">รายการที่ 1 (เก็บไว้)</div>
+              <div><strong>ฉีดยา แปลง P10</strong> · 22 พ.ย. เวลา 08:15 น.<br/><span style="font-size:13px;color:var(--ink-2);">ผู้ทำ: หำ + ผัน · บันทึกมีค่ายาครบ</span></div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">รายการที่ 2 (ซ้ำกัน)</div>
+              <div><strong>ฉีดยา แปลง P10</strong> · 22 พ.ย. เวลา 08:18 น.<br/><span style="font-size:13px;color:var(--ink-2);">ผู้ทำ: หำ + ผัน · ข้อมูลตรงกันทุกช่อง</span></div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn ask" id="btnFixDup">ลบรายการซ้ำ เหลือ 1 รายการ</button>
+              <button type="button" class="sheet-btn" id="btnKeepBoth">ไม่ใช่รายการซ้ำ เก็บไว้ทั้งคู่</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnFixDup').addEventListener('click', () => {
+              state.auditHasIssue = false;
+              state.calendarEvents[22] = [{ cat: 'spray', catName: 'ฉีดยา', title: 'ฉีดยา P10 (แก้ซ้ำแล้ว)', sub: 'เวลา 08:15 · เหลือ 1 รายการ' }];
+              renderStatusBlock();
+              renderCalendar();
+              closeSheet();
+              showToast('ลบรายการซ้ำแล้ว · ไม่พบจุดผิด');
+            });
+            body.querySelector('#btnKeepBoth').addEventListener('click', () => {
+              state.auditHasIssue = false;
+              renderStatusBlock();
+              closeSheet();
+              showToast('บันทึกว่าไม่ซ้ำ · ไม่พบจุดผิด');
+            });
+          }
+        });
+      }
+      $('#rowAudit').addEventListener('click', openAuditSheet);
+      $('#btnAuditView').addEventListener('click', (e) => { e.stopPropagation(); openAuditSheet(); });
+
+      /* ===== Block 3: อากาศ & ราคาน้ำตาล ===== */
+      $('#cardWeather').addEventListener('click', () => {
+        const hourlyHTML = [
+          { t: '13:00', desc: 'แดดจัด · ลม 9 กม./ชม.', rain: '0%', temp: '33°' },
+          { t: '15:00', desc: 'เมฆบาง · ลม 11 กม./ชม.', rain: '0%', temp: '34°' },
+          { t: '17:00', desc: 'แดดอ่อน · เหมาะฉีดยา', rain: '0%', temp: '30°' },
+          { t: '19:00', desc: 'ฟ้าโปร่ง · ลมสงบ', rain: '0%', temp: '27°' },
+          { t: '21:00', desc: 'อากาศเย็นลง', rain: '0%', temp: '24°' }
+        ].map(r => `<div class="wx-row tabular"><strong>${r.t}</strong><span style="color:var(--ink-2);font-size:13px;">${r.desc}</span><span style="color:var(--water);text-align:right;">${r.rain}</span><strong style="text-align:right;">${r.temp}</strong></div>`).join('');
+
+        const weeklyHTML = [
+          { d: 'อ. 24', desc: 'ฟ้าโปร่ง · ฉีดยา/เข้าแปลงได้', rain: '0 มม.', hl: '34°/22°' },
+          { d: 'พ. 25', desc: 'แดดดี ลมเบา', rain: '0 มม.', hl: '33°/21°' },
+          { d: 'พฤ 26', desc: 'แดดดี อากาศแห้ง', rain: '0 มม.', hl: '33°/21°' },
+          { d: 'ศ. 27', desc: 'เมฆบางช่วงบ่าย', rain: '0 มม.', hl: '32°/20°' },
+          { d: 'ส. 28', desc: 'ฟ้าโปร่ง เช้าเย็น', rain: '0 มม.', hl: '32°/20°' },
+          { d: 'อา 29', desc: 'แดดจัด ไม่มีฝน', rain: '0 มม.', hl: '33°/21°' },
+          { d: 'จ. 30', desc: 'ฟ้าโปร่ง ดินแห้งดี', rain: '0 มม.', hl: '33°/21°' }
+        ].map(r => `<div class="wx-row tabular"><strong>${r.d}</strong><span style="color:var(--ink-2);font-size:13px;">${r.desc}</span><span style="color:var(--ink-3);text-align:right;font-size:13px;">${r.rain}</span><strong style="text-align:right;font-size:13px;">${r.hl}</strong></div>`).join('');
+
+        openSheet({
+          title: `ฝนวันนี้ ${state.rainToday} มม.`,
+          subtitle: `ฝนตกล่าสุด ${state.rainLastDate} · 7 วันข้างหน้าไม่มีฝน`,
+          bodyHTML: `
+            <div class="seg-bar" style="grid-template-columns:1fr 1fr;margin-bottom:2px;">
+              <button type="button" class="seg-btn active" id="wxTabHourly">รายชั่วโมง</button>
+              <button type="button" class="seg-btn" id="wxTab7d">7 วันข้างหน้า</button>
+            </div>
+            <div class="detail-box" id="wxContent">${hourlyHTML}</div>
+            <button type="button" class="sheet-btn primary" id="wxBtnLogRain">จดปริมาณฝนตกวันนี้</button>
+          `,
+          onMount(body) {
+            const box = body.querySelector('#wxContent');
+            const b1 = body.querySelector('#wxTabHourly');
+            const b2 = body.querySelector('#wxTab7d');
+            b1.addEventListener('click', () => { b1.classList.add('active'); b2.classList.remove('active'); box.innerHTML = hourlyHTML; });
+            b2.addEventListener('click', () => { b2.classList.add('active'); b1.classList.remove('active'); box.innerHTML = weeklyHTML; });
+            body.querySelector('#wxBtnLogRain').addEventListener('click', () => { openRainLogSheet(); });
+          }
+        });
+      });
+
+      $('#cardSugar').addEventListener('click', () => {
+        openSheet({
+          title: 'ราคาน้ำตาลตลาดโลก',
+          subtitle: '17.4 ¢/ปอนด์ · เพิ่มขึ้น +0.3 จากเมื่อวาน (17.1)',
+          bodyHTML: `
+            <div class="detail-box">
+              <div class="detail-label">กราฟย้อนหลัง 14 วัน (¢/ปอนด์)</div>
+              <svg viewBox="0 0 320 120" width="100%" height="120" style="display:block;margin-top:6px;">
+                <defs>
+                  <linearGradient id="chartArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1F5E3B" stop-opacity="0.24"/>
+                    <stop offset="100%" stop-color="#1F5E3B" stop-opacity="0.01"/>
+                  </linearGradient>
+                </defs>
+                <line x1="0" y1="22" x2="320" y2="22" stroke="#E2EAE4" stroke-dasharray="4 4"/>
+                <line x1="0" y1="62" x2="320" y2="62" stroke="#E2EAE4" stroke-dasharray="4 4"/>
+                <line x1="0" y1="100" x2="320" y2="100" stroke="#E2EAE4"/>
+                <text x="4" y="18" font-size="11" fill="#6D7B72">17.8</text>
+                <text x="4" y="58" font-size="11" fill="#6D7B72">17.0</text>
+                <text x="4" y="96" font-size="11" fill="#6D7B72">16.4</text>
+                <path d="M36,84 L62,78 L88,82 L114,72 L140,75 L166,64 L192,66 L218,54 L244,58 L270,48 L292,50 L312,30 L312,100 L36,100 Z" fill="url(#chartArea)"/>
+                <polyline points="36,84 62,78 88,82 114,72 140,75 166,64 192,66 218,54 244,58 270,48 292,50 312,30" fill="none" stroke="#1F5E3B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="312" cy="30" r="4.5" fill="#1F5E3B" stroke="#FFFFFF" stroke-width="2"/>
+                <text x="275" y="21" font-size="12" font-weight="700" fill="#15452A">17.4</text>
+              </svg>
+              <div class="tabular" style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-3);margin-top:4px;">
+                <span>11 พ.ย.</span><span>17 พ.ย.</span><span>24 พ.ย.</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="detail-box">
+                <div class="detail-label">เมื่อวาน</div>
+                <strong class="tabular" style="font-size:16px;">17.1 ¢/ปอนด์</strong>
+              </div>
+              <div class="detail-box">
+                <div class="detail-label">สูงสุดใน 14 วัน</div>
+                <strong class="tabular" style="font-size:16px;color:var(--brand);">17.4 ¢/ปอนด์</strong>
+              </div>
+            </div>
+          `
+        });
+      });
+
+      /* ===== Block 4: แอปถาม ===== */
+      function updateAskBadge() {
+        const pending = (state.ask1 ? 0 : 1) + (state.ask2 !== null ? 0 : 1);
+        const badge = $('#askPendingBadge');
+        if (pending === 0) {
+          badge.textContent = 'ตอบครบแล้ว';
+          badge.className = 'sec-badge is-ok';
+        } else {
+          badge.textContent = `รอตอบ ${pending}`;
+          badge.className = 'sec-badge is-ask tabular';
+        }
+      }
+
+      document.querySelectorAll('[data-q1]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.ask1 = btn.dataset.q1;
+          $('#askCard1').classList.add('is-answered');
+          $('#ask1Controls').classList.add('is-hidden');
+          $('#ask1Answered').classList.remove('is-hidden');
+          $('#ask1AnsText').textContent = `✓ ตอบแล้ว: ${state.ask1}`;
+          updateAskBadge();
+          showToast(`บันทึกแล้ว: P18 ${state.ask1}`);
+        });
+      });
+
+      $('#ask1Undo').addEventListener('click', () => {
+        state.ask1 = null;
+        $('#askCard1').classList.remove('is-answered');
+        $('#ask1Controls').classList.remove('is-hidden');
+        $('#ask1Answered').classList.add('is-hidden');
+        updateAskBadge();
+      });
+
+      $('#btnSaveFuel').addEventListener('click', () => {
+        const raw = $('#fuelInput').value.trim();
+        if (!raw || Number(raw) < 0) {
+          showToast('กรุณาใส่จำนวนลิตรก่อนบันทึก');
+          $('#fuelInput').focus();
+          return;
+        }
+        state.ask2 = raw;
+        $('#askCard2').classList.add('is-answered');
+        $('#ask2Controls').classList.add('is-hidden');
+        $('#ask2Answered').classList.remove('is-hidden');
+        $('#ask2AnsText').textContent = `✓ บันทึกแล้ว: ${raw} ลิตร (หำ+ผัน)`;
+        updateAskBadge();
+        showToast(`จดน้ำมันให้หำ+ผัน ${raw} ลิตรแล้ว`);
+      });
+
+      $('#ask2Undo').addEventListener('click', () => {
+        state.ask2 = null;
+        $('#askCard2').classList.remove('is-answered');
+        $('#ask2Controls').classList.remove('is-hidden');
+        $('#ask2Answered').classList.add('is-hidden');
+        updateAskBadge();
+        $('#fuelInput').focus();
+      });
+
+      /* ===== Block 5: ปฏิทิน พ.ย. 2569 ===== */
+      function renderCalendar() {
+        const grid = $('#calGrid');
+        const cells = [];
+        // พ.ย. 2569: วันที่ 1 เป็นวันอาทิตย์ (offset = 0), มี 30 วัน
+        for (let d = 1; d <= 30; d++) {
+          const evs = state.calendarEvents[d] || [];
+          const uniqueCats = [...new Set(evs.map(e => e.cat))].slice(0, 4);
+          const dotsHTML = uniqueCats.map(c => `<span class="cat-dot ${catMeta[c]?.cls || 'cat-spray'}"></span>`).join('');
+          const cls = [
+            'cal-cell',
+            d === 24 ? 'is-today' : '',
+            d === state.selectedDay ? 'is-selected' : ''
+          ].filter(Boolean).join(' ');
+
+          cells.push(`
+            <button type="button" class="${cls}" data-day="${d}" aria-label="${d} พฤศจิกายน 2569">
+              <span class="cal-day-num">${d}</span>
+              <span class="cal-dots">${dotsHTML}</span>
+            </button>
+          `);
+        }
+        grid.innerHTML = cells.join('');
+
+        grid.querySelectorAll('.cal-cell').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.selectedDay = Number(btn.dataset.day);
+            renderCalendar();
+          });
+        });
+
+        renderSelectedDayPanel();
+      }
+
+      function renderSelectedDayPanel() {
+        const d = state.selectedDay;
+        const dow = thaiWeekdays[(d - 1) % 7]; // 1 Nov 2026 = Sunday (index 0)
+        const evs = state.calendarEvents[d] || [];
+
+        $('#calSelectedTitle').textContent = `${dow} ${d} พ.ย. 69${d === 24 ? ' (วันนี้)' : ''}`;
+        $('#calSelectedCount').textContent = evs.length ? `${evs.length} รายการ` : 'ไม่มีงานจดไว้';
+        $('#btnAddCalDay').textContent = `+ จดงานวันที่ ${d} พ.ย.`;
+
+        const list = $('#calEventList');
+        if (!evs.length) {
+          list.innerHTML = `<div class="cal-empty-txt">ยังไม่มีบันทึกงานในวันที่ ${d} พ.ย.</div>`;
+          return;
+        }
+
+        list.innerHTML = evs.map((ev, idx) => `
+          <button type="button" class="cal-event-item" data-ev-idx="${idx}">
+            <div class="cal-event-left">
+              <span class="cat-dot ${catMeta[ev.cat]?.cls || 'cat-spray'}" style="width:9px;height:9px;"></span>
+              <div>
+                <div class="cal-event-title">${ev.title}</div>
+                <div class="cal-event-sub">${ev.catName} · ${ev.sub}</div>
+              </div>
+            </div>
+            <span class="chev">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </span>
+          </button>
+        `).join('');
+
+        list.querySelectorAll('.cal-event-item').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ev = evs[Number(btn.dataset.evIdx)];
+            openSheet({
+              title: ev.title,
+              subtitle: `${dow} ${d} พ.ย. 69 · หมวด${ev.catName}`,
+              bodyHTML: `
+                <div class="detail-box">
+                  <div class="detail-label">รายละเอียดบันทึก</div>
+                  <div>${ev.sub}</div>
+                </div>
+                <button type="button" class="sheet-btn primary" id="btnCloseCalEv">ปิดหน้าต่าง</button>
+              `,
+              onMount(body) {
+                body.querySelector('#btnCloseCalEv').addEventListener('click', closeSheet);
+              }
+            });
+          });
+        });
+      }
+
+      $('#btnCalToday').addEventListener('click', () => {
+        state.selectedDay = 24;
+        renderCalendar();
+      });
+
+      $('#btnToggleCal').addEventListener('click', () => {
+        const body = $('#calCardBody');
+        const hidden = body.classList.toggle('is-hidden');
+        $('#toggleCalLabel').textContent = hidden ? 'กางดู' : 'พับ';
+        $('#btnToggleCal').setAttribute('aria-expanded', String(!hidden));
+        $('#btnToggleCal svg').style.transform = hidden ? 'rotate(180deg)' : '';
+      });
+
+      function openAddCalendarEventSheet(day) {
+        openSheet({
+          title: `จดงานวันที่ ${day} พ.ย. 69`,
+          subtitle: 'เพิ่มลงปฏิทินงานเดือนนี้ทันที',
+          bodyHTML: `
+            <div class="form-group">
+              <label class="form-label" for="evCat">หมวดงาน</label>
+              <select class="form-select" id="evCat">
+                <option value="spray">ฉีดยา</option>
+                <option value="fert">ปุ๋ย</option>
+                <option value="water">น้ำ</option>
+                <option value="cut">ตัด</option>
+                <option value="car">รถ</option>
+                <option value="appt">นัด</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="evTitle">ชื่องาน / รายการ</label>
+              <input type="text" class="form-input" id="evTitle" placeholder="เช่น ใส่ปุ๋ยตอ โนนสูง P3, P5" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="evSub">แปลง / คนงาน / หมายเหตุ</label>
+              <input type="text" class="form-input" id="evSub" placeholder="เช่น หำ + ผัน" />
+            </div>
+            <button type="button" class="sheet-btn primary" id="btnSaveCalEv">บันทึกงานวันที่ ${day} พ.ย.</button>
+          `,
+          onMount(body) {
+            body.querySelector('#btnSaveCalEv').addEventListener('click', () => {
+              const cat = body.querySelector('#evCat').value;
+              const title = body.querySelector('#evTitle').value.trim();
+              const sub = body.querySelector('#evSub').value.trim() || 'จดเพิ่มจากหน้าวันนี้';
+              if (!title) {
+                showToast('กรุณาพิมพ์ชื่องานก่อน');
+                body.querySelector('#evTitle').focus();
+                return;
+              }
+              if (!state.calendarEvents[day]) state.calendarEvents[day] = [];
+              state.calendarEvents[day].push({ cat, catName: catMeta[cat].label, title, sub });
+              renderCalendar();
+              closeSheet();
+              showToast(`เพิ่มงานวันที่ ${day} พ.ย. แล้ว`);
+            });
+          }
+        });
+      }
+
+      $('#btnAddCalDay').addEventListener('click', () => openAddCalendarEventSheet(state.selectedDay));
+
+      /* ===== ปุ่มหัวบน: จดฝนตก · เพิ่ม · ตั้งค่า ===== */
+      function openRainLogSheet() {
+        openSheet({
+          title: 'จดฝนตกวันนี้',
+          subtitle: 'อ. 24 พ.ย. 69 · ปริมาณฝนมีผลกับรอบฉีดยาและให้น้ำ',
+          bodyHTML: `
+            <div class="form-group">
+              <label class="form-label" for="rainMmInput">ปริมาณฝน (มม.)</label>
+              <input type="number" inputmode="decimal" min="0" class="form-input tabular" id="rainMmInput" value="${state.rainToday}" />
+            </div>
+            <div class="chip-row">
+              <button type="button" class="preset-chip" data-mm="0">0 มม. (ไม่ตก)</button>
+              <button type="button" class="preset-chip" data-mm="5">5 มม. (ปรอย)</button>
+              <button type="button" class="preset-chip" data-mm="15">15 มม. (ปานกลาง)</button>
+              <button type="button" class="preset-chip" data-mm="35">35 มม. (หนัก)</button>
+            </div>
+            <button type="button" class="sheet-btn primary" id="btnSaveRain">บันทึกปริมาณฝน</button>
+          `,
+          onMount(body) {
+            const inp = body.querySelector('#rainMmInput');
+            body.querySelectorAll('.preset-chip').forEach(ch => {
+              ch.addEventListener('click', () => { inp.value = ch.dataset.mm; });
+            });
+            body.querySelector('#btnSaveRain').addEventListener('click', () => {
+              const v = Math.max(0, Number(inp.value) || 0);
+              state.rainToday = v;
+              $('#rainTodayVal').textContent = v;
+              if (v > 0) {
+                state.rainLastDate = 'วันนี้';
+                $('#rainMetaTxt').textContent = `จดฝนวันนี้ ${v} มม. · 7 วันข้างหน้าไม่มีฝน`;
+              } else {
+                state.rainLastDate = '9 พ.ย.';
+                $('#rainMetaTxt').textContent = 'ล่าสุด 9 พ.ย. · 7 วันไม่มีฝน';
+              }
+              closeSheet();
+              showToast(`บันทึกฝนวันนี้ ${v} มม. แล้ว`);
+            });
+          }
+        });
+      }
+
+      $('#btnLogRain').addEventListener('click', openRainLogSheet);
+
+      $('#btnQuickAdd').addEventListener('click', () => {
+        openSheet({
+          title: 'เพิ่มรายการใหม่',
+          subtitle: 'เลือกสิ่งที่ต้องการจดวันนี้ (24 พ.ย. 69)',
+          bodyHTML: `
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn primary" id="qaWork">+ จดงานวันนี้ลงปฏิทิน</button>
+              <button type="button" class="sheet-btn" id="qaRain">จดปริมาณฝนตก</button>
+              <button type="button" class="sheet-btn" id="qaTodo">เพิ่มคิวงานเข้าหน้าวันนี้</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#qaWork').addEventListener('click', () => openAddCalendarEventSheet(24));
+            body.querySelector('#qaRain').addEventListener('click', openRainLogSheet);
+            body.querySelector('#qaTodo').addEventListener('click', () => {
+              openSheet({
+                title: 'เพิ่มคิวงานเข้าหน้าวันนี้',
+                subtitle: 'จะขึ้นในรายการ "ต้องทำวันนี้" ทันที',
+                bodyHTML: `
+                  <div class="form-group">
+                    <label class="form-label" for="newTodoTitle">ชื่องาน</label>
+                    <input type="text" class="form-input" id="newTodoTitle" placeholder="เช่น ตรวจปั๊มน้ำแปลงขวาถนน" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="newTodoZone">แปลง / รายละเอียด</label>
+                    <input type="text" class="form-input" id="newTodoZone" placeholder="เช่น ขวาถนน · ช่างแดง" />
+                  </div>
+                  <button type="button" class="sheet-btn primary" id="btnSaveTodo">เพิ่มเข้าคิววันนี้</button>
+                `,
+                onMount(b2) {
+                  b2.querySelector('#btnSaveTodo').addEventListener('click', () => {
+                    const title = b2.querySelector('#newTodoTitle').value.trim();
+                    const zone = b2.querySelector('#newTodoZone').value.trim() || 'เพิ่มวันนี้';
+                    if (!title) { showToast('กรุณาใส่ชื่องาน'); return; }
+                    state.tasks.unshift({
+                      id: 't' + Date.now(),
+                      status: 'due',
+                      statusLabel: 'ถึงคิว',
+                      title,
+                      zone,
+                      plots: [],
+                      windowText: 'เพิ่มเมื่อ 24 พ.ย.',
+                      detail: zone,
+                      done: false
+                    });
+                    renderTasks();
+                    closeSheet();
+                    showToast(`เพิ่ม "${title}" แล้ว`);
+                  });
+                }
+              });
+            });
+          }
+        });
+      });
+
+      $('#btnSettings').addEventListener('click', () => {
+        openSheet({
+          title: 'ตั้งค่าหน้าวันนี้',
+          subtitle: 'ไร่อ้อย 281 ไร่ · 25 แปลง',
+          bodyHTML: `
+            <div class="detail-box">
+              <div class="detail-label">ข้อมูลไร่</div>
+              <div>พื้นที่รวม 281 ไร่ · แบ่ง 25 แปลง · เกณฑ์แจ้งเตือนขาดน้ำ 15 วัน</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn ${state.sunBoost ? 'primary' : ''}" id="btnSunMode">
+                ${state.sunBoost ? '✓ โหมดสู้แดดจัด: เปิดอยู่' : 'เปิดโหมดสู้แดดจัด (เพิ่มความคมขอบ/ตัวอักษร)'}
+              </button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnSunMode').addEventListener('click', () => {
+              state.sunBoost = !state.sunBoost;
+              document.body.classList.toggle('sun-boost', state.sunBoost);
+              closeSheet();
+              showToast(state.sunBoost ? 'เปิดโหมดสู้แดดจัดแล้ว' : 'กลับสู่ความคมชัดปกติ');
+            });
+          }
+        });
+      });
+
+      /* ===== เมนูล่าง 5 ปุ่ม ===== */
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const name = tab.dataset.tab;
+          if (name === 'วันนี้') {
+            $('#app').scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+          showToast(`แบบจำลองหน้า "${name}" — แตะทดสอบรายการบนหน้า "วันนี้" ได้เลย`);
+        });
+      });
+
+      /* ===== Initial Render ===== */
+      renderTasks();
+      renderStatusBlock();
+      renderCalendar();
+      updateAskBadge();
+    })();
+  </script>
+</body>
+</html>

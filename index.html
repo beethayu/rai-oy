@@ -2192,6 +2192,7 @@
     .tdA .td-pill { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; flex-shrink: 0; align-self: center; }
     .tdA .srow.rem-today { background: var(--td-warn-bg); padding: 12px 14px; } .tdA .rem-today .dj { padding: 0; align-items: center; } .tdA .rem-today .dj-t { font-size: 15px; }
     .tdA .rem-today .dj-x { font-size: 13px; color: var(--td-muted); }
+    .tdA .cal-day .dj-x { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* ข้อความยาวเหลือ 2 บรรทัด แตะ = ดูเต็ม (24 พ.ย. 69) */
     .tdA .bigbtn { min-height: 44px; height: auto; border-radius: 10px; font-size: 14px; } .tdA .bigbtn-out { border: 1.5px solid var(--td-line2); color: var(--td-ink); }
     /* ปฏิทิน */
     .tdA .cal-box { padding: 12px 10px 8px; border-bottom: 0; }
@@ -4162,8 +4163,9 @@
       o = o || {}; const t0 = todayISO();
       const pname = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
       const out = [];
-      (o.rem || []).forEach(r => out.push(remRowHtml(r, iso)));
-      if (iso >= t0) (gData.reminders || []).forEach(r => { if (r.repeat === 'วัน' && beToISO(r.date) && beToISO(r.date) < iso) out.push(remRowHtml(r, iso)); });
+      // วันนี้: นัด/เตือนอยู่ใน "ต้องทำวันนี้" · เฝ้าไร่อยู่หัวข้อเฝ้าไร่ แล้ว → ไม่ขึ้นซ้ำในปฏิทิน (24 พ.ย. 69)
+      if (iso !== t0) (o.rem || []).forEach(r => out.push(remRowHtml(r, iso)));
+      if (iso > t0) (gData.reminders || []).forEach(r => { if (r.repeat === 'วัน' && beToISO(r.date) && beToISO(r.date) < iso) out.push(remRowHtml(r, iso)); });
       (gData.reminders || []).forEach(r => { const d = beToISO(r.date), n = d ? dayDiff(iso, d) : 0;
         if (iso >= t0 && n > 0 && n <= num(r.lead_days)) out.push(djRow({ icon: '🔔', what: `<span style="color:#6B736E">อีก ${n} วัน · ${esc(r.text)}</span>`, extra: esc(calLbl(d)) })); });
       const acts = o.logs || [];
@@ -4231,7 +4233,7 @@
       Object.values(o.pnote || {}).forEach(x => { const n = String(x.note || '').replace(/^⚠️ แชตเข้าใจผิด — จดธรรมดาไว้ · /, '');
         out.push(djRow({ icon: x.file_ids ? '📷' : '📝', what: esc(x.diagnosis && !/^📝/.test(x.diagnosis) ? x.diagnosis : x.file_ids ? 'รูปหน้างาน' : 'บันทึกแปลง'), where: djWhere(x.plots, pname), extra: esc(n.slice(0, 160)),
           attrs: x.file_ids ? ` onclick="viewPhotos('${qa(pname(x.plots[0]))}','${qa(x.file_ids)}')" style="cursor:pointer"` : '' })); });
-      (o.guards || []).forEach(g => { const st = guardStat(g), nth = st.future ? 0 : dayDiff(st.s, iso) + 1;
+      (iso === t0 ? [] : o.guards || []).forEach(g => { const st = guardStat(g), nth = st.future ? 0 : dayDiff(st.s, iso) + 1;
         out.push(djRow({ icon: '🛡️', what: 'เฝ้าไร่', tag: nth > 0 ? `คืนที่ ${nth}` : '', who: esc(String(g.workers || '').split(/\s*[,+]\s*/).filter(Boolean).join(' + ') || 'ไม่ระบุคน'), where: esc(guardWhere(g)) })); });
       (o.ripe || []).forEach(r => out.push(djRow({ icon: '🌾', what: 'ครบตัด', where: esc(r.p.plot_name), extra: `${esc(r.type)} · อายุครบ ${r.type === 'อ้อยใหม่' ? '10' : '11'} เดือน` })));
       (o.reg || []).forEach(i => out.push(djRow({ icon: '🪪', what: '<span style="color:#B54708">ทะเบียนหมด</span>', where: esc(i.label), extra: i.plate ? esc(i.plate) : '' })));
@@ -4267,7 +4269,6 @@
     function calHtml(head) {
       const t0 = todayISO(); if (!calSel) calSel = t0; if (!calYM) calYM = calSel.slice(0, 7);
       const X = calIndex();
-      let wk = 0; for (let k = 0; k < 7; k++) { const o = X[isoAdd(t0, -k)]; if (o) wk += tankOf(o.logs.filter(a => a.activity_group === 'ฉีดยา')); }
       const cell = (iso, dim) => { const d = +iso.slice(8), cls = (iso === t0 ? ' td' : '') + (iso === calSel ? ' sel' : '') + (dim ? ' dim' : '') + (calDrag && calDrag.to === iso ? (iso > t0 && !calDrag.rem ? ' nodrop' : ' drop') : '');
         return `<button type="button" class="cal-c${cls}" data-iso="${iso}" onclick="calPick('${iso}')"><span class="cal-n">${d}</span><span class="cal-dots">${calDots(X[iso])}</span></button>`; };
       const wdays = `<div class="cal-w">${TH_DAY.map(x => `<span>${x.replace('.', '')}</span>`).join('')}</div>`;
@@ -4284,7 +4285,6 @@
       calDragInit();
       const btn = mv + hint + (fut ? `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ นัด/เตือน${calSel === isoAdd(t0, 1) ? 'พรุ่งนี้' : 'วันที่ ' + dm}</button>` : `<button type="button" class="cal-add" onclick="calLog('${calSel}')">+ จดงาน${calSel === t0 ? 'วันนี้' : 'วันที่ ' + dm}</button>`);
       return head('ปฏิทินงาน', '', calSel !== t0 || calYM !== t0.slice(0, 7) ? `<button type="button" class="grp-all" onclick="calSel='';calYM='';render()">วันนี้</button>` : '')
-        + (wk ? `<div class="srow-s" style="padding:0 4px 6px">ฉีดยา 7 วันล่าสุดรวม <b style="color:#B42318">${r1(wk)} ถัง</b></div>` : '')
         + `<div class="srow-box"><div class="cal-box">${grid}</div><div class="rc-day cal-day"><div class="cal-sl">${calLbl(calSel)}${calSel !== t0 && calSel.slice(0, 4) !== t0.slice(0, 4) ? ' ' + (+calSel.slice(0, 4) + 543) : ''}</div>${dayRowsHtml(calSel, X[calSel])}${btn}</div></div>`;
     }
     const TH_MON_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
@@ -4685,6 +4685,17 @@
           if (!/ควรไปดูหน้างาน/.test(burnCause(pid, m.A, m.B))) return;
           add({ k: 'burn:' + pid + '|' + m.B, ic: '🛰️', t: `แห้งลงไม่มีบันทึก · ${pname(pid)}`, s: `~${r1(m.rai)} ไร่ · ภาพ ${dShort(m.A)} → ${dShort(m.B)}`,
             x: 'ดาวเทียมเห็นจุดที่เขียวกลายเป็นแห้ง แต่ไม่มีบันทึกไฟ/ฉีดยา/ตัดช่วงนั้น — ควรไปดูหน้างาน ถ้าเป็นไฟ จดความเสียหายที่หน้าแปลง', pid }); }); } catch (e) {}
+      // 8) แชตเข้าใจผิด จดธรรมดาไว้ = ยังไม่ได้ลงงาน/สต็อก
+      const TAGd = /^⚠️ แชตเข้าใจผิด/;
+      (gData.assetLogs || []).forEach(l => { const iso = beToISO(String(l.timestamp || '').split(' ')[0]); if (iso && iso >= lo && TAGd.test(l.detail || ''))
+        add({ k: 'plain:' + l.log_id, ic: '💬', iso, t: `แชตเข้าใจผิด · ประวัติรถ ${eqS(l.asset_name)}`, s: `${dShort(iso)} · ${String(l.detail).replace(/^⚠️[^·]*·\s*/, '').slice(0, 40)}`,
+          x: 'จดเป็นบันทึกธรรมดาไว้ ยังไม่ได้ลงเป็นงาน/สต็อก — พิมพ์ส่งใหม่ในแชต หรือบอก Claude ให้แก้ แล้วลบบันทึกนี้' }); });
+      (gData.plotPhotos || []).forEach(x => { const iso = beToISO(String(x.timestamp || '').split(' ')[0]); if (iso && iso >= lo && TAGd.test(x.note || ''))
+        add({ k: 'plain:' + (x.photo_id || x.plot_id + iso), ic: '💬', iso, t: `แชตเข้าใจผิด · บันทึกแปลง ${pname(x.plot_id)}`, s: `${dShort(iso)} · ${String(x.note).replace(/^⚠️[^·]*·\s*/, '').slice(0, 40)}`,
+          x: 'จดเป็นบันทึกธรรมดาไว้ ยังไม่ได้ลงเป็นงาน — พิมพ์ส่งใหม่ในแชต หรือบอก Claude ให้แก้' }); });
+      (gData.notes || []).forEach(n => { const iso = beToISO(n.date); if (iso && iso >= lo && TAGd.test(n.text || ''))
+        add({ k: 'plain:' + n.note_id, ic: '💬', iso, t: 'แชตเข้าใจผิด · บันทึกนอกไร่', s: `${dShort(iso)} · ${String(n.text).replace(/^⚠️[^·]*·\s*/, '').slice(0, 40)}`,
+          x: 'จดเป็นบันทึกธรรมดาไว้ ยังไม่ได้ลงเป็นงาน — พิมพ์ส่งใหม่ในแชต หรือบอก Claude ให้แก้' }); });
       return out.sort((a, b) => (b.iso || '') < (a.iso || '') ? -1 : 1);
     }
     function dqHtml(head, L) {
@@ -4853,7 +4864,7 @@
       $('table-view').style.display = t === 'table' ? 'block' : 'none';
       $('notice-box').style.display = t === 'urgent' ? 'block' : 'none';
       const titles = { urgent: 'วันนี้ต้องดูแปลงไหน', all: 'แปลงทั้งหมด', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย', log: 'บันทึกงาน', table: 'ตารางสรุปทุกแปลง' };
-      $('sec-title').innerText = t === 'urgent' && HOME_V ? (d => `วันนี้ ${['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'][d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`)(new Date()) : titles[t] || '';
+      $('sec-title').innerText = t === 'urgent' && HOME_V ? 'วันนี้' /* วันที่อยู่บนหัวแล้ว (24 พ.ย. 69) */ : titles[t] || '';
       document.querySelector('.sec-hd').style.display = t === 'log' && logMode === 'chat' ? 'none' : '';
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();
@@ -5849,7 +5860,7 @@
       }) || null;
     }
     const vehShop = d => { const m = String(d || '').match(/ร้าน\s*([^·]+)/); return m ? m[1].trim() : ''; };
-    const vehClean = d => String(d || '').split('·').map(x => x.trim()).filter(x => x && x !== '-' && !/^ร้าน\s/.test(x) && !/^ไมล์\s/.test(x) && !/^ค่า\s[\d,]+\s*บ/.test(x) && !/^ที่\s/.test(x)).join(' · ');
+    const vehClean = d => String(d || '').split('·').map(x => x.trim()).filter(x => x && x !== '-' && !/^⚠️ แชตเข้าใจผิด/.test(x) && !/^ร้าน\s/.test(x) && !/^ไมล์\s/.test(x) && !/^ค่า\s[\d,]+\s*บ/.test(x) && !/^ที่\s/.test(x)).join(' · ');
     const vehAmt = d => { const m = String(d || '').match(/ค่า\s*([\d,]+)\s*บ/); return m ? num(m[1].replace(/,/g, '')) : 0; };
     const vehMile = d => { const m = String(d || '').match(/ไมล์\s*([\d,]+)/); return m ? num(m[1].replace(/,/g, '')) : 0; };
     function vehVisits(name) {
@@ -7098,10 +7109,11 @@
         .then(r => r.need_history && !withStats
           ? callApi('chatParse', [txt, { ...ctx, stats: chatStats() }, [], pics.length ? r.photos : (reuse ? reuse.ids : null)]) : r)
         .then(r => {
+          const prevDraft = (chat.msgs.slice().reverse().find(m => m.ai && m.state === 'draft') || {}).items || [];
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, txt, r); chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt);
           const ask = r.ask || [];
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -7115,6 +7127,25 @@
           if (pics.length) { chatPics = pics; if (txt !== 'ส่งรูป') box.value = txt; chatPvRender(); } // คืนรูปในช่องพิมพ์ ส่งใหม่ได้
           chat.msgs.push({ ai: true, t: '❌ ' + String(e.message).slice(0, 140) + (pics.length ? '\nรูปยังอยู่ในช่องพิมพ์ กดส่งใหม่ได้' : ''), retry: pics.length ? undefined : txt, items: [], state: 'info' });
         }).finally(() => { chatBusy = false; chatSave(); chatRender(true); });
+    }
+    // 24 พ.ย. 69: ส่งเรื่องใหม่ตอนการ์ดเดิมยังไม่บันทึก แล้ว AI ทิ้งรายการเดิม (หน้าปัด Jazz หาย) → เอารายการเดิมที่ชนิดไม่ซ้ำกลับมา เว้นผู้ใช้สั่งเอาออก
+    function chKeepDraft(items, prev, txt) {
+      if (!prev.length || /ไม่เอา|ยกเลิก|ลบ|เอาออก|ตัดออก|ไม่ใช่|ไม่ต้อง/.test(txt)) return;
+      const key = it => it.type + '|' + (it.asset || '') + '|' + (it.group || '');
+      prev.forEach(p => { if (!items.some(it => it.type === p.type && (key(it) === key(p) || !['asset_todo', 'asset_note', 'asset_status', 'reminder', 'note', 'thought'].includes(p.type)))) items.push({ ...p, kept: true }); });
+    }
+    // "ให้หำ ผัน ไปฉีด… เสร็จไหมเดี๋ยวอัพเดท" = เพิ่งสั่ง/ยังไม่เสร็จ → กำลังทำ
+    function chOngoing(items, txt) {
+      if (!/เดี๋ยว\s*(อัพ|อัป)เดท|เสร็จไหม|เสร็จหรือยัง|ยังไม่เสร็จ|ยังไม่จบ|ทำต่อ|ให้.{0,20}ไป(ฉีด|ใส่|ทำ|ตัด|ชัก|ไถ)/.test(txt) || /เสร็จแล้ว|เสร็จหมด|ฉีดหมดแล้ว/.test(txt)) return;
+      items.forEach(it => { if (it.type === 'activity' && it.group !== 'ฝนตก' && !it.date_to) it.ongoing = true; });
+    }
+    // จดงานแล้วปิดนัดที่ถึงวันซึ่งพูดถึงงานเดียวกันเอง (นัด "ให้คนงานไปฉีดยารอบไร่" + จดงานฉีดยา)
+    function chRemMatch(items) {
+      const t0 = todayISO(), acts = items.filter(it => it.type === 'activity' && it.group !== 'ฝนตก');
+      if (!acts.length) return [];
+      return (gData.reminders || []).filter(r => r.status !== 'done' && !r.repeat && !r.on_event && beToISO(r.date) && beToISO(r.date) <= t0
+        && acts.some(a => { const t = String(r.text || ''), st = String(a.group || '').replace(/ยา$|ปุ๋ย$/, '').slice(0, 6);
+          return (st.length >= 2 && t.includes(st)) || (a.detail && a.detail.length >= 4 && t.includes(a.detail)); })).map(r => r.rem_id);
     }
     const chAsset = n => (gData.assets || []).find(a => a.category !== 'Worker' && a.name === String(n || '').trim());
     // กันแชตจับแปลงผิด (14 พ.ย. 69: ตอบ "หนองบวบหอม 1" แต่การ์ดเป็น หนองบวบหอม 3 (แรก)): ข้อความ/คำตอบชิปมีชื่อแปลงเต็มชื่อเดียว
@@ -7356,7 +7387,8 @@
         const x = chat.msgs[j];
         if (x.me) { txts.unshift(x.t); continue; }
         if (['plain', 'saved', 'cancel'].includes(x.state)) break;
-        if (x.state === 'old' || (x.ask || []).length) continue; // ฉบับก่อนแก้ / คำถามกลับ = เรื่องเดียวกัน
+        // คำถามกลับ = เรื่องเดียวกัน · ฉบับก่อนแก้ นับเฉพาะเมื่อข้อความถัดมาสั้น (ตอบ/แก้) — 24 พ.ย. 69 เรื่องใหม่ยาว ๆ เคยดึงเรื่อง Jazz มารวม
+        if ((x.ask || []).length || (x.state === 'old' && String((chat.msgs[j + 1] || {}).t || '').length <= 30)) continue;
         break;
       }
       const m = chat.msgs[mi], items = m.items || [];
@@ -7471,6 +7503,7 @@
       for (const it of m.items) { if (it.type === 'reminder') continue; if (it.date && !checkDate(it.date)) return; if (it.date_to && !checkDate(it.date_to)) return; }
       const ops = chatOps(m.items);
       if (!ops.length) return alert('ยังไม่มีรายการที่บันทึกได้');
+      chRemMatch(m.items).filter(id => id !== chatRemId).forEach(id => ops.push({ fn: 'remdone', id }));
       m.rid = m.rid || 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); // รหัสครั้งนี้ — กดซ้ำตอนเน็ตหลุด เซิร์ฟเวอร์ไม่ลงซ้ำ
       chatBusy = true; m.saving = true; chatSave(); chatRender();
       const pkB = ops.filter(o => (o.fn === 'astatus' || o.fn === 'asset') && o.state === 'done').flatMap(o => remPick(o.asset));

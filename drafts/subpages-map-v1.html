@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1F5E3B" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>แผนที่ไร่ — ไร่อ้อย 281 ไร่</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== ภาษาภาพและตัวแปรชุดเดียวกับหน้าวันนี้ v5 และหน้าแปลง v1 ===== */
+    :root {
+      --brand: #1F5E3B;
+      --brand-dark: #15452A;
+      --brand-soft: #E8F3EC;
+      --brand-mid: #A8CBB5;
+      --bg: #F4F5F1;
+      --surface: #FFFFFF;
+      --surface-note: #EEF4F0;
+      --ink: #16241B;
+      --ink-2: #46594E;
+      --ink-3: #6D7B72;
+      --line: #B8C6BC;
+      --line-soft: #D3DDD6;
+      --border: #DCE3DC;
+      --ask: #6D28D9;
+      --ask-soft: #F3EEFF;
+      --ask-border: #C4B5FD;
+      --due: #C2410C;
+      --due-soft: #FFF1E6;
+      --due-border: #FDBA74;
+      --nolog-bg: #F6EFE0;
+      --nolog-ink: #7A5919;
+      --nolog-border: #E6D2A2;
+      --brown-ink: #6B3410;
+      --water: #0369A1;
+      --water-soft: #E0F2FE;
+      --water-border: #BAE6FD;
+      --cut: #15803D;
+      --car: #B45309;
+      --ready: #CA8A04;
+      --ready-soft: #FEF9C3;
+      --damage: #DC2626;
+      --damage-soft: #FEE2E2;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+      --shadow-md: 0 4px 12px rgba(20, 46, 30, 0.12), 0 1px 3px rgba(20, 46, 30, 0.06);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* โหมดกลางแดดจัด (เพิ่มคอนทราสต์เหมือน v5) */
+    body.sun-boost {
+      --border: #B2C1B5;
+      --ink-2: #2A3C31;
+      --ink-3: #45594E;
+      --shadow: 0 1px 3px rgba(10, 26, 16, 0.14);
+      --shadow-md: 0 4px 14px rgba(10, 26, 16, 0.22);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* iPhone: html และ body ไม่เลื่อน */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.42;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    /* ช่องพิมพ์ 16px เสมอ กัน iPhone ซูม */
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* กรอบจอ iPhone 390x844 */
+    .phone-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 440px) and (min-height: 700px) {
+      .phone-frame {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        width: 390px;
+        height: min(844px, calc(100dvh - 24px));
+        border-radius: 34px;
+        border: 1px solid #CFD8D0;
+        box-shadow: 0 22px 60px rgba(20, 46, 30, 0.14), 0 4px 14px rgba(20, 46, 30, 0.06);
+      }
+    }
+
+    /* แถบกันพื้นที่ใต้รอยบากด้านบน */
+    .safe-top-bar {
+      height: var(--safe-top);
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+
+    /* ===== หัวหน้าย่อยตระกูล v5 (แถบเขียว #1F5E3B · ‹ แปลง · ชื่อขาวตัวหนา · ไม่มี ✕ และไม่มีอีโมจิ) ===== */
+    .app-green-bar {
+      position: relative;
+      z-index: 40;
+      background: var(--brand);
+      color: #FFFFFF;
+      padding: 7px 12px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      flex-shrink: 0;
+    }
+
+    .subpage-bar-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+    }
+
+    .subpage-back-btn {
+      justify-self: start;
+      height: 34px;
+      padding: 0 10px 0 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .subpage-back-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .subpage-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #FFFFFF;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .subpage-right {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .green-hdr-btn {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.14);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .green-hdr-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .green-hdr-btn.is-icon {
+      width: 34px;
+      padding: 0;
+    }
+
+    .green-hdr-btn.is-sun-on {
+      background: #FEF3C7;
+      border-color: #FCD34D;
+      color: #92400E;
+    }
+
+    /* ===== พื้นที่หลักใต้ env(safe-area-inset-top) + หัวเขียว ===== */
+    .map-stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #E2EAE2;
+    }
+
+    /* ===== แผนที่เต็มจอ (จำลอง Leaflet + สลับแผนที่/ดาวเทียม/NDVI ได้จริง) ===== */
+    .map-viewport {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+      background: #E3EAE3;
+      transition: background 0.25s ease;
+    }
+
+    .map-viewport.is-satellite {
+      background: #2A3C2C;
+    }
+
+    .map-canvas-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .map-sat-layer {
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .map-viewport.is-satellite .map-sat-layer {
+      opacity: 1;
+    }
+
+    .map-base-layer {
+      opacity: 1;
+      transition: opacity 0.25s ease;
+    }
+
+    .map-viewport.is-satellite .map-base-layer {
+      opacity: 0;
+    }
+
+    /* ชั้นข้อมูลที่เปิด/ปิดได้จากแผ่นเลเยอร์ */
+    .layer-parcel { opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    .map-viewport.show-parcel .layer-parcel { opacity: 1; }
+
+    .layer-plots { opacity: 1; transition: opacity 0.2s; }
+    .map-viewport:not(.show-plots) .layer-plots { opacity: 0; pointer-events: none; }
+
+    .layer-ndvi { opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+    .map-viewport.show-ndvi .layer-ndvi { opacity: 0.88; }
+
+    .layer-damage { opacity: 1; transition: opacity 0.2s; }
+    .map-viewport:not(.show-damage) .layer-damage { opacity: 0; pointer-events: none; }
+
+    .layer-waterlog { opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    .map-viewport.show-waterlog .layer-waterlog { opacity: 1; pointer-events: auto; }
+
+    .layer-guard { opacity: 1; transition: opacity 0.2s; }
+    .map-viewport:not(.show-guard) .layer-guard { opacity: 0; pointer-events: none; }
+
+    /* โพลิกอนแปลงบนแผนที่ */
+    .plot-poly {
+      cursor: pointer;
+      transition: fill-opacity 0.18s, stroke-width 0.18s, filter 0.18s;
+    }
+
+    .plot-poly:hover {
+      fill-opacity: 0.56;
+    }
+
+    .plot-poly.is-selected {
+      stroke: #FFFFFF !important;
+      stroke-width: 2.8 !important;
+      fill-opacity: 0.62 !important;
+      filter: drop-shadow(0 0 6px rgba(21, 69, 42, 0.55));
+    }
+
+    .plot-poly.is-dimmed {
+      fill-opacity: 0.12 !important;
+      stroke-opacity: 0.35 !important;
+    }
+
+    /* ===== ป้ายชื่อพื้นที่บนแผนที่ (HTML Overlay คมชัด อ่านง่ายกลางแดด) ===== */
+    .map-pins-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .zone-pill {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      border: 1.5px solid rgba(255, 255, 255, 0.86);
+      background: rgba(23, 74, 46, 0.93);
+      color: #FFFFFF;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 7px rgba(12, 32, 20, 0.26);
+      transition: transform 0.14s ease, background 0.16s, box-shadow 0.16s, opacity 0.18s;
+    }
+
+    .zone-pill:active {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+
+    .zone-pill .z-rai {
+      font-weight: 500;
+      opacity: 0.88;
+      font-size: 11.5px;
+    }
+
+    .zone-pill .z-dot {
+      width: 6.5px;
+      height: 6.5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.65);
+    }
+
+    .zone-pill .z-dot.is-normal { background: #4ADE80; }
+    .zone-pill .z-dot.is-due { background: #FB923C; }
+    .zone-pill .z-dot.is-doing { background: #38BDF8; }
+    .zone-pill .z-dot.is-ready { background: #FACC15; }
+
+    .zone-pill.is-selected {
+      background: #FFFFFF;
+      color: var(--brand-dark);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(31, 94, 59, 0.28), 0 4px 12px rgba(12, 32, 20, 0.28);
+      z-index: 18;
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+
+    .zone-pill.is-selected .z-rai {
+      color: var(--ink-2);
+      opacity: 1;
+    }
+
+    .zone-pill.is-dimmed {
+      opacity: 0.36;
+    }
+
+    .map-viewport:not(.show-plots) .zone-pill {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* หมุดบ้าน */
+    .home-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      border: 1.5px solid rgba(255, 255, 255, 0.92);
+      background: #854D0E;
+      color: #FFFFFF;
+      border-radius: 999px;
+      padding: 3px 8px 3px 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(12, 32, 20, 0.25);
+    }
+
+    /* ป้ายคนเฝ้าไร่ */
+    .guard-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      border: 1.5px solid var(--ask-border);
+      background: rgba(243, 238, 255, 0.96);
+      color: var(--ask);
+      border-radius: 999px;
+      padding: 2.5px 8px 2.5px 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(109, 40, 217, 0.18);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .guard-pin.is-pulse {
+      box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.25), 0 3px 10px rgba(109, 40, 217, 0.28);
+    }
+
+    /* หมุดจุดเสียหาย / น้ำขัง */
+    .spot-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(16, 32, 22, 0.28);
+      transition: transform 0.15s, opacity 0.2s;
+    }
+
+    .spot-pin:active {
+      transform: translate(-50%, -50%) scale(0.92);
+    }
+
+    .spot-pin.is-damage {
+      background: var(--damage);
+      color: #FFFFFF;
+    }
+
+    .spot-pin.is-waterlog {
+      background: var(--water);
+      color: #FFFFFF;
+    }
+
+    /* หมุดตำแหน่งฉัน (GPS) */
+    .gps-dot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #0284C7;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 0 0 6px rgba(2, 132, 199, 0.24), 0 2px 6px rgba(0, 0, 0, 0.24);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .gps-dot.is-visible {
+      opacity: 1;
+    }
+
+    /* หมุดจุดกดค้างตรวจรถเข้า */
+    .check-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 22;
+    }
+
+    .check-pin.is-visible {
+      opacity: 1;
+    }
+
+    .check-pin-bubble {
+      background: var(--brand-dark);
+      color: #FFFFFF;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1.5px solid #FFFFFF;
+      box-shadow: 0 3px 10px rgba(16, 32, 22, 0.28);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ===== ช่องค้นหาลอยด้านบนแผนที่ ===== */
+    .map-search-wrap {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .map-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid rgba(22, 36, 27, 0.11);
+      border-radius: 12px;
+      padding: 4px 5px 4px 11px;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .map-search-icon {
+      color: var(--ink-3);
+      display: inline-flex;
+      flex-shrink: 0;
+    }
+
+    .map-search-input {
+      flex: 1;
+      min-width: 0;
+      height: 36px;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+    }
+
+    .map-search-input::placeholder {
+      color: var(--ink-3);
+      font-size: 14px;
+    }
+
+    .map-search-clear {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: none;
+      background: #E8EEE9;
+      color: var(--ink-2);
+      font-size: 15px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .map-search-clear.is-show {
+      display: inline-flex;
+    }
+
+    .map-search-btn {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 9px;
+      border: none;
+      background: var(--brand);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .map-search-btn:active {
+      transform: scale(0.96);
+      background: var(--brand-dark);
+    }
+
+    /* ผลการค้นหาด่วนใต้ช่องค้นหา */
+    .search-results-card {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: none;
+    }
+
+    .search-results-card.is-open {
+      display: block;
+    }
+
+    .search-res-item {
+      width: 100%;
+      padding: 9px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .search-res-item + .search-res-item {
+      border-top: 1px solid #EDF2EE;
+    }
+
+    .search-res-item:active {
+      background: var(--brand-soft);
+    }
+
+    .search-res-sub {
+      font-size: 12.5px;
+      color: var(--ink-2);
+    }
+
+    /* ===== ปุ่มกลมขวาบนแผนที่ (สไตล์ Google Maps: ขาว เงาเบา) ===== */
+    .map-fab-stack {
+      position: absolute;
+      top: 64px;
+      right: 12px;
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .map-fab {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(22, 36, 27, 0.08);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(16, 32, 22, 0.16), 0 1px 2px rgba(16, 32, 22, 0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.1s, background 0.15s, color 0.15s;
+    }
+
+    .map-fab:active {
+      transform: scale(0.93);
+      background: #F1F6F2;
+    }
+
+    .map-fab.is-active {
+      color: var(--brand);
+      border-color: var(--brand-mid);
+      background: var(--brand-soft);
+    }
+
+    .map-fab.is-gps-on {
+      color: var(--water);
+      border-color: var(--water-border);
+      background: var(--water-soft);
+    }
+
+    .map-fab-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      border: 1.5px solid #FFFFFF;
+      display: none;
+    }
+
+    .map-fab.has-badge .map-fab-dot {
+      display: block;
+    }
+
+    /* ===== แถบคำอธิบายสีแบบชิปเล็กแถวเดียวเลื่อนได้ (เหนือแผงล่าง) ===== */
+    .map-legend-dock {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 8px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      pointer-events: none;
+    }
+
+    .map-attr-row {
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .map-mode-pill {
+      pointer-events: auto;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(22, 36, 27, 0.82);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 2px 6px rgba(16, 32, 22, 0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .map-mode-pill.is-show {
+      display: inline-flex;
+    }
+
+    .map-attr-tag {
+      margin-left: auto;
+      font-size: 10.5px;
+      color: var(--ink-2);
+      background: rgba(255, 255, 255, 0.82);
+      padding: 1px 6px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    .legend-scroll {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .legend-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .legend-chip {
+      height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(22, 36, 27, 0.1);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(16, 32, 22, 0.12);
+      transition: transform 0.1s, background 0.15s, border-color 0.15s;
+    }
+
+    .legend-chip:active {
+      transform: scale(0.95);
+    }
+
+    .legend-chip.is-active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .leg-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .leg-dot.is-due { background: var(--due); }
+    .leg-dot.is-doing { background: var(--water); }
+    .leg-dot.is-ready { background: #EAB308; }
+    .leg-dot.is-normal { background: var(--brand); }
+
+    .legend-chip.is-active .leg-dot {
+      box-shadow: 0 0 0 1.5px #FFFFFF;
+    }
+
+    /* ===== แผงล่างลากย่อ/กางได้ (ตระกูล v5 การ์ดขาวบนพื้นเทาอ่อน) ===== */
+    .map-drawer {
+      position: relative;
+      z-index: 30;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      margin-top: -12px;
+      box-shadow: 0 -6px 24px rgba(16, 32, 22, 0.14);
+      display: flex;
+      flex-direction: column;
+      max-height: 62%;
+      flex-shrink: 0;
+      padding-bottom: var(--safe-bottom);
+      transition: max-height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .map-drawer.is-collapsed {
+      max-height: 74px;
+    }
+
+    .map-drawer.is-dragging {
+      transition: none;
+    }
+
+    .drawer-drag-zone {
+      padding: 8px 14px 6px;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border-bottom: 1px solid #EAEFEA;
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .map-drawer.is-collapsed .drawer-drag-zone {
+      border-bottom-color: transparent;
+      padding-bottom: 10px;
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: #CFD8D2;
+      margin: 0 auto 7px;
+    }
+
+    .drawer-head-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .drawer-head-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .drawer-title {
+      margin: 0;
+      font-size: 16.5px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.015em;
+      line-height: 1.28;
+    }
+
+    .drawer-sub {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 1px;
+      line-height: 1.32;
+    }
+
+    .drawer-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .sec-toggle-btn {
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      background: #F6F8F6;
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sec-toggle-btn:active {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .drawer-scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding: 10px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .drawer-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .map-drawer.is-collapsed .drawer-scroll {
+      display: none;
+    }
+
+    /* ===== ชิ้นส่วน v5 เดิมที่ใช้ซ้ำตรงตัว ===== */
+
+    /* Section Header */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+      padding: 0 2px;
+    }
+
+    .sec-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .sec-title {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .sec-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #E5ECE6;
+      color: var(--brand-dark);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .sec-badge.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .sec-badge.is-muted {
+      background: #EAEFE9;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    /* 3 ตัวเลขเล็ก (แบบ plots-gemini-v1 .kpi-3-grid) */
+    .kpi-3-grid {
+      display: grid;
+      grid-template-columns: 1.32fr 0.84fr 0.84fr;
+      gap: 7px;
+    }
+
+    .kpi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .kpi-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .kpi-val {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.28;
+      white-space: nowrap;
+    }
+
+    /* การ์ดเตือนแบบ v5 .task-card.st-watch + โครงข้อมูล 4 ชั้น */
+    .task-card {
+      width: 100%;
+      padding: 10px 12px 10px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .task-card:active {
+      transform: scale(0.992);
+    }
+
+    .task-card.st-watch {
+      border-left-color: var(--due);
+      background: #FFFDF8;
+      border-color: var(--due-border);
+      border-left-width: 4px;
+    }
+
+    .an-l1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+      line-height: 1.3;
+    }
+
+    .an-l2 {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .an-l2.is-due {
+      color: var(--due);
+    }
+
+    .an-l3 {
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.36;
+    }
+
+    .an-l3 strong {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .an-l4 {
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.35;
+      margin-top: 1px;
+    }
+
+    .watch-link-cue {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--due);
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ป้ายสถานะ .st-pill */
+    .st-pill {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .st-pill.watch {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .st-pill.done {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .st-pill.muted {
+      background: #EDF2EE;
+      color: var(--ink-2);
+    }
+
+    /* แถวปุ่มเล็ก .task-inline-btn (4 ปุ่มพอดี 1 แถว ไม่หักคำ) */
+    .plot-action-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .plot-action-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .task-inline-btn {
+      flex: 1 0 auto;
+      height: 35px;
+      padding: 0 9px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .task-inline-btn:active {
+      transform: scale(0.96);
+      background: #F1F5F2;
+    }
+
+    .task-inline-btn.is-due {
+      border-color: #FECACA;
+      background: #FEF2F2;
+      color: #B91C1C;
+    }
+
+    .task-inline-btn.is-doing {
+      border-color: var(--brand-mid);
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    /* Grouped Card & Status Row (v5 exact classes) */
+    .grouped-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .status-row {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      position: relative;
+    }
+
+    .status-row + .status-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .status-row.is-clickable {
+      cursor: pointer;
+    }
+
+    .status-row.is-clickable:active {
+      background: #F7FAF7;
+    }
+
+    .status-row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-icon-box.is-water {
+      background: var(--water-soft);
+      color: var(--water);
+    }
+
+    .status-icon-box.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .status-icon-box.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .status-icon-box.is-damage {
+      background: var(--damage-soft);
+      color: var(--damage);
+    }
+
+    .status-icon-box.is-ask {
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .status-icon-box.is-nolog {
+      background: var(--nolog-bg);
+      color: var(--nolog-ink);
+    }
+
+    .status-icon-box.is-muted {
+      background: #EEF2EE;
+      color: var(--ink-2);
+    }
+
+    .status-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .status-sub {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 1px;
+      line-height: 1.34;
+    }
+
+    .chev {
+      color: var(--ink-3);
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* Segmented Control (v5 exact classes) */
+    .seg-bar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      padding: 3px;
+      background: #E5EBE6;
+      border-radius: 11px;
+    }
+
+    .seg-btn {
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+      white-space: nowrap;
+    }
+
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(20, 46, 30, 0.12);
+    }
+
+    /* สวิตช์เปิด/ปิดแบบ iOS (ชิ้นใหม่ตระกูล v5) */
+    .ios-switch {
+      width: 46px;
+      height: 27px;
+      border-radius: 999px;
+      border: none;
+      padding: 2px;
+      background: #CFD8D2;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.18s ease;
+    }
+
+    .ios-switch[aria-checked="true"] {
+      background: var(--brand);
+    }
+
+    .ios-switch-thumb {
+      display: block;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+      transform: translateX(0);
+      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ios-switch[aria-checked="true"] .ios-switch-thumb {
+      transform: translateX(19px);
+    }
+
+    /* ===== Bottom Sheet (v5 exact classes) ===== */
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 2100;
+      background: rgba(16, 32, 22, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-panel {
+      width: 100%;
+      max-width: 390px;
+      max-height: 82dvh;
+      background: var(--bg);
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+      box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.18);
+      padding-bottom: var(--safe-bottom);
+      will-change: transform;
+    }
+
+    .sheet-backdrop.open .sheet-panel {
+      transform: translateY(0);
+    }
+
+    .sheet-drag-zone {
+      padding-top: 8px;
+      background: var(--surface);
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .sheet-header {
+      padding: 4px 14px 11px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .sheet-subtitle {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+    }
+
+    .sheet-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: none;
+      background: #EFF3F0;
+      color: var(--ink);
+      font-size: 19px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sheet-close:active {
+      background: #E0E7E2;
+    }
+
+    .sheet-body {
+      padding: 13px 14px 18px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sheet-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .detail-box {
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .detail-box.is-due {
+      background: #FFFDF8;
+      border-color: var(--due-border);
+    }
+
+    .sheet-btn {
+      width: 100%;
+      height: 43px;
+      padding: 0 14px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s;
+    }
+
+    .sheet-btn:active {
+      transform: scale(0.985);
+    }
+
+    .sheet-btn.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .sheet-btn.primary:active {
+      background: var(--brand-dark);
+    }
+
+    /* Toast (v5 exact classes) */
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 22px);
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 9px 15px;
+      border-radius: 999px;
+      z-index: 2300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+      max-width: 356px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 6px 20px rgba(16, 32, 22, 0.28);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" id="phoneFrame">
+    <div class="safe-top-bar"></div>
+
+    <!-- หัวหน้าต่างแบบหน้ารายละเอียดแปลง: แถบเขียว #1F5E3B · ‹ แปลง · ชื่อขาวตัวหนา · ไม่มี ✕ ไม่มีอีโมจิ -->
+    <header class="app-green-bar">
+      <div class="subpage-bar-row">
+        <button type="button" class="subpage-back-btn" id="btnBackPlots" aria-label="กลับหน้าแปลง">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>แปลง</span>
+        </button>
+        <h1 class="subpage-title">แผนที่ไร่</h1>
+        <div class="subpage-right">
+          <button type="button" class="green-hdr-btn is-icon" id="btnSunToggle" title="โหมดกลางแดดจัด" aria-label="สลับโหมดกลางแดดจัด">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- พื้นที่หลักใต้ safe-area + หัวเขียว -->
+    <main class="map-stage" aria-label="แผนที่ไร่อ้อย 281 ไร่">
+      <!-- แผนที่เต็มจอ -->
+      <div class="map-viewport show-plots show-damage show-guard" id="mapViewport">
+        <!-- SVG จำลองพื้นแผนที่ / ดาวเทียม / ขอบแปลง / ที่ดิน / NDVI -->
+        <svg class="map-canvas-svg" id="mapSvg" viewBox="0 0 390 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <!-- ลายพื้นแผนที่ปกติ -->
+            <pattern id="mapGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#D5DFD5" stroke-width="0.6" />
+            </pattern>
+            <!-- ลายพื้นดาวเทียมจำลอง -->
+            <pattern id="satTex" width="60" height="60" patternUnits="userSpaceOnUse">
+              <rect width="60" height="60" fill="#2E412F" />
+              <path d="M0 15h60M0 30h60M0 45h60" stroke="#364B35" stroke-width="2.5" opacity="0.55" />
+              <rect x="6" y="4" width="22" height="18" fill="#3D5236" opacity="0.45" />
+              <rect x="34" y="28" width="20" height="24" fill="#253626" opacity="0.5" />
+            </pattern>
+            <!-- ลายเส้นแรเงาอ้อยเก่าค้าง -->
+            <pattern id="oldCaneHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="6" height="6" fill="#FDBA74" fill-opacity="0.45" />
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#C2410C" stroke-width="2" />
+            </pattern>
+            <!-- Gradient NDVI -->
+            <linearGradient id="ndviGood" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#15803D" />
+              <stop offset="65%" stop-color="#22C55E" />
+              <stop offset="100%" stop-color="#84CC16" />
+            </linearGradient>
+            <linearGradient id="ndviWarn" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#22C55E" />
+              <stop offset="55%" stop-color="#EAB308" />
+              <stop offset="100%" stop-color="#EA580C" />
+            </linearGradient>
+          </defs>
+
+          <!-- ชั้นภาพพื้น: แผนที่ (Map) -->
+          <g class="map-base-layer">
+            <rect width="390" height="560" fill="#E3EAE2" />
+            <rect width="390" height="560" fill="url(#mapGrid)" opacity="0.65" />
+            <!-- แปลงข้างเคียงสีจาง -->
+            <polygon points="10,70 95,62 110,145 18,155" fill="#DAE3D9" />
+            <polygon points="270,55 385,48 385,155 268,148" fill="#DAE3D9" />
+            <polygon points="18,350 115,342 124,475 20,485" fill="#DAE3D9" />
+            <polygon points="255,340 375,332 380,470 250,475" fill="#DAE3D9" />
+            <!-- คลองส่งน้ำ -->
+            <path d="M -10,275 C 85,268 148,295 220,285 C 292,276 340,252 405,248" fill="none" stroke="#B7DFF5" stroke-width="9" stroke-linecap="round" />
+            <path d="M -10,275 C 85,268 148,295 220,285 C 292,276 340,252 405,248" fill="none" stroke="#85C7EB" stroke-width="1.5" stroke-dasharray="6 4" />
+            <!-- ถนนสายหลักและถนนเข้าไร่ -->
+            <path d="M 192,-10 C 185,115 208,215 198,325 C 190,410 176,480 170,570" fill="none" stroke="#CBD6CD" stroke-width="9" />
+            <path d="M 192,-10 C 185,115 208,215 198,325 C 190,410 176,480 170,570" fill="none" stroke="#FFFFFF" stroke-width="6" />
+            <path d="M -10,218 C 90,224 210,210 398,225" fill="none" stroke="#CFD9D1" stroke-width="6.5" />
+            <path d="M -10,218 C 90,224 210,210 398,225" fill="none" stroke="#FFFFFF" stroke-width="4" />
+            <path d="M 80,220 L 62,360 L 185,372" fill="none" stroke="#F8FAF8" stroke-width="3" />
+          </g>
+
+          <!-- ชั้นภาพพื้น: ดาวเทียม (Satellite) -->
+          <g class="map-sat-layer">
+            <rect width="390" height="560" fill="url(#satTex)" />
+            <polygon points="0,40 130,30 140,180 0,190" fill="#3C5035" opacity="0.7" />
+            <polygon points="240,20 390,25 390,195 235,180" fill="#465738" opacity="0.65" />
+            <polygon points="0,330 165,320 175,520 0,535" fill="#2A3B28" opacity="0.75" />
+            <polygon points="225,310 390,300 390,520 220,515" fill="#3E4E34" opacity="0.7" />
+            <!-- คลองในโหมดดาวเทียม -->
+            <path d="M -10,275 C 85,268 148,295 220,285 C 292,276 340,252 405,248" fill="none" stroke="#1E4B63" stroke-width="9" />
+            <!-- ถนนในโหมดดาวเทียม -->
+            <path d="M 192,-10 C 185,115 208,215 198,325 C 190,410 176,480 170,570" fill="none" stroke="#C9C4B4" stroke-width="5" opacity="0.85" />
+            <path d="M -10,218 C 90,224 210,210 398,225" fill="none" stroke="#BDB7A5" stroke-width="3.5" opacity="0.82" />
+          </g>
+
+          <!-- ชั้นที่ดิน (Land parcels) -->
+          <g class="layer-parcel" stroke="#92400E" stroke-width="1" stroke-dasharray="4 3" fill="none" opacity="0.75">
+            <rect x="82" y="102" width="112" height="44" rx="2" />
+            <rect x="210" y="96" width="96" height="44" rx="2" />
+            <rect x="130" y="150" width="136" height="42" rx="2" />
+            <rect x="76" y="228" width="122" height="46" rx="2" />
+            <rect x="212" y="232" width="114" height="46" rx="2" />
+            <rect x="34" y="294" width="142" height="54" rx="2" />
+            <rect x="64" y="380" width="148" height="58" rx="2" />
+            <rect x="122" y="446" width="128" height="44" rx="2" />
+          </g>
+
+          <!-- ชั้นขอบแปลง (Plot Polygons) -->
+          <g class="layer-plots" id="plotPolysGroup">
+            <!-- ยายเวียน 6 ไร่ (ปกติ) -->
+            <polygon class="plot-poly" data-zone="yaywian" data-status="normal"
+              points="102,110 174,106 180,140 98,142"
+              fill="#1F5E3B" fill-opacity="0.34" stroke="#15452A" stroke-width="1.6" />
+            <!-- แปดไร่ 8 ไร่ (ปกติ) -->
+            <polygon class="plot-poly" data-zone="paetrai" data-status="normal"
+              points="216,104 294,102 298,136 218,138"
+              fill="#1F5E3B" fill-opacity="0.34" stroke="#15452A" stroke-width="1.6" />
+            <!-- กระถินแดง 16 ไร่ (ถึงคิว) -->
+            <polygon class="plot-poly" data-zone="krathindaeng" data-status="due"
+              points="154,154 252,150 258,186 150,188"
+              fill="#C2410C" fill-opacity="0.34" stroke="#9A3412" stroke-width="1.6" />
+            <!-- หนองกระทู้ 24 ไร่ (ถึงคิว) -->
+            <polygon class="plot-poly" data-zone="nongkrathu" data-status="due"
+              points="196,198 296,194 300,226 198,228"
+              fill="#C2410C" fill-opacity="0.32" stroke="#9A3412" stroke-width="1.6" />
+            <!-- สำนักแจง 46 ไร่ (กำลังทำ) -->
+            <polygon class="plot-poly" data-zone="samnakjaeng" data-status="doing"
+              points="82,232 184,228 188,270 78,272"
+              fill="#0369A1" fill-opacity="0.34" stroke="#075985" stroke-width="1.6" />
+            <!-- หนองจิก 17 ไร่ (ปกติ) -->
+            <polygon class="plot-poly" data-zone="nongjik" data-status="normal"
+              points="218,236 312,232 316,270 220,272"
+              fill="#1F5E3B" fill-opacity="0.34" stroke="#15452A" stroke-width="1.6" />
+            <!-- หนองบวบหอม 64 ไร่ (ปกติ) -->
+            <polygon class="plot-poly" data-zone="nongbuabhom" data-status="normal"
+              points="28,298 158,292 164,342 24,346"
+              fill="#1F5E3B" fill-opacity="0.35" stroke="#15452A" stroke-width="1.6" />
+            <!-- หนองทิ้งสุ่ม 78 ไร่ (รวมแปลง ข้างสระ 11 ไร่ - ครบตัด/มีอ้อยเก่าค้าง) -->
+            <polygon class="plot-poly" data-zone="nongthingsum" data-status="ready"
+              points="56,386 196,380 202,434 62,438"
+              fill="#CA8A04" fill-opacity="0.36" stroke="#854D0E" stroke-width="1.8" />
+            <!-- มุมอ้อยเก่าค้าง ~16% ในแปลงหนองทิ้งสุ่ม (ข้างสระ) -->
+            <polygon class="plot-poly" data-zone="nongthingsum" data-status="due"
+              points="162,382 196,380 200,408 166,410"
+              fill="url(#oldCaneHatch)" stroke="#C2410C" stroke-width="1.5" />
+            <!-- สระน้ำข้างแปลงหนองทิ้งสุ่ม (ข้างสระ) -->
+            <ellipse cx="212" cy="410" rx="12" ry="8" fill="#7DD3FC" stroke="#0369A1" stroke-width="1.2" opacity="0.88" />
+            <!-- หนองเฝ้า 22 ไร่ (ปกติ) -->
+            <polygon class="plot-poly" data-zone="nongfao" data-status="normal"
+              points="126,450 232,446 236,484 128,486"
+              fill="#1F5E3B" fill-opacity="0.34" stroke="#15452A" stroke-width="1.6" />
+          </g>
+
+          <!-- ชั้นภาพดาวเทียมสี NDVI -->
+          <g class="layer-ndvi">
+            <polygon points="102,110 174,106 180,140 98,142" fill="url(#ndviGood)" />
+            <polygon points="216,104 294,102 298,136 218,138" fill="url(#ndviGood)" />
+            <polygon points="154,154 252,150 258,186 150,188" fill="url(#ndviWarn)" />
+            <polygon points="196,198 296,194 300,226 198,228" fill="url(#ndviWarn)" />
+            <polygon points="82,232 184,228 188,270 78,272" fill="url(#ndviGood)" />
+            <polygon points="218,236 312,232 316,270 220,272" fill="url(#ndviGood)" />
+            <polygon points="28,298 158,292 164,342 24,346" fill="url(#ndviGood)" />
+            <polygon points="56,386 196,380 202,434 62,438" fill="url(#ndviWarn)" />
+            <polygon points="126,450 232,446 236,484 128,486" fill="url(#ndviGood)" />
+          </g>
+        </svg>
+
+        <!-- ป้ายพื้นที่ 9 พื้นที่ + หมุดบ้าน + คนเฝ้าไร่ + จุดเสียหาย + น้ำขัง -->
+        <div class="map-pins-layer" id="mapPinsLayer">
+          <!-- 9 พื้นที่ (ชื่อ + ไร่ตรงตามข้อมูลจริง 281 ไร่) -->
+          <button type="button" class="zone-pill tabular" data-zone="yaywian" style="left: 35%; top: 22%;">
+            <span class="z-dot is-normal"></span>ยายเวียน <span class="z-rai">6 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="paetrai" style="left: 66%; top: 21%;">
+            <span class="z-dot is-normal"></span>แปดไร่ <span class="z-rai">8 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="krathindaeng" style="left: 52%; top: 30%;">
+            <span class="z-dot is-due"></span>กระถินแดง <span class="z-rai">16 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="nongkrathu" style="left: 62%; top: 38%;">
+            <span class="z-dot is-due"></span>หนองกระทู้ <span class="z-rai">24 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="samnakjaeng" style="left: 34%; top: 45%;">
+            <span class="z-dot is-doing"></span>สำนักแจง <span class="z-rai">46 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="nongjik" style="left: 66%; top: 46%;">
+            <span class="z-dot is-normal"></span>หนองจิก <span class="z-rai">17 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="nongbuabhom" style="left: 25%; top: 57%;">
+            <span class="z-dot is-normal"></span>หนองบวบหอม <span class="z-rai">64 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="nongthingsum" style="left: 33%; top: 73%;">
+            <span class="z-dot is-ready"></span>หนองทิ้งสุ่ม <span class="z-rai">78 ไร่</span>
+          </button>
+          <button type="button" class="zone-pill tabular" data-zone="nongfao" style="left: 53%; top: 82%;">
+            <span class="z-dot is-normal"></span>หนองเฝ้า <span class="z-rai">22 ไร่</span>
+          </button>
+
+          <!-- หมุดบ้าน -->
+          <button type="button" class="home-pin" id="homePin" style="left: 72%; top: 56%;" title="บ้าน">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>
+            <span>บ้าน</span>
+          </button>
+
+          <!-- ป้ายคนเฝ้าไร่ -->
+          <button type="button" class="guard-pin layer-guard" id="guardPin" style="left: 25%; top: 64.5%;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>หม่อง + จิตร</span>
+          </button>
+
+          <!-- จุดเสียหาย (เปิด/ปิดจากเลเยอร์ได้) -->
+          <button type="button" class="spot-pin is-damage layer-damage" id="damagePin1" style="left: 55%; top: 69%; z-index: 20;" title="จุดอ้อยเก่าค้าง · หนองทิ้งสุ่ม (ข้างสระ)" aria-label="จุดเสียหาย หนองทิ้งสุ่ม (ข้างสระ)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.5 3.5-2.5 5.2-2.5 8.2 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5c0-.9-.4-1.8-1-2.5 2.5 1.1 4.5 3.8 4.5 7 0 3.9-3.1 7.3-7 7.3s-7-3.1-7-7c0-3.4 2-6.5 4.5-8.4-.1 1 .2 2 .8 2.6-.1-2.6 1.1-5.1 2.7-7.2z"/></svg>
+          </button>
+
+          <!-- จุดน้ำขัง (เปิด/ปิดจากเลเยอร์ได้) -->
+          <button type="button" class="spot-pin is-waterlog layer-waterlog" id="waterPin1" style="left: 19%; top: 52%;" title="จุดน้ำขัง · หนองบวบหอม" aria-label="จุดน้ำขัง">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </button>
+          <button type="button" class="spot-pin is-waterlog layer-waterlog" id="waterPin2" style="left: 53%; top: 75%;" title="จุดน้ำขัง · หนองทิ้งสุ่ม (ข้างสระ)" aria-label="จุดน้ำขัง">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </button>
+
+          <!-- จุดตำแหน่งฉัน (GPS) -->
+          <div class="gps-dot" id="gpsDot" style="left: 72%; top: 53%;"></div>
+
+          <!-- หมุดกดค้างเช็กรถเข้า -->
+          <div class="check-pin" id="checkPin" style="left: 44%; top: 61%;">
+            <div class="check-pin-bubble">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/><path d="M5 17H3v-5l2-4h7l2 4h5v5h-2"/><path d="M10 17h4"/></svg>
+              <span>จุดตรวจรถเข้า</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. ช่องค้นหาลอยด้านบน -->
+        <div class="map-search-wrap">
+          <form class="map-search-bar" id="mapSearchForm" autocomplete="off">
+            <span class="map-search-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" class="map-search-input" id="mapSearchInput" placeholder="ค้นหาสถานที่ / รหัสแปลง / วางพิกัด" aria-label="ค้นหาสถานที่ รหัสแปลง หรือวางพิกัด" />
+            <button type="button" class="map-search-clear" id="btnClearSearch" aria-label="ล้างคำค้น">×</button>
+            <button type="submit" class="map-search-btn">ค้นหา</button>
+          </form>
+          <div class="search-results-card" id="searchResultsCard" role="listbox" aria-label="ผลการค้นหา"></div>
+        </div>
+
+        <!-- ปุ่มกลมขวา สไตล์ Google Maps (ขาว เงาเบา): เลเยอร์ · เข็มทิศ · ตำแหน่งฉัน · เต็มจอ -->
+        <div class="map-fab-stack" aria-label="เครื่องมือควบคุมแผนที่">
+          <button type="button" class="map-fab" id="fabLayers" title="ชั้นข้อมูลแผนที่" aria-label="เปิดแผ่นเลเยอร์">
+            <span class="map-fab-dot" aria-hidden="true"></span>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </button>
+          <button type="button" class="map-fab" id="fabCompass" title="เข็มทิศทิศเหนือ" aria-label="หันแผนที่ทิศเหนือ">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+              <polygon points="12,3 15.2,12 12,10.6 8.8,12" fill="#DC2626" />
+              <polygon points="12,21 15.2,12 12,13.4 8.8,12" fill="#94A3B8" />
+            </svg>
+          </button>
+          <button type="button" class="map-fab" id="fabGps" title="ตำแหน่งฉัน" aria-label="แสดงตำแหน่งฉัน">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7" stroke-opacity="0.45"/></svg>
+          </button>
+          <button type="button" class="map-fab" id="fabFullscreen" title="เต็มจอ" aria-label="สลับแผนที่เต็มจอ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="icoFullscreen"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </button>
+        </div>
+
+        <!-- 3. คำอธิบายสีแบบชิปเล็กแถวเดียวเลื่อนได้ -->
+        <div class="map-legend-dock">
+          <div class="map-attr-row">
+            <span class="map-mode-pill" id="activeLayerBadge"></span>
+            <span class="map-attr-tag">Leaflet · Esri</span>
+          </div>
+          <div class="legend-scroll" id="legendBar" role="group" aria-label="คำอธิบายสีและตัวกรองบนแผนที่">
+            <button type="button" class="legend-chip" data-filter="due">
+              <span class="leg-dot is-due"></span>ถึงคิว
+            </button>
+            <button type="button" class="legend-chip" data-filter="doing">
+              <span class="leg-dot is-doing"></span>กำลังทำ
+            </button>
+            <button type="button" class="legend-chip" data-filter="ready">
+              <span class="leg-dot is-ready"></span>ครบตัด
+            </button>
+            <button type="button" class="legend-chip" data-filter="normal">
+              <span class="leg-dot is-normal"></span>ปกติ
+            </button>
+            <button type="button" class="legend-chip" data-filter="damage">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#DC2626" aria-hidden="true"><path d="M12 2c.5 3.5-2.5 5.2-2.5 8.2 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5c0-.9-.4-1.8-1-2.5 2.5 1.1 4.5 3.8 4.5 7 0 3.9-3.1 7.3-7 7.3s-7-3.1-7-7c0-3.4 2-6.5 4.5-8.4-.1 1 .2 2 .8 2.6-.1-2.6 1.1-5.1 2.7-7.2z"/></svg>
+              เสียหาย
+            </button>
+            <button type="button" class="legend-chip" data-filter="guard">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6D28D9" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              เฝ้า
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 & 5. แผงล่างลากย่อ/กางได้ (ตระกูล v5) -->
+      <section class="map-drawer" id="mapDrawer" aria-label="แผงข้อมูลแผนที่">
+        <div class="drawer-drag-zone" id="drawerDragZone">
+          <div class="sheet-handle" aria-hidden="true"></div>
+          <div class="drawer-head-row" id="drawerHeadRow">
+            <!-- เติมด้วย JS ตามสถานะไม่ได้เลือก / เลือกแปลง -->
+          </div>
+        </div>
+        <div class="drawer-scroll" id="drawerBody">
+          <!-- เติมด้วย JS -->
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== 6. แผ่นล่าง: เลเยอร์แผนที่ (v5 .sheet-*) ===== -->
+    <div class="sheet-backdrop" id="layersBackdrop" aria-hidden="true">
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="layersSheetTitle">
+      <div class="sheet-drag-zone" data-close-sheet="layersBackdrop">
+        <div class="sheet-handle"></div>
+      </div>
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" id="layersSheetTitle">ชั้นข้อมูลแผนที่</div>
+          <div class="sheet-subtitle">เลือกภาพพื้นและชั้นข้อมูลที่แสดงบนแผนที่</div>
+        </div>
+        <button type="button" class="sheet-close" data-close-sheet="layersBackdrop" aria-label="ปิด">×</button>
+      </div>
+      <div class="sheet-body">
+        <!-- ภาพพื้น: ปุ่มแบ่งช่อง .seg-bar -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ภาพพื้น</h2>
+            </div>
+          </div>
+          <div class="seg-bar" role="tablist" aria-label="เลือกภาพพื้นแผนที่">
+            <button type="button" class="seg-btn" data-basemap="satellite" id="segSat" role="tab" aria-selected="false">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span>ดาวเทียม</span>
+            </button>
+            <button type="button" class="seg-btn active" data-basemap="map" id="segMap" role="tab" aria-selected="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg>
+              <span>แผนที่</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ชั้นข้อมูล: .grouped-card + .status-row + สวิตช์ -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title-wrap">
+              <h2 class="sec-title">ชั้นข้อมูล</h2>
+              <span class="sec-badge tabular" id="layerActiveCount">เปิด 3/6</span>
+            </div>
+          </div>
+          <div class="grouped-card" id="layerSwitchList">
+            <div class="status-row">
+              <div class="status-row-left">
+                <span class="status-icon-box is-ok" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 6 14 4 20 10 16 20 5 17"/></svg>
+                </span>
+                <div class="status-info">
+                  <div class="status-title">ขอบแปลง</div>
+                  <div class="status-sub">เส้นขอบ 25 แปลงและป้ายชื่อ 9 พื้นที่</div>
+                </div>
+              </div>
+              <button type="button" class="ios-switch" role="switch" aria-checked="true" data-layer="plots" aria-label="เปิดปิด ขอบแปลง">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-left">
+                <span class="status-icon-box is-nolog" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                </span>
+                <div class="status-info">
+                  <div class="status-title">ที่ดิน</div>
+                  <div class="status-sub">เส้นแนวเขตแปลงที่ดินอ้างอิง</div>
+                </div>
+              </div>
+              <button type="button" class="ios-switch" role="switch" aria-checked="false" data-layer="parcel" aria-label="เปิดปิด ที่ดิน">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-left">
+                <span class="status-icon-box is-damage" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c.5 3.5-2.5 5.2-2.5 8.2 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5c0-.9-.4-1.8-1-2.5 2.5 1.1 4.5 3.8 4.5 7 0 3.9-3.1 7.3-7 7.3s-7-3.1-7-7c0-3.4 2-6.5 4.5-8.4-.1 1 .2 2 .8 2.6-.1-2.6 1.1-5.1 2.7-7.2z"/></svg>
+                </span>
+                <div class="status-info">
+                  <div class="status-title">จุดเสียหาย</div>
+                  <div class="status-sub">จุดไฟไหม้ อ้อยเก่าค้าง หรืออ้อยล้ม</div>
+                </div>
+              </div>
+              <button type="button" class="ios-switch" role="switch" aria-checked="true" data-layer="damage" aria-label="เปิดปิด จุดเสียหาย">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-left">
+                <span class="status-icon-box is-water" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </span>
+                <div class="status-info">
+                  <div class="status-title">จุดน้ำขัง</div>
+                  <div class="status-sub">แอ่งลุ่มและจุดน้ำขังที่บันทึกไว้</div>
+                </div>
+              </div>
+              <button type="button" class="ios-switch" role="switch" aria-checked="false" data-layer="waterlog" aria-label="เปิดปิด จุดน้ำขัง">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-left">
+                <span class="status-icon-box is-ask" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
+                <div class="status-info">
+                  <div class="status-title">คนเฝ้า</div>
+                  <div class="status-sub">จุดเฝ้าไร่ · หม่อง + จิตร</div>
+                </div>
+              </div>
+              <button type="button" class="ios-switch" role="switch" aria-checked="true" data-layer="guard" aria-label="เปิดปิด คนเฝ้า">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-left">
+                <span class="status-icon-box is-due" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/></svg>
+                </span>
+                <div class="status-info">
+                  <div class="status-title">ภาพดาวเทียมสี NDVI</div>
+                  <div class="status-sub">ระบายสีความเขียวของอ้อยบนแปลง</div>
+                </div>
+              </div>
+              <button type="button" class="ios-switch" role="switch" aria-checked="false" data-layer="ndvi" aria-label="เปิดปิด ภาพดาวเทียมสี NDVI">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="sheet-btn primary" data-close-sheet="layersBackdrop">เสร็จสิ้น</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== แผ่นล่างอเนกประสงค์ (รายละเอียดอ้อยเก่าค้าง / แผนน้ำแปลงนี้ / รถเข้าได้ไหม / เครื่องมือ) ===== -->
+  <div class="sheet-backdrop" id="infoBackdrop" aria-hidden="true">
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="infoSheetTitle">
+      <div class="sheet-drag-zone" data-close-sheet="infoBackdrop">
+        <div class="sheet-handle"></div>
+      </div>
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" id="infoSheetTitle">รายละเอียด</div>
+          <div class="sheet-subtitle" id="infoSheetSub"></div>
+        </div>
+        <button type="button" class="sheet-close" data-close-sheet="infoBackdrop" aria-label="ปิด">×</button>
+      </div>
+      <div class="sheet-body" id="infoSheetBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast แจ้งผล -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ===== ข้อมูลจริงตามที่ให้ไว้ในบรีฟ (ไม่แต่งตัวเลขเพิ่ม) ===== */
+      const ZONES = {
+        yaywian: {
+          id: 'yaywian',
+          name: 'ยายเวียน',
+          totalRai: '6 ไร่',
+          status: 'normal',
+          statusLabel: 'ปกติ'
+        },
+        paetrai: {
+          id: 'paetrai',
+          name: 'แปดไร่',
+          totalRai: '8 ไร่',
+          status: 'normal',
+          statusLabel: 'ปกติ'
+        },
+        krathindaeng: {
+          id: 'krathindaeng',
+          name: 'กระถินแดง',
+          totalRai: '16 ไร่',
+          status: 'due',
+          statusLabel: 'ถึงคิว'
+        },
+        nongkrathu: {
+          id: 'nongkrathu',
+          name: 'หนองกระทู้',
+          totalRai: '24 ไร่',
+          status: 'due',
+          statusLabel: 'ถึงคิว'
+        },
+        samnakjaeng: {
+          id: 'samnakjaeng',
+          name: 'สำนักแจง',
+          totalRai: '46 ไร่',
+          status: 'doing',
+          statusLabel: 'กำลังทำ'
+        },
+        nongjik: {
+          id: 'nongjik',
+          name: 'หนองจิก',
+          totalRai: '17 ไร่',
+          status: 'normal',
+          statusLabel: 'ปกติ'
+        },
+        nongbuabhom: {
+          id: 'nongbuabhom',
+          name: 'หนองบวบหอม',
+          totalRai: '64 ไร่',
+          status: 'normal',
+          statusLabel: 'ปกติ'
+        },
+        nongthingsum: {
+          id: 'nongthingsum',
+          name: 'หนองทิ้งสุ่ม',
+          totalRai: '78 ไร่',
+          status: 'ready',
+          statusLabel: 'ครบตัด',
+          featuredPlot: {
+            code: 'P13',
+            fullName: 'หนองทิ้งสุ่ม (ข้างสระ)',
+            mapArea: '11 ไร่ 16 ตร.วา',
+            sysArea: '11 ไร่',
+            cropType: 'อ้อยตอ',
+            alert: {
+              kicker: 'แนวจากภาพดาวเทียม · 21 มี.ค. 69',
+              title: 'อ้อยเก่าค้าง',
+              badge: '16% ของแปลง',
+              fact: '≈ 1 ไร่ 3 งาน 16 ตร.วา · ไม่ได้ตัดฤดู 68/69',
+              note: 'หลังตัดส่วนนี้ยังยืนต้น · เจ้าของไร่ยืนยัน'
+            }
+          }
+        },
+        nongfao: {
+          id: 'nongfao',
+          name: 'หนองเฝ้า',
+          totalRai: '22 ไร่',
+          status: 'normal',
+          statusLabel: 'ปกติ'
+        }
+      };
+
+      /* ===== สถานะของหน้า ===== */
+      const state = {
+        selectedZoneId: null, // null = ไม่ได้เลือกแปลง, 'nongthingsum' = เลือกแปลง หนองทิ้งสุ่ม (ข้างสระ)
+        drawerCollapsed: false,
+        basemap: 'map', // 'map' | 'satellite'
+        layers: {
+          plots: true,
+          parcel: false,
+          damage: true,
+          waterlog: false,
+          guard: true,
+          ndvi: false
+        },
+        legendFilter: null,
+        gpsOn: false,
+        sunBoost: false
+      };
+
+      /* ===== Elements ===== */
+      const mapViewport = document.getElementById('mapViewport');
+      const mapDrawer = document.getElementById('mapDrawer');
+      const drawerDragZone = document.getElementById('drawerDragZone');
+      const drawerHeadRow = document.getElementById('drawerHeadRow');
+      const drawerBody = document.getElementById('drawerBody');
+      const activeLayerBadge = document.getElementById('activeLayerBadge');
+      const layerActiveCount = document.getElementById('layerActiveCount');
+      const fabLayers = document.getElementById('fabLayers');
+      const fabGps = document.getElementById('fabGps');
+      const fabFullscreen = document.getElementById('fabFullscreen');
+      const icoFullscreen = document.getElementById('icoFullscreen');
+      const gpsDot = document.getElementById('gpsDot');
+      const checkPin = document.getElementById('checkPin');
+      const guardPin = document.getElementById('guardPin');
+      const searchInput = document.getElementById('mapSearchInput');
+      const btnClearSearch = document.getElementById('btnClearSearch');
+      const searchResultsCard = document.getElementById('searchResultsCard');
+      const toastEl = document.getElementById('toast');
+
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+      }
+
+      /* ===== SVG Helpers ===== */
+      const CHEV_RIGHT = '<span class="chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+      const ICO_TRACTOR = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="2.2"/><path d="M10 17h4.8"/><path d="M4 17H3v-5l2-4h6v5h7l2 4h-.8"/><path d="M11 8V5h4"/></svg>';
+      const ICO_TOOLS = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>';
+      const ICO_WATER = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
+
+      /* ===== Render แผงล่างตามสถานะ (ไม่ได้เลือก / เลือกแปลง) ===== */
+      function renderDrawer() {
+        const toggleLabel = state.drawerCollapsed ? '▴ กาง' : '▾ ย่อ';
+
+        if (!state.selectedZoneId) {
+          /* สถานะ 1: ไม่ได้เลือกแปลง */
+          drawerHeadRow.innerHTML = `
+            <div class="drawer-head-left">
+              <div class="drawer-title">แตะแปลงบนแผนที่เพื่อดู/แก้</div>
+              <div class="drawer-sub">กดค้างตรงไหนก็ได้ = ตรวจว่ารถเข้าตรงนั้นได้ไหม</div>
+            </div>
+            <div class="drawer-head-actions">
+              <button type="button" class="sec-toggle-btn" id="btnToggleDrawer">${toggleLabel}</button>
+            </div>
+          `;
+
+          drawerBody.innerHTML = `
+            <div class="grouped-card">
+              <button type="button" class="status-row is-clickable" id="rowCheckHere">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-ok" aria-hidden="true">${ICO_TRACTOR}</span>
+                  <div class="status-info">
+                    <div class="status-title">ตรงที่ยืนอยู่ รถเข้าได้ไหม</div>
+                    <div class="status-sub">ตรวจระยะถนนและจุดน้ำขังรอบตำแหน่งฉัน</div>
+                  </div>
+                </div>
+                ${CHEV_RIGHT}
+              </button>
+              <button type="button" class="status-row is-clickable" id="rowMapTools">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-muted" aria-hidden="true">${ICO_TOOLS}</span>
+                  <div class="status-info">
+                    <div class="status-title">เครื่องมือ</div>
+                    <div class="status-sub">วาดขอบแปลง · วัดที่ดิน · นำเข้า</div>
+                  </div>
+                </div>
+                ${CHEV_RIGHT}
+              </button>
+            </div>
+          `;
+        } else {
+          /* สถานะ 2: เลือกแปลง */
+          const zone = ZONES[state.selectedZoneId];
+          const plot = zone.featuredPlot;
+
+          if (plot) {
+            /* แปลงหลักที่มีข้อมูลครบจากบรีฟ: หนองทิ้งสุ่ม (ข้างสระ) */
+            drawerHeadRow.innerHTML = `
+              <div class="drawer-head-left">
+                <div class="drawer-title">${plot.fullName}</div>
+                <div class="drawer-sub tabular">${zone.name} · ${plot.code}</div>
+              </div>
+              <div class="drawer-head-actions">
+                <button type="button" class="sec-toggle-btn" id="btnClearSelect">เลิกเลือก</button>
+                <button type="button" class="sec-toggle-btn" id="btnToggleDrawer">${toggleLabel}</button>
+              </div>
+            `;
+
+            drawerBody.innerHTML = `
+              <!-- 3 ตัวเลขเล็ก ตระกูล plots-gemini-v1 -->
+              <div class="kpi-3-grid tabular">
+                <div class="kpi-box">
+                  <span class="kpi-label">วัดจากแผนที่</span>
+                  <span class="kpi-val">${plot.mapArea}</span>
+                </div>
+                <div class="kpi-box">
+                  <span class="kpi-label">ในระบบ</span>
+                  <span class="kpi-val">${plot.sysArea}</span>
+                </div>
+                <div class="kpi-box">
+                  <span class="kpi-label">ประเภท</span>
+                  <span class="kpi-val">${plot.cropType}</span>
+                </div>
+              </div>
+
+              <!-- การ์ดเตือนส้ม 4 ชั้น แบบ .task-card.st-watch -->
+              <button type="button" class="task-card st-watch" id="btnOldCaneDetail">
+                <div class="an-l1">
+                  <span>${plot.alert.kicker}</span>
+                  <span class="watch-link-cue">ดู ›</span>
+                </div>
+                <div class="an-l2 is-due">
+                  <span>${plot.alert.title}</span>
+                  <span class="st-pill watch tabular">${plot.alert.badge}</span>
+                </div>
+                <div class="an-l3 tabular"><strong>≈ 1 ไร่ 3 งาน 16 ตร.วา</strong> · ไม่ได้ตัดฤดู 68/69</div>
+                <div class="an-l4">${plot.alert.note}</div>
+              </button>
+
+              <!-- แถวปุ่มเล็ก .task-inline-btn 4 ช่อง -->
+              <div class="plot-action-row" role="group" aria-label="คำสั่งแปลงนี้">
+                <button type="button" class="task-inline-btn" data-plot-act="edit-edge">แก้ขอบ</button>
+                <button type="button" class="task-inline-btn is-due" data-plot-act="add-damage">+ จุดเสียหาย</button>
+                <button type="button" class="task-inline-btn" data-plot-act="navigate">นำทาง</button>
+                <button type="button" class="task-inline-btn is-doing" data-plot-act="open-plot">ดูแปลง</button>
+              </div>
+
+              <!-- รวมปุ่มยาวเต็มจอ 3 อัน เป็น .grouped-card แถว .status-row -->
+              <div class="grouped-card">
+                <button type="button" class="status-row is-clickable" id="rowWaterPlan">
+                  <div class="status-row-left">
+                    <span class="status-icon-box is-water" aria-hidden="true">${ICO_WATER}</span>
+                    <div class="status-info">
+                      <div class="status-title">แผนน้ำแปลงนี้</div>
+                      <div class="status-sub">หัว/ท้ายแปลง คลอง ทางลาด</div>
+                    </div>
+                  </div>
+                  ${CHEV_RIGHT}
+                </button>
+                <button type="button" class="status-row is-clickable" id="rowCheckHere">
+                  <div class="status-row-left">
+                    <span class="status-icon-box is-ok" aria-hidden="true">${ICO_TRACTOR}</span>
+                    <div class="status-info">
+                      <div class="status-title">ตรงที่แตะ รถเข้าได้ไหม</div>
+                      <div class="status-sub">ตรวจทางเข้าและจุดน้ำขังรอบจุดที่เลือก</div>
+                    </div>
+                  </div>
+                  ${CHEV_RIGHT}
+                </button>
+                <button type="button" class="status-row is-clickable" id="rowMapTools">
+                  <div class="status-row-left">
+                    <span class="status-icon-box is-muted" aria-hidden="true">${ICO_TOOLS}</span>
+                    <div class="status-info">
+                      <div class="status-title">เครื่องมือ</div>
+                      <div class="status-sub">วาดขอบแปลง · วัดที่ดิน · นำเข้า</div>
+                    </div>
+                  </div>
+                  ${CHEV_RIGHT}
+                </button>
+              </div>
+            `;
+          } else {
+            /* พื้นที่อื่น (แสดงเฉพาะข้อมูลจริงที่มี ไม่แต่งตัวเลขเพิ่ม) */
+            drawerHeadRow.innerHTML = `
+              <div class="drawer-head-left">
+                <div class="drawer-title">${zone.name}</div>
+                <div class="drawer-sub tabular">พื้นที่รวม ${zone.totalRai} · สถานะ ${zone.statusLabel}</div>
+              </div>
+              <div class="drawer-head-actions">
+                <button type="button" class="sec-toggle-btn" id="btnClearSelect">เลิกเลือก</button>
+                <button type="button" class="sec-toggle-btn" id="btnToggleDrawer">${toggleLabel}</button>
+              </div>
+            `;
+
+            drawerBody.innerHTML = `
+              <div class="plot-action-row" role="group" aria-label="คำสั่งพื้นที่นี้">
+                <button type="button" class="task-inline-btn" data-plot-act="edit-edge">แก้ขอบ</button>
+                <button type="button" class="task-inline-btn is-due" data-plot-act="add-damage">+ จุดเสียหาย</button>
+                <button type="button" class="task-inline-btn" data-plot-act="navigate">นำทาง</button>
+                <button type="button" class="task-inline-btn is-doing" data-plot-act="open-plot">ดูแปลง</button>
+              </div>
+
+              <div class="grouped-card">
+                <button type="button" class="status-row is-clickable" id="rowSwitchSample">
+                  <div class="status-row-left">
+                    <span class="status-icon-box is-due" aria-hidden="true">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg>
+                    </span>
+                    <div class="status-info">
+                      <div class="status-title">ดูตัวอย่างแปลงเต็ม · หนองทิ้งสุ่ม (ข้างสระ)</div>
+                      <div class="status-sub">11 ไร่ · มีการ์ดเตือนอ้อยเก่าค้างและแผนน้ำ</div>
+                    </div>
+                  </div>
+                  ${CHEV_RIGHT}
+                </button>
+                <button type="button" class="status-row is-clickable" id="rowCheckHere">
+                  <div class="status-row-left">
+                    <span class="status-icon-box is-ok" aria-hidden="true">${ICO_TRACTOR}</span>
+                    <div class="status-info">
+                      <div class="status-title">ตรงที่แตะ รถเข้าได้ไหม</div>
+                      <div class="status-sub">ตรวจทางเข้าและจุดน้ำขังรอบพื้นที่ ${zone.name}</div>
+                    </div>
+                  </div>
+                  ${CHEV_RIGHT}
+                </button>
+                <button type="button" class="status-row is-clickable" id="rowMapTools">
+                  <div class="status-row-left">
+                    <span class="status-icon-box is-muted" aria-hidden="true">${ICO_TOOLS}</span>
+                    <div class="status-info">
+                      <div class="status-title">เครื่องมือ</div>
+                      <div class="status-sub">วาดขอบแปลง · วัดที่ดิน · นำเข้า</div>
+                    </div>
+                  </div>
+                  ${CHEV_RIGHT}
+                </button>
+              </div>
+            `;
+          }
+        }
+
+        /* Sync collapsed class + fullscreen icon */
+        mapDrawer.classList.toggle('is-collapsed', state.drawerCollapsed);
+        fabFullscreen.classList.toggle('is-active', state.drawerCollapsed);
+        icoFullscreen.innerHTML = state.drawerCollapsed
+          ? '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>'
+          : '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+
+        bindDrawerEvents();
+      }
+
+      function bindDrawerEvents() {
+        const btnToggle = document.getElementById('btnToggleDrawer');
+        if (btnToggle) {
+          btnToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.drawerCollapsed = !state.drawerCollapsed;
+            renderDrawer();
+          });
+        }
+
+        const btnClear = document.getElementById('btnClearSelect');
+        if (btnClear) {
+          btnClear.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectZone(null);
+          });
+        }
+
+        const btnOldCane = document.getElementById('btnOldCaneDetail');
+        if (btnOldCane) {
+          btnOldCane.addEventListener('click', openOldCaneSheet);
+        }
+
+        const rowWaterPlan = document.getElementById('rowWaterPlan');
+        if (rowWaterPlan) {
+          rowWaterPlan.addEventListener('click', openWaterPlanSheet);
+        }
+
+        const rowCheckHere = document.getElementById('rowCheckHere');
+        if (rowCheckHere) {
+          rowCheckHere.addEventListener('click', () => {
+            const label = state.selectedZoneId
+              ? (ZONES[state.selectedZoneId].featuredPlot ? ZONES[state.selectedZoneId].featuredPlot.fullName : ZONES[state.selectedZoneId].name)
+              : 'ตำแหน่งที่ยืนอยู่';
+            openVehicleCheckSheet(label);
+          });
+        }
+
+        const rowMapTools = document.getElementById('rowMapTools');
+        if (rowMapTools) {
+          rowMapTools.addEventListener('click', openMapToolsSheet);
+        }
+
+        const rowSwitchSample = document.getElementById('rowSwitchSample');
+        if (rowSwitchSample) {
+          rowSwitchSample.addEventListener('click', () => selectZone('nongthingsum'));
+        }
+
+        drawerBody.querySelectorAll('[data-plot-act]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const act = btn.getAttribute('data-plot-act');
+            const zone = state.selectedZoneId ? ZONES[state.selectedZoneId] : null;
+            const name = zone && zone.featuredPlot ? zone.featuredPlot.fullName : (zone ? zone.name : '');
+            if (act === 'edit-edge') showToast(`เปิดโหมดแก้ขอบแปลง · ${name}`);
+            if (act === 'add-damage') showToast(`แตะบนแผนที่เพื่อปักจุดเสียหาย · ${name}`);
+            if (act === 'navigate') showToast(`เปิดนำทาง Google Maps ไป ${name}`);
+            if (act === 'open-plot') showToast(`เปิดหน้ารายละเอียดแปลง · ${name}`);
+          });
+        });
+      }
+
+      /* ===== การเลือกแปลงบนแผนที่ ===== */
+      function selectZone(zoneId) {
+        state.selectedZoneId = zoneId;
+        if (zoneId) {
+          state.drawerCollapsed = false;
+        }
+        syncMapVisuals();
+        renderDrawer();
+      }
+
+      function syncMapVisuals() {
+        /* 1. ภาพพื้นและชั้นข้อมูล */
+        mapViewport.classList.toggle('is-satellite', state.basemap === 'satellite');
+        mapViewport.classList.toggle('show-plots', state.layers.plots);
+        mapViewport.classList.toggle('show-parcel', state.layers.parcel);
+        mapViewport.classList.toggle('show-damage', state.layers.damage);
+        mapViewport.classList.toggle('show-waterlog', state.layers.waterlog);
+        mapViewport.classList.toggle('show-guard', state.layers.guard);
+        mapViewport.classList.toggle('show-ndvi', state.layers.ndvi);
+
+        /* อัปเดตป้ายบอกโหมดบนแผนที่และปุ่มเลเยอร์ */
+        const activeCount = Object.values(state.layers).filter(Boolean).length;
+        layerActiveCount.textContent = `เปิด ${activeCount}/6`;
+        const hasSpecialLayer = state.basemap === 'satellite' || state.layers.ndvi || state.layers.parcel || state.layers.waterlog;
+        fabLayers.classList.toggle('has-badge', hasSpecialLayer);
+
+        const modeTags = [];
+        if (state.basemap === 'satellite') modeTags.push('ดาวเทียม');
+        if (state.layers.ndvi) modeTags.push('NDVI');
+        if (state.layers.waterlog) modeTags.push('น้ำขัง');
+        if (state.layers.parcel) modeTags.push('ที่ดิน');
+        if (modeTags.length) {
+          activeLayerBadge.textContent = modeTags.join(' · ');
+          activeLayerBadge.classList.add('is-show');
+        } else {
+          activeLayerBadge.classList.remove('is-show');
+        }
+
+        /* 2. ไฮไลต์แปลงที่เลือก + ตัวกรองจากคำอธิบายสี */
+        document.querySelectorAll('.zone-pill').forEach((pill) => {
+          const zId = pill.getAttribute('data-zone');
+          const z = ZONES[zId];
+          const isSel = state.selectedZoneId === zId;
+          pill.classList.toggle('is-selected', isSel);
+
+          let dimmed = false;
+          if (state.legendFilter && ['due', 'doing', 'ready', 'normal'].includes(state.legendFilter)) {
+            dimmed = z.status !== state.legendFilter;
+          }
+          pill.classList.toggle('is-dimmed', dimmed);
+        });
+
+        document.querySelectorAll('.plot-poly').forEach((poly) => {
+          const zId = poly.getAttribute('data-zone');
+          const st = poly.getAttribute('data-status');
+          const isSel = state.selectedZoneId === zId;
+          poly.classList.toggle('is-selected', isSel);
+
+          let dimmed = false;
+          if (state.legendFilter && ['due', 'doing', 'ready', 'normal'].includes(state.legendFilter)) {
+            dimmed = st !== state.legendFilter;
+          }
+          poly.classList.toggle('is-dimmed', dimmed);
+        });
+
+        guardPin.classList.toggle('is-pulse', state.legendFilter === 'guard');
+      }
+
+      /* ===== คลิกบนแปลงและป้ายพื้นที่ ===== */
+      document.querySelectorAll('.zone-pill, .plot-poly').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const zId = el.getAttribute('data-zone');
+          if (zId) {
+            selectZone(zId);
+          }
+        });
+      });
+
+      document.getElementById('damagePin1').addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectZone('nongthingsum');
+        openOldCaneSheet();
+      });
+
+      document.getElementById('homePin').addEventListener('click', (e) => {
+        e.stopPropagation();
+        showToast('บ้าน · จุดอ้างอิงหลัก');
+      });
+
+      guardPin.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showToast('จุดเฝ้าไร่ · หม่อง + จิตร');
+      });
+
+      /* แตะพื้นที่ว่างบนแผนที่ = เลิกเลือก · กดค้าง = ตรวจรถเข้าได้ไหม */
+      let longPressTimer = null;
+      let longPressFired = false;
+
+      mapViewport.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.map-search-wrap, .map-fab-stack, .map-legend-dock, button')) return;
+        longPressFired = false;
+        const rect = mapViewport.getBoundingClientRect();
+        const px = ((e.clientX - rect.left) / rect.width) * 100;
+        const py = ((e.clientY - rect.top) / rect.height) * 100;
+
+        longPressTimer = setTimeout(() => {
+          longPressFired = true;
+          checkPin.style.left = `${Math.max(14, Math.min(86, px))}%`;
+          checkPin.style.top = `${Math.max(18, Math.min(82, py))}%`;
+          checkPin.classList.add('is-visible');
+          openVehicleCheckSheet('จุดที่กดค้างบนแผนที่');
+        }, 520);
+      });
+
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => {
+        mapViewport.addEventListener(ev, () => clearTimeout(longPressTimer));
+      });
+
+      mapViewport.addEventListener('click', (e) => {
+        if (longPressFired) return;
+        if (e.target.closest('.map-search-wrap, .map-fab-stack, .map-legend-dock, button, .plot-poly')) return;
+        if (state.selectedZoneId) {
+          selectZone(null);
+        }
+        searchResultsCard.classList.remove('is-open');
+      });
+
+      /* ===== ลากย่อ/กางแผงล่าง ===== */
+      let dragStartY = null;
+      drawerDragZone.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button')) return;
+        dragStartY = e.clientY;
+        mapDrawer.classList.add('is-dragging');
+      });
+
+      window.addEventListener('pointerup', (e) => {
+        if (dragStartY === null) return;
+        const dy = e.clientY - dragStartY;
+        dragStartY = null;
+        mapDrawer.classList.remove('is-dragging');
+        if (dy > 28) {
+          state.drawerCollapsed = true;
+          renderDrawer();
+        } else if (dy < -24) {
+          state.drawerCollapsed = false;
+          renderDrawer();
+        }
+      });
+
+      /* ===== คำอธิบายสีแบบชิปแถวเดียว (แตะกรองบนแผนที่ได้) ===== */
+      document.getElementById('legendBar').addEventListener('click', (e) => {
+        const chip = e.target.closest('.legend-chip');
+        if (!chip) return;
+        const f = chip.getAttribute('data-filter');
+
+        if (f === 'damage') {
+          if (!state.layers.damage) {
+            state.layers.damage = true;
+            syncLayerSwitches();
+          }
+          state.legendFilter = state.legendFilter === 'damage' ? null : 'damage';
+        } else if (f === 'guard') {
+          if (!state.layers.guard) {
+            state.layers.guard = true;
+            syncLayerSwitches();
+          }
+          state.legendFilter = state.legendFilter === 'guard' ? null : 'guard';
+        } else {
+          state.legendFilter = state.legendFilter === f ? null : f;
+        }
+
+        document.querySelectorAll('.legend-chip').forEach((c) => {
+          c.classList.toggle('is-active', c.getAttribute('data-filter') === state.legendFilter);
+        });
+        syncMapVisuals();
+
+        if (state.legendFilter) {
+          showToast(`เน้นแสดง: ${chip.textContent.trim()}`);
+        } else {
+          showToast('แสดงทุกสถานะ');
+        }
+      });
+
+      /* ===== ปุ่มกลมขวาบนแผนที่ ===== */
+      fabLayers.addEventListener('click', () => openSheet('layersBackdrop'));
+
+      document.getElementById('fabCompass').addEventListener('click', () => {
+        showToast('หันแผนที่ทิศเหนืออยู่บนแล้ว');
+      });
+
+      fabGps.addEventListener('click', () => {
+        state.gpsOn = !state.gpsOn;
+        gpsDot.classList.toggle('is-visible', state.gpsOn);
+        fabGps.classList.toggle('is-gps-on', state.gpsOn);
+        showToast(state.gpsOn ? 'แสดงตำแหน่งฉันบนแผนที่แล้ว' : 'ซ่อนหมุดตำแหน่งฉัน');
+      });
+
+      fabFullscreen.addEventListener('click', () => {
+        state.drawerCollapsed = !state.drawerCollapsed;
+        renderDrawer();
+      });
+
+      /* ===== แผ่นเลเยอร์ (ภาพพื้น + 6 สวิตช์) ===== */
+      document.querySelectorAll('[data-basemap]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.basemap = btn.getAttribute('data-basemap');
+          document.querySelectorAll('[data-basemap]').forEach((b) => {
+            const active = b.getAttribute('data-basemap') === state.basemap;
+            b.classList.toggle('active', active);
+            b.setAttribute('aria-selected', String(active));
+          });
+          syncMapVisuals();
+        });
+      });
+
+      function syncLayerSwitches() {
+        document.querySelectorAll('#layerSwitchList .ios-switch').forEach((sw) => {
+          const key = sw.getAttribute('data-layer');
+          sw.setAttribute('aria-checked', String(Boolean(state.layers[key])));
+        });
+      }
+
+      document.querySelectorAll('#layerSwitchList .ios-switch').forEach((sw) => {
+        sw.addEventListener('click', () => {
+          const key = sw.getAttribute('data-layer');
+          state.layers[key] = !state.layers[key];
+          sw.setAttribute('aria-checked', String(state.layers[key]));
+          syncMapVisuals();
+        });
+      });
+
+      /* ===== ค้นหาสถานที่ / รหัสแปลง / วางพิกัด ===== */
+      const SEARCH_INDEX = [
+        { label: 'หนองทิ้งสุ่ม (ข้างสระ)', sub: 'P13 · 11 ไร่ · อ้อยตอ', zoneId: 'nongthingsum' },
+        ...Object.values(ZONES).map((z) => ({
+          label: z.name,
+          sub: `พื้นที่รวม ${z.totalRai} · ${z.statusLabel}`,
+          zoneId: z.id
+        }))
+      ];
+
+      function renderSearchResults(query) {
+        const q = query.trim().toLowerCase();
+        btnClearSearch.classList.toggle('is-show', q.length > 0);
+        if (!q) {
+          searchResultsCard.classList.remove('is-open');
+          searchResultsCard.innerHTML = '';
+          return;
+        }
+        const matches = SEARCH_INDEX.filter(
+          (item) => item.label.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q)
+        ).slice(0, 5);
+
+        if (!matches.length) {
+          searchResultsCard.innerHTML = `<div class="search-res-item"><span class="search-res-sub">ไม่พบ "${query.trim()}" — ลองพิมพ์ชื่อพื้นที่ เช่น หนองทิ้งสุ่ม หรือ P13</span></div>`;
+        } else {
+          searchResultsCard.innerHTML = matches.map((m) => `
+            <button type="button" class="search-res-item" data-pick-zone="${m.zoneId}">
+              <div>
+                <div style="font-weight:600;">${m.label}</div>
+                <div class="search-res-sub tabular">${m.sub}</div>
+              </div>
+              ${CHEV_RIGHT}
+            </button>
+          `).join('');
+        }
+        searchResultsCard.classList.add('is-open');
+      }
+
+      searchInput.addEventListener('input', () => renderSearchResults(searchInput.value));
+      searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim()) renderSearchResults(searchInput.value);
+      });
+
+      btnClearSearch.addEventListener('click', () => {
+        searchInput.value = '';
+        renderSearchResults('');
+        searchInput.focus();
+      });
+
+      searchResultsCard.addEventListener('click', (e) => {
+        const item = e.target.closest('[data-pick-zone]');
+        if (!item) return;
+        const zId = item.getAttribute('data-pick-zone');
+        searchResultsCard.classList.remove('is-open');
+        searchInput.blur();
+        selectZone(zId);
+      });
+
+      document.getElementById('mapSearchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const q = searchInput.value.trim();
+        if (!q) {
+          selectZone('nongthingsum');
+          showToast('แสดงแปลงตัวอย่าง: หนองทิ้งสุ่ม (ข้างสระ)');
+          return;
+        }
+        if (/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(q)) {
+          searchResultsCard.classList.remove('is-open');
+          checkPin.style.left = '54%';
+          checkPin.style.top = '48%';
+          checkPin.classList.add('is-visible');
+          showToast(`ปักหมุดพิกัด ${q}`);
+          return;
+        }
+        const hit = SEARCH_INDEX.find(
+          (item) => item.label.toLowerCase().includes(q.toLowerCase()) || item.sub.toLowerCase().includes(q.toLowerCase())
+        );
+        searchResultsCard.classList.remove('is-open');
+        if (hit) {
+          selectZone(hit.zoneId);
+        } else {
+          showToast(`ไม่พบ "${q}"`);
+        }
+      });
+
+      /* ===== แผ่นล่างข้อมูลย่อย (อ้อยเก่าค้าง / แผนน้ำ / รถเข้าได้ไหม / เครื่องมือ) ===== */
+      function openSheet(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.add('open');
+        el.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeSheet(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('open');
+        el.setAttribute('aria-hidden', 'true');
+      }
+
+      document.querySelectorAll('[data-close-sheet]').forEach((btn) => {
+        btn.addEventListener('click', () => closeSheet(btn.getAttribute('data-close-sheet')));
+      });
+
+      document.querySelectorAll('.sheet-backdrop').forEach((bd) => {
+        bd.addEventListener('click', (e) => {
+          if (e.target === bd) closeSheet(bd.id);
+        });
+      });
+
+      function openInfoSheet(title, subtitle, bodyHtml) {
+        document.getElementById('infoSheetTitle').textContent = title;
+        document.getElementById('infoSheetSub').textContent = subtitle;
+        document.getElementById('infoSheetBody').innerHTML = bodyHtml;
+        openSheet('infoBackdrop');
+      }
+
+      function openOldCaneSheet() {
+        openInfoSheet(
+          'อ้อยเก่าค้าง · หนองทิ้งสุ่ม (ข้างสระ)',
+          'บันทึกจากภาพดาวเทียม 21 มี.ค. 69',
+          `
+            <div class="task-card st-watch" style="cursor:default;">
+              <div class="an-l1"><span>แนวจากภาพดาวเทียม · 21 มี.ค. 69</span></div>
+              <div class="an-l2 is-due">
+                <span>อ้อยเก่าค้าง</span>
+                <span class="st-pill watch tabular">16% ของแปลง</span>
+              </div>
+              <div class="an-l3 tabular"><strong>≈ 1 ไร่ 3 งาน 16 ตร.วา</strong> · ไม่ได้ตัดฤดู 68/69</div>
+              <div class="an-l4">หลังตัดส่วนนี้ยังยืนต้น · เจ้าของไร่ยืนยัน</div>
+            </div>
+            <div class="detail-box">
+              <div class="kpi-3-grid tabular">
+                <div class="kpi-box" style="box-shadow:none;background:#F7F9F7;">
+                  <span class="kpi-label">วัดจากแผนที่</span>
+                  <span class="kpi-val">11 ไร่ 16 ตร.วา</span>
+                </div>
+                <div class="kpi-box" style="box-shadow:none;background:#F7F9F7;">
+                  <span class="kpi-label">ในระบบ</span>
+                  <span class="kpi-val">11 ไร่</span>
+                </div>
+                <div class="kpi-box" style="box-shadow:none;background:#F7F9F7;">
+                  <span class="kpi-label">ประเภท</span>
+                  <span class="kpi-val">อ้อยตอ</span>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="sheet-btn primary" onclick="document.getElementById('infoBackdrop').classList.remove('open')">ปิด</button>
+          `
+        );
+      }
+
+      function openWaterPlanSheet() {
+        openInfoSheet(
+          'แผนน้ำแปลงนี้',
+          'หนองทิ้งสุ่ม (ข้างสระ) · 11 ไร่',
+          `
+            <div class="grouped-card">
+              <div class="status-row">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-water">${ICO_WATER}</span>
+                  <div class="status-info">
+                    <div class="status-title">หัว/ท้ายแปลง · คลอง · ทางลาด</div>
+                    <div class="status-sub">แสดงแนวท่อ จุดตั้งเครื่อง และทิศน้ำไหลบนแผนที่</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="sheet-btn primary" id="btnShowWaterOnMap">แสดงชั้นจุดน้ำขังบนแผนที่</button>
+          `
+        );
+        const btn = document.getElementById('btnShowWaterOnMap');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            state.layers.waterlog = true;
+            syncLayerSwitches();
+            syncMapVisuals();
+            closeSheet('infoBackdrop');
+            showToast('เปิดชั้นจุดน้ำขังบนแผนที่แล้ว');
+          });
+        }
+      }
+
+      function openVehicleCheckSheet(targetLabel) {
+        openInfoSheet(
+          'รถเข้าตรงนี้ได้ไหม',
+          targetLabel,
+          `
+            <div class="detail-box">
+              <div class="an-l1"><span>ตรวจสภาพทางเข้าจากข้อมูลแผนที่</span></div>
+              <div class="an-l2" style="color:var(--brand-dark);margin-top:2px;">เลือกเปิดชั้นจุดน้ำขังเพื่อดูพื้นที่ลุ่มรอบจุดนี้</div>
+              <div class="an-l4" style="margin-top:4px;">กดค้างตำแหน่งอื่นบนแผนที่เพื่อเปลี่ยนจุดตรวจได้ทันที</div>
+            </div>
+            <button type="button" class="sheet-btn primary" id="btnCheckWaterOverlay">เปิดจุดน้ำขังและปิดหน้าต่าง</button>
+          `
+        );
+        const btn = document.getElementById('btnCheckWaterOverlay');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            state.layers.waterlog = true;
+            syncLayerSwitches();
+            syncMapVisuals();
+            closeSheet('infoBackdrop');
+            showToast('เปิดจุดน้ำขังประกอบการตรวจทางเข้าแล้ว');
+          });
+        }
+      }
+
+      function openMapToolsSheet() {
+        openInfoSheet(
+          'เครื่องมือแผนที่',
+          'เลือกเครื่องมือที่ต้องการใช้งานบนแผนที่',
+          `
+            <div class="grouped-card">
+              <button type="button" class="status-row is-clickable" data-tool="draw">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-ok">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 6 14 4 20 10 16 20 5 17"/></svg>
+                  </span>
+                  <div class="status-info">
+                    <div class="status-title">วาดขอบแปลง</div>
+                    <div class="status-sub">ปักมุมแปลงใหม่หรือปรับแนวเดิม</div>
+                  </div>
+                </div>
+                ${CHEV_RIGHT}
+              </button>
+              <button type="button" class="status-row is-clickable" data-tool="measure">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-nolog">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></svg>
+                  </span>
+                  <div class="status-info">
+                    <div class="status-title">วัดที่ดิน</div>
+                    <div class="status-sub">วัดระยะทางและคำนวณเนื้อที่ ไร่-งาน-ตร.วา</div>
+                  </div>
+                </div>
+                ${CHEV_RIGHT}
+              </button>
+              <button type="button" class="status-row is-clickable" data-tool="import">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-muted">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </span>
+                  <div class="status-info">
+                    <div class="status-title">นำเข้า</div>
+                    <div class="status-sub">นำเข้าไฟล์ขอบแปลง KML / GeoJSON</div>
+                  </div>
+                </div>
+                ${CHEV_RIGHT}
+              </button>
+            </div>
+            <button type="button" class="sheet-btn primary" onclick="document.getElementById('infoBackdrop').classList.remove('open')">ปิด</button>
+          `
+        );
+        document.querySelectorAll('#infoSheetBody [data-tool]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const t = b.getAttribute('data-tool');
+            closeSheet('infoBackdrop');
+            if (t === 'draw') showToast('เข้าโหมดวาดขอบแปลง');
+            if (t === 'measure') showToast('เข้าโหมดวัดที่ดิน');
+            if (t === 'import') showToast('เปิดหน้านำเข้าไฟล์ขอบแปลง');
+          });
+        });
+      }
+
+      /* ===== ปุ่มหัวหน้าต่าง ===== */
+      document.getElementById('btnBackPlots').addEventListener('click', () => {
+        showToast('กลับหน้าแปลง (หน้าก่อนหน้า)');
+      });
+
+      const btnSunToggle = document.getElementById('btnSunToggle');
+      btnSunToggle.addEventListener('click', () => {
+        state.sunBoost = !state.sunBoost;
+        document.body.classList.toggle('sun-boost', state.sunBoost);
+        btnSunToggle.classList.toggle('is-sun-on', state.sunBoost);
+        showToast(state.sunBoost ? 'เปิดโหมดกลางแดดจัด' : 'ปิดโหมดกลางแดดจัด');
+      });
+
+      /* ===== เริ่มต้น ===== */
+      syncLayerSwitches();
+      syncMapVisuals();
+      renderDrawer();
+    })();
+  </script>
+</body>
+</html>

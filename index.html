@@ -6840,6 +6840,15 @@
         items.splice(i, 1); const w = `(ไม่ได้จดเข้า ${sh || nm} — ข้อความพูดถึง ${named.join('/')} ซึ่ง${alt.length ? 'มีหลายคัน พิมพ์ชื่อเต็ม' : 'ยังไม่มีในแอป · พิมพ์ "เพิ่มรถส่วนตัว ' + named[0] + '" ก่อน แล้วส่งใหม่'})`;
         if (!String(r.reply || '').includes(w)) r.reply = (r.reply ? r.reply + '\n' : '') + w;
       }
+      // เตือน/นัดที่ AI ใส่ชื่อรถคันอื่นในข้อความ (24 พ.ย. 69 "เปลี่ยนถ่ายน้ำมันเครื่อง Ford สีส้ม" ทั้งที่คุยเรื่อง Fortuner) → เปลี่ยนเป็นคันที่ผู้ใช้เอ่ย
+      if (named.length) {
+        const mine = (gData.assets || []).filter(a => a.category !== 'Worker' && named.some(b => String(a.name).toLowerCase().includes(b))).map(a => a.name)
+          .concat(items.filter(o => o && (o.type === 'add' || o.type === 'asset_reg')).map(o => String(o.name || o.asset || '')).filter(n => named.some(b => n.toLowerCase().includes(b))));
+        const to = [...new Set(mine)];
+        if (to.length === 1) items.forEach(o => { if (!o || o.type !== 'reminder' || !o.text) return;
+          (gData.assets || []).forEach(a => { if (a.category === 'Worker' || a.name === to[0] || named.some(b => String(a.name).toLowerCase().includes(b))) return;
+            if (String(o.text).includes(a.name)) o.text = String(o.text).split(a.name).join(to[0]); }); });
+      }
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i]; if (!['asset_note', 'asset_status', 'asset_reg', 'asset_todo'].includes(it.type) || !it.asset) continue;
         const a = chAsset(it.asset) || { name: it.asset }, nm = String(a.name), sh = eqS(nm);

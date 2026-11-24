@@ -3234,6 +3234,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
 .v5h .modal-body .bg-light{background:#fff!important;border:1px solid #DCE3DC!important;border-radius:14px!important}
 .v5h .modal-body .alert{border-radius:12px}
 .v5h .modal-footer .btn{border-radius:12px;min-height:46px}
+.pl5 .zone-card.is-one .zone-plots{border-top:0}.pl5 .zone-card.is-one .plot-row{background:#fff}.pl5 .zone-one-sat{padding:0 14px 10px}
 /* ก้อน 6 ตาราง */
 #table-view.v6{background:none!important;box-shadow:none!important;padding:0!important}
 .v6 .tb6-bk{border:0;background:none;color:var(--brand);font-weight:700;font-size:13px;padding:0;min-height:30px}
@@ -6795,16 +6796,19 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const ages = {}; g.rows.forEach(({ p }) => { const d = calcDays(p.plant_date), t = p.cane_type === 'อ้อยใหม่' ? 'อ้อยใหม่' : 'ตอ'; if (d !== null) (ages[t] = ages[t] || []).push(Math.floor(d / 30)); });
         const ageTxt = Object.keys(ages).map(t => { const a = ages[t], lo = Math.min(...a), hi = Math.max(...a); return `${t} ${lo === hi ? lo : lo + '–' + hi} ด.`; }).join(' · ');
         const pill = (nD ? `<span class="st-pill doing tabular"><span class="pulse-dot"></span>กำลังทำ ${nD}</span>` : '') + (nU ? `<span class="st-pill due tabular">ถึงคิว ${nU}</span>` : '') + (nS ? `<span class="st-pill due tabular">🛰️ ควรดู ${nS}</span>` : '');
-        h += `<div class="zone-card${open ? ' is-open' : ''}${nD ? ' has-doing' : nU || nS ? ' has-due' : ''}"><button type="button" class="zone-head" aria-expanded="${open}" onclick="tglGrp('${qa(g.l)}')"><div class="zone-head-left"><div class="zone-title-line"><span class="zone-name">${esc(g.l)}</span>${pill}</div>
-          <div class="zone-meta tabular">${g.rows.length} แปลง · ${r1(rai)} ไร่${ageTxt ? ' · ' + ageTxt : ''}</div></div><span class="chev zone-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>`;
-        if (open) h += `<div class="zone-plots">${g.show.map(({ p, st }) => {
+        const pRow = ({ p, st }) => {
           const k = pl5St(st), pD = calcDays(p.plant_date), wD = calcDays(p.last_water_date), isNew = p.cane_type === 'อ้อยใหม่';
           const age = pD === null ? (isNew ? 'ยังไม่ปลูก' : '') : `${Math.floor(pD / 30)} ด.`, wc = waterChip(p, st, pD, wD);
           const wTxt = !wc || wD === null ? '' : `<span class="water-ago tabular${wc.c === 'red' ? ' is-dry' : ''}">· ${wc.c === 'red' ? 'ขาดน้ำ' : 'น้ำ'} ${wD} วัน${wc.c === 'red' ? '' : 'ก่อน'}</span>`;
           const tg = (plotTags(p).includes(TAG_SAND) ? '<span class="crop-tag">ทราย</span>' : '') + (watchesOf(p.plot_id).length ? '<span class="crop-tag" style="background:#F3EEFF;color:#5A2E8F">ฝากดู</span>' : '');
           const pp = k === 'doing' ? '<span class="st-pill doing">กำลังทำ</span>' : k === 'due' ? '<span class="st-pill due">ถึงคิว</span>' : k === 'cut' ? '<span class="st-pill muted">ตัดแล้ว</span>' : '';
           return `<button type="button" class="plot-row${k === 'doing' ? ' st-doing' : k === 'due' ? ' st-due' : ''}" onclick="openDossier('${p.plot_id}')"><div class="plot-row-left"><div class="plot-name">${esc(p.plot_name)}</div>
-            <div class="plot-meta-line tabular"><span class="plot-rai">${esc(p.area_rai)} ไร่</span><span class="crop-tag ${isNew ? 'is-new' : 'is-ratoon'}">${isNew ? 'อ้อยใหม่' : 'ตอ'}${age ? ' ' + age : ''}</span>${wTxt}${tg}</div></div><div class="plot-row-right">${pp}${PL5_CHEV}</div></button>`; }).join('')}</div>`;
+            <div class="plot-meta-line tabular"><span class="plot-rai">${esc(p.area_rai)} ไร่</span><span class="crop-tag ${isNew ? 'is-new' : 'is-ratoon'}">${isNew ? 'อ้อยใหม่' : 'ตอ'}${age ? ' ' + age : ''}</span>${wTxt}${tg}</div></div><div class="plot-row-right">${pp}${PL5_CHEV}</div></button>`; };
+        // พื้นที่มีแปลงเดียว (เช่น แปดไร่) = ไม่มีหัวกาง/หุบ แสดงแถวแปลงเลย (24 พ.ย. 69 ผู้ใช้: "แปดไร่ขึ้นสองครั้ง กางหุบสับสน")
+        if (g.rows.length === 1) { h += `<div class="zone-card is-open is-one${nD ? ' has-doing' : nU || nS ? ' has-due' : ''}"><div class="zone-plots">${g.show.map(pRow).join('')}</div>${nS ? `<div class="zone-one-sat">${pill}</div>` : ''}</div>`; return; }
+        h += `<div class="zone-card${open ? ' is-open' : ''}${nD ? ' has-doing' : nU || nS ? ' has-due' : ''}"><button type="button" class="zone-head" aria-expanded="${open}" onclick="tglGrp('${qa(g.l)}')"><div class="zone-head-left"><div class="zone-title-line"><span class="zone-name">${esc(g.l)}</span>${pill}</div>
+          <div class="zone-meta tabular">${g.rows.length} แปลง · ${r1(rai)} ไร่${ageTxt ? ' · ' + ageTxt : ''}</div></div><span class="chev zone-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></button>`;
+        if (open) h += `<div class="zone-plots">${g.show.map(pRow).join('')}</div>`;
         h += '</div>';
       });
       return `<div class="pl5-stack">${h}</div></section></div>`;

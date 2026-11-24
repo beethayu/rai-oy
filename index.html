@@ -2953,6 +2953,133 @@
 .td5 .ios-switch[aria-checked="true"] .ios-switch-thumb{transform:translateX(19px)}
 #dossierModal .pl5-back{display:none;border:0;background:rgba(255,255,255,.16);color:#fff;font-weight:600;font-size:14px;border-radius:9px;padding:4px 10px 4px 6px;margin-right:8px;white-space:nowrap}
 #dossierModal.is-pl5 .pl5-back{display:inline-flex;align-items:center}#dossierModal.is-pl5 .btn-close{display:none}
+/* ===== รอบ 3 (ก้อน 6–14) แบบ v5 ทั้งแอป · drafts บนคอมผู้ใช้ D:\Antigravity\web giffarine\drafts\*-v1.html · ชุด .v6 = ชิ้นร่วม ===== */
+.v6{--brand:#1F5E3B;--brand-dark:#15452A;--brand-soft:#E8F3EC;--bg:#F4F5F1;--surface:#FFFFFF;--ink:#16241B;--ink-2:#46594E;--ink-3:#6D7B72;--border:#DCE3DC;--due:#C2410C;--due-soft:#FFF1E6;--due-border:#FDBA74;--water:#0369A1;--water-soft:#E0F2FE;--danger:#B91C1C;--danger-soft:#FDECEC;--radius:14px;--shadow:0 1px 3px rgba(20,46,30,.06),0 1px 1px rgba(20,46,30,.03);color:var(--ink);font-variant-numeric:tabular-nums}
+.v6 .seg-bar{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:3px;background:#E5EBE6;border-radius:11px;margin-bottom:10px}
+.v6 .seg-btn{height:36px;border:0;border-radius:8px;background:transparent;color:var(--ink-2);font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;padding:0 4px;min-width:0}
+.v6 .seg-btn.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,46,30,.1)}
+.v6 .seg-cnt{font-size:11.5px;color:var(--ink-3)}.v6 .seg-btn.active .seg-cnt{color:var(--brand)}
+.v6 .seg-badge{min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--due);color:#fff;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.v6 .grouped-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px}
+.v6 .setting-row{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;min-height:46px}
+.v6 .setting-row+.setting-row{border-top:1px solid #EEF2EE}
+.v6 .setting-label{color:var(--ink-2);flex-shrink:0;font-weight:600}.v6 .setting-val{color:var(--ink);font-weight:700;text-align:right;min-width:0}
+.v6 .st-pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;line-height:1.4;background:#EDF2EE;color:var(--ink-2)}
+.v6 .st-pill.doing,.v6 .st-pill.ok{background:var(--brand-soft);color:var(--brand-dark)}.v6 .st-pill.due{background:var(--due-soft);color:var(--due)}.v6 .st-pill.water{background:var(--water-soft);color:var(--water)}.v6 .st-pill.spray{background:#FEF3C7;color:#92400E}.v6 .st-pill.danger{background:var(--danger-soft);color:var(--danger)}.v6 .st-pill.ask{background:#F3EEFF;color:#6D28D9}
+.v6 .sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 2px 7px}
+.v6 .sec-head h2{font-size:15px;font-weight:700;margin:0;color:var(--ink);display:flex;align-items:center;gap:7px}
+.v6 .sec-badge{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:#E5EBE6;color:var(--ink-2)}
+.v6 .sec-btn{height:32px;padding:0 10px;border-radius:9px;border:1px solid var(--border);background:#fff;font-size:13px;font-weight:600;color:var(--ink-2)}
+.v6 .hint{font-size:12.5px;color:var(--ink-3);line-height:1.4}
+/* หัวแท็บเตี้ย (ทุกแท็บยกเว้นวันนี้) */
+.hd-s{display:none}
+body.tabS .hd{padding:8px 12px 10px}
+body.tabS .hd-date,body.tabS .hd-rai{display:none}
+body.tabS .hd-s{display:block;min-width:0}
+.hd-sk{font-size:12px;color:rgba(255,255,255,.82);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-st{margin:1px 0 0;font-size:20px;font-weight:700;letter-spacing:-.01em;color:#fff;line-height:1.2}
+body.tabS .hd-btns{gap:6px}
+body.tabS .hd-btns .ibtn{height:38px;min-width:38px;border-radius:10px;font-size:14px;padding:0 10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff}
+body.tabS .hd-btns .ibtn-rain svg{display:none}
+body.tabS .hd-btns .ibtn-add{background:#fff;border-color:#fff;color:#15452A;font-size:14px!important;font-weight:700;min-width:0!important}
+body.tabS .tiles,body.tabS .t-none{display:none!important}
+body.tabS .sec-hd h1{display:none}
+body.tabS .sec-hd{justify-content:flex-end}
+body.tabS .sec-hd:has(#sec-sub:empty){display:none}
+/* ก้อน 7 แชตบันทึกงาน (log-chat-v1) */
+#log-view.v6 #logSeg{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;background:#E5EBE6;border-radius:11px;margin:0 0 12px}
+#log-view.v6 #logSeg button{height:36px;padding:0;border-radius:8px;font-size:14px;color:var(--ink-2)}
+#log-view.v6 #logSeg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,46,30,.1)}
+#log-view.v6 .ch-ai{background:#fff;border:1px solid var(--border);border-radius:16px 16px 16px 4px;padding:10px 13px;font-size:15px;line-height:1.5;box-shadow:var(--shadow);width:fit-content;max-width:92%}
+#log-view.v6 .ch-ai small{font-size:13px;color:var(--ink-3);margin-top:6px}
+#log-view.v6 .ch-ai .ch-card{margin:10px 0 0}
+#log-view.v6 .ch-me{border-radius:16px 16px 4px 16px;font-size:15px;line-height:1.45;box-shadow:var(--shadow)}
+#log-view.v6 .ch-card{border:1.5px solid #A8CBB5;border-radius:var(--radius);box-shadow:var(--shadow)}
+#log-view.v6 .ch-card.ch-saved{border-color:#A8CBB5}
+#log-view.v6 .ch-hd{background:#EEF4F0;border-bottom:1px solid #D5E4DA;color:var(--brand-dark);font-weight:700;font-size:14px;padding:10px 12px;align-items:center}
+#log-view.v6 .ch-hd span+span{font-size:12px;font-weight:700;color:var(--due);background:var(--due-soft);border-radius:999px;padding:1px 8px}
+#log-view.v6 .ch-saved .ch-hd span+span{color:var(--brand-dark);background:var(--brand-soft)}
+#log-view.v6 .ch-it{padding:10px 12px}
+#log-view.v6 .ch-it+.ch-it{border-top:1px solid #E9EFEA}
+#log-view.v6 .ch-t{font-size:15px}
+#log-view.v6 .ch-row{font-size:14px;line-height:1.55}
+#log-view.v6 .ch-x{width:44px;height:44px;top:2px;right:2px;display:flex;align-items:center;justify-content:center}
+#log-view.v6 .ch-x::before{content:'';position:absolute;inset:9px;border:1px solid var(--border);border-radius:8px;background:#F7F9F7;z-index:-1}
+#log-view.v6 .ch-x{isolation:isolate}
+#log-view.v6 .ch-ask{background:#FAFBF9;border-top:1px solid #EEF2EE}
+#log-view.v6 .ch-ask b{font-size:13.5px;color:var(--ink-2)}
+#log-view.v6 .ch-chip{border-color:#A8CBB5;color:var(--brand-dark);font-weight:600;font-size:14px;min-height:36px}
+#log-view.v6 .ch-acts .btn-success{background:var(--brand);border-color:var(--brand);border-radius:11px}
+#log-view.v6 .ch-acts .btn-light{background:#EFF3F0;border-color:#EFF3F0;border-radius:11px}
+#log-view.v6 .ch-ex{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;padding:11px 12px;min-height:44px}
+#log-view.v6 .ch-ex::after{content:'›';color:var(--ink-3);font-size:18px;flex:none}
+#log-view.v6 .ch-ex:active{background:var(--brand-soft)}
+#log-view.v6 .ch-think{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;font-size:14px;font-weight:600;color:var(--ink-2);margin:0 0 10px}
+#log-view.v6 .ch-dots{display:inline-flex;gap:4px}#log-view.v6 .ch-dots i{width:6px;height:6px;border-radius:50%;background:var(--brand);animation:chDot 1.2s infinite ease-in-out}
+#log-view.v6 .ch-dots i:nth-child(2){animation-delay:.2s}#log-view.v6 .ch-dots i:nth-child(3){animation-delay:.4s}
+@keyframes chDot{0%,80%,100%{opacity:.25;transform:scale(.85)}40%{opacity:1;transform:scale(1.1)}}
+#log-view.v6 .ch-bar{border-top:1px solid var(--border);padding:7px 10px 8px;align-items:center;gap:7px}
+#log-view.v6 .ch-bar textarea{border:1.5px solid var(--border);background:#FAFBF9;border-radius:21px;min-height:42px;padding:9px 14px}
+#log-view.v6 .ch-bar textarea:focus{border-color:var(--brand);background:#fff}
+#log-view.v6 .ch-cam{width:42px;height:42px;border-radius:11px;border:1px solid var(--border);background:#F6F8F6;font-size:18px}
+#log-view.v6 .ch-send{width:42px;height:42px;border-radius:50%}
+#log-view.v6 .ch-dt{background:var(--due-soft);border:1px solid var(--due-border);color:var(--due);font-size:13px;font-weight:700;padding:3px 10px;min-height:30px}
+.hd-bk{display:none;position:relative;overflow:hidden}
+body.tabS.tabLog .hd-btns .ibtn-add,body.tabS.tabLog.logChat .hd-btns .ibtn-rain{display:none}
+body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
+.hd-bk input{position:absolute;inset:0;opacity:0;width:100%;height:100%;-webkit-appearance:none;appearance:none;min-width:0;font-size:16px}
+/* ก้อน 8 กดเลือกงาน + ฟอร์มบันทึก (log-form-v1) */
+#log-view.v6 .task-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#log-view.v6 .task-btn{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:106px;color:var(--ink)}
+#log-view.v6 .task-btn:active{background:var(--brand-soft)}
+#log-view.v6 .task-btn .ti{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:7px;background:#EEF2EE}
+#log-view.v6 .task-btn .tt{font-size:16px;font-weight:700}#log-view.v6 .task-btn .ts{font-size:12.5px;color:var(--ink-3);line-height:1.35}
+#log-view.v6 .task-btn.k-water .ti,#log-view.v6 .task-btn.k-pump .ti{background:var(--water-soft)}#log-view.v6 .task-btn.k-chem .ti{background:#FFF1E6}#log-view.v6 .task-btn.k-fert .ti{background:var(--brand-soft)}#log-view.v6 .task-btn.k-trac .ti{background:#F4ECE1}#log-view.v6 .task-btn.k-harv .ti{background:#F3EEFF}
+#log-view.v6 .pk-note{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink-2);margin-top:10px;line-height:1.45}
+#log-view.v6 .log-back{border:0;background:#fff;border:1px solid var(--border);border-radius:9px;color:var(--brand-dark);font-weight:700;font-size:14px;min-height:36px;padding:0 10px}
+#log-view.v6 .pick-q{border:1.5px solid var(--border);border-radius:12px;min-height:44px}
+#actModal .modal-body{background:#F4F6F3;padding:12px 14px 18px!important;color:#16241B}
+#actModal .modal-body>label.small,#actModal .a6-sec{display:block;font-size:13.5px!important;font-weight:700;color:#46594E!important;margin:12px 2px 6px!important}
+#actModal .modal-body>label.small:first-of-type{margin-top:4px!important}
+#actModal .a6-plot{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid #DCE3DC;border-radius:14px;padding:11px 13px;box-shadow:0 1px 2px rgba(20,46,30,.06);margin-bottom:6px}
+#actModal .a6-plot span{font-size:14px;font-weight:600;color:#46594E;flex:none}#actModal .a6-plot b{font-size:15px;color:#15452A;text-align:right}
+#actModal .btn-group[role=group]{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;background:#E5EBE6;border-radius:11px}
+#actModal .btn-group[role=group] .btn{border:0!important;border-radius:8px!important;background:transparent;color:#46594E;font-size:14px;height:38px;padding:0 4px;display:flex;align-items:center;justify-content:center;box-shadow:none}
+#actModal .btn-group[role=group] .btn-check:checked+.btn{background:#fff;color:#16241B;box-shadow:0 1px 3px rgba(20,46,30,.12)}
+#actModal .grp-btn{flex:0 0 auto!important;border-radius:999px!important;border:1px solid #DCE3DC!important;background:#fff!important;color:#16241B!important;font-weight:600;font-size:14.5px;min-height:40px;padding:0 14px}
+#actModal .grp-btn.active{background:#1F5E3B!important;border-color:#1F5E3B!important;color:#fff!important}
+#actModal #sub_water,#actModal #sub_trac,#actModal #sub_gen,#actModal #sub_harv,#actModal #fert_block,#actModal .modal-body>.mb-2.p-2.bg-light{background:#fff!important;border:1px solid #DCE3DC!important;border-radius:14px!important;padding:11px 12px!important;box-shadow:0 1px 2px rgba(20,46,30,.06)}
+#actModal .form-check-inline{margin:0 6px 6px 0;padding:0;position:relative}
+#actModal .form-check-inline .form-check-input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+#actModal .form-check-inline .form-check-label{display:inline-flex;align-items:center;gap:4px;min-height:38px;padding:0 13px;border-radius:999px;border:1px solid #DCE3DC;background:#fff;font-size:14.5px;font-weight:600;color:#16241B}
+#actModal .form-check-inline .form-check-input:checked+.form-check-label{background:#E8F3EC;border-color:#1F5E3B;color:#15452A;box-shadow:inset 0 0 0 1px #1F5E3B}
+#actModal .form-check-inline .form-check-input:checked+.form-check-label::before{content:'✓';font-weight:700}
+#actModal .modal-body small.fw-bold{font-size:13.5px;color:#46594E}
+#actModal .form-control,#actModal .form-select{font-size:16px!important;border-radius:10px;min-height:42px;border-color:#DCE3DC}
+#actModal input[type=date]{-webkit-appearance:none;appearance:none;min-width:0}
+#actModal .rtag,#actModal .ltag{border-radius:999px;border:1px solid #DCE3DC;background:#fff;font-weight:600}
+#actModal .modal-footer{background:#F4F6F3;border-top:1px solid #E2E8E3}
+#actModal #btnSaveAct{background:#1F5E3B;border-color:#1F5E3B;border-radius:12px;height:48px;font-size:16px}
+/* ก้อน 6 ตาราง */
+#table-view.v6{background:none!important;box-shadow:none!important;padding:0!important}
+.v6 .tb6-bk{border:0;background:none;color:var(--brand);font-weight:700;font-size:13px;padding:0;min-height:30px}
+.v6 .tb6-hint{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-3);margin:-2px 2px 8px}.v6 .tb6-hint b{color:var(--ink-2)}
+.v6 .tb6-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.v6 .tb6-scroll{overflow:auto;-webkit-overflow-scrolling:touch;max-height:calc(100dvh - 232px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+.v6 table.tb6{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+.v6 .tb6 th{position:sticky;top:0;z-index:3;background:#EDF3EE;color:var(--brand-dark);font-size:12px;font-weight:700;padding:8px 9px;text-align:left;white-space:nowrap;border-bottom:1.5px solid #CFE0D3}
+.v6 .tb6 .c1{position:sticky;left:0;z-index:2;width:158px;min-width:158px;max-width:158px;border-right:1px solid #E2EAE3;box-shadow:3px 0 6px -3px rgba(20,46,30,.12);background:#fff}
+.v6 .tb6 th.c1{z-index:4;background:#E4EFE6}
+.v6 .tb6 tr.zg td{background:#F4F7F4;color:var(--brand-dark);font-size:12px;font-weight:700;padding:6px 9px;border-bottom:1px solid #E2EAE3}
+.v6 .tb6 tr.zg td.c1{background:#EEF4EF}
+.v6 .tb6 tr.dr td{padding:8px 9px;border-bottom:1px solid #EEF2EE;vertical-align:middle;font-size:13px;white-space:nowrap;cursor:pointer;background:#fff}
+.v6 .tb6 tr.dr:active td{background:#F5FAF6}
+.v6 .tb6 tr.dr.is-doing td.c1{box-shadow:inset 3.5px 0 0 var(--brand),3px 0 6px -3px rgba(20,46,30,.12)}
+.v6 .tb6 tr.dr.is-due td{background:#FFFEFC}.v6 .tb6 tr.dr.is-due td.c1{box-shadow:inset 3.5px 0 0 var(--due),3px 0 6px -3px rgba(20,46,30,.12)}
+.v6 .tb6-n{font-size:13.5px;font-weight:700;white-space:normal;line-height:1.24}
+.v6 .tb6-m{display:flex;align-items:center;gap:5px;margin-top:2px;font-size:11px;color:var(--ink-3)}
+.v6 .crop-mini{font-size:10.5px;font-weight:600;padding:0 5px;border-radius:4px;line-height:1.5;background:#F4ECE1;color:#6B3410}.v6 .crop-mini.is-new{background:var(--brand-soft);color:var(--brand-dark)}
+.v6 .tb6-d{font-size:11.5px;color:var(--ink-3);margin-left:4px}
 </style>
 </head>
 <body>
@@ -2973,14 +3100,16 @@
   <div id="app">
   <header class="hd">
     <div class="hd-top">
-      <div>
+      <div style="min-width:0">
         <div class="hd-date" id="hd-date">ไร่อ้อย</div>
         <div class="hd-rai" id="sub-info">กำลังโหลด…</div>
+        <div class="hd-s"><div class="hd-sk" id="hd-sk"></div><h1 class="hd-st" id="hd-st"></h1></div>
       </div>
       <div class="hd-btns">
         <button type="button" class="ibtn ibtn-rain" onclick="openRain()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 8 3.5 3.5 0 0 1 17 15Z"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg>ฝนตก</button>
-        <button type="button" class="ibtn ibtn-ghost" aria-label="บันทึกงาน" style="font-size:24px;font-weight:600;min-width:48px" onclick="openPick()">+</button><!-- F แบบ A (16 พ.ย. 69): แผนน้ำ/แบตรถ ย้ายไป ⚙ -->
+        <button type="button" class="ibtn ibtn-ghost ibtn-add" aria-label="บันทึกงาน" style="font-size:24px;font-weight:600;min-width:48px" onclick="openPick()"><span class="hd-addt">+</span></button><!-- F แบบ A (16 พ.ย. 69): แผนน้ำ/แบตรถ ย้ายไป ⚙ -->
+        <label class="ibtn ibtn-ghost hd-bk" aria-label="ลงวันย้อนหลัง">ลงวันย้อนหลัง<input type="date" id="hdBkIn" onchange="hdBkSet(this)"></label>
         <button type="button" class="ibtn ibtn-ghost" aria-label="ตั้งค่า" onclick="$('set_build').innerText=buildTxt(APP_BUILD);showM('setModal')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
       </div>
@@ -3019,7 +3148,7 @@
     </div>
 
     <div id="plot-list"></div>
-    <div id="log-view" style="display:none;">
+    <div id="log-view" class="v6" style="display:none;">
       <div class="seg" id="logSeg"><button type="button" data-m="chat" onclick="setLogMode('chat')">พิมพ์เล่า</button><button type="button" data-m="pick" onclick="setLogMode('pick')">กดเลือกงาน</button></div>
       <div id="chatPane" style="display:none">
         <div id="chatList"></div>
@@ -3066,25 +3195,26 @@
   <div id="syncToast">⏳ กำลังบันทึก...</div>
 
   
-  <div class="modal fade" id="actModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal fade v5h" id="actModal" tabindex="-1" data-back="ย้อน">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-success text-white py-2" id="actHeader">
+        <div class="modal-header mhd py-2" id="actHeader">
           <h6 class="modal-title fw-bold" id="actTitle">บันทึกงาน</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-3">
           <input type="hidden" id="act_pid"><input type="hidden" id="edit_log_id">
+          <div class="a6-plot"><span>แปลง</span><b id="actPlotNm"></b></div>
 
-          <label class="small fw-bold text-muted mb-1">1. สถานะของงานนี้</label>
+          <label class="small fw-bold text-muted mb-1">สถานะของงาน</label>
           <div class="btn-group w-100 mb-2" role="group">
             <input type="radio" class="btn-check" name="status_mode" id="mode_ongoing" autocomplete="off">
-            <label class="btn btn-outline-primary fw-bold btn-sm py-2" for="mode_ongoing">⏳ เริ่มทำ / ยังไม่เสร็จ</label>
+            <label class="btn btn-outline-primary fw-bold btn-sm py-2" for="mode_ongoing">เริ่มทำ / ยังไม่เสร็จ</label>
             <input type="radio" class="btn-check" name="status_mode" id="mode_done" autocomplete="off" checked>
-            <label class="btn btn-outline-success fw-bold btn-sm py-2" for="mode_done">✅ ทำเสร็จแล้ว (งานเสร็จ)</label>
+            <label class="btn btn-outline-success fw-bold btn-sm py-2" for="mode_done">ทำเสร็จแล้ว</label>
           </div>
 
-          <label class="small fw-bold text-muted mb-1">2. เลือกประเภทงาน</label>
+          <label class="small fw-bold text-muted mb-1">ประเภทงาน</label>
           <div class="d-flex gap-1 mb-2 flex-wrap">
             <button type="button" class="btn btn-sm btn-outline-primary flex-fill grp-btn" id="btn_g_water" onclick="selGrp('ขึ้นน้ำ')">💧 ขึ้นน้ำ</button>
             <button type="button" class="btn btn-sm btn-outline-warning text-dark flex-fill grp-btn" id="btn_g_chem" onclick="selGrp('ฉีดยา')">🔫 ฉีดยา</button>
@@ -3214,7 +3344,7 @@
           </div>
 
           <div class="mb-2 p-2 bg-light rounded border">
-            <small class="fw-bold d-block mb-1">👤 ผู้ปฏิบัติงาน (ติ๊กเลือกได้หลายคน):</small>
+            <small class="fw-bold d-block mb-2">ผู้ปฏิบัติงาน <span class="fw-normal text-muted">(แตะได้หลายคน)</span></small>
             <div id="worker_chks" class="small"></div>
           </div>
 
@@ -3240,7 +3370,7 @@
           <div class="small text-muted">กดอีกครั้งเพื่อเอาออก · เลือกได้กลุ่มละ 1</div>
         </div>
         <div class="modal-footer p-2">
-          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitAct()" id="btnSaveAct">💾 บันทึกข้อมูล</button>
+          <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitAct()" id="btnSaveAct">บันทึกข้อมูล</button>
         </div>
       </div>
     </div>
@@ -4020,7 +4150,7 @@
       else if (par && mPar[par] !== id) mPar[id] = par; else if (!par) delete mPar[id];
       if (id === 'satModal') return setTimeout(satHdr, 0);
       const hd = e.target.querySelector('.modal-header'); if (!hd) return;
-      if (e.target.classList.contains('v5h')) { v5Back(hd, mPar[id], () => hideModal(id)); return; }
+      if (e.target.classList.contains('v5h')) { v5Back(hd, mPar[id], () => hideModal(id), !mPar[id] && e.target.dataset.back); return; }
       let b = hd.querySelector('.mb-back');
       if (mPar[id]) { if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'mb-back'; b.setAttribute('aria-label', 'ย้อนกลับ'); b.textContent = '‹'; b.onclick = () => hideModal(id); hd.prepend(b); } }
       else if (b) b.remove();
@@ -5915,14 +6045,62 @@
         ? `<div class="notice">มี <b>${nNoWater} แปลง</b> ที่ยังไม่มีวันให้น้ำล่าสุด ระบบจึงยังเตือนคิวน้ำ/คิวฉีดยาของแปลงเหล่านี้ไม่ได้ <button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab('all')">ไปดูแปลงทั้งหมด</button></div>`
         : '';
 
-      let tHtml = `<table class="table table-sm table-bordered small mb-0"><thead class="table-success"><tr><th>รหัส</th><th>แปลง</th><th>ไร่</th><th>ประเภท</th><th>น้ำล่าสุด</th><th>งานล่าสุด</th><th>ต้องทำอะไรต่อ</th><th>แฟ้ม</th></tr></thead><tbody>`;
-      rows.forEach(({ p, st }) => {
-        tHtml += `<tr><td>${p.plot_id}</td><td><b>${esc(p.plot_name)}</b></td><td>${p.area_rai}</td><td>${p.cane_type}</td><td>${p.last_water_date || '-'}</td><td>${p.status_note !== 'nan' ? esc(p.status_note) : '-'}</td><td>${esc(plain(st.next))}</td><td><button class="btn btn-sm btn-dark py-0" onclick="openDossier('${p.plot_id}')">ดูครบ</button></td></tr>`;
-      });
-      $('table-view').innerHTML = tHtml + `</tbody></table>`;
+      $('table-view').innerHTML = tb6Html(rows); $('table-view').className = 'v6';
+      hdS(curTab);
       if (curTab === 'log' && pkTask) renderPick();
     }
 
+    // ===== ก้อน 6 ตารางสรุปทุกแปลง (แบบ table-v1 · 24 พ.ย. 69): หัวติดบน + ชื่อแปลงติดซ้าย + แบ่งพื้นที่ · แตะแถว = หน้าแปลง =====
+    var tb6Fil = 'all';
+    function tb6Work(note) {
+      note = String(note || '').replace(/^nan$/, '');
+      if (!note) return '<span class="st-pill">–</span>';
+      const doing = /\[กำลังทำ\]/.test(note), m = note.replace(/\[กำลังทำ\]|✅|⏳/g, '').trim(), g = (m.match(/^[^(|\[]+?(?=\s*\(|\s+เสร็จ|\s*\||\s*\[|$)/) || [m])[0].trim();
+      const d = (note.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/) || []), tk = (note.match(/\[(\d+(?:\.\d+)?)\s*ถัง\]/) || [])[1];
+      const cls = doing ? 'doing' : /ฝน|น้ำ/.test(g) ? 'water' : /ฉีด|ยา/.test(g) ? 'spray' : '';
+      const tag = doing ? 'กำลัง' + g.replace(/^กำลัง/, '') : g + (tk ? ` ${tk} ถัง` : '');
+      const dt = d[1] ? `${doing ? 'เริ่ม ' : ''}${+d[1]} ${TH_MON[+d[2] - 1]}` : '';
+      return `<span class="st-pill ${cls}">${esc(tag.slice(0, 22))}</span>${dt ? `<span class="tb6-d">${dt}</span>` : ''}`;
+    }
+    function tb6Next(st) {
+      const k = pl5St(st), t = plain(st.next || '').replace(/!+/g, '').trim();
+      if (k === 'doing') return '<span class="st-pill doing">กำลังทำ</span>';
+      if (/ช่วงใกล้ตัด/.test(t)) return '<span class="st-pill">งดน้ำก่อนตัด</span>';
+      return `<span class="st-pill${k === 'due' ? ' due' : ''}">${esc(t.replace(/^ถึงคิว:?\s*/, k === 'due' ? 'ถึงคิว ' : '').slice(0, 30) || '–')}</span>`;
+    }
+    function tb6Html(rows) {
+      const ok = r => tb6Fil === 'all' || (tb6Fil === 'doing' ? pl5St(r.st) === 'doing' : tb6Fil === 'due' ? pl5St(r.st) === 'due' : r.p.cane_type === 'อ้อยตอ');
+      const cnt = f => rows.filter(r => f === 'all' || (f === 'ratoon' ? r.p.cane_type === 'อ้อยตอ' : pl5St(r.st) === f)).length;
+      const seg = (f, t) => `<button type="button" class="seg-btn${tb6Fil === f ? ' active' : ''}" onclick="tb6Fil='${f}';render()">${t} <span class="seg-cnt">${cnt(f)}</span></button>`;
+      const groups = [], idx = {};
+      rows.filter(ok).forEach(r => { const l = plotLoc(r.p.plot_name); if (!(l in idx)) { idx[l] = groups.length; groups.push({ l, rows: [] }); } groups[idx[l]].rows.push(r); });
+      let b = '';
+      groups.forEach(g => {
+        const rai = g.rows.reduce((t, r) => t + num(r.p.area_rai), 0);
+        b += `<tr class="zg"><td class="c1">${esc(g.l)} · ${r1(rai)} ไร่</td><td colspan="4" style="color:var(--ink-3);font-weight:500">${g.rows.length} แปลง</td></tr>`;
+        g.rows.forEach(({ p, st }) => {
+          const k = pl5St(st), w = String(p.last_water_date || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          b += `<tr class="dr${k === 'doing' ? ' is-doing' : k === 'due' ? ' is-due' : ''}" onclick="openDossier('${p.plot_id}')"><td class="c1"><div class="tb6-n">${esc(p.plot_name)}</div><div class="tb6-m"><span>${p.plot_id}</span><span class="crop-mini${p.cane_type === 'อ้อยใหม่' ? ' is-new' : ''}">${esc(p.cane_type || '')}</span></div></td>
+            <td style="text-align:right;font-weight:700">${r1(num(p.area_rai))}</td><td style="color:var(--ink-2)">${w ? `${w[1].padStart(2, '0')}/${w[2].padStart(2, '0')}/${w[3].slice(2)}` : '–'}</td><td>${tb6Work(p.status_note)}</td><td>${tb6Next(st)}</td></tr>`;
+        });
+      });
+      if (!b) b = '<tr><td class="c1" style="padding:16px 10px;color:var(--ink-3)">ไม่มีแปลงในหมวดนี้</td><td colspan="4"></td></tr>';
+      return `<div class="seg-bar">${seg('all', 'ทั้งหมด')}${seg('doing', 'กำลังทำ')}${seg('due', 'ถึงคิว')}${seg('ratoon', 'อ้อยตอ')}</div>
+        <div class="tb6-hint"><button type="button" class="tb6-bk" onclick="switchTab('all')">‹ แบบการ์ด</button><span>แตะแถว = หน้าแปลง</span><b>เลื่อนซ้าย-ขวาดูเพิ่ม →</b></div>
+        <div class="tb6-card"><div class="tb6-scroll"><table class="tb6"><thead><tr><th class="c1">แปลง (รหัส · ประเภท)</th><th style="text-align:right">ไร่</th><th>น้ำล่าสุด</th><th>งานล่าสุด</th><th>ต้องทำอะไรต่อ</th></tr></thead><tbody>${b}</tbody></table></div></div>`;
+    }
+    // หัวแท็บเตี้ย: ทุกแท็บยกเว้นวันนี้ (kicker = แปลง · ไร่ · วันที่ / ชื่อหน้า)
+    function hdS(t) {
+      const on = t !== 'urgent'; document.body.classList.toggle('tabS', on);
+      document.body.classList.toggle('tabLog', t === 'log'); document.body.classList.toggle('logChat', t === 'log' && logMode === 'chat'); if ($('hdBkIn')) $('hdBkIn').max = todayISO();
+      const add = document.querySelector('.hd-addt'); if (add) add.textContent = on ? '+ จด' : '+';
+      if (!on || typeof gData === 'undefined' || !gData || !gData.plots) return;
+      const n = new Date(), rai = gData.plots.reduce((t, p) => t + num(p.area_rai), 0);
+      const T = { all: 'แปลงทั้งหมด', table: 'ตารางสรุปทุกแปลง', log: 'บันทึกงาน', fleet: 'รถ / คน / ปั๊ม', stock: 'สต็อก & ค่าใช้จ่าย' };
+      $('hd-st').innerText = T[t] || '';
+      $('hd-sk').innerText = `${gData.plots.length} แปลง · ${r1(rai)} ไร่ · ${TH_DAY[n.getDay()]} ${n.getDate()} ${TH_MON[n.getMonth()]} ${String(n.getFullYear() + 543).slice(2)}`;
+    }
+    function hdBkSet(inp) { const v = inp.value; if (!v) return; if (v > todayISO()) { inp.value = ''; return alert('เลือกวันที่ผ่านมาแล้ว (วันข้างหน้าใช้ "+ นัด/เตือน" ในปฏิทิน)'); } chatDate = v === todayISO() ? '' : v; chatRemId = ''; chatPvRender(); inp.value = ''; }
     function switchTab(t, keep) {
       document.body.classList.toggle('tdA-on', t === 'urgent'); // หัว/ขอบมนแบบ A เฉพาะหน้าวันนี้
       if (t !== curTab) {
@@ -5948,6 +6126,7 @@
       $('sec-sub').innerHTML = t === 'all' ? '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>' : '';
       if (plotTab) render();
       if (t === 'all') $('sec-sub').innerHTML = '<button type="button" class="linkbtn" style="padding:0;min-height:0" onclick="switchTab(\'table\')">ดูแบบตาราง</button>';
+      hdS(t);
       if (!keep) $('app').scrollTo(0, 0);
       if (uiRestored) uiSave();
     }
@@ -5971,8 +6150,8 @@
     let pkTask = null, pkSel = new Set();
     function openPick() { pkTask = null; pkSel = new Set(); switchTab('log'); }
     function renderTasks() {
-      $('pickTasks').innerHTML = `<div class="task-grid">${TASKS.map(t => `<button type="button" class="task-btn" onclick="pickTask('${t.k}')"><span class="ti">${t.i}</span><span class="tt">${t.t}</span><span class="ts">${t.s}</span></button>`).join('')}</div>
-        <div class="small text-muted mt-3">ฝนตก ใช้ปุ่ม "ฝนตก" ด้านบนของแอป · บันทึกแปลงเดียว แตะแปลงในหน้าแปลงก็ได้</div>`;
+      $('pickTasks').innerHTML = `<div class="task-grid">${TASKS.map(t => `<button type="button" class="task-btn k-${t.k}" onclick="pickTask('${t.k}')"><span class="ti">${t.i}</span><span class="tt">${t.t}</span><span class="ts">${t.s}</span></button>`).join('')}</div>
+        <div class="pk-note">ฝนตก ใช้ปุ่ม "ฝนตก" ด้านบนของแอป · บันทึกแปลงเดียว แตะแปลงในหน้าแปลงก็ได้</div>`;
     }
     function pickStage(st) {
       const plots = st === 'plots' && pkTask;
@@ -6030,12 +6209,14 @@
       if (!pkSel.size) return;
       const ids = gData.plots.map(p => p.plot_id).filter(id => pkSel.has(id)), t = pkTask;
       const names = ids.map(id => gData.plots.find(p => p.plot_id === id).plot_name);
+      $('actModal').dataset.back = 'เลือกงาน';
       openAct(ids.join(','), ids.length > 1 ? `${ids.length} แปลง (${names.join(', ')})` : names[0], 'new');
       selGrp(t.g);
       if (t.det) $('water_det').value = t.det;
       pkSavedReset = true; // บันทึกสำเร็จแล้วกลับไปหน้าเลือกงาน
     }
     let pkSavedReset = false;
+    document.addEventListener('hidden.bs.modal', e => { if (e.target.id === 'actModal') e.target.dataset.back = 'ย้อน'; });
     function pkAfterSave() { if (pkSavedReset) { pkSavedReset = false; pkTask = null; pkSel = new Set(); } }
     function pickPlot(pid) { const p = gData.plots.find(x => x.plot_id === pid); if (p) openAct(pid, p.plot_name, 'new'); }
 
@@ -6439,7 +6620,7 @@
       const nShow = vis.reduce((t, g) => t + g.show.length, 0), allOpen = vis.length && vis.every(g => grpOpen.includes(g.l));
       const seg = (f, t) => `<button type="button" class="seg-btn${pl5Fil === f ? ' active' : ''}" onclick="pl5SetFil('${f}')">${t}</button>`;
       h += `<section><div class="sec-head"><div class="sec-title-wrap"><h2 class="sec-title">แปลงแยกตามพื้นที่</h2><span class="sec-badge tabular">${pl5Fil === 'all' ? vis.length + ' พื้นที่' : nShow + ' แปลง'}</span></div>
-        <button type="button" class="sec-toggle-btn" onclick="pl5AllZones(${allOpen ? 0 : 1})">${allOpen ? 'พับทั้งหมด' : 'กางทั้งหมด'}</button></div>
+        <span style="display:flex;gap:6px"><button type="button" class="sec-toggle-btn" onclick="switchTab('table')">ตาราง</button><button type="button" class="sec-toggle-btn" onclick="pl5AllZones(${allOpen ? 0 : 1})">${allOpen ? 'พับทั้งหมด' : 'กางทั้งหมด'}</button></span></div>
         <div class="seg-bar" role="tablist" style="margin-bottom:10px">${seg('all', 'ทั้งหมด')}${seg('due', 'ถึงคิว')}${seg('doing', 'กำลังทำ')}${seg('new', 'อ้อยใหม่')}${seg('ratoon', 'ตอ')}</div><div class="zone-stack">`;
       if (!vis.length) h += '<div class="empty-filter-box">ไม่พบแปลงที่ตรงกับตัวกรองนี้</div>';
       vis.forEach(g => {
@@ -7907,7 +8088,7 @@
       $('actHeader').className = 'modal-header bg-success text-white py-2';
       if (mode === 'finish') {
         
-        $('actTitle').innerText = '✅ งานเสร็จ: ' + pname;
+        $('actTitle').innerText = 'ปิดงาน (เสร็จแล้ว)'; $('actPlotNm').innerText = pname;
         $('actHeader').className = 'modal-header bg-primary text-white py-2';
         const og = gData.activities.find(a => a.plot_id === pid && (a.remark || '').includes('[⏳กำลังทำ]'));
         if (og) {
@@ -7921,7 +8102,7 @@
         $('act_dt').value = todayISO();
         $('mode_done').checked = true;
       } else {
-        $('actTitle').innerText = '📝 บันทึกงานใหม่: ' + pname;
+        $('actTitle').innerText = 'บันทึกงานใหม่'; $('actPlotNm').innerText = pname;
         $('mode_ongoing').checked = true;
         selGrp('ขึ้นน้ำ');
       }
@@ -7936,7 +8117,7 @@
       $('edit_log_id').value = log.log_id;
       $('act_dt2_wrap').style.display = 'none';
       $('actHeader').className = 'modal-header bg-warning text-dark py-2';
-      $('actTitle').innerText = '✏️ แก้ไขงาน: ' + pname;
+      $('actTitle').innerText = 'แก้ไขงาน'; $('actPlotNm').innerText = pname;
       $((log.remark || '').includes('[⏳กำลังทำ]') ? 'mode_ongoing' : 'mode_done').checked = true;
       fillFormFromLog(log);
       bootstrap.Modal.getOrCreateInstance($('actModal')).show();
@@ -8179,6 +8360,7 @@
       $('pickWrap').style.display = logMode === 'pick' ? 'block' : 'none';
       $('chatPane').style.display = logMode === 'chat' ? 'block' : 'none';
       if (curTab === 'log') document.querySelector('.sec-hd').style.display = logMode === 'chat' ? 'none' : '';
+      document.body.classList.toggle('logChat', curTab === 'log' && logMode === 'chat');
       if (logMode === 'chat') chatRender(true); // เปิดแท็บ/สลับโหมดแล้วเลื่อนไปข้อความล่าสุด
     }
     const chPlot = id => (gData.plots || []).find(p => p.plot_id === id);
@@ -9092,7 +9274,7 @@
           h += `<div class="ch-card">` + m.ask.map(q => `<div class="ch-ask"><b>${esc(q.q)}</b><div class="ch-chips">${(q.options || []).map(o => `<button type="button" class="ch-chip" data-t="${esc(q.q + ' → ' + o)}" onclick="chatSend(this.dataset.t)">${esc(o)}</button>`).join('')}</div></div>`).join('') + chPlainHtml(mi, !m.saving && !chatBusy) + `</div>`;
         }
       });
-      if (chatBusy && !chat.msgs.some(m => m.saving)) h += `<div class="ch-ai">⏳ กำลังอ่าน…</div>`;
+      if (chatBusy && !chat.msgs.some(m => m.saving)) h += `<div class="ch-think"><span class="ch-dots"><i></i><i></i><i></i></span>กำลังอ่าน…</div>`;
       box.innerHTML = h;
       if (scroll) { const down = () => $('app').scrollTo(0, $('app').scrollHeight); setTimeout(down, 30); setTimeout(down, 300); } // รอบสองกันรูปย่อโหลดช้าทำให้ความสูงเปลี่ยน
     }

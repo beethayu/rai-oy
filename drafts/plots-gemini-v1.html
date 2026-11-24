@@ -1,0 +1,3663 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1F5E3B" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>แปลง & รายละเอียดแปลง — ไร่อ้อย 281 ไร่</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== ภาษาภาพและตัวแปรชุดเดียวกับหน้าวันนี้ v5 (today-sugarcane-v5.html) ===== */
+    :root {
+      --brand: #1F5E3B;
+      --brand-dark: #15452A;
+      --brand-soft: #E8F3EC;
+      --brand-mid: #A8CBB5;
+      --bg: #F4F5F1;
+      --surface: #FFFFFF;
+      --surface-note: #EEF4F0;
+      --ink: #16241B;
+      --ink-2: #46594E;
+      --ink-3: #6D7B72;
+      --line: #B8C6BC;
+      --line-soft: #D3DDD6;
+      --border: #DCE3DC;
+      --ask: #6D28D9;
+      --ask-soft: #F3EEFF;
+      --ask-border: #C4B5FD;
+      --due: #C2410C;
+      --due-soft: #FFF1E6;
+      --due-border: #FDBA74;
+      --nolog-bg: #F6EFE0;
+      --nolog-ink: #7A5919;
+      --nolog-border: #E6D2A2;
+      --brown-ink: #6B3410;
+      --water: #0369A1;
+      --water-soft: #E0F2FE;
+      --water-border: #BAE6FD;
+      --cut: #15803D;
+      --car: #B45309;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+      --shadow-md: 0 4px 12px rgba(20, 46, 30, 0.08), 0 1px 2px rgba(20, 46, 30, 0.04);
+      --tab-h: 58px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* โหมดกลางแดดจัด (เพิ่มคอนทราสต์เหมือน v5) */
+    body.sun-boost {
+      --border: #B2C1B5;
+      --ink-2: #2A3C31;
+      --ink-3: #45594E;
+      --shadow: 0 1px 3px rgba(10, 26, 16, 0.13);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* iPhone: html และ body ไม่เลื่อน */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.42;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    /* ช่องพิมพ์ 16px เสมอ กัน iPhone ซูม */
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* กรอบจอ iPhone 390x844 */
+    .phone-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 440px) and (min-height: 700px) {
+      .phone-frame {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        width: 390px;
+        height: min(844px, calc(100dvh - 24px));
+        border-radius: 34px;
+        border: 1px solid #CFD8D0;
+        box-shadow: 0 22px 60px rgba(20, 46, 30, 0.14), 0 4px 14px rgba(20, 46, 30, 0.06);
+      }
+    }
+
+    /* แถบกันพื้นที่ใต้รอยบากด้านบน */
+    .safe-top-bar {
+      height: var(--safe-top);
+      background: var(--brand);
+      flex-shrink: 0;
+      transition: background 0.18s ease;
+    }
+
+    .phone-frame.in-detail .safe-top-bar {
+      background: var(--bg);
+    }
+
+    /* ===== โครงสลับ 2 หน้าในไฟล์เดียว (หน้า 1 แปลง / หน้า 2 รายละเอียดแปลง) ===== */
+    .views-stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* กล่อง #app เริ่มใต้ env(safe-area-inset-top) และเป็นตัวเลื่อนหลักของหน้า 1 */
+    #app {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding-bottom: calc(var(--tab-h) + var(--safe-bottom) + 18px);
+    }
+
+    #app::-webkit-scrollbar,
+    #detailScroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ===== หัวเขียวของแอปจริง (วาดไว้ดูตำแหน่ง + ปุ่มใช้งานจริงได้) ===== */
+    .app-green-bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: var(--brand);
+      color: #FFFFFF;
+      padding: 10px 14px 11px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .app-green-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .app-green-kicker {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.25;
+    }
+
+    .app-green-title {
+      margin: 1px 0 0;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.18;
+      color: #FFFFFF;
+    }
+
+    .app-green-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .green-hdr-btn {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.14);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .green-hdr-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .green-hdr-btn.is-white {
+      background: #FFFFFF;
+      border-color: #FFFFFF;
+      color: var(--brand-dark);
+    }
+
+    .green-hdr-btn.is-icon {
+      width: 34px;
+      padding: 0;
+    }
+
+    .green-hdr-btn.is-sun-on {
+      background: #FEF3C7;
+      border-color: #FCD34D;
+      color: #92400E;
+    }
+
+    /* ===== Main Content Flow (v5) ===== */
+    .main-stack {
+      padding: 12px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ===== Section Header (v5 exact classes) ===== */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+
+    .sec-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .sec-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .sec-head-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .sec-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #E5ECE6;
+      color: var(--brand-dark);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .sec-badge.is-ask {
+      background: var(--ask-soft);
+      color: var(--ask);
+    }
+
+    .sec-badge.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .sec-badge.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .sec-badge.is-muted {
+      background: #EAEFE9;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    .sec-toggle-btn {
+      height: 28px;
+      padding: 0 7px;
+      border: none;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .sec-toggle-btn:active {
+      background: rgba(31, 94, 59, 0.08);
+    }
+
+    /* ===== แถบสรุปบนสุดเล็ก ๆ (ชิ้นใหม่ตระกูล v5) ===== */
+    .farm-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .farm-strip-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .farm-strip-main {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .farm-strip-sub {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-2);
+    }
+
+    .farm-strip-pills {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 7px;
+      border-top: 1px solid #EEF2EE;
+    }
+
+    .stat-mini-chip {
+      border: 1px solid var(--border);
+      background: #F7F9F7;
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      line-height: 1.4;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+
+    .stat-mini-chip:active {
+      transform: scale(0.96);
+    }
+
+    .stat-mini-chip.is-due {
+      background: var(--due-soft);
+      border-color: var(--due-border);
+      color: var(--due);
+    }
+
+    .stat-mini-chip.is-doing {
+      background: var(--brand-soft);
+      border-color: var(--brand-mid);
+      color: var(--brand-dark);
+    }
+
+    .stat-mini-chip.is-active-filter {
+      box-shadow: 0 0 0 1.5px var(--brand);
+    }
+
+    /* ===== Segmented Control (v5 exact classes) ===== */
+    .seg-bar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 2px;
+      padding: 3px;
+      background: #E5EBE6;
+      border-radius: 11px;
+    }
+
+    .seg-bar.is-3col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 3px;
+    }
+
+    .seg-btn {
+      height: 34px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+      white-space: nowrap;
+      padding: 0 3px;
+    }
+
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(20, 46, 30, 0.1);
+    }
+
+    .seg-cnt {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+
+    .seg-btn.active .seg-cnt {
+      color: var(--brand);
+    }
+
+    /* ===== เครื่องมือ 4 อัน (คู่บนแบบ v5 .tele-card + คู่ล่างแบบ v5 .grouped-card) ===== */
+    .tools-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tools-top-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .tele-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 11px 10px;
+      box-shadow: var(--shadow);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+      min-width: 0;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+
+    .tele-card:active {
+      transform: scale(0.982);
+      border-color: var(--brand-mid);
+    }
+
+    .tele-card.is-warn-card {
+      background: #FFFEFC;
+      border-color: var(--due-border);
+    }
+
+    .tele-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .tele-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .tele-ico {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tele-ico.is-map {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .tele-ico.is-sat {
+      background: #EDF2EE;
+      color: var(--brand-dark);
+    }
+
+    .tele-ico.is-sat-warn {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .tele-sub {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.32;
+    }
+
+    .tele-status-ok {
+      color: var(--brand-dark);
+      font-weight: 600;
+    }
+
+    .tele-status-due {
+      color: var(--due);
+      font-weight: 700;
+    }
+
+    /* ===== Grouped iOS Card & Status Row (v5 exact classes) ===== */
+    .grouped-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .status-row {
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+    }
+
+    .status-row + .status-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .status-row.is-clickable {
+      cursor: pointer;
+    }
+
+    .status-row.is-clickable:active {
+      background: #F8FAF8;
+    }
+
+    .status-row-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .status-icon-box.is-water {
+      background: var(--water-soft);
+      color: var(--water);
+    }
+
+    .status-icon-box.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .status-icon-box.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .status-icon-box.is-nolog {
+      background: var(--nolog-bg);
+      color: var(--nolog-ink);
+    }
+
+    .status-icon-box.is-muted {
+      background: #EEF2EE;
+      color: var(--ink-2);
+    }
+
+    .status-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .status-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .status-sub {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* แถบสัดส่วนความชื้นดิน 20:5 */
+    .soil-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .soil-bar-track {
+      flex: 1;
+      max-width: 112px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--due-soft);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .soil-bar-ok {
+      height: 100%;
+      background: var(--water);
+      border-radius: 999px 0 0 999px;
+    }
+
+    .soil-bar-dry {
+      height: 100%;
+      background: var(--due);
+    }
+
+    .tool-pills-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .chev {
+      color: var(--ink-3);
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+
+    /* ===== ป้ายสถานะ (v5 exact classes) ===== */
+    .st-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.35;
+    }
+
+    .st-pill.doing {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .st-pill.due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .st-pill.watch {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .st-pill.done {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .st-pill.muted {
+      background: #EDF2EE;
+      color: var(--ink-2);
+    }
+
+    .pulse-dot {
+      width: 6.5px;
+      height: 6.5px;
+      border-radius: 50%;
+      background: var(--brand);
+      box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.55);
+      animation: livePulse 2s infinite;
+    }
+
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(31, 94, 59, 0.5); }
+      70% { box-shadow: 0 0 0 5px rgba(31, 94, 59, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(31, 94, 59, 0); }
+    }
+
+    /* ===== รายการพื้นที่ 9 พื้นที่ (Accordion ตระกูล v5) ===== */
+    .zone-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .zone-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .zone-card.has-doing {
+      border-left: 4px solid var(--brand);
+    }
+
+    .zone-card.has-due {
+      border-left: 4px solid var(--due);
+    }
+
+    .zone-head {
+      width: 100%;
+      padding: 11px 12px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+      transition: background 0.14s;
+    }
+
+    .zone-head:active {
+      background: #F8FAF8;
+    }
+
+    .zone-head-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .zone-title-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .zone-name {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.28;
+    }
+
+    .zone-meta {
+      margin-top: 2px;
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.35;
+    }
+
+    .zone-card.is-open .zone-chev {
+      transform: rotate(180deg);
+    }
+
+    .zone-plots {
+      border-top: 1px solid #E9EFEA;
+      background: #FAFBF9;
+    }
+
+    /* แถวแปลงในพื้นที่ (แตะ = ไปหน้า 2) */
+    .plot-row {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.14s;
+    }
+
+    .plot-row + .plot-row {
+      border-top: 1px solid #ECEFEA;
+    }
+
+    .plot-row:active {
+      background: var(--brand-soft);
+    }
+
+    .plot-row.st-doing {
+      background: #FFFFFF;
+      box-shadow: inset 3px 0 0 var(--brand);
+    }
+
+    .plot-row.st-due {
+      background: #FFFEFC;
+      box-shadow: inset 3px 0 0 var(--due);
+    }
+
+    .plot-row-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .plot-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .plot-meta-line {
+      margin-top: 3px;
+      font-size: 13px;
+      color: var(--ink-2);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+      line-height: 1.32;
+    }
+
+    .plot-rai {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .crop-tag {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 6px;
+      border-radius: 5px;
+      line-height: 1.5;
+    }
+
+    .crop-tag.is-ratoon {
+      background: #F4ECE1;
+      color: var(--brown-ink);
+    }
+
+    .crop-tag.is-new {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .water-ago {
+      font-size: 12.5px;
+      color: var(--ink-2);
+    }
+
+    .water-ago.is-dry {
+      color: var(--due);
+      font-weight: 600;
+    }
+
+    .plot-row-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .empty-filter-box {
+      background: var(--surface);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 20px 14px;
+      text-align: center;
+      color: var(--ink-2);
+      font-size: 14px;
+    }
+
+    /* =========================================================================
+       หน้า 2: รายละเอียดแปลง (เปิดเต็มจอ มีปุ่ม ‹ ย้อนกลับซ้ายบน)
+       ========================================================================= */
+    .detail-page {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+
+    .detail-page.is-open {
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    /* แถบหัวหน้า 2 (Sticky ใต้ safe-area-inset-top) */
+    .detail-topbar {
+      background: rgba(244, 245, 241, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(31, 94, 59, 0.1);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      height: 36px;
+      padding: 0 10px 0 6px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--brand-dark);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .back-btn:active {
+      transform: scale(0.96);
+      background: var(--brand-soft);
+    }
+
+    .detail-topbar-mid {
+      min-width: 0;
+      flex: 1;
+      text-align: center;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hdr-btn {
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .hdr-btn.is-icon {
+      width: 36px;
+      padding: 0;
+      color: var(--ink-2);
+    }
+
+    .hdr-btn:active {
+      transform: scale(0.96);
+      background: var(--brand-soft);
+    }
+
+    /* กล่องเลื่อนหน้า 2 */
+    #detailScroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding-bottom: calc(var(--safe-bottom) + 26px);
+    }
+
+    /* 1. หัวแปลง */
+    .plot-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 13px 13px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .plot-hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .plot-hero-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.24;
+    }
+
+    .plot-hero-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 8px;
+      font-size: 13.5px;
+      color: var(--ink-2);
+    }
+
+    .plot-hero-meta strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .meta-dot {
+      color: var(--line);
+    }
+
+    /* 2. ตัวเลขหลัก 4 ช่อง (3 ช่องบน + ช่องถัดไป) */
+    .kpi-3-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .kpi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .kpi-box.is-due {
+      border-color: var(--due-border);
+      background: #FFFEFC;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+      line-height: 1.25;
+    }
+
+    .kpi-val {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.28;
+    }
+
+    .kpi-box.is-due .kpi-val {
+      color: var(--due);
+    }
+
+    /* ช่องที่ 4: ถัดไป (ตระกูล v5 .task-card.st-doing) */
+    .task-card {
+      width: 100%;
+      padding: 11px 12px 11px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .task-card.st-doing {
+      border-left-color: var(--brand);
+    }
+
+    .task-card.st-due {
+      border-left-color: var(--due);
+      background: #FFFEFC;
+    }
+
+    .task-card.st-ok {
+      border-left-color: var(--brand-mid);
+      background: #FAFBF9;
+    }
+
+    .next-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .next-kicker {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-3);
+    }
+
+    .next-text {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      line-height: 1.34;
+      margin-top: 2px;
+    }
+
+    .task-inline-btn {
+      height: 31px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #F6F8F6;
+      color: var(--ink);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .task-inline-btn:active {
+      transform: scale(0.95);
+    }
+
+    .task-inline-btn.is-doing {
+      border-color: var(--brand-mid);
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .task-inline-btn.is-solid {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .task-inline-btn.is-undo {
+      border-color: var(--border);
+      background: #FFFFFF;
+      color: var(--ink-2);
+    }
+
+    /* 3. ปุ่มหลัก (ขนาดพอดีมือ iPhone ไม่ใหญ่เทอะทะ) */
+    .action-pair-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .action-pair {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 8px;
+    }
+
+    .act-btn {
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .act-btn:active {
+      transform: scale(0.97);
+    }
+
+    .act-btn.is-primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .act-btn.is-primary:active {
+      background: var(--brand-dark);
+    }
+
+    .map-measure-note {
+      font-size: 12.5px;
+      color: var(--ink-3);
+      padding: 0 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* 4. วิเคราะห์แปลงนี้ — การ์ดข้อมูล 4 ชั้น */
+    .analysis-row {
+      padding: 11px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .analysis-row + .analysis-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .analysis-body {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* ชั้นที่ 1: หัวเล็กเทา */
+    .an-l1 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+      line-height: 1.3;
+    }
+
+    /* ชั้นที่ 2: หัวข้อหนาสีตามสถานะ */
+    .an-l2 {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .an-l2.is-due { color: var(--due); }
+    .an-l2.is-muted { color: var(--ink-2); }
+    .an-l2.is-nolog { color: var(--nolog-ink); }
+    .an-l2.is-ok { color: var(--brand-dark); }
+
+    /* ชั้นที่ 3: ข้อเท็จจริง */
+    .an-l3 {
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.38;
+    }
+
+    /* ชั้นที่ 4: หมายเหตุเทา */
+    .an-l4 {
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.36;
+      margin-top: 1px;
+    }
+
+    /* 5. หมวดงาน (พับ/กางได้ + บรรทัดสรุปตอนพับ) */
+    .cat-acc + .cat-acc {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .cat-acc-head {
+      width: 100%;
+      padding: 11px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+
+    .cat-acc-head:active {
+      background: #F8FAF8;
+    }
+
+    .cat-acc-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .cat-acc-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .cat-acc-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .cat-acc-sum {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+      line-height: 1.34;
+    }
+
+    .cat-acc-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .cat-acc.is-open .cat-chev {
+      transform: rotate(180deg);
+    }
+
+    .cat-acc-body {
+      border-top: 1px solid #ECEFEA;
+      background: #FAFBF9;
+      padding: 10px 12px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* แถบขั้นตอน (ชิ้นใหม่ตระกูล v5) */
+    .step-progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-segments {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      flex: 1;
+      max-width: 150px;
+    }
+
+    .step-seg {
+      height: 5px;
+      border-radius: 999px;
+      background: #DDE5DF;
+    }
+
+    .step-seg.is-done {
+      background: var(--brand);
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid #E5ECE6;
+      font-size: 13.5px;
+    }
+
+    .step-item.is-pending {
+      background: transparent;
+      border-style: dashed;
+      border-color: var(--line);
+    }
+
+    .step-item-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .step-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-mark.done {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .step-mark.pending {
+      background: #EAEFE9;
+      color: var(--ink-3);
+    }
+
+    .step-mark.extra {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .step-name {
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .step-item.is-pending .step-name {
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    .step-meta {
+      font-size: 12.5px;
+      color: var(--ink-3);
+      margin-top: 1px;
+    }
+
+    .step-date {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-2);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* รายการรอบน้ำ/ตัดอ้อยในหมวดงาน */
+    .sub-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid #E5ECE6;
+      font-size: 13.5px;
+    }
+
+    .sub-row-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .sub-row-title {
+      font-weight: 600;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sub-row-meta {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 1px;
+    }
+
+    .cat-empty-note {
+      font-size: 13px;
+      color: var(--ink-3);
+      line-height: 1.4;
+    }
+
+    /* 6. ประวัติงาน — ไทม์ไลน์แถวละ 3 ช่อง (ชิ้นใหม่ตระกูล v5) */
+    .tl-year-bar {
+      padding: 6px 12px;
+      background: #F3F6F3;
+      border-bottom: 1px solid #E6ECE7;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tl-item + .tl-item {
+      border-top: 1px solid #ECEFEA;
+    }
+
+    .tl-row {
+      padding: 10px 10px 10px 12px;
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr) 32px;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .tl-date-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+    }
+
+    .tl-date-main {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .tl-date-year {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      line-height: 1.2;
+    }
+
+    .tl-span-pill {
+      margin-top: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #EDF2EE;
+      color: var(--ink-2);
+      line-height: 1.5;
+    }
+
+    .tl-work-col {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tl-tag-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 1px;
+    }
+
+    /* ป้ายสีบอกชนิดงาน */
+    .work-tag {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 6px;
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .work-tag.spray   { background: var(--brand-soft); color: var(--brand-dark); }
+    .work-tag.water   { background: var(--water-soft); color: var(--water); }
+    .work-tag.tractor { background: #FEF3C7; color: #92400E; }
+    .work-tag.cut     { background: #F4E6D8; color: var(--brown-ink); }
+    .work-tag.fert    { background: var(--ask-soft); color: var(--ask); }
+    .work-tag.rain    { background: #E6F4FE; color: #0284C7; }
+
+    .tl-work-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .tl-work-detail {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.35;
+    }
+
+    .tl-more-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-3);
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.14s, color 0.14s;
+    }
+
+    .tl-more-btn:active,
+    .tl-item.is-menu-open .tl-more-btn {
+      background: #EDF2EE;
+      color: var(--ink);
+    }
+
+    /* แถบปุ่มแก้/ลบ กางในแถวเมื่อแตะ ⋯ */
+    .tl-inline-actions {
+      padding: 0 12px 10px 94px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tl-act-btn {
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #F7F9F7;
+      color: var(--ink);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tl-act-btn:active {
+      transform: scale(0.96);
+    }
+
+    .tl-act-btn.is-del {
+      border-color: #FECACA;
+      background: #FEF2F2;
+      color: #B91C1C;
+    }
+
+    /* 7. ท้ายหน้า: แก้ข้อมูลแปลง */
+    .edit-plot-row {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .edit-plot-row:active {
+      transform: scale(0.99);
+      background: #F8FAF8;
+    }
+
+    /* ===== เมนูล่าง 5 ปุ่ม (v5 exact classes) ===== */
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-bottom);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .nav-tab {
+      height: var(--tab-h);
+      border: none;
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 4px 2px;
+      transition: color 0.15s;
+      position: relative;
+    }
+
+    .nav-tab.active {
+      color: var(--brand);
+    }
+
+    .nav-tab svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .nav-tab span {
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    /* ===== Bottom Sheet (v5 exact classes) ===== */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2100;
+      background: rgba(16, 32, 22, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-panel {
+      width: 100%;
+      max-width: 390px;
+      max-height: 84dvh;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+      box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.16);
+      padding-bottom: var(--safe-bottom);
+      will-change: transform;
+    }
+
+    .sheet-backdrop.open .sheet-panel {
+      transform: translateY(0);
+    }
+
+    .sheet-panel.is-dragging {
+      transition: none;
+    }
+
+    .sheet-drag-zone {
+      padding-top: 8px;
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: #D0D8D2;
+      margin: 0 auto 6px;
+    }
+
+    .sheet-header {
+      padding: 4px 14px 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .sheet-subtitle {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+    }
+
+    .sheet-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: none;
+      background: #EFF3F0;
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sheet-body {
+      padding: 14px 16px 22px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .detail-box {
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: #F7F9F7;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .detail-box.is-due {
+      background: var(--due-soft);
+      border-color: var(--due-border);
+    }
+
+    .detail-box.is-ask {
+      background: var(--ask-soft);
+      border-color: var(--ask-border);
+    }
+
+    .detail-box.is-warn {
+      background: #FFFBEB;
+      border-color: #FCD34D;
+    }
+
+    .detail-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-2);
+      margin-bottom: 5px;
+    }
+
+    .sheet-btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .sheet-btn {
+      flex: 1;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s;
+    }
+
+    .sheet-btn:active {
+      transform: scale(0.985);
+    }
+
+    .sheet-btn.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--brand);
+    }
+
+    .hist-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid #EAEFEA;
+      font-size: 13.5px;
+    }
+
+    .hist-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    /* แผนที่จำลองในแผ่นล่าง */
+    .mini-map-box {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #E8F0E8;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Toast (v5 exact classes) */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--tab-h) + var(--safe-bottom) + 14px);
+      transform: translateX(-50%) translateY(24px);
+      background: var(--ink);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 9px 15px;
+      border-radius: 999px;
+      z-index: 2200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+      max-width: 356px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 6px 20px rgba(16, 32, 22, 0.24);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" id="phoneFrame">
+    <div class="safe-top-bar"></div>
+
+    <div class="views-stage">
+      <!-- ==================== หน้า 1: แท็บ "แปลง" ==================== -->
+      <main id="app" aria-label="รายการแปลงทั้งไร่">
+        <!-- หัวเขียวของแอปจริง (วาดไว้ดูตำแหน่ง) -->
+        <header class="app-green-bar">
+          <div class="app-green-row">
+            <div>
+              <div class="app-green-kicker tabular">25 แปลง · 9 พื้นที่ · อ. 24 พ.ย. 69</div>
+              <h1 class="app-green-title tabular">แปลงทั้งไร่ · 281 ไร่</h1>
+            </div>
+            <div class="app-green-actions">
+              <button type="button" class="green-hdr-btn is-icon" id="btnSunToggle" title="โหมดสู้แดดจัด" aria-label="สลับโหมดสู้แดดจัด">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+              </button>
+              <button type="button" class="green-hdr-btn is-white" id="btnQuickLogMain">+ จดงาน</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="main-stack">
+          <!-- แถบสรุปบนสุดเล็ก ๆ (แตะชิปสถานะเพื่อกรองเร็วได้) -->
+          <section class="farm-strip" aria-label="สรุปภาพรวมแปลง">
+            <div class="farm-strip-top tabular">
+              <span class="farm-strip-main">281 ไร่ · 25 แปลง</span>
+              <span class="farm-strip-sub" id="summaryCropCounts">อ้อยใหม่ 11 · อ้อยตอ 14</span>
+            </div>
+            <div class="farm-strip-pills tabular" id="summaryQuickPills"></div>
+          </section>
+
+          <!-- ทางเข้าเครื่องมือ 4 อัน (คู่บน .tele-card + คู่ล่าง .grouped-card) -->
+          <section aria-labelledby="sec-tools-title">
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title" id="sec-tools-title">เครื่องมือดูภาพรวมไร่</h2>
+              </div>
+            </div>
+
+            <div class="tools-wrap">
+              <!-- คู่บน: แผนที่ไร่ + ดาวเทียม -->
+              <div class="tools-top-grid">
+                <button type="button" class="tele-card" id="toolMap">
+                  <div class="tele-head">
+                    <span class="tele-label">
+                      <span class="tele-ico is-map" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg>
+                      </span>
+                      แผนที่ไร่
+                    </span>
+                    <span class="chev">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </span>
+                  </div>
+                  <div class="tele-sub tabular">25 แปลง · ที่ดิน 2</div>
+                </button>
+
+                <button type="button" class="tele-card" id="toolSat">
+                  <div class="tele-head">
+                    <span class="tele-label">
+                      <span class="tele-ico is-sat" id="satIcoBox" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/></svg>
+                      </span>
+                      ดาวเทียม
+                    </span>
+                    <span class="chev">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </span>
+                  </div>
+                  <div class="tele-sub tabular" id="satSummaryText">
+                    <span class="tele-status-ok">✓ ปกติ 25 แปลง</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- คู่ล่าง: น้ำในดิน + ขั้นตอนอ้อยใหม่/อ้อยตอ -->
+              <div class="grouped-card">
+                <div class="status-row is-clickable" id="toolSoil" role="button" tabindex="0">
+                  <div class="status-row-left">
+                    <div class="status-icon-box is-water" aria-hidden="true">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7l5.6 7.4a7 7 0 1 1-11.2 0L12 2.7z"/></svg>
+                    </div>
+                    <div class="status-info">
+                      <div class="status-title-row">
+                        <span class="status-title">น้ำในดิน (ประมาณ)</span>
+                        <span class="sec-badge is-muted">ค่าประมาณ</span>
+                      </div>
+                      <div class="status-sub tabular">
+                        ชื้นพอ <strong>20</strong> · <span style="color:var(--due);font-weight:700;">เริ่มแห้ง 5</span>
+                      </div>
+                      <div class="soil-bar-wrap" aria-hidden="true">
+                        <div class="soil-bar-track">
+                          <div class="soil-bar-ok" style="width:80%;"></div>
+                          <div class="soil-bar-dry" style="width:20%;"></div>
+                        </div>
+                        <span style="font-size:11.5px;color:var(--ink-3);" class="tabular">80% ชื้นพอ</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                  </span>
+                </div>
+
+                <div class="status-row is-clickable" id="toolSteps" role="button" tabindex="0">
+                  <div class="status-row-left">
+                    <div class="status-icon-box is-due" aria-hidden="true">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+                    </div>
+                    <div class="status-info">
+                      <div class="status-title-row">
+                        <span class="status-title">ขั้นตอนอ้อยใหม่ / อ้อยตอ</span>
+                      </div>
+                      <div class="tool-pills-row tabular">
+                        <span class="sec-badge is-due">ถึงคิว 1 งาน</span>
+                        <span class="sec-badge is-ask">? รอตอบ 2</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- รายการพื้นที่ 9 พื้นที่ + ตัวกรองแบ่งช่อง -->
+          <section aria-labelledby="sec-zones-title">
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title" id="sec-zones-title">แปลงแยกตามพื้นที่</h2>
+                <span class="sec-badge tabular" id="zonesCountBadge">9 พื้นที่</span>
+              </div>
+              <button type="button" class="sec-toggle-btn" id="btnToggleAllZones">กางทั้งหมด</button>
+            </div>
+
+            <!-- ตัวกรองแบบปุ่มแบ่งช่อง (.seg-bar จาก v5) -->
+            <div class="seg-bar" role="tablist" aria-label="กรองแปลง" style="margin-bottom:10px;" id="plotFilterBar">
+              <button type="button" class="seg-btn active" data-filter="all">ทั้งหมด</button>
+              <button type="button" class="seg-btn" data-filter="due">ถึงคิว</button>
+              <button type="button" class="seg-btn" data-filter="doing">กำลังทำ</button>
+              <button type="button" class="seg-btn" data-filter="new">อ้อยใหม่</button>
+              <button type="button" class="seg-btn" data-filter="ratoon">ตอ</button>
+            </div>
+
+            <div class="zone-stack" id="zoneList"></div>
+          </section>
+        </div>
+      </main>
+
+      <!-- เมนูล่าง 5 ปุ่มของแอปจริง (วาดไว้ดูตำแหน่ง · เหมือน v5) -->
+      <nav class="bottom-nav" aria-label="เมนูหลัก">
+        <button type="button" class="nav-tab" data-tab="วันนี้">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="12" cy="15.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>วันนี้</span>
+        </button>
+        <button type="button" class="nav-tab active" data-tab="แปลง">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg>
+          <span>แปลง</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="บันทึกงาน">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+          <span>บันทึกงาน</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="รถ/คน">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a3.5 3.5 0 0 1 0 6.75"/></svg>
+          <span>รถ/คน</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="สต็อก">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v9"/></svg>
+          <span>สต็อก</span>
+        </button>
+      </nav>
+
+      <!-- ==================== หน้า 2: รายละเอียดแปลง (เต็มจอ มีปุ่ม ‹ ย้อนกลับซ้ายบน) ==================== -->
+      <section class="detail-page" id="detailPage" aria-label="รายละเอียดแปลง" aria-hidden="true">
+        <header class="detail-topbar">
+          <button type="button" class="back-btn" id="btnBackToPlots">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <span>ย้อนกลับ</span>
+          </button>
+          <div class="detail-topbar-mid" id="detailTopbarZone">หนองกระทู้</div>
+          <button type="button" class="hdr-btn is-icon" id="btnDetailSun" aria-label="โหมดสู้แดดจัด">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+        </header>
+
+        <div id="detailScroll">
+          <div class="main-stack" id="detailContent"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- แผ่นล่าง (Bottom Sheet) ชุดเดียวกับ v5 เป๊ะ -->
+  <div class="sheet-backdrop" id="sheetBackdrop" aria-hidden="true">
+    <div class="sheet-panel" id="sheetPanel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-drag-zone" id="sheetDragZone">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <div>
+            <div class="sheet-title" id="sheetTitle">รายละเอียด</div>
+            <div class="sheet-subtitle" id="sheetSubtitle"></div>
+          </div>
+          <button type="button" class="sheet-close" id="sheetCloseBtn" aria-label="ปิด">×</button>
+        </div>
+      </div>
+      <div class="sheet-body" id="sheetBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast แจ้งผลสั้น ๆ -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ===== ข้อมูลจริง 9 พื้นที่ 25 แปลง รวม 281 ไร่ ===== */
+      const state = {
+        sunBoost: false,
+        satWarning: false, // สลับทดลอง "ปกติ 25 แปลง" / "แห้งลง 1 แปลง" ในแผ่นล่างดาวเทียมได้
+        filter: 'all',     // all | due | doing | new | ratoon
+        expandedZones: { 'nong-krathu': true }, // กางหนองกระทู้ไว้เป็นตัวอย่างเหมือนของจริง
+        activePlotId: null,
+        detailCatOpen: { prep: true, water: false, fert: false, spray: false, cut: false, yield: false },
+        historyFilter: 'work', // work | rain | all
+        openHistoryMenuId: null,
+        zones: [
+          {
+            id: 'nong-buab-hom',
+            name: 'หนองบวบหอม',
+            summaryAge: 'อ้อยใหม่ 8–9 ด.',
+            plots: [
+              { id: 'nbh-1', name: 'หนองบวบหอม (แปลงใหญ่ใน)', rai: 22, type: 'new', ageLabel: 'อ้อยใหม่ 9 ด.', ageDetail: '9 เดือน', variety: 'ขอนแก่น 3', waterDays: 9, status: null },
+              { id: 'nbh-2', name: 'หนองบวบหอม (ริมคลอง)', rai: 16, type: 'new', ageLabel: 'อ้อยใหม่ 9 ด.', ageDetail: '9 เดือน', variety: 'ขอนแก่น 3', waterDays: 9, status: null },
+              { id: 'nbh-3', name: 'หนองบวบหอม (ติดถนน)', rai: 14, type: 'new', ageLabel: 'อ้อยใหม่ 8 ด.', ageDetail: '8 เดือน', variety: 'LK92-11', waterDays: 11, status: null },
+              { id: 'nbh-4', name: 'หนองบวบหอม (หัวโค้ง)', rai: 12, type: 'new', ageLabel: 'อ้อยใหม่ 8 ด.', ageDetail: '8 เดือน', variety: 'LK92-11', waterDays: 11, status: null }
+            ]
+          },
+          {
+            id: 'nong-thing-sum',
+            name: 'หนองทิ้งสุ่ม',
+            summaryAge: 'อ้อยใหม่ 8 ด. · ตอ 8 ด.',
+            plots: [
+              { id: 'nts-1', name: 'หนองทิ้งสุ่ม (เหนือ)', rai: 20, type: 'new', ageLabel: 'อ้อยใหม่ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 10, status: null },
+              { id: 'nts-2', name: 'หนองทิ้งสุ่ม (กลาง)', rai: 18, type: 'new', ageLabel: 'อ้อยใหม่ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 10, status: null },
+              { id: 'nts-3', name: 'หนองทิ้งสุ่ม (ท้ายบ่อ)', rai: 14, type: 'new', ageLabel: 'อ้อยใหม่ 8 ด.', ageDetail: '8 เดือน', variety: '-', waterDays: 12, status: null },
+              { id: 'nts-4', name: 'หนองทิ้งสุ่ม (ตอซ้าย)', rai: 14, type: 'ratoon', ageLabel: 'ตอ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 12, status: null },
+              { id: 'nts-5', name: 'หนองทิ้งสุ่ม (ตอขวา)', rai: 12, type: 'ratoon', ageLabel: 'ตอ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 12, status: null }
+            ]
+          },
+          {
+            id: 'samnak-jaeng',
+            name: 'สำนักแจง',
+            summaryAge: 'อ้อยใหม่ 7–8 ด. · ตอ 8 ด.',
+            plots: [
+              { id: 'snj-1', name: 'สำนักแจง (หน้าวัด)', rai: 14, type: 'new', ageLabel: 'อ้อยใหม่ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 13, status: null },
+              { id: 'snj-2', name: 'สำนักแจง (มุมตะวันตก)', rai: 12, type: 'new', ageLabel: 'อ้อยใหม่ 7 ด.', ageDetail: '7 เดือน', variety: 'LK92-11', waterDays: 15, status: null },
+              { id: 'snj-3', name: 'สำนักแจง (ตอใน)', rai: 11, type: 'ratoon', ageLabel: 'ตอ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 12, status: null },
+              { id: 'snj-4', name: 'สำนักแจง (ตอริมทาง)', rai: 9, type: 'ratoon', ageLabel: 'ตอ 8 ด.', ageDetail: '8 เดือน', variety: '-', waterDays: 12, status: null }
+            ]
+          },
+          {
+            id: 'krathin-daeng',
+            name: 'กระถินแดง',
+            summaryAge: 'อ้อยใหม่ 7 ด.',
+            plots: [
+              { id: 'ktd-1', name: 'กระถินแดง (แปลงใหญ่)', rai: 16, type: 'new', ageLabel: 'อ้อยใหม่ 7 ด.', ageDetail: '7 เดือน', variety: 'ขอนแก่น 3', waterDays: 10, status: null }
+            ]
+          },
+          {
+            id: 'nong-krathu',
+            name: 'หนองกระทู้',
+            summaryAge: 'ตอ 9–10 ด.',
+            plots: [
+              { id: 'nk-1', name: 'หนองกระทู้ (กล้วย-ใหม่)', rai: 4, type: 'new', ageLabel: 'อ้อยใหม่ ยังไม่ปลูก', ageDetail: 'ยังไม่ปลูก', variety: '-', waterDays: null, status: 'doing', statusNote: 'ฉีดหญ้ารอบไร่ · หำ + ผัน' },
+              {
+                id: 'nk-khwanai',
+                name: 'หนองกระทู้ (ขวาใน)',
+                rai: 8,
+                type: 'ratoon',
+                ageLabel: 'ตอ 10 ด.',
+                ageDetail: '9 เดือน',
+                variety: '-',
+                plantDate: '26 ม.ค. 69',
+                waterDays: 15,
+                sprayTanks: 0,
+                measuredArea: '8 ไร่ 3 งาน 12 ตร.วา',
+                status: 'doing',
+                nextAction: 'ลุยงานที่ค้างให้จบ (เสร็จแล้วกดปุ่ม งานเสร็จ)',
+                activeJobDone: false,
+                yields: [],
+                prepSteps: [
+                  { name: 'ริปเปอร์', done: true, date: '13 ก.พ. 69', meta: 'TS6020 · ตาจง' },
+                  { name: 'ครูดร่อง (ระหว่างแถว)', done: true, date: '24 เม.ย. 69', meta: 'B2420 · พร' },
+                  { name: 'อุ้มร่อง', done: false, date: '', meta: 'ยังไม่มีบันทึก' },
+                  { name: 'ฝังปุ๋ย', done: false, date: '', meta: 'ยังไม่มีบันทึก' }
+                ],
+                prepExtra: [
+                  { name: 'สับหญ้า/ถากหญ้า (รถ)', date: '27 เม.ย. 69', meta: 'B2420 · พร' }
+                ],
+                waterRounds: [
+                  { round: 4, kind: 'rain', label: 'ฝนตก', date: '4–9 พ.ย. 69', note: 'ฝนตกต่อเนื่อง 2 ช่วง' },
+                  { round: 3, kind: 'rain', label: 'ฝนตก', date: '30 ก.ย. 69', note: 'ฝนตกรอบไร่' },
+                  { round: 2, kind: 'water', label: 'ขึ้นน้ำ', date: '6 พ.ค. 69', note: 'ราดร่อง/ขึ้นน้ำ' },
+                  { round: 1, kind: 'water', label: 'ขึ้นน้ำ', date: '21–22 ก.พ. 69', note: 'ราดร่อง/ขึ้นน้ำ · หำ + ผัน' }
+                ],
+                ferts: [],
+                sprays: [
+                  { date: '24 พ.ย. 69', title: 'ฉีดหญ้ารอบไร่', detail: 'หำ + ผัน', status: 'doing' }
+                ],
+                cuts: [
+                  { date: '26 ม.ค. 69', title: 'คนตัด-อ้อยสด', truck: '🚛 พร (สิบล้อ)' },
+                  { date: '25 ม.ค. 69', title: 'คนตัด-อ้อยสด', truck: '🚛 จำปา (พ่วง)' }
+                ],
+                history: [
+                  { id: 'h1', sortKey: 691124, kind: 'work', cat: 'spray',   catLabel: 'ฉีดยา',   date: '24 พ.ย.',    year: '69', span: '',      countWeight: 1, title: 'ฉีดหญ้ารอบไร่',          detail: 'หำ + ผัน',                          ongoing: true },
+                  { id: 'r1', sortKey: 691109, kind: 'rain', cat: 'rain',    catLabel: 'ฝนตก',    date: '4–9 พ.ย.',   year: '69', span: '6 วัน', countWeight: 1, title: 'ฝนตกล่าสุด 18 มม.',       detail: 'ดินชุ่มทั่วแปลงหนองกระทู้',          ongoing: false },
+                  { id: 'r2', sortKey: 690930, kind: 'rain', cat: 'rain',    catLabel: 'ฝนตก',    date: '30 ก.ย.',    year: '69', span: '',      countWeight: 1, title: 'ฝนตกปานกลาง 22 มม.',      detail: 'รอบที่ 3 ของฤดูนี้',                ongoing: false },
+                  { id: 'r3', sortKey: 690818, kind: 'rain', cat: 'rain',    catLabel: 'ฝนตก',    date: '18 ส.ค.',    year: '69', span: '',      countWeight: 1, title: 'ฝนตก 16 มม.',             detail: 'บันทึกจากหน้าหลัก',                 ongoing: false },
+                  { id: 'r4', sortKey: 690712, kind: 'rain', cat: 'rain',    catLabel: 'ฝนตก',    date: '12 ก.ค.',    year: '69', span: '',      countWeight: 1, title: 'ฝนตก 19 มม.',             detail: 'ตกช่วงเย็นทั่วไร่',                  ongoing: false },
+                  { id: 'r5', sortKey: 690528, kind: 'rain', cat: 'rain',    catLabel: 'ฝนตก',    date: '28 พ.ค.',    year: '69', span: '',      countWeight: 1, title: 'ฝนตก 14 มม.',             detail: 'ช่วยชะลอรอบขึ้นน้ำ',                ongoing: false },
+                  { id: 'h2', sortKey: 690506, kind: 'work', cat: 'water',   catLabel: 'ขึ้นน้ำ',  date: '6 พ.ค.',     year: '69', span: '',      countWeight: 1, title: 'ราดร่อง/ขึ้นน้ำ',          detail: 'เปิดน้ำเข้าร่องเต็มแปลง',           ongoing: false },
+                  { id: 'h3', sortKey: 690427, kind: 'work', cat: 'tractor', catLabel: 'รถไถ',    date: '27 เม.ย.',   year: '69', span: '',      countWeight: 1, title: 'สับหญ้า / ถากหญ้า',       detail: 'พร · B2420',                        ongoing: false },
+                  { id: 'h4', sortKey: 690424, kind: 'work', cat: 'tractor', catLabel: 'รถไถ',    date: '24 เม.ย.',   year: '69', span: '',      countWeight: 1, title: 'ครูดร่อง',                detail: 'พร · B2420',                        ongoing: false },
+                  { id: 'h5', sortKey: 690222, kind: 'work', cat: 'water',   catLabel: 'ขึ้นน้ำ',  date: '21–22 ก.พ.', year: '69', span: '2 วัน', countWeight: 2, title: 'ราดร่อง/ขึ้นน้ำ',          detail: 'หำ + ผัน',                          ongoing: false },
+                  { id: 'h6', sortKey: 690213, kind: 'work', cat: 'tractor', catLabel: 'รถไถ',    date: '13 ก.พ.',    year: '69', span: '',      countWeight: 1, title: 'ริปเปอร์ 2 ขา',           detail: 'ตาจง · TS6020',                     ongoing: false },
+                  { id: 'h7', sortKey: 690126, kind: 'work', cat: 'cut',     catLabel: 'ตัดอ้อย', date: '25–26 ม.ค.', year: '69', span: '2 วัน', countWeight: 2, title: 'คนตัด - อ้อยสด',          detail: 'จำปา (พ่วง) / พร (สิบล้อ)',         ongoing: false }
+                ]
+              },
+              { id: 'nk-3', name: 'หนองกระทู้ (ขวาถนน)', rai: 8, type: 'ratoon', ageLabel: 'ตอ 9 ด.', ageDetail: '9 เดือน', variety: '-', waterDays: 15, status: null },
+              { id: 'nk-4', name: 'หนองกระทู้ (กล้วย-ตอ)', rai: 4, type: 'ratoon', ageLabel: 'ตอ 9 ด.', ageDetail: '9 เดือน', variety: '-', waterDays: 15, status: 'doing', statusNote: 'ฉีดหญ้ารอบไร่ · หำ + ผัน' }
+            ]
+          },
+          {
+            id: 'nong-fao',
+            name: 'หนองเฝ้า',
+            summaryAge: 'ตอ 8 ด.',
+            plots: [
+              { id: 'nf-1', name: 'หนองเฝ้า (แปลงบน)', rai: 12, type: 'ratoon', ageLabel: 'ตอ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 11, status: null },
+              { id: 'nf-2', name: 'หนองเฝ้า (แปลงล่าง)', rai: 10, type: 'ratoon', ageLabel: 'ตอ 8 ด.', ageDetail: '8 เดือน', variety: 'ขอนแก่น 3', waterDays: 11, status: null }
+            ]
+          },
+          {
+            id: 'paet-rai',
+            name: 'แปดไร่',
+            summaryAge: 'ตอ 10 ด.',
+            plots: [
+              { id: 'pr-1', name: 'แปดไร่ (แปลงหลัก)', rai: 8, type: 'ratoon', ageLabel: 'ตอ 10 ด.', ageDetail: '10 เดือน', variety: 'ขอนแก่น 3', waterDays: 14, status: null }
+            ]
+          },
+          {
+            id: 'nong-jik',
+            name: 'หนองจิก',
+            summaryAge: 'ตอ 9 ด.',
+            plots: [
+              { id: 'nj-1', name: 'หนองจิก (ด้านใน)', rai: 9, type: 'ratoon', ageLabel: 'ตอ 9 ด.', ageDetail: '9 เดือน', variety: 'ขอนแก่น 3', waterDays: 10, status: null },
+              { id: 'nj-2', name: 'หนองจิก (ติดทาง)', rai: 8, type: 'ratoon', ageLabel: 'ตอ 9 ด.', ageDetail: '9 เดือน', variety: 'LK92-11', waterDays: 10, status: null }
+            ]
+          },
+          {
+            id: 'yai-wian',
+            name: 'ยายเวียน',
+            summaryAge: 'ตอ 6 ด.',
+            plots: [
+              { id: 'yw-1', name: 'ยายเวียน (หัวแปลง)', rai: 3, type: 'ratoon', ageLabel: 'ตอ 6 ด.', ageDetail: '6 เดือน', variety: 'ขอนแก่น 3', waterDays: 15, status: 'due', statusNote: 'ถึงคิวให้น้ำ / ใส่ปุ๋ยตอ' },
+              { id: 'yw-2', name: 'ยายเวียน (ท้ายแปลง)', rai: 3, type: 'ratoon', ageLabel: 'ตอ 6 ด.', ageDetail: '6 เดือน', variety: 'ขอนแก่น 3', waterDays: 15, status: 'due', statusNote: 'ถึงคิวให้น้ำ / ใส่ปุ๋ยตอ' }
+            ]
+          }
+        ]
+      };
+
+      const $ = (sel) => document.querySelector(sel);
+      let toastTimer = null;
+
+      function showToast(msg) {
+        const el = $('#toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2300);
+      }
+
+      /* ===== ค้นหาแปลงพร้อมสร้างข้อมูลเริ่มต้นถ้าเป็นแปลงอื่นนอกจากหนองกระทู้ (ขวาใน) ===== */
+      function findPlotWithZone(plotId) {
+        for (const z of state.zones) {
+          const p = z.plots.find(x => x.id === plotId);
+          if (p) {
+            ensurePlotDetailData(p);
+            return { zone: z, plot: p };
+          }
+        }
+        return null;
+      }
+
+      function ensurePlotDetailData(p) {
+        if (p.history) return;
+        p.plantDate = p.type === 'new' ? '12 มี.ค. 69' : '10 ก.พ. 69';
+        p.sprayTanks = 0;
+        p.measuredArea = `${p.rai} ไร่ 1 งาน 24 ตร.วา`;
+        p.activeJobDone = false;
+        p.nextAction = p.status === 'doing'
+          ? 'ลุยงานที่ค้างให้จบ (เสร็จแล้วกดปุ่ม งานเสร็จ)'
+          : (p.status === 'due' ? 'ถึงคิวลงงานรอบนี้ — แตะ + จดงานแปลงนี้ เพื่อเริ่ม' : 'ติดตามความชื้นและรอบบำรุงตามกำหนด');
+        p.yields = [];
+        p.prepSteps = [
+          { name: 'ริปเปอร์', done: true, date: '15 ก.พ. 69', meta: 'TS6020 · ตาจง' },
+          { name: 'ครูดร่อง (ระหว่างแถว)', done: true, date: '20 เม.ย. 69', meta: 'B2420 · พร' },
+          { name: 'อุ้มร่อง', done: false, date: '', meta: 'ยังไม่มีบันทึก' }
+        ];
+        p.prepExtra = [];
+        p.waterRounds = [
+          { round: 2, kind: 'rain', label: 'ฝนตก', date: '4–9 พ.ย. 69', note: 'ฝนตกรอบไร่' },
+          { round: 1, kind: 'water', label: 'ขึ้นน้ำ', date: '18 พ.ค. 69', note: 'ราดร่อง/ขึ้นน้ำ' }
+        ];
+        p.ferts = [];
+        p.sprays = p.status === 'doing'
+          ? [{ date: '24 พ.ย. 69', title: 'ฉีดหญ้ารอบไร่', detail: 'หำ + ผัน', status: 'doing' }]
+          : [];
+        p.cuts = [];
+        p.history = [
+          ...(p.status === 'doing' ? [{ id: 'hw-' + p.id, kind: 'work', cat: 'spray', catLabel: 'ฉีดยา', date: '24 พ.ย.', year: '69', span: '', countWeight: 1, title: 'ฉีดหญ้ารอบไร่', detail: 'หำ + ผัน', ongoing: true }] : []),
+          { id: 'h2-' + p.id, kind: 'work', cat: 'tractor', catLabel: 'รถไถ', date: '20 เม.ย.', year: '69', span: '', countWeight: 1, title: 'ครูดร่อง', detail: 'พร · B2420', ongoing: false },
+          { id: 'h3-' + p.id, kind: 'work', cat: 'tractor', catLabel: 'รถไถ', date: '15 ก.พ.', year: '69', span: '', countWeight: 1, title: 'ริปเปอร์ 2 ขา', detail: 'ตาจง · TS6020', ongoing: false },
+          { id: 'r1-' + p.id, kind: 'rain', cat: 'rain', catLabel: 'ฝนตก', date: '4–9 พ.ย.', year: '69', span: '', countWeight: 1, title: 'ฝนตกล่าสุด 18 มม.', detail: 'ดินชุ่มทั่วแปลง', ongoing: false }
+        ];
+      }
+
+      /* ===== Bottom Sheet Engine (เหมือน v5 เป๊ะ) ===== */
+      const backdrop = $('#sheetBackdrop');
+      const panel = $('#sheetPanel');
+      const dragZone = $('#sheetDragZone');
+
+      function openSheet({ title, subtitle = '', bodyHTML = '', onMount = null }) {
+        $('#sheetTitle').textContent = title;
+        $('#sheetSubtitle').textContent = subtitle;
+        $('#sheetSubtitle').style.display = subtitle ? 'block' : 'none';
+        $('#sheetBody').innerHTML = bodyHTML;
+        panel.style.transform = '';
+        panel.classList.remove('is-dragging');
+        backdrop.classList.add('open');
+        backdrop.setAttribute('aria-hidden', 'false');
+        if (typeof onMount === 'function') onMount($('#sheetBody'));
+      }
+
+      function closeSheet() {
+        panel.classList.remove('is-dragging');
+        panel.style.transform = '';
+        backdrop.classList.remove('open');
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      $('#sheetCloseBtn').addEventListener('click', closeSheet);
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeSheet();
+      });
+
+      let dragStartY = 0, dragDeltaY = 0, isDraggingSheet = false;
+      dragZone.addEventListener('touchstart', (e) => {
+        if (!backdrop.classList.contains('open')) return;
+        dragStartY = e.touches[0].clientY;
+        dragDeltaY = 0;
+        isDraggingSheet = true;
+        panel.classList.add('is-dragging');
+      }, { passive: true });
+      dragZone.addEventListener('touchmove', (e) => {
+        if (!isDraggingSheet) return;
+        dragDeltaY = Math.max(0, e.touches[0].clientY - dragStartY);
+        panel.style.transform = `translateY(${dragDeltaY}px)`;
+      }, { passive: true });
+      dragZone.addEventListener('touchend', () => {
+        if (!isDraggingSheet) return;
+        isDraggingSheet = false;
+        panel.classList.remove('is-dragging');
+        if (dragDeltaY > 64) closeSheet();
+        else panel.style.transform = '';
+      });
+
+      /* ===== สลับโหมดสู้แดดจัด ===== */
+      function toggleSunBoost() {
+        state.sunBoost = !state.sunBoost;
+        document.body.classList.toggle('sun-boost', state.sunBoost);
+        $('#btnSunToggle').classList.toggle('is-sun-on', state.sunBoost);
+        showToast(state.sunBoost ? 'เปิดโหมดสู้แดดจัดแล้ว' : 'กลับสู่ความคมชัดปกติ');
+      }
+      $('#btnSunToggle').addEventListener('click', toggleSunBoost);
+      $('#btnDetailSun').addEventListener('click', toggleSunBoost);
+
+      /* ===== Render หน้า 1: แถบสรุป + เครื่องมือ + รายการพื้นที่ ===== */
+      function getAllPlots() {
+        return state.zones.flatMap(z => z.plots.map(p => ({ ...p, zoneId: z.id, zoneName: z.name })));
+      }
+
+      function renderSummaryStrip() {
+        const all = getAllPlots();
+        const totalRai = all.reduce((s, p) => s + Number(p.rai || 0), 0);
+        const newCount = all.filter(p => p.type === 'new').length;
+        const ratoonCount = all.filter(p => p.type === 'ratoon').length;
+        const dueCount = all.filter(p => p.status === 'due').length;
+        const doingCount = all.filter(p => p.status === 'doing').length;
+
+        $('.app-green-title').textContent = `แปลงทั้งไร่ · ${totalRai} ไร่`;
+        $('.farm-strip-main').textContent = `${totalRai} ไร่ · ${all.length} แปลง`;
+        $('#summaryCropCounts').textContent = `อ้อยใหม่ ${newCount} · อ้อยตอ ${ratoonCount}`;
+
+        $('#summaryQuickPills').innerHTML = `
+          <button type="button" class="stat-mini-chip is-due${state.filter === 'due' ? ' is-active-filter' : ''}" data-quick-filter="due">
+            ถึงคิว <strong>${dueCount}</strong>
+          </button>
+          <button type="button" class="stat-mini-chip is-doing${state.filter === 'doing' ? ' is-active-filter' : ''}" data-quick-filter="doing">
+            <span class="pulse-dot"></span>กำลังทำ <strong>${doingCount}</strong>
+          </button>
+          <button type="button" class="stat-mini-chip${state.filter === 'new' ? ' is-active-filter' : ''}" data-quick-filter="new">
+            อ้อยใหม่ <strong>${newCount}</strong>
+          </button>
+          <button type="button" class="stat-mini-chip${state.filter === 'ratoon' ? ' is-active-filter' : ''}" data-quick-filter="ratoon">
+            อ้อยตอ <strong>${ratoonCount}</strong>
+          </button>
+        `;
+
+        $('#summaryQuickPills').querySelectorAll('[data-quick-filter]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = btn.dataset.quickFilter;
+            setPlotFilter(state.filter === target ? 'all' : target);
+          });
+        });
+      }
+
+      function renderSatelliteCard() {
+        const card = $('#toolSat');
+        const ico = $('#satIcoBox');
+        const txt = $('#satSummaryText');
+        if (state.satWarning) {
+          card.classList.add('is-warn-card');
+          ico.className = 'tele-ico is-sat-warn';
+          txt.innerHTML = `<span class="tele-status-due">แห้งลง 1 แปลง</span>`;
+        } else {
+          card.classList.remove('is-warn-card');
+          ico.className = 'tele-ico is-sat';
+          txt.innerHTML = `<span class="tele-status-ok">✓ ปกติ 25 แปลง</span>`;
+        }
+      }
+
+      function matchesFilter(plot) {
+        if (state.filter === 'all') return true;
+        if (state.filter === 'due') return plot.status === 'due';
+        if (state.filter === 'doing') return plot.status === 'doing';
+        if (state.filter === 'new') return plot.type === 'new';
+        if (state.filter === 'ratoon') return plot.type === 'ratoon';
+        return true;
+      }
+
+      function setPlotFilter(nextFilter) {
+        state.filter = nextFilter;
+        document.querySelectorAll('#plotFilterBar .seg-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.filter === nextFilter);
+        });
+        // เมื่อกรองเฉพาะ ถึงคิว หรือ กำลังทำ ให้กางพื้นที่ที่ตรงเงื่อนไขอัตโนมัติเพื่อให้เห็นแปลงทันที
+        if (nextFilter === 'due' || nextFilter === 'doing') {
+          state.zones.forEach(z => {
+            if (z.plots.some(matchesFilter)) state.expandedZones[z.id] = true;
+          });
+        }
+        renderSummaryStrip();
+        renderZoneList();
+      }
+
+      function renderZoneList() {
+        const container = $('#zoneList');
+        const filteredZones = state.zones
+          .map(z => ({ ...z, visiblePlots: z.plots.filter(matchesFilter) }))
+          .filter(z => z.visiblePlots.length > 0);
+
+        const visiblePlotTotal = filteredZones.reduce((s, z) => s + z.visiblePlots.length, 0);
+        $('#zonesCountBadge').textContent = state.filter === 'all'
+          ? `${filteredZones.length} พื้นที่`
+          : `${visiblePlotTotal} แปลง`;
+
+        const allOpen = filteredZones.length > 0 && filteredZones.every(z => state.expandedZones[z.id]);
+        $('#btnToggleAllZones').textContent = allOpen ? 'พับทั้งหมด' : 'กางทั้งหมด';
+
+        if (!filteredZones.length) {
+          container.innerHTML = `<div class="empty-filter-box">ไม่พบแปลงที่ตรงกับตัวกรองนี้</div>`;
+          return;
+        }
+
+        container.innerHTML = filteredZones.map(z => {
+          const isOpen = !!state.expandedZones[z.id];
+          const zoneRai = z.plots.reduce((s, p) => s + Number(p.rai || 0), 0);
+          const doingCnt = z.plots.filter(p => p.status === 'doing').length;
+          const dueCnt = z.plots.filter(p => p.status === 'due').length;
+
+          const cardCls = [
+            'zone-card',
+            isOpen ? 'is-open' : '',
+            doingCnt ? 'has-doing' : (dueCnt ? 'has-due' : '')
+          ].filter(Boolean).join(' ');
+
+          const statusPill = doingCnt
+            ? `<span class="st-pill doing tabular"><span class="pulse-dot"></span>กำลังทำ ${doingCnt}</span>`
+            : (dueCnt ? `<span class="st-pill due tabular">ถึงคิว ${dueCnt}</span>` : '');
+
+          const plotsHTML = isOpen ? `
+            <div class="zone-plots">
+              ${z.visiblePlots.map(p => {
+                const rowCls = `plot-row${p.status === 'doing' ? ' st-doing' : (p.status === 'due' ? ' st-due' : '')}`;
+                const pPill = p.status === 'doing'
+                  ? `<span class="st-pill doing">กำลังทำ</span>`
+                  : (p.status === 'due' ? `<span class="st-pill due">ถึงคิว</span>` : '');
+                const waterHTML = p.waterDays != null
+                  ? `<span class="water-ago tabular${p.waterDays >= 15 ? ' is-dry' : ''}">· น้ำ ${p.waterDays} วันก่อน</span>`
+                  : '';
+                return `
+                  <button type="button" class="${rowCls}" data-open-plot="${p.id}">
+                    <div class="plot-row-left">
+                      <div class="plot-name">${p.name}</div>
+                      <div class="plot-meta-line tabular">
+                        <span class="plot-rai">${p.rai} ไร่</span>
+                        <span class="crop-tag ${p.type === 'new' ? 'is-new' : 'is-ratoon'}">${p.ageLabel}</span>
+                        ${waterHTML}
+                      </div>
+                    </div>
+                    <div class="plot-row-right">
+                      ${pPill}
+                      <span class="chev">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                      </span>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          ` : '';
+
+          return `
+            <div class="${cardCls}">
+              <button type="button" class="zone-head" data-toggle-zone="${z.id}" aria-expanded="${isOpen}">
+                <div class="zone-head-left">
+                  <div class="zone-title-line">
+                    <span class="zone-name">${z.name}</span>
+                    ${statusPill}
+                  </div>
+                  <div class="zone-meta tabular">${z.plots.length} แปลง · ${zoneRai} ไร่ · ${z.summaryAge}</div>
+                </div>
+                <span class="chev zone-chev">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                </span>
+              </button>
+              ${plotsHTML}
+            </div>
+          `;
+        }).join('');
+
+        container.querySelectorAll('[data-toggle-zone]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const zid = btn.dataset.toggleZone;
+            state.expandedZones[zid] = !state.expandedZones[zid];
+            renderZoneList();
+          });
+        });
+
+        container.querySelectorAll('[data-open-plot]').forEach(btn => {
+          btn.addEventListener('click', () => openPlotDetail(btn.dataset.openPlot));
+        });
+      }
+
+      document.querySelectorAll('#plotFilterBar .seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => setPlotFilter(btn.dataset.filter));
+      });
+
+      $('#btnToggleAllZones').addEventListener('click', () => {
+        const filteredZones = state.zones.filter(z => z.plots.some(matchesFilter));
+        const allOpen = filteredZones.every(z => state.expandedZones[z.id]);
+        filteredZones.forEach(z => { state.expandedZones[z.id] = !allOpen; });
+        renderZoneList();
+      });
+
+      /* ===== แผ่นล่างของเครื่องมือ 4 อัน ===== */
+      $('#toolMap').addEventListener('click', () => {
+        openSheet({
+          title: 'แผนที่ไร่ (25 แปลง · ที่ดิน 2)',
+          subtitle: 'พื้นที่รวม 281 ไร่ · 9 พื้นที่ · แตะแปลงเพื่อดูรายละเอียด',
+          bodyHTML: `
+            <div class="mini-map-box">
+              <svg viewBox="0 0 340 165" width="100%" height="165" style="display:block;">
+                <rect width="340" height="165" fill="#E6EFE7"/>
+                <path d="M0,98 Q120,82 210,104 T340,90" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+                <path d="M0,98 Q120,82 210,104 T340,90" fill="none" stroke="#CBD5CD" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <polygon points="24,24 106,18 112,72 28,78" fill="#A8CBB5" stroke="#1F5E3B" stroke-width="1.5"/>
+                <text x="36" y="52" font-size="11" font-weight="700" fill="#15452A">หนองบวบหอม</text>
+                <polygon points="124,22 222,26 218,80 122,76" fill="#C7DFCE" stroke="#1F5E3B" stroke-width="1.5"/>
+                <text x="136" y="54" font-size="11" font-weight="700" fill="#15452A">หนองทิ้งสุ่ม</text>
+                <polygon points="236,24 316,32 308,78 232,74" fill="#FDE6D2" stroke="#C2410C" stroke-width="1.8"/>
+                <text x="252" y="55" font-size="11" font-weight="700" fill="#9A3412">ยายเวียน</text>
+                <polygon points="56,106 168,108 164,150 52,146" fill="#1F5E3B" fill-opacity="0.22" stroke="#1F5E3B" stroke-width="2"/>
+                <text x="66" y="132" font-size="11.5" font-weight="700" fill="#15452A">หนองกระทู้ (กำลังทำ 3)</text>
+                <polygon points="186,110 294,104 304,148 184,152" fill="#D4E4D8" stroke="#1F5E3B" stroke-width="1.4"/>
+                <text x="210" y="133" font-size="11" font-weight="700" fill="#15452A">สำนักแจง</text>
+              </svg>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">สรุปแนวเขตบนแผนที่</div>
+              <div class="tabular">แปลงอ้อย 25 แปลง (281 ไร่) · ที่ดินอื่น 2 แปลง</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn primary" id="btnOpenMapKhwanai">เปิดแปลง หนองกระทู้ (ขวาใน)</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnOpenMapKhwanai').addEventListener('click', () => {
+              closeSheet();
+              openPlotDetail('nk-khwanai');
+            });
+          }
+        });
+      });
+
+      $('#toolSat').addEventListener('click', () => {
+        openSheet({
+          title: 'ภาพดาวเทียมความเขียว (NDVI)',
+          subtitle: state.satWarning ? 'พบแห้งลง 1 แปลง · สำนักแจง (มุมตะวันตก)' : 'ปกติครบ 25 แปลง · ภาพล่าสุด 21 พ.ย. 69',
+          bodyHTML: `
+            <div class="detail-box ${state.satWarning ? 'is-due' : ''}">
+              <div class="detail-label">ผลตรวจล่าสุด</div>
+              <div>${state.satWarning
+                ? '<strong>แห้งลง 1 แปลง</strong> · สำนักแจง (มุมตะวันตก) ความเขียวลดลง ~1.2 ไร่ ควรแวะตรวจหน้างาน'
+                : '<strong>ปกติ 25 แปลง</strong> · ยังไม่พบจุดผิดปกติที่ต้องรีบเข้าตรวจ'}</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn" id="btnToggleSatDemo">
+                ${state.satWarning ? 'สลับตัวอย่างเป็น: ✓ ปกติ 25 แปลง' : 'สลับตัวอย่างเป็น: แห้งลง 1 แปลง (สีส้ม)'}
+              </button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnToggleSatDemo').addEventListener('click', () => {
+              state.satWarning = !state.satWarning;
+              renderSatelliteCard();
+              closeSheet();
+              showToast(state.satWarning ? 'แสดงตัวอย่างสถานะ "แห้งลง 1 แปลง"' : 'กลับเป็นสถานะ "ปกติ 25 แปลง"');
+            });
+          }
+        });
+      });
+
+      $('#toolSoil').addEventListener('click', () => {
+        const dryPlots = getAllPlots().filter(p => p.waterDays >= 15);
+        openSheet({
+          title: 'น้ำในดิน (ประมาณ)',
+          subtitle: 'ชื้นพอ 20 แปลง · เริ่มแห้ง 5 แปลง · ค่าประมาณจากฝนและการให้น้ำ',
+          bodyHTML: `
+            <div class="detail-box is-due">
+              <div class="detail-label">แปลงที่เริ่มแห้ง (5 แปลง)</div>
+              ${dryPlots.slice(0, 5).map(p => `
+                <div class="hist-row tabular">
+                  <div>
+                    <strong>${p.name}</strong>
+                    <div style="font-size:12.5px;color:var(--ink-2);">${p.rai} ไร่ · ${p.ageLabel}</div>
+                  </div>
+                  <button type="button" class="task-inline-btn is-doing" data-jump-plot="${p.id}">ดูแปลง</button>
+                </div>
+              `).join('')}
+            </div>
+          `,
+          onMount(body) {
+            body.querySelectorAll('[data-jump-plot]').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const pid = btn.dataset.jumpPlot;
+                closeSheet();
+                openPlotDetail(pid);
+              });
+            });
+          }
+        });
+      });
+
+      $('#toolSteps').addEventListener('click', () => {
+        openSheet({
+          title: 'ขั้นตอนอ้อยใหม่ / อ้อยตอ',
+          subtitle: 'ถึงคิว 1 งาน · รอตอบ 2 ข้อ',
+          bodyHTML: `
+            <div class="detail-box is-due">
+              <div class="detail-label">ถึงคิว 1 งาน</div>
+              <div><strong>ให้น้ำ / ใส่ปุ๋ยตอ · ยายเวียน 2 แปลง</strong><br/><span style="font-size:13px;color:var(--ink-2);">ตออายุ 6 เดือน · ครบเกณฑ์ 15 วัน</span></div>
+            </div>
+            <div class="detail-box is-ask">
+              <div class="detail-label">รอตอบ 2 ข้อ</div>
+              <div style="margin-bottom:4px;">1. หนองกระทู้ (ขวาใน) — อุ้มร่องทำหรือยัง?</div>
+              <div>2. หนองกระทู้ (กล้วย-ใหม่) — เริ่มปลูกเมื่อไร?</div>
+            </div>
+            <div class="sheet-btn-stack">
+              <button type="button" class="sheet-btn primary" id="btnCloseSteps">เข้าใจแล้ว</button>
+            </div>
+          `,
+          onMount(body) {
+            body.querySelector('#btnCloseSteps').addEventListener('click', closeSheet);
+          }
+        });
+      });
+
+      /* ===== หน้า 2: เปิด / ปิด รายละเอียดแปลง ===== */
+      function openPlotDetail(plotId) {
+        const found = findPlotWithZone(plotId);
+        if (!found) return;
+        state.activePlotId = plotId;
+        state.openHistoryMenuId = null;
+        state.historyFilter = 'work';
+        $('#detailTopbarZone').textContent = found.zone.name;
+        renderPlotDetail();
+        $('#detailScroll').scrollTop = 0;
+        $('#detailPage').classList.add('is-open');
+        $('#detailPage').setAttribute('aria-hidden', 'false');
+        $('#phoneFrame').classList.add('in-detail');
+      }
+
+      function closePlotDetail() {
+        $('#detailPage').classList.remove('is-open');
+        $('#detailPage').setAttribute('aria-hidden', 'true');
+        $('#phoneFrame').classList.remove('in-detail');
+        state.openHistoryMenuId = null;
+      }
+
+      $('#btnBackToPlots').addEventListener('click', closePlotDetail);
+
+      /* ===== Render หน้า 2: รายละเอียดแปลงครบ 7 ส่วน ===== */
+      function renderPlotDetail() {
+        const found = findPlotWithZone(state.activePlotId);
+        if (!found) return;
+        const { zone, plot: p } = found;
+
+        const isDoing = p.status === 'doing' && !p.activeJobDone;
+        const isDue = p.status === 'due';
+        const statusPill = isDoing
+          ? `<span class="st-pill doing"><span class="pulse-dot"></span>กำลังทำ</span>`
+          : (isDue ? `<span class="st-pill due">ถึงคิว</span>` : `<span class="st-pill muted">ปกติ</span>`);
+
+        const doneStepCount = p.prepSteps.filter(s => s.done).length;
+        const mainStepTotal = 3; // ทำแล้ว 2/3 ขั้น ตามข้อมูลจริง
+
+        // นับประวัติงาน: งาน 9 / ฝน 5 / ทั้งหมด
+        const workItems = p.history.filter(h => h.kind === 'work');
+        const rainItems = p.history.filter(h => h.kind === 'rain');
+        const workCount = workItems.reduce((s, h) => s + (h.countWeight || 1), 0);
+        const rainCount = rainItems.length;
+        const allCount = workCount + rainCount;
+
+        const visibleHistory = state.historyFilter === 'work'
+          ? workItems
+          : (state.historyFilter === 'rain' ? rainItems : p.history);
+
+        const nextCardCls = isDoing ? 'task-card st-doing' : (isDue ? 'task-card st-due' : 'task-card st-ok');
+        const nextBtnHTML = isDoing
+          ? `<button type="button" class="task-inline-btn is-solid" id="btnFinishPlotJob">งานเสร็จ</button>`
+          : (p.activeJobDone
+            ? `<button type="button" class="task-inline-btn is-undo" id="btnUndoPlotJob">ย้อนกลับ</button>`
+            : '');
+
+        const sprayOngoing = p.sprays.some(s => s.status === 'doing' && !p.activeJobDone);
+        const waterLatest = p.waterRounds[0] ? p.waterRounds[0].date.replace(' 69', '') : '-';
+
+        $('#detailContent').innerHTML = `
+          <!-- 1. หัวแปลง -->
+          <section class="plot-hero" aria-label="ข้อมูลหัวแปลง">
+            <div class="plot-hero-top">
+              <h1 class="plot-hero-title">${p.name}</h1>
+              ${statusPill}
+            </div>
+            <div class="plot-hero-meta tabular">
+              <strong>${p.rai} ไร่</strong>
+              <span class="meta-dot">·</span>
+              <span>🌿 ${p.type === 'new' ? 'อ้อยใหม่' : 'อ้อยตอ'}</span>
+              <span class="meta-dot">·</span>
+              <span>พันธุ์ ${p.variety || '-'}</span>
+            </div>
+          </section>
+
+          <!-- 2. ตัวเลขหลัก 4 ช่อง -->
+          <section aria-label="ตัวเลขหลักของแปลง" style="display:flex;flex-direction:column;gap:8px;">
+            <div class="kpi-3-grid tabular">
+              <div class="kpi-box">
+                <span class="kpi-label">${p.type === 'new' ? 'อายุอ้อย' : 'อายุตอ'}</span>
+                <span class="kpi-val">${p.ageDetail}</span>
+              </div>
+              <div class="kpi-box${p.waterDays >= 15 ? ' is-due' : ''}">
+                <span class="kpi-label">น้ำล่าสุด</span>
+                <span class="kpi-val">${p.waterDays != null ? p.waterDays + ' วันก่อน' : '-'}</span>
+              </div>
+              <div class="kpi-box">
+                <span class="kpi-label">ฉีดยารวม</span>
+                <span class="kpi-val">${p.sprayTanks} ถัง</span>
+              </div>
+            </div>
+
+            <div class="${nextCardCls}">
+              <div class="next-card-row">
+                <div style="min-width:0;flex:1;">
+                  <div class="next-kicker">ถัดไป</div>
+                  <div class="next-text" style="${p.activeJobDone ? 'color:var(--ink-2);' : ''}">
+                    ${p.activeJobDone ? '✓ ปิดงานฉีดหญ้ารอบไร่เรียบร้อยแล้ว' : p.nextAction}
+                  </div>
+                </div>
+                ${nextBtnHTML}
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. ปุ่มหลัก + วัดจากแนวบนแผนที่ -->
+          <section class="action-pair-wrap" aria-label="ปุ่มจัดการแปลง">
+            <div class="action-pair">
+              <button type="button" class="act-btn is-primary" id="btnLogPlotWork">+ จดงานแปลงนี้</button>
+              <button type="button" class="act-btn" id="btnViewPlotMap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><path d="M9 4v13M15 7v13"/></svg>
+                <span>ดูบนแผนที่</span>
+              </button>
+            </div>
+            <div class="map-measure-note tabular">
+              <span>วัดจากแนวบนแผนที่ได้ ${p.measuredArea}</span>
+            </div>
+          </section>
+
+          <!-- 4. วิเคราะห์แปลงนี้ (การ์ดข้อมูล 4 ชั้น) -->
+          <section aria-labelledby="sec-analysis-title">
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title" id="sec-analysis-title">วิเคราะห์แปลงนี้</h2>
+              </div>
+              <span class="sec-badge is-muted">3 ตัวชี้วัด</span>
+            </div>
+
+            <div class="grouped-card">
+              <!-- น้ำในดิน -->
+              <div class="analysis-row">
+                <div class="status-icon-box ${p.waterDays >= 15 ? 'is-due' : 'is-water'}" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7l5.6 7.4a7 7 0 1 1-11.2 0L12 2.7z"/></svg>
+                </div>
+                <div class="analysis-body">
+                  <div class="an-l1">
+                    <span>น้ำในดิน (ประมาณ)</span>
+                    <span class="sec-badge is-muted">ค่าประมาณ</span>
+                  </div>
+                  <div class="an-l2 ${p.waterDays >= 15 ? 'is-due' : 'is-ok'}">${p.waterDays >= 15 ? 'เริ่มแห้ง' : 'ชื้นพอ'}</div>
+                  <div class="an-l3 tabular">ฝนล่าสุด 9 พ.ย.${p.waterDays != null ? ` · ขาดน้ำ ${p.waterDays} วัน` : ''}</div>
+                  <div class="an-l4">ประเมินจากปริมาณฝนและวันให้น้ำล่าสุดในแปลง</div>
+                </div>
+              </div>
+
+              <!-- ความเขียวสะสม -->
+              <div class="analysis-row">
+                <div class="status-icon-box is-ok" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                </div>
+                <div class="analysis-body">
+                  <div class="an-l1">ความเขียวสะสม (ดาวเทียม)</div>
+                  <div class="an-l2 is-muted">ข้อมูลภาพยังไม่พอ</div>
+                  <div class="an-l3">ภาพใสฤดูนี้ยังน้อย หรือไม่มีแปลงอายุใกล้กันให้เทียบ</div>
+                  <div class="an-l4">ระบบจะอัปเดตอัตโนมัติเมื่อได้ภาพดาวเทียมท้องฟ้าโปร่ง</div>
+                </div>
+              </div>
+
+              <!-- ปุ๋ยรายแปลง -->
+              <div class="analysis-row">
+                <div class="status-icon-box is-nolog" aria-hidden="true">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>
+                </div>
+                <div class="analysis-body">
+                  <div class="an-l1">ปุ๋ยรายแปลง (ฤดูนี้)</div>
+                  <div class="an-l2 ${p.ferts.length ? 'is-ok' : 'is-nolog'}">${p.ferts.length ? `ใส่แล้ว ${p.ferts.length} ครั้ง` : 'ยังไม่ใส่'}</div>
+                  <div class="an-l3">${p.ferts.length ? p.ferts[0].title + ' · ' + p.ferts[0].date : 'ยังไม่มีบันทึกการใส่ปุ๋ยฤดูนี้'}</div>
+                  <div class="an-l4">แนะนำทิศทางจากความเขียวเทียบเพื่อน · อัตราต่อไร่ยึดฉลากปุ๋ย</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. หมวดงาน 6 หมวด (พับ/กางได้ + บรรทัดสรุปตอนพับ) -->
+          <section aria-labelledby="sec-cats-title">
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title" id="sec-cats-title">หมวดงานในแปลง</h2>
+              </div>
+              <button type="button" class="sec-toggle-btn" id="btnToggleAllCats">
+                ${Object.values(state.detailCatOpen).every(Boolean) ? 'พับทั้งหมด' : 'กางทั้งหมด'}
+              </button>
+            </div>
+
+            <div class="grouped-card">
+              <!-- หมวด 1: เตรียมดิน / ปลูก / รถบำรุง -->
+              <div class="cat-acc${state.detailCatOpen.prep ? ' is-open' : ''}">
+                <button type="button" class="cat-acc-head" data-cat-toggle="prep">
+                  <div class="cat-acc-left">
+                    <div class="cat-acc-title-row">
+                      <span class="cat-acc-title">เตรียมดิน / ปลูก / รถบำรุง</span>
+                      <span class="sec-badge is-ok tabular">ทำแล้ว ${doneStepCount}/${mainStepTotal} ขั้น</span>
+                    </div>
+                    <div class="cat-acc-sum tabular">ริปเปอร์ ✓ · ครูดร่อง ✓ · สับหญ้า (รถ)</div>
+                  </div>
+                  <span class="chev cat-chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                </button>
+                <div class="cat-acc-body${state.detailCatOpen.prep ? '' : ' is-hidden'}">
+                  <div class="step-progress-bar tabular">
+                    <div class="step-segments">
+                      <span class="step-seg ${doneStepCount >= 1 ? 'is-done' : ''}"></span>
+                      <span class="step-seg ${doneStepCount >= 2 ? 'is-done' : ''}"></span>
+                      <span class="step-seg ${doneStepCount >= 3 ? 'is-done' : ''}"></span>
+                    </div>
+                    <span style="font-size:12px;font-weight:600;color:var(--brand-dark);">ทำแล้ว ${doneStepCount}/${mainStepTotal} ขั้นหลัก</span>
+                  </div>
+                  <div class="step-list tabular">
+                    ${p.prepSteps.map(s => `
+                      <div class="step-item${s.done ? '' : ' is-pending'}">
+                        <div class="step-item-left">
+                          <span class="step-mark ${s.done ? 'done' : 'pending'}">${s.done ? '✓' : '○'}</span>
+                          <div>
+                            <div class="step-name">${s.name}</div>
+                            <div class="step-meta">${s.meta}</div>
+                          </div>
+                        </div>
+                        <span class="step-date">${s.date || 'รอทำ'}</span>
+                      </div>
+                    `).join('')}
+                    ${p.prepExtra.map(ex => `
+                      <div class="step-item">
+                        <div class="step-item-left">
+                          <span class="step-mark extra">★</span>
+                          <div>
+                            <div class="step-name">${ex.name}</div>
+                            <div class="step-meta">${ex.meta} · งานบำรุงเสริม</div>
+                          </div>
+                        </div>
+                        <span class="step-date">${ex.date}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+
+              <!-- หมวด 2: น้ำ & ฝน -->
+              <div class="cat-acc${state.detailCatOpen.water ? ' is-open' : ''}">
+                <button type="button" class="cat-acc-head" data-cat-toggle="water">
+                  <div class="cat-acc-left">
+                    <div class="cat-acc-title-row">
+                      <span class="cat-acc-title">น้ำ & ฝน</span>
+                      <span class="sec-badge is-muted tabular">${p.waterRounds.length} รอบ</span>
+                    </div>
+                    <div class="cat-acc-sum tabular">ล่าสุด ${waterLatest}</div>
+                  </div>
+                  <span class="chev cat-chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                </button>
+                <div class="cat-acc-body${state.detailCatOpen.water ? '' : ' is-hidden'} tabular">
+                  ${p.waterRounds.map(w => `
+                    <div class="sub-row">
+                      <div class="sub-row-left">
+                        <div class="sub-row-title">
+                          <span>รอบ ${w.round}</span>
+                          <span class="work-tag ${w.kind === 'rain' ? 'rain' : 'water'}">${w.label}</span>
+                        </div>
+                        <div class="sub-row-meta">${w.note}</div>
+                      </div>
+                      <span class="step-date">${w.date}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- หมวด 3: ใส่ปุ๋ย / บำรุง -->
+              <div class="cat-acc${state.detailCatOpen.fert ? ' is-open' : ''}">
+                <button type="button" class="cat-acc-head" data-cat-toggle="fert">
+                  <div class="cat-acc-left">
+                    <div class="cat-acc-title-row">
+                      <span class="cat-acc-title">ใส่ปุ๋ย / บำรุง</span>
+                    </div>
+                    <div class="cat-acc-sum">${p.ferts.length ? `${p.ferts.length} ครั้ง · ล่าสุด ${p.ferts[0].date}` : 'ยังไม่มีประวัติ'}</div>
+                  </div>
+                  <span class="chev cat-chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                </button>
+                <div class="cat-acc-body${state.detailCatOpen.fert ? '' : ' is-hidden'}">
+                  ${p.ferts.length
+                    ? p.ferts.map(f => `<div class="sub-row"><div class="sub-row-left"><div class="sub-row-title">${f.title}</div><div class="sub-row-meta">${f.detail}</div></div><span class="step-date tabular">${f.date}</span></div>`).join('')
+                    : `<div class="cat-empty-note">ยังไม่มีบันทึกการใส่ปุ๋ยในแปลงนี้ฤดูนี้</div>`}
+                </div>
+              </div>
+
+              <!-- หมวด 4: ฉีดยาคุมหญ้า -->
+              <div class="cat-acc${state.detailCatOpen.spray ? ' is-open' : ''}">
+                <button type="button" class="cat-acc-head" data-cat-toggle="spray">
+                  <div class="cat-acc-left">
+                    <div class="cat-acc-title-row">
+                      <span class="cat-acc-title">ฉีดยาคุมหญ้า</span>
+                      <span class="sec-badge is-muted tabular">${p.sprays.length} ครั้ง</span>
+                      ${sprayOngoing ? `<span class="st-pill doing">กำลังทำ</span>` : ''}
+                    </div>
+                    <div class="cat-acc-sum tabular">${p.sprays.length ? `${p.sprays[0].date} ${p.sprays[0].title} · ${p.sprays[0].detail}` : 'ยังไม่มีประวัติ'}</div>
+                  </div>
+                  <span class="chev cat-chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                </button>
+                <div class="cat-acc-body${state.detailCatOpen.spray ? '' : ' is-hidden'} tabular">
+                  ${p.sprays.length ? p.sprays.map(sp => `
+                    <div class="sub-row">
+                      <div class="sub-row-left">
+                        <div class="sub-row-title">
+                          <span>${sp.title}</span>
+                          ${sp.status === 'doing' && !p.activeJobDone ? '<span class="st-pill doing">กำลังทำ</span>' : '<span class="st-pill done">เสร็จแล้ว</span>'}
+                        </div>
+                        <div class="sub-row-meta">${sp.detail}</div>
+                      </div>
+                      <span class="step-date">${sp.date}</span>
+                    </div>
+                  `).join('') : '<div class="cat-empty-note">ยังไม่มีบันทึกการฉีดยาคุมหญ้า</div>'}
+                </div>
+              </div>
+
+              <!-- หมวด 5: ตัดอ้อย & ส่งโรงงาน -->
+              <div class="cat-acc${state.detailCatOpen.cut ? ' is-open' : ''}">
+                <button type="button" class="cat-acc-head" data-cat-toggle="cut">
+                  <div class="cat-acc-left">
+                    <div class="cat-acc-title-row">
+                      <span class="cat-acc-title">ตัดอ้อย & ส่งโรงงาน</span>
+                      <span class="sec-badge is-muted tabular">${p.cuts.length} ครั้ง</span>
+                    </div>
+                    <div class="cat-acc-sum tabular">${p.cuts.length ? '25 ม.ค. / 26 ม.ค. 69 คนตัด-อ้อยสด · 🚛 จำปา (พ่วง) / พร (สิบล้อ)' : 'ยังไม่มีประวัติ'}</div>
+                  </div>
+                  <span class="chev cat-chev">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                </button>
+                <div class="cat-acc-body${state.detailCatOpen.cut ? '' : ' is-hidden'} tabular">
+                  ${p.cuts.length ? p.cuts.map(c => `
+                    <div class="sub-row">
+                      <div class="sub-row-left">
+                        <div class="sub-row-title">${c.title}</div>
+                        <div class="sub-row-meta">${c.truck}</div>
+                      </div>
+                      <span class="step-date">${c.date}</span>
+                    </div>
+                  `).join('') : '<div class="cat-empty-note">ยังไม่มีประวัติตัดอ้อย</div>'}
+                </div>
+              </div>
+
+              <!-- หมวด 6: ผลผลิตส่งโรงงาน -->
+              <div class="cat-acc${state.detailCatOpen.yield ? ' is-open' : ''}">
+                <div class="cat-acc-head" data-cat-toggle="yield" role="button" tabindex="0">
+                  <div class="cat-acc-left">
+                    <div class="cat-acc-title-row">
+                      <span class="cat-acc-title tabular">⚖️ ผลผลิตส่งโรงงาน (${p.yields.length})</span>
+                    </div>
+                    <div class="cat-acc-sum tabular">
+                      ${p.yields.length
+                        ? `รวม ${p.yields.reduce((s, y) => s + Number(y.tons), 0).toFixed(1)} ตัน · เฉลี่ย ${(p.yields.reduce((s, y) => s + Number(y.tons), 0) / p.rai).toFixed(1)} ตัน/ไร่`
+                        : 'ยังไม่มี · พอตัดเสร็จและรู้น้ำหนักจากโรงงาน กด + บันทึก'}
+                    </div>
+                  </div>
+                  <div class="cat-acc-right">
+                    <button type="button" class="task-inline-btn is-doing" id="btnAddYield">+ บันทึกผลผลิต</button>
+                    <span class="chev cat-chev">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                    </span>
+                  </div>
+                </div>
+                <div class="cat-acc-body${state.detailCatOpen.yield ? '' : ' is-hidden'} tabular">
+                  ${p.yields.length ? p.yields.map(y => `
+                    <div class="sub-row">
+                      <div class="sub-row-left">
+                        <div class="sub-row-title">${y.tons} ตัน · CCS ${y.ccs || '-'}</div>
+                        <div class="sub-row-meta">${y.note || 'ส่งโรงงานเรียบร้อย'}</div>
+                      </div>
+                      <span class="step-date">${y.date}</span>
+                    </div>
+                  `).join('') : '<div class="cat-empty-note">ยังไม่มี · พอตัดเสร็จและรู้น้ำหนักจากโรงงาน กดปุ่ม + บันทึกผลผลิต ด้านบน</div>'}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6. ประวัติงาน (ตัวกรอง [งาน 9] [🌧 ฝน 5] [ทั้งหมด] · ปี 2569 · แถวละ 3 ช่อง) -->
+          <section aria-labelledby="sec-hist-title">
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title" id="sec-hist-title">ประวัติงาน</h2>
+                <span class="sec-badge is-muted tabular">ปี 2569</span>
+              </div>
+            </div>
+
+            <div class="seg-bar is-3col" role="tablist" aria-label="กรองประวัติงาน" style="margin-bottom:9px;">
+              <button type="button" class="seg-btn${state.historyFilter === 'work' ? ' active' : ''}" data-hist-filter="work">
+                งาน <span class="seg-cnt tabular">${workCount}</span>
+              </button>
+              <button type="button" class="seg-btn${state.historyFilter === 'rain' ? ' active' : ''}" data-hist-filter="rain">
+                🌧 ฝน <span class="seg-cnt tabular">${rainCount}</span>
+              </button>
+              <button type="button" class="seg-btn${state.historyFilter === 'all' ? ' active' : ''}" data-hist-filter="all">
+                ทั้งหมด <span class="seg-cnt tabular">${allCount}</span>
+              </button>
+            </div>
+
+            <div class="grouped-card">
+              <div class="tl-year-bar tabular">
+                <span>ปี 2569</span>
+                <span>${visibleHistory.length} แถว</span>
+              </div>
+              <div id="timelineList">
+                ${visibleHistory.length ? visibleHistory.map(h => {
+                  const menuOpen = state.openHistoryMenuId === h.id;
+                  return `
+                    <div class="tl-item${menuOpen ? ' is-menu-open' : ''}">
+                      <div class="tl-row">
+                        <div class="tl-date-col tabular">
+                          <span class="tl-date-main">${h.date}</span>
+                          <span class="tl-date-year">${h.year}</span>
+                          ${h.span ? `<span class="tl-span-pill">${h.span}</span>` : ''}
+                        </div>
+                        <div class="tl-work-col">
+                          <div class="tl-tag-line">
+                            <span class="work-tag ${h.cat}">${h.catLabel}</span>
+                            ${h.ongoing && !p.activeJobDone ? `<span class="st-pill doing" style="padding:0 7px;font-size:11px;">กำลังทำ</span>` : ''}
+                          </div>
+                          <div class="tl-work-title">${h.title}</div>
+                          ${h.detail ? `<div class="tl-work-detail">${h.detail}</div>` : ''}
+                        </div>
+                        <button type="button" class="tl-more-btn" data-hist-more="${h.id}" aria-label="ตัวเลือกเพิ่มเติม" aria-expanded="${menuOpen}">⋯</button>
+                      </div>
+                      ${menuOpen ? `
+                        <div class="tl-inline-actions">
+                          <button type="button" class="tl-act-btn" data-hist-edit="${h.id}">✏️ แก้ไข</button>
+                          <button type="button" class="tl-act-btn is-del" data-hist-del="${h.id}">🗑️ ลบ</button>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('') : `<div style="padding:16px;text-align:center;color:var(--ink-3);font-size:13.5px;">ยังไม่มีประวัติในหมวดนี้</div>`}
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. ท้ายหน้า: ✏️ แก้ข้อมูลแปลง -->
+          <section aria-label="แก้ไขข้อมูลแปลง">
+            <button type="button" class="edit-plot-row" id="btnEditPlotInfo">
+              <div class="status-row-left" style="align-items:center;">
+                <div class="status-icon-box is-muted" aria-hidden="true">✏️</div>
+                <div class="status-info">
+                  <div class="status-title">แก้ข้อมูลแปลง</div>
+                  <div class="status-sub">ชื่อ · ไร่ · พันธุ์ · วันปลูก · ป้ายสถานะ</div>
+                </div>
+              </div>
+              <span class="chev">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </span>
+            </button>
+          </section>
+        `;
+
+        bindDetailEvents(p, zone);
+      }
+
+      function bindDetailEvents(p, zone) {
+        const btnFinish = $('#btnFinishPlotJob');
+        if (btnFinish) {
+          btnFinish.addEventListener('click', () => {
+            p.activeJobDone = true;
+            p.status = null;
+            renderSummaryStrip();
+            renderZoneList();
+            renderPlotDetail();
+            showToast(`บันทึกงานเสร็จในแปลง ${p.name} แล้ว`);
+          });
+        }
+
+        const btnUndo = $('#btnUndoPlotJob');
+        if (btnUndo) {
+          btnUndo.addEventListener('click', () => {
+            p.activeJobDone = false;
+            p.status = 'doing';
+            renderSummaryStrip();
+            renderZoneList();
+            renderPlotDetail();
+            showToast('เปิดสถานะกำลังทำอีกครั้ง');
+          });
+        }
+
+        $('#btnLogPlotWork').addEventListener('click', () => openLogWorkSheet(p));
+
+        $('#btnViewPlotMap').addEventListener('click', () => {
+          openSheet({
+            title: p.name,
+            subtitle: `โซน${zone.name} · วัดจากแนวบนแผนที่ได้ ${p.measuredArea}`,
+            bodyHTML: `
+              <div class="mini-map-box">
+                <svg viewBox="0 0 340 165" width="100%" height="165" style="display:block;">
+                  <rect width="340" height="165" fill="#E6EFE7"/>
+                  <path d="M0,126 L340,112" stroke="#FFFFFF" stroke-width="7"/>
+                  <polygon points="88,28 256,22 274,104 76,112" fill="#1F5E3B" fill-opacity="0.25" stroke="#1F5E3B" stroke-width="2.5"/>
+                  <circle cx="88" cy="28" r="4" fill="#1F5E3B"/>
+                  <circle cx="256" cy="22" r="4" fill="#1F5E3B"/>
+                  <circle cx="274" cy="104" r="4" fill="#1F5E3B"/>
+                  <circle cx="76" cy="112" r="4" fill="#1F5E3B"/>
+                  <text x="172" y="64" text-anchor="middle" font-size="13" font-weight="700" fill="#15452A">${p.name}</text>
+                  <text x="172" y="83" text-anchor="middle" font-size="12" font-weight="600" fill="#1F5E3B">${p.measuredArea}</text>
+                </svg>
+              </div>
+              <div class="detail-box tabular">
+                <div class="detail-label">ข้อมูลพื้นที่</div>
+                <div>พื้นที่จดทะเบียน: <strong>${p.rai} ไร่</strong> · วัดจากแนวเขต: <strong>${p.measuredArea}</strong></div>
+              </div>
+              <button type="button" class="sheet-btn primary" id="btnClosePlotMap">ปิดแผนที่</button>
+            `,
+            onMount(body) {
+              body.querySelector('#btnClosePlotMap').addEventListener('click', closeSheet);
+            }
+          });
+        });
+
+        // กาง/พับหมวดงาน
+        $('#detailContent').querySelectorAll('[data-cat-toggle]').forEach(el => {
+          el.addEventListener('click', () => {
+            const key = el.dataset.catToggle;
+            state.detailCatOpen[key] = !state.detailCatOpen[key];
+            renderPlotDetail();
+          });
+        });
+
+        $('#btnToggleAllCats').addEventListener('click', () => {
+          const allOpen = Object.values(state.detailCatOpen).every(Boolean);
+          Object.keys(state.detailCatOpen).forEach(k => { state.detailCatOpen[k] = !allOpen; });
+          renderPlotDetail();
+        });
+
+        // + บันทึกผลผลิต
+        const btnYield = $('#btnAddYield');
+        if (btnYield) {
+          btnYield.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSheet({
+              title: 'บันทึกผลผลิตส่งโรงงาน',
+              subtitle: `${p.name} · ${p.rai} ไร่`,
+              bodyHTML: `
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label" for="yTons">น้ำหนักรวม (ตัน)</label>
+                    <input type="number" inputmode="decimal" step="0.1" class="form-input tabular" id="yTons" placeholder="เช่น 96.5" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="yCcs">ค่าความหวาน (CCS)</label>
+                    <input type="number" inputmode="decimal" step="0.1" class="form-input tabular" id="yCcs" placeholder="เช่น 12.4" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="yNote">หมายเหตุ / โรงงาน</label>
+                  <input type="text" class="form-input" id="yNote" placeholder="เช่น อ้อยสด ส่งโรงงานรอบแรก" />
+                </div>
+                <button type="button" class="sheet-btn primary" id="btnSaveYield">บันทึกผลผลิต</button>
+              `,
+              onMount(body) {
+                body.querySelector('#btnSaveYield').addEventListener('click', () => {
+                  const tons = Number(body.querySelector('#yTons').value);
+                  const ccs = body.querySelector('#yCcs').value.trim();
+                  const note = body.querySelector('#yNote').value.trim();
+                  if (!tons || tons <= 0) {
+                    showToast('กรุณาใส่น้ำหนักตันก่อนบันทึก');
+                    body.querySelector('#yTons').focus();
+                    return;
+                  }
+                  p.yields.unshift({ date: '24 พ.ย. 69', tons, ccs, note });
+                  state.detailCatOpen.yield = true;
+                  renderPlotDetail();
+                  closeSheet();
+                  showToast(`บันทึกผลผลิต ${tons} ตันแล้ว`);
+                });
+              }
+            });
+          });
+        }
+
+        // ตัวกรองประวัติงาน
+        $('#detailContent').querySelectorAll('[data-hist-filter]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.historyFilter = btn.dataset.histFilter;
+            state.openHistoryMenuId = null;
+            renderPlotDetail();
+          });
+        });
+
+        // ปุ่ม ⋯ กางปุ่มแก้/ลบในแถว
+        $('#detailContent').querySelectorAll('[data-hist-more]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const hid = btn.dataset.histMore;
+            state.openHistoryMenuId = state.openHistoryMenuId === hid ? null : hid;
+            renderPlotDetail();
+          });
+        });
+
+        // ปุ่ม ✏️ แก้ไขในแถว
+        $('#detailContent').querySelectorAll('[data-hist-edit]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const h = p.history.find(x => x.id === btn.dataset.histEdit);
+            if (!h) return;
+            openSheet({
+              title: 'แก้ไขรายการประวัติ',
+              subtitle: `${h.date} ${h.year} · ${h.catLabel}`,
+              bodyHTML: `
+                <div class="form-group">
+                  <label class="form-label" for="editHistTitle">ชื่องาน</label>
+                  <input type="text" class="form-input" id="editHistTitle" value="${h.title}" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="editHistDetail">รายละเอียด / คนงาน / รถ</label>
+                  <input type="text" class="form-input" id="editHistDetail" value="${h.detail || ''}" />
+                </div>
+                <button type="button" class="sheet-btn primary" id="btnSaveHistEdit">บันทึกการแก้ไข</button>
+              `,
+              onMount(body) {
+                body.querySelector('#btnSaveHistEdit').addEventListener('click', () => {
+                  const nt = body.querySelector('#editHistTitle').value.trim();
+                  if (!nt) { showToast('กรุณาใส่ชื่องาน'); return; }
+                  h.title = nt;
+                  h.detail = body.querySelector('#editHistDetail').value.trim();
+                  state.openHistoryMenuId = null;
+                  renderPlotDetail();
+                  closeSheet();
+                  showToast('แก้ไขรายการประวัติแล้ว');
+                });
+              }
+            });
+          });
+        });
+
+        // ปุ่ม 🗑️ ลบในแถว
+        $('#detailContent').querySelectorAll('[data-hist-del]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const hid = btn.dataset.histDel;
+            const idx = p.history.findIndex(x => x.id === hid);
+            if (idx === -1) return;
+            const removed = p.history.splice(idx, 1)[0];
+            state.openHistoryMenuId = null;
+            renderPlotDetail();
+            showToast(`ลบ "${removed.title}" ออกจากประวัติแล้ว`);
+          });
+        });
+
+        // ท้ายหน้า: ✏️ แก้ข้อมูลแปลง (แผ่นล่าง)
+        $('#btnEditPlotInfo').addEventListener('click', () => {
+          openSheet({
+            title: 'แก้ข้อมูลแปลง',
+            subtitle: `${p.name} · โซน${zone.name}`,
+            bodyHTML: `
+              <div class="form-group">
+                <label class="form-label" for="epName">ชื่อแปลง (ชื่อเต็ม)</label>
+                <input type="text" class="form-input" id="epName" value="${p.name}" />
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="epRai">พื้นที่ (ไร่)</label>
+                  <input type="number" inputmode="decimal" min="0.5" step="0.5" class="form-input tabular" id="epRai" value="${p.rai}" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="epVariety">พันธุ์อ้อย</label>
+                  <input type="text" class="form-input" id="epVariety" value="${p.variety === '-' ? '' : p.variety}" placeholder="เช่น ขอนแก่น 3" />
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="epPlantDate">วันปลูก / วันตัดตอ</label>
+                  <input type="text" class="form-input" id="epPlantDate" value="${p.plantDate || ''}" placeholder="เช่น 26 ม.ค. 69" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="epStatus">ป้ายสถานะ</label>
+                  <select class="form-select" id="epStatus">
+                    <option value="doing" ${p.status === 'doing' ? 'selected' : ''}>กำลังทำ</option>
+                    <option value="due" ${p.status === 'due' ? 'selected' : ''}>ถึงคิว</option>
+                    <option value="" ${!p.status ? 'selected' : ''}>ปกติ (ไม่มีป้าย)</option>
+                  </select>
+                </div>
+              </div>
+              <button type="button" class="sheet-btn primary" id="btnSaveEditPlot">บันทึกข้อมูลแปลง</button>
+            `,
+            onMount(body) {
+              body.querySelector('#btnSaveEditPlot').addEventListener('click', () => {
+                const name = body.querySelector('#epName').value.trim();
+                const rai = Number(body.querySelector('#epRai').value);
+                if (!name) { showToast('กรุณาใส่ชื่อแปลง'); return; }
+                if (!rai || rai <= 0) { showToast('กรุณาใส่จำนวนไร่'); return; }
+                p.name = name;
+                p.rai = rai;
+                p.variety = body.querySelector('#epVariety').value.trim() || '-';
+                p.plantDate = body.querySelector('#epPlantDate').value.trim();
+                const st = body.querySelector('#epStatus').value || null;
+                p.status = st;
+                p.activeJobDone = false;
+                renderSummaryStrip();
+                renderZoneList();
+                renderPlotDetail();
+                closeSheet();
+                showToast('อัปเดตข้อมูลแปลงแล้ว');
+              });
+            }
+          });
+        });
+      }
+
+      /* ===== แผ่นล่าง "+ จดงานแปลงนี้" ===== */
+      function openLogWorkSheet(plot) {
+        const catMap = {
+          spray:   { label: 'ฉีดยา',   kind: 'work' },
+          water:   { label: 'ขึ้นน้ำ',  kind: 'work' },
+          fert:    { label: 'ใส่ปุ๋ย',  kind: 'work' },
+          tractor: { label: 'รถไถ',    kind: 'work' },
+          cut:     { label: 'ตัดอ้อย', kind: 'work' },
+          rain:    { label: 'ฝนตก',    kind: 'rain' }
+        };
+        openSheet({
+          title: plot ? `จดงาน: ${plot.name}` : 'จดงานแปลงด่วน',
+          subtitle: 'อ. 24 พ.ย. 69 · บันทึกเข้าประวัติงานทันที',
+          bodyHTML: `
+            <div class="form-group">
+              <label class="form-label" for="lwCat">ชนิดงาน</label>
+              <select class="form-select" id="lwCat">
+                <option value="spray">ฉีดยาคุมหญ้า</option>
+                <option value="water">ขึ้นน้ำ / ราดร่อง</option>
+                <option value="fert">ใส่ปุ๋ย / บำรุง</option>
+                <option value="tractor">รถไถ / บำรุงร่อง</option>
+                <option value="cut">ตัดอ้อย & ส่งโรงงาน</option>
+                <option value="rain">ฝนตก</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="lwTitle">ชื่องาน</label>
+              <input type="text" class="form-input" id="lwTitle" placeholder="เช่น ราดร่อง/ขึ้นน้ำ หรือ ใส่ปุ๋ยสูตร 15-15-15" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="lwDetail">คนงาน / รถ / หมายเหตุ</label>
+              <input type="text" class="form-input" id="lwDetail" placeholder="เช่น หำ + ผัน" />
+            </div>
+            <button type="button" class="sheet-btn primary" id="btnSaveLogWork">บันทึกงานลงแปลง</button>
+          `,
+          onMount(body) {
+            body.querySelector('#btnSaveLogWork').addEventListener('click', () => {
+              const targetPlot = plot || findPlotWithZone('nk-khwanai').plot;
+              const cat = body.querySelector('#lwCat').value;
+              const title = body.querySelector('#lwTitle').value.trim() || catMap[cat].label;
+              const detail = body.querySelector('#lwDetail').value.trim();
+              const info = catMap[cat];
+
+              targetPlot.history.unshift({
+                id: 'h-' + Date.now(),
+                kind: info.kind,
+                cat,
+                catLabel: info.label,
+                date: '24 พ.ย.',
+                year: '69',
+                span: '',
+                countWeight: 1,
+                title,
+                detail,
+                ongoing: false
+              });
+
+              if (cat === 'water' || cat === 'rain') {
+                targetPlot.waterDays = 0;
+                targetPlot.waterRounds.unshift({
+                  round: targetPlot.waterRounds.length + 1,
+                  kind: cat === 'rain' ? 'rain' : 'water',
+                  label: info.label,
+                  date: '24 พ.ย. 69',
+                  note: detail || title
+                });
+              } else if (cat === 'fert') {
+                targetPlot.ferts.unshift({ date: '24 พ.ย. 69', title, detail: detail || 'บันทึกจากหน้าแปลง' });
+              } else if (cat === 'spray') {
+                targetPlot.sprayTanks += 1;
+                targetPlot.sprays.unshift({ date: '24 พ.ย. 69', title, detail: detail || 'บันทึกวันนี้', status: 'done' });
+              }
+
+              renderZoneList();
+              if (state.activePlotId === targetPlot.id) renderPlotDetail();
+              closeSheet();
+              showToast(`จด "${title}" ลงแปลง ${targetPlot.name} แล้ว`);
+            });
+          }
+        });
+      }
+
+      $('#btnQuickLogMain').addEventListener('click', () => openLogWorkSheet(null));
+
+      /* ===== เมนูล่าง 5 ปุ่ม (วาดไว้ดูตำแหน่ง) ===== */
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const name = tab.dataset.tab;
+          if (name === 'แปลง') {
+            $('#app').scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+          showToast(`แท็บ "${name}" (วาดไว้ดูตำแหน่งของแอปจริง)`);
+        });
+      });
+
+      /* ===== Initial Render ===== */
+      renderSummaryStrip();
+      renderSatelliteCard();
+      renderZoneList();
+    })();
+  </script>
+</body>
+</html>

@@ -44,21 +44,31 @@ function buildEvening_(ss) {
   const people = new Set(), addP = s => String(s || '').split(/[,+]/).map(x => x.trim()).filter(x => x && x !== '-' && x !== 'ไม่ระบุ' && x !== 'ธรรมชาติ').forEach(x => people.add(x));
   const out = [`🌇 สรุปงาน ${thaiDate_(new Date())}`], sec = (h, lines) => { if (lines.length) out.push('', h, ...lines); };
 
-  // ✅ งานวันนี้ — แปลงที่เป็นงานเดียวกัน (ชนิด · รายละเอียด · คน · สถานะ) รวมบรรทัดเดียว
+  // ✅ งานวันนี้ — งานเดียวกัน (ชนิด · รายละเอียด · คน) รวมเป็นข้อเดียว แยกบรรทัด เสร็จ / ยังทำต่อ
+  // 24 พ.ย. 69 ผู้ใช้: "สรุปงานมั่วมาก" — เดิมแยกข้อตามสถานะ แปลงเดียวขึ้นซ้ำ (มี 2 แถว) ปริมาณหาย "ยังค้าง" ซ้ำกับงานวันนี้
   const grp = {}, rain = [];
   acts.forEach(a => {
     if (day(a.timestamp) !== today) return;
-    if (/^ฝนตก/.test(a.activity_group)) { rain.push(pName[a.plot_id] || a.plot_id); return; }
-    const ong = String(a.remark || '').includes('[⏳กำลังทำ]');
-    const k = [a.activity_group, clean(a.activity_detail), clean(a.operator), ong].join('|');
-    (grp[k] = grp[k] || { a, ong, plots: [] }).plots.push(pName[a.plot_id] || a.plot_id);
+    if (/^ฝนตก/.test(a.activity_group)) { const n = pName[a.plot_id] || a.plot_id; if (!rain.includes(n)) rain.push(n); return; }
+    const ong = String(a.remark || '').includes('[⏳กำลังทำ]'), n = pName[a.plot_id] || a.plot_id;
+    const k = [a.activity_group, clean(a.activity_detail), clean(a.operator)].join('|');
+    const g = grp[k] = grp[k] || { a, st: {}, q: {} };
+    if (!(n in g.st) || !ong) g.st[n] = ong ? 'ong' : 'done'; // แปลงเดียวมีหลายแถว: แถวไหนเสร็จ = เสร็จ
+    const q = clean(a.quantity); if (q) g.q[n] = q;
     addP(a.operator);
   });
   const fin = {};
   acts.forEach(a => { if (day(a.timestamp) !== today && String(a.remark || '').includes('เสร็จ ' + today)) (fin[a.activity_group] = fin[a.activity_group] || []).push(pName[a.plot_id] || a.plot_id); });
-  const work = Object.values(grp).map(g => { const a = g.a, det = clean(a.activity_detail), q = clean(a.quantity), who = clean(a.operator);
+  const todayOng = new Set();
+  const work = Object.values(grp).map(g => { const a = g.a, det = clean(a.activity_detail), who = clean(a.operator);
     const g0 = a.activity_group === 'รถไถเตรียมดิน/บำรุง' ? 'รถไถ' : a.activity_group;
-    return `• ${ICON[a.activity_group] || '📝'} ${g0}${det ? ' ' + det : ''} — ${list(g.plots, 5)}${who ? `\n    ${who}` : ''}${q ? ` · ${q}` : ''}${g.ong ? ' · ยังไม่เสร็จ' : ''}`; });
+    const ps = Object.keys(g.st), done = ps.filter(n => g.st[n] === 'done'), ong = ps.filter(n => g.st[n] === 'ong');
+    ong.forEach(n => todayOng.add(a.activity_group + '|' + n));
+    const wq = ns => ns.map(n => g.q[n] ? `${n} ${g.q[n]}` : n);
+    const head = `• ${ICON[a.activity_group] || '📝'} ${g0}${det ? ' ' + det : ''}${who ? ` (${who})` : ''}`;
+    if (!ong.length) return `${head} — ${list(wq(done), 5)} · เสร็จ`;
+    if (!done.length) return `${head} — ${list(wq(ong), 5)} · ยังไม่เสร็จ`;
+    return `${head} — ${ps.length} แปลง\n    ✅ เสร็จ: ${list(wq(done), 5)}\n    ⏳ ยังทำต่อ: ${list(wq(ong), 5)}`; });
   Object.keys(fin).forEach(k => work.push(`• ✅ ${k} — ${list(fin[k], 5)} เสร็จแล้ว`));
   if (rain.length) work.push(`• 🌧️ ฝนตก — ${list(rain, 5)}`);
   sec('✅ งานวันนี้', work);
@@ -74,9 +84,9 @@ function buildEvening_(ss) {
   } catch (e) {}
 
   // 🚚 รถ — คันละบรรทัด: เข้าร้าน / รับรถกลับ + อาการ + ค่าซ่อม
-  const veh = {};
-  readSheet_(ss, SH.ALOG).filter(l => day(l.timestamp) === today && !/ค้างซ่อม|ทะเบียน|ภาษี/.test(l.event_type)).forEach(l => (veh[l.asset_name] = veh[l.asset_name] || []).push(l));
-  sec('🚚 รถ', Object.keys(veh).map(nm => {
+  const veh = {}, home = new Set();
+  readSheet_(ss, SH.ALOG).filter(l => day(l.timestamp) === today && !/ค้างซ่อม|ทะเบียน|ภาษี/.test(l.event_type)).forEach(l => { (veh[l.asset_name] = veh[l.asset_name] || []).push(l); if (l.category === 'Home') home.add(l.asset_name); });
+  const vLine = nm => {
     let st = '', shop = '', amt = ''; const txt = [];
     veh[nm].forEach(l => { const e = String(l.event_type || '');
       if (/รับรถกลับ|ซ่อมเสร็จ/.test(e)) st = 'รับรถกลับ'; else if (/จอดอยู่ร้าน/.test(e) && st !== 'รับรถกลับ') st = 'เอาเข้าร้าน';
@@ -90,8 +100,10 @@ function buildEvening_(ss) {
       if (!st && !txt.length && /บำรุง|ถ่ายรูป|บันทึก/.test(e)) txt.push(e.replace(/^[^\p{L}]+/u, ''));
     });
     const head = st === 'รับรถกลับ' ? 'รับรถกลับ' + (shop ? 'จากร้าน' + shop : '') : st ? 'เอาเข้าร้าน' + shop : shop ? 'ร้าน' + shop : '';
-    return `• ${nm}: ${[head, txt.slice(0, 2).join(', ').slice(0, 90), amt].filter(Boolean).join(' · ')}`;
-  }));
+    return `• ${nm}: ${[head, txt.slice(0, 3).join(', ').slice(0, 110), amt].filter(Boolean).join(' · ')}`;
+  };
+  sec('🚚 รถไร่', Object.keys(veh).filter(n => !home.has(n)).map(vLine));
+  const homeCars = Object.keys(veh).filter(n => home.has(n)).map(vLine); // รถบ้าน แยกหัวข้อ ไม่ปนงานไร่
 
   // ⛽ / 🧪 สต็อก
   try {
@@ -109,19 +121,20 @@ function buildEvening_(ss) {
     sec('📦 ยา / น้ำมัน', L);
   } catch (e) { out.push('', '📦 ยา / น้ำมัน: ดึงข้อมูลไม่ได้'); }
 
-  // 🏠 นอกไร่
+  // 🏠 นอกไร่ (รวมรถบ้าน)
   try {
     const iso = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
-    sec('🏠 นอกไร่', readSheet_(ss, 'Notes').filter(n => (day(n.date) === today || day(n.date) === iso) && n.kind !== 'idea').map(n => { addP(n.workers);
-      return `• ${String(n.text || '').replace(TAG, '').slice(0, 80)}${Number(n.amount) > 0 ? ' · ' + Number(n.amount).toLocaleString('en-US') + ' บ.' : ''}${clean(n.workers) ? ' · ' + n.workers : ''}`; }));
-  } catch (e) {}
+    sec('🏠 นอกไร่', homeCars.concat(readSheet_(ss, 'Notes').filter(n => (day(n.date) === today || day(n.date) === iso) && n.kind !== 'idea').map(n => { addP(n.workers);
+      return `• ${String(n.text || '').replace(TAG, '').slice(0, 80)}${Number(n.amount) > 0 ? ' · ' + Number(n.amount).toLocaleString('en-US') + ' บ.' : ''}${clean(n.workers) ? ' · ' + n.workers : ''}`; })));
+  } catch (e) { sec('🏠 นอกไร่', homeCars); }
 
   if (out.length === 1) out.push('', 'วันนี้ยังไม่มีบันทึกงาน — ถ้าทำอะไรไป จดในแอปได้เลย');
   else if (people.size) out.push('', `👷 คนทำงานวันนี้ ${people.size} คน: ${[...people].join(', ')}`);
 
   const og = {};
-  acts.forEach(a => { if (String(a.remark || '').includes('[⏳กำลังทำ]')) (og[a.activity_group] = og[a.activity_group] || []).push(pName[a.plot_id] || a.plot_id); });
-  if (Object.keys(og).length) out.push('', '⏳ ยังค้าง: ' + Object.keys(og).map(k => `${k} ${list(og[k], 4)}`).join(' · '));
+  acts.forEach(a => { const n = pName[a.plot_id] || a.plot_id; // งานค้างจากวันก่อน (ที่ขึ้นใน "งานวันนี้" แล้วไม่ซ้ำ)
+    if (String(a.remark || '').includes('[⏳กำลังทำ]') && !todayOng.has(a.activity_group + '|' + n)) { const L = og[a.activity_group] = og[a.activity_group] || []; if (!L.includes(n)) L.push(n); } });
+  if (Object.keys(og).length) out.push('', '⏳ ค้างจากวันก่อน: ' + Object.keys(og).map(k => `${k} ${list(og[k], 4)}`).join(' · '));
   try {
     const t = new Date(); t.setDate(t.getDate() + 1);
     const tm = `${String(t.getDate()).padStart(2, '0')}/${String(t.getMonth() + 1).padStart(2, '0')}/${t.getFullYear() + 543}`;

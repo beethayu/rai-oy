@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1F5E3B" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>ฝากดู · ผลผลิต · โซนอ่อนประจำ · ขั้นตอน — ไร่อ้อย 281 ไร่</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== ภาษาภาพและตัวแปรชุดเดียวกับหน้าวันนี้ v5 และหน้าแปลง v1 ===== */
+    :root {
+      --brand: #1F5E3B;
+      --brand-dark: #15452A;
+      --brand-soft: #E8F3EC;
+      --brand-mid: #A8CBB5;
+      --bg: #F4F5F1;
+      --surface: #FFFFFF;
+      --surface-note: #EEF4F0;
+      --ink: #16241B;
+      --ink-2: #46594E;
+      --ink-3: #6D7B72;
+      --line: #B8C6BC;
+      --line-soft: #D3DDD6;
+      --border: #DCE3DC;
+      --ask: #6D28D9;
+      --ask-soft: #F3EEFF;
+      --ask-border: #C4B5FD;
+      --due: #C2410C;
+      --due-soft: #FFF1E6;
+      --due-border: #FDBA74;
+      --danger: #B91C1C;
+      --danger-soft: #FEF2F2;
+      --nolog-bg: #F6EFE0;
+      --nolog-ink: #7A5919;
+      --nolog-border: #E6D2A2;
+      --brown-ink: #6B3410;
+      --water: #0369A1;
+      --water-soft: #E0F2FE;
+      --water-border: #BAE6FD;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(20, 46, 30, 0.06), 0 1px 1px rgba(20, 46, 30, 0.03);
+      --shadow-md: 0 4px 12px rgba(20, 46, 30, 0.09), 0 1px 3px rgba(20, 46, 30, 0.04);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.sun-boost {
+      --border: #B2C1B5;
+      --ink-2: #2A3C31;
+      --ink-3: #45594E;
+      --shadow: 0 1px 3px rgba(10, 26, 16, 0.14);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* iPhone: html และ body ไม่เลื่อน */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.42;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    /* ช่องพิมพ์ 16px เสมอ กัน iPhone ซูม */
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* กรอบจอ iPhone 390x844 */
+    .phone-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 440px) and (min-height: 700px) {
+      .phone-frame {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        width: 390px;
+        height: min(844px, calc(100dvh - 24px));
+        border-radius: 34px;
+        border: 1px solid #CFD8D0;
+        box-shadow: 0 22px 60px rgba(20, 46, 30, 0.14), 0 4px 14px rgba(20, 46, 30, 0.06);
+      }
+    }
+
+    .safe-top-bar {
+      height: var(--safe-top);
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+
+    /* ===== หัวหน้าย่อยตระกูล v5 (แถบเขียว #1F5E3B · ‹ แปลง · ชื่อขาวตัวหนา · ไม่มี ✕ ไม่มีอีโมจิ) ===== */
+    .app-green-bar {
+      position: relative;
+      z-index: 40;
+      background: var(--brand);
+      color: #FFFFFF;
+      padding: 7px 12px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      flex-shrink: 0;
+    }
+
+    .subpage-bar-row {
+      display: grid;
+      grid-template-columns: minmax(76px, auto) 1fr minmax(36px, auto);
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+    }
+
+    .subpage-back-btn {
+      justify-self: start;
+      height: 34px;
+      padding: 0 10px 0 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .subpage-back-btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .subpage-title {
+      margin: 0;
+      font-size: 16.5px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #FFFFFF;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subpage-right {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .green-hdr-btn {
+      height: 34px;
+      width: 34px;
+      padding: 0;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.14);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .green-hdr-btn.is-sun-on {
+      background: #FEF3C7;
+      border-color: #FCD34D;
+      color: #92400E;
+    }
+
+    /* แถบสลับดู 4 หน้าย่อยในไฟล์ตัวอย่างก้อน 3 */
+    .demo-switcher-dock {
+      background: var(--bg);
+      padding: 8px 14px 6px;
+      border-bottom: 1px solid rgba(31, 94, 59, 0.09);
+      flex-shrink: 0;
+    }
+
+    /* ===== โครงเลื่อนหลักใต้ safe-top ===== */
+    .views-stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view-pane {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--bg);
+    }
+
+    .view-pane.is-inactive {
+      display: none;
+    }
+
+    .page-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding: 12px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .page-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page-scroll > * {
+      flex-shrink: 0;
+    }
+
+    /* แถบปุ่มหลักท้ายฟอร์ม (1 ปุ่มเต็มความกว้างตามกฎ v5) */
+    .sticky-form-footer {
+      padding: 10px 14px calc(var(--safe-bottom) + 12px);
+      background: rgba(244, 245, 241, 0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ===== ชิ้นส่วน v5 เดิมที่ใช้ซ้ำตรงตัว ===== */
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+      padding: 0 2px;
+    }
+
+    .sec-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .sec-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .sec-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #E5ECE6;
+      color: var(--brand-dark);
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .sec-badge.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .sec-badge.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .sec-badge.is-muted {
+      background: #EAEFE9;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    .sec-toggle-btn {
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sec-toggle-btn:active {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    /* Segmented Control (v5 exact classes) */
+    .seg-bar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      padding: 3px;
+      background: #E5EBE6;
+      border-radius: 11px;
+    }
+
+    .seg-bar.is-4col {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .seg-btn {
+      height: 34px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+      white-space: nowrap;
+      padding: 0 4px;
+    }
+
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(20, 46, 30, 0.11);
+    }
+
+    /* Grouped Card & Status Row (v5 exact classes) */
+    .grouped-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .status-row {
+      width: 100%;
+      padding: 11px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      position: relative;
+    }
+
+    .status-row + .status-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .status-row.is-clickable {
+      cursor: pointer;
+    }
+
+    .status-row.is-clickable:active {
+      background: #F7FAF7;
+    }
+
+    .status-row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-icon-box.is-due {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .status-icon-box.is-ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .status-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .status-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .status-sub {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 1px;
+      line-height: 1.34;
+    }
+
+    .chev {
+      color: var(--ink-3);
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* ป้ายสถานะ .st-pill */
+    .st-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.35;
+    }
+
+    .st-pill.watch {
+      background: var(--due-soft);
+      color: var(--due);
+    }
+
+    .st-pill.done {
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+    }
+
+    .st-pill.muted {
+      background: #EDF2EE;
+      color: var(--ink-2);
+    }
+
+    /* การ์ดเตือน/สรุป 4 ชั้น (.task-card) */
+    .task-card {
+      width: 100%;
+      padding: 11px 12px 11px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .task-card.st-watch {
+      border-left-color: var(--due);
+      background: #FFFDF8;
+      border-color: var(--due-border);
+      border-left-width: 4px;
+    }
+
+    .an-l1 {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+      line-height: 1.3;
+    }
+
+    .an-l2 {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .an-l2.is-due { color: var(--due); }
+
+    .an-l3 {
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+
+    .an-l3 strong { font-weight: 700; }
+
+    .an-l4 {
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
+    /* ปุ่มหลัก .sheet-btn.primary (เต็มความกว้าง 1 ปุ่มท้ายฟอร์ม/แผ่นล่าง) */
+    .sheet-btn {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .sheet-btn:active {
+      transform: scale(0.985);
+    }
+
+    .sheet-btn.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .sheet-btn.primary:active {
+      background: var(--brand-dark);
+    }
+
+    /* ===== 3a: ฝากดูแปลง (ชิปสีของแอป + แถวเลือกแปลงมีติ๊ก) ===== */
+    .choice-chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .choice-chip {
+      height: 36px;
+      padding: 0 13px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s, background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .choice-chip:active {
+      transform: scale(0.96);
+    }
+
+    .choice-chip.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    .plain-card-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 13px;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+    }
+
+    .plain-card-input::placeholder {
+      color: var(--ink-3);
+      font-size: 14.5px;
+    }
+
+    .zone-sub-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      padding: 0 3px 5px;
+    }
+
+    .check-row {
+      width: 100%;
+      padding: 11px 12px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+
+    .check-row + .check-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .check-row:active {
+      background: #F6F9F6;
+    }
+
+    .check-row.is-checked {
+      background: #F4FAF6;
+    }
+
+    .check-row-name {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .check-box-v5 {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 1.8px solid var(--line);
+      background: var(--surface);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .check-row.is-checked .check-box-v5 {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
+    /* ===== 3b: บันทึกผลผลิต (หัวตัวเลขคำนวณสด + แถวตั้งค่า iPhone) ===== */
+    .yield-hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px 13px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .yield-hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .yield-plot-heading {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.28;
+    }
+
+    .yield-metrics-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 9px;
+      align-items: stretch;
+    }
+
+    .yield-input-box {
+      border: 1.5px solid var(--brand-mid);
+      background: #FBFDFB;
+      border-radius: 12px;
+      padding: 8px 10px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: border-color 0.15s;
+    }
+
+    .yield-input-box:focus-within {
+      border-color: var(--brand);
+      background: var(--surface);
+    }
+
+    .yield-box-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+
+    .yield-big-input-row {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+    }
+
+    .yield-big-input {
+      width: 100%;
+      min-width: 0;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.15;
+      padding: 0;
+      outline: none;
+    }
+
+    .yield-big-input::placeholder {
+      color: #B4C0B7;
+    }
+
+    .yield-big-input::-webkit-inner-spin-button,
+    .yield-big-input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .yield-unit-big {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+      flex-shrink: 0;
+    }
+
+    .yield-calc-box {
+      border: 1px solid var(--brand-mid);
+      background: var(--brand-soft);
+      border-radius: 12px;
+      padding: 8px 10px 9px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 2px;
+    }
+
+    .yield-calc-val {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      line-height: 1.15;
+    }
+
+    .yield-calc-unit {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+
+    /* แถวฟอร์มแบบหน้าตั้งค่า iPhone (ป้ายซ้าย | ค่าขวา) */
+    .setting-row {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 46px;
+    }
+
+    .setting-row + .setting-row {
+      border-top: 1px solid #E9EFEA;
+    }
+
+    .setting-label-wrap {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .setting-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .setting-opt {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      line-height: 1.2;
+    }
+
+    .setting-input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      background: transparent;
+      text-align: right;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 600;
+      outline: none;
+      padding: 2px 0;
+    }
+
+    .setting-input::placeholder {
+      color: var(--ink-3);
+      font-weight: 400;
+      font-size: 14.5px;
+    }
+
+    /* ===== 3c: แผ่นล่างเด้ง v5 (.sheet-*) ===== */
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 2100;
+      background: rgba(16, 32, 22, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-panel {
+      width: 100%;
+      max-width: 390px;
+      max-height: 86%;
+      background: var(--bg);
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+      box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.18);
+      padding-bottom: var(--safe-bottom);
+      will-change: transform;
+    }
+
+    .sheet-backdrop.open .sheet-panel {
+      transform: translateY(0);
+    }
+
+    .sheet-drag-zone {
+      padding-top: 8px;
+      background: var(--surface);
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: #CFD8D2;
+      margin: 0 auto 6px;
+    }
+
+    .sheet-header {
+      padding: 4px 14px 11px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .sheet-subtitle {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-top: 2px;
+    }
+
+    .sheet-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: none;
+      background: #EFF3F0;
+      color: var(--ink);
+      font-size: 19px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sheet-close:active {
+      background: #E0E7E2;
+    }
+
+    .sheet-body {
+      padding: 12px 14px 18px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .sheet-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sheet-body > * {
+      flex-shrink: 0;
+    }
+
+    .wz-map-box {
+      position: relative;
+      background: #F8F9F7;
+      padding: 12px 12px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wz-north-tag {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-2);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 1px 6px;
+    }
+
+    .wz-legend-strip {
+      padding: 8px 12px;
+      border-top: 1px solid #E9EFEA;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    .wz-leg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .wz-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* ===== 3d: ส่วนบนขั้นตอนอ้อยใหม่ / อ้อยตอ (รวม .seg-bar 2 ชั้นแบบเดียวกัน + ชิประยะติดบน) ===== */
+    .flow-top-controls {
+      padding: 10px 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .flow-sticky-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(244, 245, 241, 0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 8px 14px 9px;
+      border-bottom: 1px solid rgba(31, 94, 59, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 0 -14px;
+    }
+
+    .flow-plot-picker {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .flow-plot-picker:active {
+      background: #F7FAF7;
+      border-color: var(--brand-mid);
+    }
+
+    .flow-picker-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .flow-picker-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+
+    .flow-picker-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .flow-picker-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .stage-chips-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .stage-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stage-chip {
+      height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .stage-chip.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #FFFFFF;
+    }
+
+    /* พรีวิวผังงานเดิมด้านล่าง (คงหน้าตาผังที่ผ่านแล้วเพื่อทดสอบการเลื่อนกับหัวติดบน) */
+    .fc-legend-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .fc-legend-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .fc-stage-pill {
+      align-self: center;
+      padding: 4px 14px;
+      border-radius: 999px;
+      background: #E2EBE4;
+      color: var(--brand-dark);
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .fc-connector {
+      align-self: center;
+      width: 2px;
+      height: 14px;
+      background: var(--line);
+    }
+
+    .fc-node {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 13px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .fc-node.is-ask {
+      border-color: var(--ask-border);
+    }
+
+    .fc-node-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .fc-node-sub {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 2px;
+    }
+
+    .fc-branch-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .fc-branch-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .fc-mini-node {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 9px 9px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+
+    /* Toast */
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 66px);
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 9px 15px;
+      border-radius: 999px;
+      z-index: 2300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+      max-width: 356px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 6px 20px rgba(16, 32, 22, 0.26);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" id="phoneFrame">
+    <div class="safe-top-bar"></div>
+
+    <!-- หัวหน้าย่อยตระกูล v5: แถบเขียว #1F5E3B · ‹ แปลง · ชื่อขาวตัวหนา · ไม่มี ✕ ไม่มีอีโมจิ -->
+    <header class="app-green-bar">
+      <div class="subpage-bar-row">
+        <button type="button" class="subpage-back-btn" id="btnBack" aria-label="กลับหน้าแปลง">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>แปลง</span>
+        </button>
+        <h1 class="subpage-title" id="headerTitle">ฝากดูแปลง</h1>
+        <div class="subpage-right">
+          <button type="button" class="green-hdr-btn" id="btnSunToggle" title="โหมดกลางแดดจัด" aria-label="สลับโหมดกลางแดดจัด">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- แถบสลับดู 4 ชิ้นในก้อน 3 -->
+    <div class="demo-switcher-dock">
+      <div class="seg-bar is-4col" role="tablist" aria-label="เลือกดูหน้าย่อยก้อน 3">
+        <button type="button" class="seg-btn active" data-demo-view="watch" role="tab" aria-selected="true">ฝากดู</button>
+        <button type="button" class="seg-btn" data-demo-view="yield" role="tab" aria-selected="false">ผลผลิต</button>
+        <button type="button" class="seg-btn" data-demo-view="weakzone" role="tab" aria-selected="false">โซนอ่อน</button>
+        <button type="button" class="seg-btn" data-demo-view="flow" role="tab" aria-selected="false">ขั้นตอน</button>
+      </div>
+    </div>
+
+    <main class="views-stage">
+      <!-- ==================== 3a: ฝากดูแปลง (หน้าเต็มที่มี ‹ แปลง + สีเขียวตระกูล v5) ==================== -->
+      <section class="view-pane" id="paneWatch" aria-label="ฝากดูแปลง">
+        <div class="page-scroll">
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">ต้องทำอะไร</h2>
+              </div>
+              <span class="sec-badge is-muted">เลือก 1 อย่าง</span>
+            </div>
+            <div class="choice-chip-wrap" id="watchTaskChips" role="radiogroup" aria-label="เลือกงานที่ฝากดู">
+              <button type="button" class="choice-chip active" data-watch-task="ขึ้นน้ำ" aria-checked="true">ขึ้นน้ำ</button>
+              <button type="button" class="choice-chip" data-watch-task="หว่านปุ๋ย" aria-checked="false">หว่านปุ๋ย</button>
+              <button type="button" class="choice-chip" data-watch-task="ฉีดยา" aria-checked="false">ฉีดยา</button>
+              <button type="button" class="choice-chip" data-watch-task="น้ำขัง สูบออก" aria-checked="false">น้ำขัง สูบออก</button>
+              <button type="button" class="choice-chip" data-watch-task="ไปดูอาการ" aria-checked="false">ไปดูอาการ</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">รายละเอียด</h2>
+                <span class="sec-badge is-muted">ไม่ใส่ก็ได้</span>
+              </div>
+            </div>
+            <div class="grouped-card">
+              <input type="text" class="plain-card-input" id="watchNoteInput" placeholder="เช่น อ้อยใบเหลือง หัวแปลงน้ำขัง" aria-label="รายละเอียดเพิ่มเติม" />
+            </div>
+          </div>
+
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">แปลง</h2>
+                <span class="sec-badge is-ok tabular" id="watchCountBadge">เลือก 1 แปลง</span>
+              </div>
+              <button type="button" class="sec-toggle-btn" id="btnClearWatchPlots">ล้างที่เลือก</button>
+            </div>
+
+            <div id="watchPlotGroups" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
+        </div>
+
+        <div class="sticky-form-footer">
+          <button type="button" class="sheet-btn primary" id="btnSubmitWatch">ฝากดู (1 แปลง)</button>
+        </div>
+      </section>
+
+      <!-- ==================== 3b: บันทึกผลผลิต (หัวตัวเลขคำนวณสด + แถวตั้งค่า iPhone) ==================== -->
+      <section class="view-pane is-inactive" id="paneYield" aria-label="บันทึกผลผลิต">
+        <div class="page-scroll">
+          <!-- ตัวเลขสำคัญ (ตัน + ตัน/ไร่ คำนวณสด) อยู่บนหัวตัวใหญ่ -->
+          <div class="yield-hero-card">
+            <div class="yield-hero-top">
+              <div class="yield-plot-heading">P13 หนองทิ้งสุ่ม (ข้างสระ)</div>
+              <span class="st-pill muted tabular">เนื้อที่ 11 ไร่</span>
+            </div>
+            <div class="yield-metrics-grid">
+              <label class="yield-input-box" for="yieldTonsInput">
+                <span class="yield-box-label">น้ำหนักอ้อยรวมส่งโรงงาน</span>
+                <div class="yield-big-input-row">
+                  <input type="number" step="0.1" min="0" inputmode="decimal" id="yieldTonsInput" class="yield-big-input tabular" value="215.4" placeholder="215.4" />
+                  <span class="yield-unit-big">ตัน</span>
+                </div>
+              </label>
+              <div class="yield-calc-box">
+                <span class="yield-box-label" style="color:var(--brand-dark);">ผลผลิตเฉลี่ย</span>
+                <div>
+                  <div class="yield-calc-val tabular" id="yieldPerRaiVal">19.6</div>
+                  <div class="yield-calc-unit">ตัน/ไร่ · คำนวณสด</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- รอบที่ตัดเป็นปุ่มแบ่งช่อง .seg-bar -->
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">รอบที่ตัด</h2>
+              </div>
+            </div>
+            <div class="seg-bar is-4col" id="yieldRoundBar" role="tablist" aria-label="เลือกรอบที่ตัด">
+              <button type="button" class="seg-btn" data-round="อ้อยใหม่" role="tab" aria-selected="false">อ้อยใหม่</button>
+              <button type="button" class="seg-btn active" data-round="ตอ 1" role="tab" aria-selected="true">ตอ 1</button>
+              <button type="button" class="seg-btn" data-round="ตอ 2" role="tab" aria-selected="false">ตอ 2</button>
+              <button type="button" class="seg-btn" data-round="ตอ 3+" role="tab" aria-selected="false">ตอ 3+</button>
+            </div>
+          </div>
+
+          <!-- ที่เหลือเป็นการ์ดแถวแบบหน้าตั้งค่า iPhone (ป้ายซ้าย | ค่าขวา) -->
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">รายละเอียดการส่งหีบ</h2>
+              </div>
+            </div>
+            <div class="grouped-card">
+              <label class="setting-row" for="yieldSeasonInput">
+                <span class="setting-label-wrap">
+                  <span class="setting-label">ฤดูหีบ</span>
+                </span>
+                <input type="text" id="yieldSeasonInput" class="setting-input tabular" value="2569/70" placeholder="เช่น 2569/70" />
+              </label>
+              <label class="setting-row" for="yieldDateInput">
+                <span class="setting-label-wrap">
+                  <span class="setting-label">วันที่ตัดเสร็จ</span>
+                </span>
+                <input type="date" id="yieldDateInput" class="setting-input tabular" value="2026-11-24" />
+              </label>
+              <label class="setting-row" for="yieldCcsInput">
+                <span class="setting-label-wrap">
+                  <span class="setting-label">ค่าความหวาน CCS</span>
+                  <span class="setting-opt">ไม่ใส่ก็ได้</span>
+                </span>
+                <input type="number" step="0.1" min="0" max="25" inputmode="decimal" id="yieldCcsInput" class="setting-input tabular" placeholder="เช่น 12.5" />
+              </label>
+              <label class="setting-row" for="yieldNoteInput">
+                <span class="setting-label-wrap">
+                  <span class="setting-label">หมายเหตุ</span>
+                  <span class="setting-opt">ไม่ใส่ก็ได้</span>
+                </span>
+                <input type="text" id="yieldNoteInput" class="setting-input" placeholder="เช่น ตัดรถ / ตัดคน" />
+              </label>
+            </div>
+            <div class="an-l4 tabular" style="padding:6px 4px 0;">เนื้อที่ 11 ไร่ · ตัน/ไร่ คำนวณให้เองจากน้ำหนักอ้อยรวม</div>
+          </div>
+        </div>
+
+        <div class="sticky-form-footer">
+          <button type="button" class="sheet-btn primary" id="btnSubmitYield">บันทึก</button>
+        </div>
+      </section>
+
+      <!-- ==================== 3c: โซนอ่อนประจำ (พื้นหลังหน้ารายละเอียด + แผ่นล่างเด้ง v5) ==================== -->
+      <section class="view-pane is-inactive" id="paneWeakZone" aria-label="โซนอ่อนประจำ">
+        <div class="page-scroll">
+          <div class="task-card st-watch">
+            <div class="an-l1"><span>รายละเอียดแปลง · P13</span></div>
+            <div class="an-l2">หนองทิ้งสุ่ม (ข้างสระ)</div>
+            <div class="an-l3 tabular">เนื้อที่ <strong>11 ไร่</strong> · อ้อยตอ</div>
+          </div>
+
+          <div>
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title">วิเคราะห์แปลงนี้</h2>
+              </div>
+            </div>
+            <div class="grouped-card">
+              <button type="button" class="status-row is-clickable" id="btnReopenWeakZone">
+                <div class="status-row-left">
+                  <span class="status-icon-box is-due" aria-hidden="true">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                  </span>
+                  <div class="status-info">
+                    <div class="status-title">โซนอ่อนประจำ · อ่อนประจำ ~0.6 ไร่ (6%)</div>
+                    <div class="status-sub">แตะเพื่อเปิดแผ่นล่างดูแผนที่พิกเซล 8 เดือน</div>
+                  </div>
+                </div>
+                <span class="chev" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 3d: ขั้นตอนอ้อยใหม่ / อ้อยตอ (ส่วนบน .seg-bar 2 ชั้นเดียวกัน + ชิประยะติดบน) ==================== -->
+      <section class="view-pane is-inactive" id="paneFlow" aria-label="ขั้นตอนอ้อยใหม่ / อ้อยตอ">
+        <!-- แท็บ 2 ชั้นแบบ .seg-bar เดียวกันเป๊ะ (แก้จากเดิมที่ชั้นบนเทา ชั้นล่างเขียวทึบ) -->
+        <div class="flow-top-controls">
+          <div class="seg-bar" id="flowCropBar" role="tablist" aria-label="เลือกชนิดอ้อย">
+            <button type="button" class="seg-btn" data-flow-crop="new" role="tab" aria-selected="false">อ้อยใหม่</button>
+            <button type="button" class="seg-btn active" data-flow-crop="ratoon" role="tab" aria-selected="true">อ้อยตอ</button>
+          </div>
+          <div class="seg-bar" id="flowModeBar" role="tablist" aria-label="เลือกมุมมอง">
+            <button type="button" class="seg-btn active" data-flow-mode="chart" role="tab" aria-selected="true">ผังงาน</button>
+            <button type="button" class="seg-btn" data-flow-mode="plots" role="tab" aria-selected="false">แปลงของเรา</button>
+          </div>
+        </div>
+
+        <div class="page-scroll" id="flowScroll" style="padding-top:0;">
+          <!-- ตัวเลือกแปลง + ชิประยะติดบน (Sticky ขณะเลื่อนดูผัง) -->
+          <div class="flow-sticky-bar">
+            <button type="button" class="flow-plot-picker" id="btnFlowPlotPicker">
+              <span class="flow-picker-left">
+                <span class="flow-picker-dot" aria-hidden="true"></span>
+                <span class="flow-picker-text" id="flowSelectedPlotText">ผังรวม (ยังไม่เลือกแปลง)</span>
+              </span>
+              <span class="flow-picker-right">
+                <span class="sec-badge is-ok tabular" id="flowStepCount">17 ขั้น</span>
+                <span class="chev" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+              </span>
+            </button>
+            <div class="stage-chips-row" id="flowStageChips" role="tablist" aria-label="ข้ามไประยะอ้อย">
+              <button type="button" class="stage-chip active" data-stage-target="st-sprout">งอก</button>
+              <button type="button" class="stage-chip" data-stage-target="st-tiller">แตกกอ</button>
+              <button type="button" class="stage-chip" data-stage-target="st-elong">ย่างปล้อง</button>
+              <button type="button" class="stage-chip" data-stage-target="st-ripe">สุกแก่</button>
+            </div>
+          </div>
+
+          <!-- เนื้อหาผังงานเดิมที่ผ่านแล้ว (คงโครงเดิม ไม่เปลี่ยนผัง) -->
+          <div id="flowChartContent" style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
+            <div class="fc-legend-card">
+              <div class="fc-legend-line">
+                <span><span style="color:var(--ask);font-weight:700;">◆</span> ทางแยก/ถาม</span>
+                <span><span style="color:var(--brand);font-weight:700;">↓</span> ทำต่อเนื่อง</span>
+                <span><span style="color:var(--ink-3);">┄</span> ช่วงดูแล</span>
+              </div>
+              <div style="font-size:12px;color:var(--ink-3);">แตะกล่องดูรายละเอียด (ผังงานด้านล่างคงแบบเดิมที่ผ่านแล้ว)</div>
+            </div>
+
+            <div class="fc-stage-pill" id="st-sprout">ระยะงอก 0–1.5 เดือน</div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-node is-ask" data-fc-toast="จัดการใบอ้อย (วันที่ 0–7)">
+              <div class="fc-node-title"><span style="color:var(--ask);">◆</span> จัดการใบอ้อย</div>
+              <div class="fc-node-sub">วันที่ 0–7 · <span style="color:var(--ask);font-weight:600;">ตัดแล้วจัดการใบยังไง?</span></div>
+            </div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-branch-3">
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">ไถ (ตอที่เผา)</div>
+                <div style="font-size:12px;color:var(--ink-2);">1–7 วัน</div>
+              </div>
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">สับใบ</div>
+                <div style="font-size:12px;color:var(--ink-2);">1–7 วัน</div>
+              </div>
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">กวาดใบ + อัดใบ</div>
+                <div style="font-size:12px;color:var(--ink-2);">0–7 วัน</div>
+              </div>
+            </div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-branch-2">
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">ริปเปอร์ 2 ขา (รถใหญ่)</div>
+                <div style="font-size:12px;color:var(--ink-2);">0–20 วัน</div>
+              </div>
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">ขึ้นน้ำครั้งแรก</div>
+                <div style="font-size:12px;color:var(--ink-2);">10–45 วัน</div>
+              </div>
+            </div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-stage-pill" id="st-tiller">ระยะแตกกอ 1.5–4 เดือน</div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-branch-2">
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">สับหญ้า / ครูดร่อง</div>
+                <div style="font-size:12px;color:var(--ink-2);">45–95 วัน</div>
+              </div>
+              <div class="fc-mini-node">
+                <div style="font-weight:700;">ปุ๋ยอ้อยตอ ครั้งที่ 1</div>
+                <div style="font-size:12px;color:var(--ink-2);">55–91 วัน</div>
+              </div>
+            </div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-node" data-fc-toast="ล้มหลังร่อง + พูนโคน + ปุ๋ยครั้งที่ 2">
+              <div class="fc-node-title">ล้มหลังร่อง + พูนโคน + ปุ๋ยครั้งที่ 2</div>
+              <div class="fc-node-sub">วันที่ 90–120</div>
+            </div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-stage-pill" id="st-elong">ระยะย่างปล้อง 4–9 เดือน</div>
+            <div class="fc-connector"></div>
+            <div class="fc-node" data-fc-toast="ติดตามน้ำในดินและภาพดาวเทียม">
+              <div class="fc-node-title">ติดตามความชื้น · ดูแลร่องน้ำ</div>
+              <div class="fc-node-sub">เดือนที่ 4–9</div>
+            </div>
+            <div class="fc-connector"></div>
+
+            <div class="fc-stage-pill" id="st-ripe">ระยะสุกแก่ 9–12 เดือน</div>
+            <div class="fc-connector"></div>
+            <div class="fc-node" data-fc-toast="งดให้น้ำ 2 เดือนก่อนตัด">
+              <div class="fc-node-title">งดให้น้ำก่อนตัด · เร่งความหวาน</div>
+              <div class="fc-node-sub">2 เดือนก่อนตัด (พ.ย.–ธ.ค.)</div>
+            </div>
+          </div>
+
+          <!-- มุมมอง "แปลงของเรา" เมื่อสลับแท็บชั้น 2 -->
+          <div id="flowMyPlotsContent" class="is-hidden" style="display:flex;flex-direction:column;gap:10px;padding-top:4px;">
+            <div class="sec-head">
+              <div class="sec-title-wrap">
+                <h2 class="sec-title" id="flowMyPlotsHeading">แปลงอ้อยตอในไร่</h2>
+              </div>
+              <span class="sec-badge is-ok">แตะเพื่อดูผังแปลง</span>
+            </div>
+            <div class="grouped-card" id="flowMyPlotsList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== 3c: แผ่นล่างเด้ง v5 "โซนอ่อนประจำ · หนองทิ้งสุ่ม (ข้างสระ)" ===== -->
+    <div class="sheet-backdrop" id="weakZoneBackdrop" aria-hidden="true">
+      <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="wzSheetTitle">
+        <div class="sheet-drag-zone" data-close-sheet="weakZoneBackdrop">
+          <div class="sheet-handle"></div>
+        </div>
+        <div class="sheet-header">
+          <div>
+            <div class="sheet-title" id="wzSheetTitle">โซนอ่อนประจำ</div>
+            <div class="sheet-subtitle">หนองทิ้งสุ่ม (ข้างสระ)</div>
+          </div>
+          <button type="button" class="sheet-close" data-close-sheet="weakZoneBackdrop" aria-label="ปิด">×</button>
+        </div>
+        <div class="sheet-body">
+          <!-- ภาพแปลงพิกเซลสี + คำอธิบายสี 4 ระดับ -->
+          <div class="grouped-card">
+            <div class="wz-map-box">
+              <span class="wz-north-tag">N ↑</span>
+              <svg viewBox="0 0 260 164" width="100%" style="max-width:290px;height:auto;display:block;" aria-label="แผนที่พิกเซลโซนอ่อนประจำ หนองทิ้งสุ่ม (ข้างสระ)">
+                <!-- ขอบแปลงสีเทาอ่อน (ไม่นับเพราะปนถนน/คันนา) -->
+                <polygon points="18,8 244,10 240,156 12,118 28,66" fill="#E3E6E2" />
+                <!-- พื้นที่ปกติ (ครีม) -->
+                <polygon points="28,16 234,18 230,146 22,112 36,66" fill="#EFE6BD" />
+                <!-- แถบกลางความเขียวปกติค่อนข้างแน่น -->
+                <polygon points="164,24 206,24 198,136 154,132" fill="#D5C18A" />
+                <!-- จุดดีกว่า (เขียว) -->
+                <rect x="150" y="68" width="10" height="44" rx="1" fill="#1F7A3A" />
+                <!-- จุดอ่อนกว่า (ส้ม) -->
+                <rect x="152" y="16" width="44" height="8" rx="1" fill="#F97316" />
+                <rect x="16" y="98" width="10" height="12" rx="1" fill="#F97316" />
+                <rect x="38" y="114" width="16" height="7" rx="1" fill="#F97316" />
+                <rect x="96" y="124" width="42" height="10" rx="1" fill="#F97316" />
+                <rect x="182" y="138" width="46" height="9" rx="1" fill="#F97316" />
+                <!-- จุดอ่อนมาก (แดง) -->
+                <rect x="33" y="112" width="10" height="4" rx="1" fill="#DC2626" />
+                <rect x="78" y="122" width="22" height="5" rx="1" fill="#DC2626" />
+                <rect x="158" y="136" width="24" height="5" rx="1" fill="#DC2626" />
+              </svg>
+            </div>
+            <div class="wz-legend-strip">
+              <span class="wz-leg-item"><span class="wz-dot" style="background:#DC2626;"></span>อ่อนมาก</span>
+              <span class="wz-leg-item"><span class="wz-dot" style="background:#F97316;"></span>อ่อนกว่า</span>
+              <span class="wz-leg-item"><span class="wz-dot" style="background:#EFE6BD;border:1px solid #D5C898;"></span>ปกติ</span>
+              <span class="wz-leg-item"><span class="wz-dot" style="background:#1F7A3A;"></span>ดีกว่า</span>
+            </div>
+          </div>
+
+          <!-- การ์ดสรุป 4 ชั้น (ตระกูล v5 .task-card.st-watch) -->
+          <div class="task-card st-watch">
+            <div class="an-l1">เทียบความเขียวเฉลี่ยของทุกภาพใส 8 เดือนที่ผ่านมา กับค่าเฉลี่ยของแปลงเอง</div>
+            <div class="an-l2 is-due">
+              <span class="tabular">อ่อนประจำ ~0.6 ไร่ (6%)</span>
+              <span class="st-pill watch">8 เดือน</span>
+            </div>
+            <div class="an-l3"><strong>จุดแดง/ส้ม = อ่อนกว่าเพื่อนในแปลงเกือบตลอด</strong> (ดินไม่ดี/น้ำไม่ถึง/ขาดปุ๋ย/หญ้า) ไม่ใช่แค่ภาพเดียว</div>
+            <div class="an-l4">ขอบแปลง (สีเทาอ่อน) ไม่นับ เพราะปนถนน/คันนา · ภาพทิศเหนืออยู่บน</div>
+          </div>
+
+          <button type="button" class="sheet-btn primary" data-close-sheet="weakZoneBackdrop">เข้าใจแล้ว</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== แผ่นล่างเลือกแปลงในหน้า 3d ขั้นตอน ===== -->
+    <div class="sheet-backdrop" id="flowPickerBackdrop" aria-hidden="true">
+      <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="flowPickerTitle">
+        <div class="sheet-drag-zone" data-close-sheet="flowPickerBackdrop">
+          <div class="sheet-handle"></div>
+        </div>
+        <div class="sheet-header">
+          <div>
+            <div class="sheet-title" id="flowPickerTitle">เลือกแปลงดูขั้นตอน</div>
+            <div class="sheet-subtitle">แสดงผังรวมหรือเลือกดูสถานะเฉพาะแปลง</div>
+          </div>
+          <button type="button" class="sheet-close" data-close-sheet="flowPickerBackdrop" aria-label="ปิด">×</button>
+        </div>
+        <div class="sheet-body" id="flowPickerList"></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ===== ข้อมูลจริงตามบรีฟและภาพหน้าจอ ===== */
+      const WATCH_PLOT_GROUPS = [
+        {
+          zone: 'หนองบวบหอม',
+          plots: [
+            'หนองบวบหอม 3 (แรก)',
+            'หนองบวบหอม 3 (หลัง)',
+            'หนองบวบหอม 2',
+            'หนองบวบหอม 1'
+          ]
+        },
+        {
+          zone: 'หนองทิ้งสุ่ม',
+          plots: [
+            'หนองทิ้งสุ่ม (90 วา)',
+            'หนองทิ้งสุ่ม (แม่ยา)',
+            'หนองทิ้งสุ่ม (สะเดา)',
+            'หนองทิ้งสุ่ม (ยายดำ)',
+            'หนองทิ้งสุ่ม (ข้างสระ)'
+          ]
+        },
+        {
+          zone: 'สำนักแจง',
+          plots: [
+            'สำนักแจง (ซ้ายถนน)',
+            'สำนักแจง (ขวาถนน)'
+          ]
+        }
+      ];
+
+      const FLOW_PICK_OPTIONS = [
+        { label: 'ผังรวม (ยังไม่เลือกแปลง)', steps: '17 ขั้น', sub: 'ดูขั้นตอนมาตรฐานทั้งรอบ' },
+        { label: 'หนองทิ้งสุ่ม (ข้างสระ)', steps: '11 ไร่ · ตอ', sub: 'ระยะสุกแก่ · เตรียมตัด' },
+        { label: 'หนองบวบหอม 3 (แรก)', steps: 'อ้อยใหม่', sub: 'ระยะย่างปล้อง' },
+        { label: 'กระถินแดง', steps: '16 ไร่', sub: 'ระยะย่างปล้อง' }
+      ];
+
+      const state = {
+        demoView: 'watch', // 'watch' | 'yield' | 'weakzone' | 'flow'
+        watchTask: 'ขึ้นน้ำ',
+        selectedPlots: new Set(['หนองทิ้งสุ่ม (ข้างสระ)']),
+        yieldRound: 'ตอ 1',
+        flowCrop: 'ratoon', // 'new' | 'ratoon'
+        flowMode: 'chart',  // 'chart' | 'plots'
+        flowSelectedPlot: FLOW_PICK_OPTIONS[0],
+        sunBoost: false
+      };
+
+      const headerTitle = document.getElementById('headerTitle');
+      const toastEl = document.getElementById('toast');
+      let toastTimer = null;
+
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+      }
+
+      /* ===== สลับ 4 หน้าย่อยในก้อน 3 ===== */
+      const PANES = {
+        watch: { el: document.getElementById('paneWatch'), title: 'ฝากดูแปลง' },
+        yield: { el: document.getElementById('paneYield'), title: 'บันทึกผลผลิต' },
+        weakzone: { el: document.getElementById('paneWeakZone'), title: 'หนองทิ้งสุ่ม (ข้างสระ)' },
+        flow: { el: document.getElementById('paneFlow'), title: 'ขั้นตอนอ้อยใหม่ / อ้อยตอ' }
+      };
+
+      function setDemoView(viewKey) {
+        state.demoView = viewKey;
+        Object.entries(PANES).forEach(([k, info]) => {
+          info.el.classList.toggle('is-inactive', k !== viewKey);
+        });
+        headerTitle.textContent = PANES[viewKey].title;
+
+        document.querySelectorAll('[data-demo-view]').forEach((b) => {
+          const act = b.getAttribute('data-demo-view') === viewKey;
+          b.classList.toggle('active', act);
+          b.setAttribute('aria-selected', String(act));
+        });
+
+        /* ถ้าสลับมาหน้า 3c โซนอ่อนประจำ ให้เด้งแผ่นล่าง v5 ขึ้นมาให้เห็นทันที */
+        if (viewKey === 'weakzone') {
+          openSheet('weakZoneBackdrop');
+        } else {
+          closeSheet('weakZoneBackdrop');
+        }
+        closeSheet('flowPickerBackdrop');
+      }
+
+      document.querySelectorAll('[data-demo-view]').forEach((btn) => {
+        btn.addEventListener('click', () => setDemoView(btn.getAttribute('data-demo-view')));
+      });
+
+      /* ===== 3a: ฝากดูแปลง ===== */
+      const CHECK_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+      function renderWatchPlots() {
+        const wrap = document.getElementById('watchPlotGroups');
+        wrap.innerHTML = WATCH_PLOT_GROUPS.map((g) => `
+          <div>
+            <div class="zone-sub-label">${g.zone}</div>
+            <div class="grouped-card">
+              ${g.plots.map((pName) => {
+                const checked = state.selectedPlots.has(pName);
+                return `
+                  <button type="button" class="check-row ${checked ? 'is-checked' : ''}" data-watch-plot="${pName}" aria-pressed="${checked}">
+                    <span class="check-row-name">${pName}</span>
+                    <span class="check-box-v5" aria-hidden="true">${checked ? CHECK_SVG : ''}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        const cnt = state.selectedPlots.size;
+        document.getElementById('watchCountBadge').textContent = cnt > 0 ? `เลือก ${cnt} แปลง` : 'ยังไม่เลือก';
+        document.getElementById('btnClearWatchPlots').classList.toggle('is-hidden', cnt === 0);
+        document.getElementById('btnSubmitWatch').textContent = cnt > 0 ? `ฝากดู (${cnt} แปลง)` : 'ฝากดู';
+
+        wrap.querySelectorAll('[data-watch-plot]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const name = btn.getAttribute('data-watch-plot');
+            if (state.selectedPlots.has(name)) state.selectedPlots.delete(name);
+            else state.selectedPlots.add(name);
+            renderWatchPlots();
+          });
+        });
+      }
+
+      document.getElementById('watchTaskChips').addEventListener('click', (e) => {
+        const chip = e.target.closest('[data-watch-task]');
+        if (!chip) return;
+        state.watchTask = chip.getAttribute('data-watch-task');
+        document.querySelectorAll('#watchTaskChips .choice-chip').forEach((c) => {
+          const act = c === chip;
+          c.classList.toggle('active', act);
+          c.setAttribute('aria-checked', String(act));
+        });
+      });
+
+      document.getElementById('btnClearWatchPlots').addEventListener('click', () => {
+        state.selectedPlots.clear();
+        renderWatchPlots();
+      });
+
+      document.getElementById('btnSubmitWatch').addEventListener('click', () => {
+        const cnt = state.selectedPlots.size;
+        if (cnt === 0) {
+          showToast('กรุณาเลือกอย่างน้อย 1 แปลง');
+          return;
+        }
+        showToast(`บันทึกฝากดู "${state.watchTask}" จำนวน ${cnt} แปลงแล้ว`);
+      });
+
+      /* ===== 3b: บันทึกผลผลิต (คำนวณ ตัน/ไร่ สด) ===== */
+      const yieldTonsInput = document.getElementById('yieldTonsInput');
+      const yieldPerRaiVal = document.getElementById('yieldPerRaiVal');
+
+      function updateYieldCalc() {
+        const tons = parseFloat(yieldTonsInput.value);
+        if (!isNaN(tons) && tons > 0) {
+          yieldPerRaiVal.textContent = (tons / 11).toFixed(1);
+        } else {
+          yieldPerRaiVal.textContent = '—';
+        }
+      }
+
+      yieldTonsInput.addEventListener('input', updateYieldCalc);
+
+      document.getElementById('yieldRoundBar').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-round]');
+        if (!btn) return;
+        state.yieldRound = btn.getAttribute('data-round');
+        document.querySelectorAll('#yieldRoundBar .seg-btn').forEach((b) => {
+          const act = b === btn;
+          b.classList.toggle('active', act);
+          b.setAttribute('aria-selected', String(act));
+        });
+      });
+
+      document.getElementById('btnSubmitYield').addEventListener('click', () => {
+        const tons = parseFloat(yieldTonsInput.value);
+        if (isNaN(tons) || tons <= 0) {
+          showToast('กรุณากรอกน้ำหนักอ้อยรวม (ตัน)');
+          yieldTonsInput.focus();
+          return;
+        }
+        showToast(`บันทึกผลผลิต ${tons} ตัน (${(tons / 11).toFixed(1)} ตัน/ไร่ · ${state.yieldRound}) แล้ว`);
+      });
+
+      /* ===== 3c & แผ่นล่าง .sheet-* ===== */
+      function openSheet(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.add('open');
+        el.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeSheet(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('open');
+        el.setAttribute('aria-hidden', 'true');
+      }
+
+      document.querySelectorAll('[data-close-sheet]').forEach((el) => {
+        el.addEventListener('click', () => closeSheet(el.getAttribute('data-close-sheet')));
+      });
+
+      document.querySelectorAll('.sheet-backdrop').forEach((bd) => {
+        bd.addEventListener('click', (e) => {
+          if (e.target === bd) closeSheet(bd.id);
+        });
+      });
+
+      document.getElementById('btnReopenWeakZone').addEventListener('click', () => {
+        openSheet('weakZoneBackdrop');
+      });
+
+      /* ===== 3d: ขั้นตอนอ้อยใหม่ / อ้อยตอ ===== */
+      function renderFlowState() {
+        const isChart = state.flowMode === 'chart';
+        document.getElementById('flowChartContent').classList.toggle('is-hidden', !isChart);
+        document.getElementById('flowMyPlotsContent').classList.toggle('is-hidden', isChart);
+
+        const cropLabel = state.flowCrop === 'new' ? 'อ้อยใหม่' : 'อ้อยตอ';
+        document.getElementById('flowMyPlotsHeading').textContent = `แปลง${cropLabel}ในไร่`;
+        document.getElementById('flowSelectedPlotText').textContent = state.flowSelectedPlot.label;
+        document.getElementById('flowStepCount').textContent = state.flowSelectedPlot.steps;
+
+        const list = state.flowCrop === 'new'
+          ? ['หนองบวบหอม 3 (แรก)', 'หนองบวบหอม 3 (หลัง)', 'หนองบวบหอม 2', 'หนองบวบหอม 1', 'กระถินแดง']
+          : ['หนองทิ้งสุ่ม (ข้างสระ)', 'หนองทิ้งสุ่ม (90 วา)', 'หนองทิ้งสุ่ม (สะเดา)', 'สำนักแจง (ขวาถนน)', 'แปดไร่'];
+
+        document.getElementById('flowMyPlotsList').innerHTML = list.map((name) => `
+          <button type="button" class="status-row is-clickable" data-pick-my-plot="${name}">
+            <div class="status-row-left">
+              <span class="status-icon-box is-ok" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </span>
+              <div class="status-info">
+                <div class="status-title">${name}</div>
+                <div class="status-sub">${cropLabel} · แตะเพื่อดูในผังงาน</div>
+              </div>
+            </div>
+            <span class="chev" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </button>
+        `).join('');
+
+        document.querySelectorAll('[data-pick-my-plot]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const name = b.getAttribute('data-pick-my-plot');
+            state.flowSelectedPlot = { label: name, steps: '17 ขั้น', sub: '' };
+            state.flowMode = 'chart';
+            syncFlowSegBars();
+            renderFlowState();
+            showToast(`แสดงผังงานของ ${name}`);
+          });
+        });
+      }
+
+      function syncFlowSegBars() {
+        document.querySelectorAll('#flowCropBar [data-flow-crop]').forEach((b) => {
+          const act = b.getAttribute('data-flow-crop') === state.flowCrop;
+          b.classList.toggle('active', act);
+          b.setAttribute('aria-selected', String(act));
+        });
+        document.querySelectorAll('#flowModeBar [data-flow-mode]').forEach((b) => {
+          const act = b.getAttribute('data-flow-mode') === state.flowMode;
+          b.classList.toggle('active', act);
+          b.setAttribute('aria-selected', String(act));
+        });
+      }
+
+      document.getElementById('flowCropBar').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-flow-crop]');
+        if (!b) return;
+        state.flowCrop = b.getAttribute('data-flow-crop');
+        syncFlowSegBars();
+        renderFlowState();
+      });
+
+      document.getElementById('flowModeBar').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-flow-mode]');
+        if (!b) return;
+        state.flowMode = b.getAttribute('data-flow-mode');
+        syncFlowSegBars();
+        renderFlowState();
+      });
+
+      document.getElementById('btnFlowPlotPicker').addEventListener('click', () => {
+        const listEl = document.getElementById('flowPickerList');
+        listEl.innerHTML = `
+          <div class="grouped-card">
+            ${FLOW_PICK_OPTIONS.map((opt, idx) => `
+              <button type="button" class="status-row is-clickable" data-flow-opt="${idx}">
+                <div class="status-info">
+                  <div class="status-title">${opt.label}</div>
+                  <div class="status-sub">${opt.sub}</div>
+                </div>
+                <span class="sec-badge is-ok tabular">${opt.steps}</span>
+              </button>
+            `).join('')}
+          </div>
+          <button type="button" class="sheet-btn primary" data-close-sheet="flowPickerBackdrop">ปิด</button>
+        `;
+        listEl.querySelectorAll('[data-flow-opt]').forEach((b) => {
+          b.addEventListener('click', () => {
+            state.flowSelectedPlot = FLOW_PICK_OPTIONS[Number(b.getAttribute('data-flow-opt'))];
+            closeSheet('flowPickerBackdrop');
+            renderFlowState();
+          });
+        });
+        listEl.querySelectorAll('[data-close-sheet]').forEach((b) => {
+          b.addEventListener('click', () => closeSheet('flowPickerBackdrop'));
+        });
+        openSheet('flowPickerBackdrop');
+      });
+
+      document.getElementById('flowStageChips').addEventListener('click', (e) => {
+        const chip = e.target.closest('[data-stage-target]');
+        if (!chip) return;
+        document.querySelectorAll('#flowStageChips .stage-chip').forEach((c) => c.classList.toggle('active', c === chip));
+        if (state.flowMode !== 'chart') {
+          state.flowMode = 'chart';
+          syncFlowSegBars();
+          renderFlowState();
+        }
+        const target = document.getElementById(chip.getAttribute('data-stage-target'));
+        const scroller = document.getElementById('flowScroll');
+        if (target && scroller) {
+          const stickyBar = scroller.querySelector('.flow-sticky-bar');
+          const stickyH = stickyBar ? stickyBar.offsetHeight : 96;
+          scroller.scrollTo({
+            top: Math.max(0, target.offsetTop - stickyH - 12),
+            behavior: 'smooth'
+          });
+        }
+      });
+
+      document.querySelectorAll('[data-fc-toast]').forEach((n) => {
+        n.addEventListener('click', () => showToast(n.getAttribute('data-fc-toast')));
+      });
+
+      /* ===== หัวหน้าต่าง ===== */
+      document.getElementById('btnBack').addEventListener('click', () => {
+        showToast('กลับหน้าแปลง (หน้าก่อนหน้า)');
+      });
+
+      const btnSunToggle = document.getElementById('btnSunToggle');
+      btnSunToggle.addEventListener('click', () => {
+        state.sunBoost = !state.sunBoost;
+        document.body.classList.toggle('sun-boost', state.sunBoost);
+        btnSunToggle.classList.toggle('is-sun-on', state.sunBoost);
+        showToast(state.sunBoost ? 'เปิดโหมดกลางแดดจัด' : 'ปิดโหมดกลางแดดจัด');
+      });
+
+      /* ===== เริ่มต้น ===== */
+      renderWatchPlots();
+      updateYieldCalc();
+      syncFlowSegBars();
+      renderFlowState();
+      setDemoView('watch');
+    })();
+  </script>
+</body>
+</html>

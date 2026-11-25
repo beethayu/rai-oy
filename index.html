@@ -8901,12 +8901,15 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const t = String(txt || ''), hist = chat.msgs.slice(-3).map(m => m.t || '').join(' '); // เฉพาะที่เพิ่งคุย (เดิม 6 ข้อความ เรื่องเก่าที่เอ่ยชื่อพื้นที่ทำให้ไม่ถาม)
       const pn = id => (gData.plots.find(p => p.plot_id === id) || {}).plot_name || id;
       // 1) "ขวาใน/ขวาถนน" มีทั้งสำนักแจงและหนองกระทู้ ไม่บอกพื้นที่ (ในข้อความหรือที่เพิ่งคุย) = ถาม ไม่เดา
+      // 0) พิมพ์ฝั่งไหน เอาแค่ฝั่งนั้น — AI แถม "ขวาถนน" ทั้งที่พิมพ์แค่ "ขวาใน" (25 พ.ย. 69)
+      const SIDES = ['ขวาใน', 'ขวาถนน', 'ซ้ายใน', 'ซ้ายถนน'], tS = t.replace(/\s+/g, ''), saidS = SIDES.filter(w => tS.includes(w));
+      if (saidS.length) items.forEach(it => { if (!Array.isArray(it.plots) || it.plots.length < 2) return; const k = it.plots.filter(id => { const al = (/\((.+)\)\s*$/.exec(pn(id)) || [])[1]; return !SIDES.includes(al) || saidS.includes(al); }); if (k.length) it.plots = k; });
       ['ขวาใน', 'ขวาถนน'].forEach(w => {
         if (!t.includes(w) || /แจง|กระทู้/.test(t + ' ' + hist)) return;
         const ids = gData.plots.filter(p => String(p.plot_name).includes('(' + w + ')')).map(p => p.plot_id);
         if (ids.length < 2) return;
         const rl = recentLocs(3), cont = ids.filter(id => rl.has(plotLoc(pn(id)))); // ไล่ทำอยู่พื้นที่เดียว (เช่น ฉีดรอบไร่หนองกระทู้ 2 วันติด) = ใช้พื้นที่นั้น ติด ? ให้ดู
-        if (cont.length === 1) { ids.filter(id => id !== cont[0]).forEach(id => { r.reply = String(r.reply || '').split(pn(id)).join(pn(cont[0])).split(plotLoc(pn(id))).join(plotLoc(pn(cont[0]))); }); // คำตอบต้องตรงการ์ด
+        if (cont.length === 1) { r.ask = (r.ask || []).filter(q => !String(q.q || '').includes(w)); ids.filter(id => id !== cont[0]).forEach(id => { r.reply = String(r.reply || '').split(pn(id)).join(pn(cont[0])).split(plotLoc(pn(id))).join(plotLoc(pn(cont[0]))); }); // คำตอบต้องตรงการ์ด
           items.forEach(it => { if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { it.plots = [...new Set(it.plots.map(id => ids.includes(id) ? cont[0] : id))]; if (!(it.unsure || []).includes('plots')) it.unsure = (it.unsure || []).concat('plots'); } }); return; }
         let hit = false;
         for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { items.splice(i, 1); hit = true; } }

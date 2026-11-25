@@ -2829,6 +2829,9 @@
 .fm5 .status-icon-box.is-due,.td5 .status-icon-box.is-due{background:var(--due-soft);color:var(--due)}
 .fm5 .status-icon-box.is-danger,.td5 .status-icon-box.is-danger{background:#FEECEC;color:#B42318}
 .fm5 .status-info,.td5 .status-info{min-width:0;flex:1}
+.td5 .edge-r,.td5-pn .edge-r{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid #EEF2EE;font-size:14.5px}.edge-r:last-child{border-bottom:0}.edge-r>span:last-child{text-align:right}
+#log-view .ch-grp{padding:8px 12px 4px;font-size:12.5px;font-weight:700;color:#6B736E;background:#FAFBF9;border-top:1px solid #EEF2EE;letter-spacing:.2px}
+#log-view .ch-edge{margin:0;padding:10px 12px;font-size:13.5px;line-height:1.5;color:#1F5B3A;background:#F2F8F4;border-top:1px solid #E2EEE6}#log-view .ch-edge.is-short{color:#92400E;background:#FFF8EB;border-top-color:#F3E2BF}
 .fm5 .km5{gap:10px}.fm5 .km5-sel{flex:0 0 46%;min-width:0;height:36px;font-size:16px;border:1px solid var(--border);border-radius:10px;background:#F7F9F7;color:var(--ink);padding:0 8px;font-family:inherit}
 .fm5 .status-title,.td5 .status-title{font-size:14.5px;font-weight:600;color:#16241B;line-height:1.3}
 .fm5 .status-sub,.td5 .status-sub{font-size:12.5px;color:#4B5A51;margin-top:1px;line-height:1.34}
@@ -5132,6 +5135,83 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     const qtyTxt = (q, u) => u === 'ml' && q >= 1000 ? `${r1(q / 1000)} ลิตร` : u === 'g' && q >= 1000 ? `${r1(q / 1000)} กก.` : `${r1(q)} ${u === 'ml' ? 'มล.' : u === 'g' ? 'กรัม' : u}`;
     // ยาโชว์ทั้งภาชนะที่เห็นจริง + ปริมาณ (ผู้ใช้ 15 พ.ย. 69: กลูโฟนับเป็นแกลลอนจริง) เช่น "8 ลิตร (2 แกลลอน)" · ชื่อภาชนะตาม pack_name ในสต็อก
     const qtyPk = (q, n) => { const it = invItem(n) || {}, pk = num(it.pack_size); return qtyTxt(q, it.unit) + (pk > 1 && it.pack_name ? ` (${r1(q / pk)} ${it.pack_name})` : ''); };
+    // ===== ฉีดรอบไร่: รอบนี้เหลือแปลงไหน ยาพอไหม (25 พ.ย. 69 ผู้ใช้: "ยาเหลือ 2 ถัง แต่คำนวณต้อง 2.5 ก็บอกว่าไม่พอ" · ซื้อยาทีละนิด) =====
+    // รอบ = พื้นที่ที่เพิ่งฉีดรอบไร่ (ภายใน 14 วัน) ไล่ย้อนงานในพื้นที่เดียวกันที่ห่างกันไม่เกิน 7 วัน · ถังต่อแปลง: ครั้งก่อนของแปลงนั้นเอง (ฉีดแค่ด้านที่มีหญ้าเหมือนเดิม)
+    // ไม่เคยฉีด = ระยะรอบแปลง ÷ เฉลี่ย ม./ถัง ของไร่ (ด้านติดถนนไม่ได้ฉีด ค่าเลยต่างกัน 160–380 ม./ถัง) · ตัดแปลงที่นัด "สับ/ยังไม่ปลูก/ไม่ต้องฉีด" ไว้
+    const bndM = b => { const p = String(b || '').split(';').map(x => x.split(',').map(Number)).filter(x => x.length === 2 && !isNaN(x[0]) && !isNaN(x[1])); if (p.length < 3) return 0; let L = 0; for (let i = 0; i < p.length; i++) { const a = p[i], c = p[(i + 1) % p.length]; L += Math.hypot((c[1] - a[1]) * 111320 * Math.cos(a[0] * Math.PI / 180), (c[0] - a[0]) * 110540); } return L; };
+    function edgeBatches() {
+      const B = {}; (gData.activities || []).filter(isEdgeSpray).forEach(l => { const k = logBatch(l), m = /([\d.]+)\s*ถัง/.exec(l.quantity || ''); const o = B[k] = B[k] || { iso: beToISO(l.timestamp), t: 0, pids: [] }; if (m) o.t = Math.max(o.t, num(m[1])); if (!o.pids.includes(l.plot_id)) o.pids.push(l.plot_id); });
+      const P = id => (gData.plots || []).find(p => p.plot_id === id) || {};
+      return Object.values(B).map(o => { const per = o.pids.map(id => bndM(P(id).boundary)), sum = per.reduce((a, b) => a + b, 0); return { ...o, per, sum, share: o.pids.map((id, i) => sum ? o.t * per[i] / sum : o.t / o.pids.length) }; }).sort((a, b) => a.iso < b.iso ? 1 : -1);
+    }
+    function edgeTanksFor(pid, B, avg) { // ถังที่คาดว่าจะใช้ของแปลงนี้
+      const mine = B.filter(b => b.t && b.pids.includes(pid)), m = bndM(((gData.plots || []).find(p => p.plot_id === pid) || {}).boundary);
+      const own = mine.length ? mine.filter(b => dayDiff(b.iso, mine[0].iso) <= 3).reduce((a, b) => a + b.share[b.pids.indexOf(pid)], 0) : 0; // แปลงเดียวฉีดหลายวัน (90 วา 16–17 พ.ย.) รวมกัน
+      const v = own || (m && avg ? m / avg : 0);
+      return { t: v ? Math.ceil(v * 2 - 0.2) / 2 : 0, own: !!own, m: Math.round(m) };
+    }
+    function edgeStockTanks(minus, add) { // ยาตามสูตรรอบไร่ ผสมได้กี่ถัง (ตัวที่น้อยสุด) · minus = ถังที่กำลังจะตัด · add = {ชื่อยา: ปริมาณที่จะเข้า}
+      const mix = EDGE_MIX.map(n => (gData.inventory || []).find(i => i.name === n)).filter(i => i && num(i.per_tank)).map(i => ({ ...i, stock: Math.max(0, num(i.stock) + (num((add || {})[i.name]) || 0) - (minus || 0) * num(i.per_tank)) }));
+      if (!mix.length) return null;
+      return { t: Math.min(...mix.map(i => i.stock / num(i.per_tank))), mix };
+    }
+    // extra: { done: [pid ที่กำลังจะบันทึกว่าฉีดแล้ว], used: ถังที่จะตัดสต็อก, add: {ชื่อยา: ปริมาณที่จะซื้อเข้า} } — ใช้ตอนการ์ดแชตยังไม่บันทึก
+    function edgeRound(extra) {
+      extra = extra || {}; const t0 = todayISO(), B = edgeBatches(), P = gData.plots || [], pn = id => (P.find(p => p.plot_id === id) || {}).plot_name || '';
+      const ex = B.filter(b => b.t && b.sum), seen = new Set(), avgM = ex.reduce((a, b) => a + b.pids.reduce((s2, id, i) => seen.has(id) ? s2 : (seen.add(id), s2 + b.per[i]), 0), 0), avg = ex.length ? avgM / ex.reduce((a, b) => a + b.t, 0) : 224; // ระยะแต่ละแปลงนับครั้งเดียว (ฉีดสองวัน = ถังรวม)
+      const last = (extra.done || []).length ? { iso: t0, pids: extra.done } : B[0];
+      if (!last || dayDiff(last.iso, t0) > 14) return null;
+      const loc = plotLoc(pn(last.pids[0])); if (!loc) return null;
+      const inLoc = id => plotLoc(pn(id)) === loc, mine = B.filter(b => b.pids.some(inLoc));
+      let start = last.iso; for (const b of mine) { if (dayDiff(b.iso, start) > 7) break; if (b.iso < start) start = b.iso; }
+      const done = {}; mine.filter(b => b.iso >= start).forEach(b => b.pids.filter(inLoc).forEach(id => { if (!done[id] || b.iso > done[id]) done[id] = b.iso; }));
+      (extra.done || []).filter(inLoc).forEach(id => { done[id] = t0; });
+      const open = (gData.reminders || []).filter(r => r.status !== 'done');
+      const skip = id => open.some(r => String(r.text || '').includes(pn(id)) && /สับ|ยังไม่ปลูก|ไม่ต้องฉีด|ไม่ฉีด/.test(r.text));
+      const plan = id => (open.find(r => String(r.text || '').includes(pn(id)) && /ฉีด/.test(r.text) && beToISO(r.date)) || {}).date;
+      const all = P.filter(p => plotLoc(p.plot_name) === loc);
+      const left = all.filter(p => !done[p.plot_id] && !skip(p.plot_id)).map(p => ({ p, ...edgeTanksFor(p.plot_id, B.filter(b => b.iso < start), avg), when: beToISO(plan(p.plot_id) || '') }));
+      const skipped = all.filter(p => !done[p.plot_id] && skip(p.plot_id)).map(p => p);
+      const need = left.reduce((a, x) => a + x.t, 0), st = edgeStockTanks(extra.used, extra.add);
+      return { loc, start, avg: Math.round(avg), done: Object.keys(done).map(id => ({ p: P.find(p => p.plot_id === id), iso: done[id] })).filter(x => x.p), left, skipped, need, st,
+        short: st ? Math.max(0, need - st.t) : 0, buy: st ? st.mix.map(i => { const def = need * num(i.per_tank) - i.stock, pk = num(i.pack_size) || 1; return def > 0 ? `${i.name} ${Math.ceil(def / pk)} ${i.pack_name || ''}`.trim() : ''; }).filter(Boolean) : [] };
+    }
+    const edgeSub = (n, loc) => String(n).replace(loc, '').replace(/^\s*\(|\)\s*$/g, '').trim() || n;
+    function edgeLine(R) { // บรรทัดสรุปเดียว ใช้ทั้งหน้าวันนี้และการ์ดแชต
+      if (!R || !R.left.length) return '';
+      const st = R.st ? `ยาผสมได้ ${r1(Math.floor(R.st.t * 2) / 2)} ถัง` : '';
+      return `เหลือ ${R.left.map(x => edgeSub(x.p.plot_name, R.loc) + (x.t ? ` ~${r1(x.t)}` : '')).join(' · ')} ถัง${R.left.length > 1 ? ` · รวม ~${r1(R.need)} ถัง` : ''}${st ? ' · ' + st : ''}${R.short > 0 ? ` → ไม่พอราว ${r1(Math.ceil(R.short * 2) / 2)} ถัง` : R.st && R.st.t - R.need < 0.5 ? ' → พอดี ๆ ไม่มีเผื่อ' : ''}`;
+    }
+    function td5EdgeHtml() {
+      const R = edgeRound(); if (!R || !R.left.length) return '';
+      const short = R.short > 0, tight = !short && R.st && R.st.t - R.need < 0.5;
+      return `<section>${td5Head('ฉีดรอบไร่ · ' + esc(R.loc))}<div class="grouped-card">${td5Row({ click: 'td5Edge()', icCls: short ? 'is-due' : 'is-ok', ic: short ? FM5I.wn : FM5I.ok,
+        t: `เหลือ ${R.left.length} แปลง${R.done.length ? ` · ฉีดแล้ว ${R.done.length}` : ''}`, pill: short ? '<span class="mini-pill-amber">ยาไม่พอ</span>' : tight ? '<span class="mini-pill-amber">ยาพอดี ๆ</span>' : '', warn: short,
+        s: esc(edgeLine(R).replace(/^เหลือ /, '')) })}</div></section>`;
+    }
+    function td5Edge() {
+      const R = edgeRound(); if (!R) return;
+      const row = (n, s, c) => `<div class="edge-r"><span>${esc(n)}</span><span class="tabular" style="${c ? 'color:' + c + ';font-weight:700' : ''}">${s}</span></div>`;
+      td5Open('ฉีดรอบไร่ · ' + R.loc, `เริ่มรอบ ${thDate(R.start)}`,
+        td5Box('ยังเหลือ', R.left.map(x => row(edgeSub(x.p.plot_name, R.loc), `~${r1(x.t)} ถัง${x.when ? ' · ' + calLbl(x.when) : ''}<br><small style="color:#6B736E">${x.own ? 'จากครั้งก่อนของแปลงนี้' : `รอบแปลง ${x.m} ม. ÷ ${R.avg} ม./ถัง`}</small>`)).join(''))
+        + td5Box('ยา', (R.st ? row('ผสมได้อีก', `${r1(Math.floor(R.st.t * 2) / 2)} ถัง`) + R.st.mix.map(i => row(i.name, qtyPk(num(i.stock), i.name))).join('') : '') + row('ต้องใช้', `~${r1(R.need)} ถัง`, R.short > 0 ? '#B45309' : '') + (R.buy.length ? row('ควรซื้อเพิ่ม', esc(R.buy.join(' · ')), '#B45309') : ''))
+        + td5Box('ฉีดแล้วรอบนี้', R.done.map(x => row(edgeSub(x.p.plot_name, R.loc), calLbl(x.iso))).join('') + R.skipped.map(p => row(edgeSub(p.plot_name, R.loc), 'ข้าม (มีนัดสับ/ยังไม่ปลูก)')).join(''))
+        + `<div class="an-l4" style="margin:8px 4px">ค่าประมาณ · แปลงที่เคยฉีดใช้ถังของครั้งก่อน (ฉีดเฉพาะด้านที่มีหญ้า) · เฉลี่ยทั้งไร่ ${R.avg} ม./ถัง</div>`);
+    }
+    // รอทำ ยังไม่มีวัน (25 พ.ย. 69)
+    function td5TodoHtml() {
+      const L = (gData.reminders || []).filter(r => r.status !== 'done' && !beToISO(r.date) && !r.on_event);
+      if (!L.length) return '';
+      return `<section>${td5Head('รอทำ', `<span class="sec-badge is-muted">${L.length} · ยังไม่มีวัน</span>`)}<div class="grouped-card">${L.map(r => td5Row({ click: `td5Todo('${qa(r.rem_id)}')`, icCls: 'is-muted', ic: FM5I.cl, t: esc(r.text), s: r.created ? 'จดไว้ ' + esc(thDate(beToISO(r.created))) : '' })).join('')}</div></section>`;
+    }
+    function td5Todo(id) {
+      const r = (gData.reminders || []).find(x => x.rem_id === id); if (!r) return;
+      const t1 = isoAdd(todayISO(), 1);
+      td5Open(r.text, 'รอทำ · ยังไม่มีวัน', `<div class="grouped-card" style="padding:12px"><div class="sim-label" style="margin-bottom:6px">ได้วันแล้ว</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="task-inline-btn" onclick="remDo('move','${qa(id)}',this,'${t1}').then(td5Close)">พรุ่งนี้</button><button type="button" class="task-inline-btn" onclick="remDo('move','${qa(id)}',this,'${isoAdd(t1, 1)}').then(td5Close)">มะรืน</button>
+        <input type="date" class="km5-sel" style="flex:1 1 140px;height:36px;font-size:16px;border:1px solid var(--border);border-radius:10px;padding:0 8px" min="${todayISO()}" onchange="if(this.value)remDo('move','${qa(id)}',null,this.value).then(td5Close)" aria-label="เลือกวัน"></div></div>
+        <div class="plot-action-row" style="margin-top:10px"><button type="button" class="task-inline-btn" onclick="td5Close();remToLog('${qa(id)}')">ทำแล้ว → จดเป็นงาน</button><button type="button" class="task-inline-btn" onclick="remDo('del','${qa(id)}',this).then(td5Close)">ลบ</button></div>`);
+    }
     function logChems(logs) {
       const ids = new Set((logs || []).map(l => l.log_id)), sum = {};
       (gData.stockLogs || []).forEach(x => { if (!ids.has(x.ref_log_id)) return; const q = -num(String(x.change_qty).replace(/,/g, '')); if (q <= 0) return; const o = sum[x.item_name] = sum[x.item_name] || { q: 0, u: x.unit }; o.q += q; });
@@ -5738,6 +5818,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       h += td5AskHtml();
       // 5) ต้องทำวันนี้
       h += td5TasksHtml(rows, logsBy, byId);
+      h += td5EdgeHtml(); // ฉีดรอบไร่: เหลือแปลงไหน ยาพอไหม
       // 6) ตรวจข้อมูล (พบจุด = ต่อจากงาน · ปกติ = ท้ายหน้า)
       const dq = dqItems(), dqH = td5DqHtml(dq);
       if (dq.length) h += dqH;
@@ -5745,6 +5826,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const offToday = calSel && calSel !== t0 || calYM && calYM !== t0.slice(0, 7);
       h += `<section>${td5Head('ปฏิทินงานเดือนนี้', '', (offToday ? `<button type="button" class="sec-mini-btn" onclick="calSel='';calYM='';render()">กลับวันนี้</button>` : '') + td5FoldBtn('cal'))}
         ${td5Fold('cal') ? '' : `<div class="td5-cal">${calHtml(() => '')}</div>`}</section>`;
+      h += td5TodoHtml(); // รอทำ ยังไม่มีวัน
       // 8) เฝ้าไร่
       const G = guardOpen();
       if (G.length) h += `<section>${td5Head('เฝ้าไร่')}<div class="grouped-card">${G.map(g => {
@@ -8833,7 +8915,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chRemPlot(items, txt, r); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt); chFutAct(items);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chRemPlot(items, txt, r); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt); chFutAct(items); chTodoAsk(items, txt, r);
+          items.sort((a, b) => chGrp(a) - chGrp(b)); // งานที่ทำ → นัด → รอทำ
           const ask = (r.ask || []).filter(q => !(/ถัง/.test(q.q || '') && items.some(it => it.group === 'ฉีดยา') && items.every(it => it.group !== 'ฉีดยา' || chTanks(it.quantity)))); // รู้ถังแล้ว (เช่น คิดจากลิตร) ไม่ถามซ้ำ
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -8953,6 +9036,15 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       items.forEach((it, i) => { if (it.type !== 'activity' || !(it.date > t0) || it.group === 'ฝนตก') return;
         const what = (it.unsure || []).includes('chems') || !it.detail ? it.group : it.detail, q = chTanks(it.quantity) ? ' ' + it.quantity : '';
         items[i] = chatNorm({ type: 'reminder', text: `${what} ${(it.plots || []).map(pn).join(', ')}${q}${(it.workers || []).length ? ' (' + it.workers.join(', ') + ')' : ''}`.trim(), date: it.date, time: '', repeat: '', lead_days: 0 }) || it; });
+    }
+    // รอทำที่ยังไม่มีวัน ถามข้อเดียว (ตอบ "ยังไม่กำหนด" = จดเป็นรอทำ ไม่ถามซ้ำ)
+    function chTodoAsk(items, txt, r) {
+      const T = items.filter(it => it.type === 'reminder' && it.todo); if (!T.length) return;
+      const said = chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').join(' ') + ' ' + txt;
+      if (/ยังไม่กำหนด|ยังไม่รู้วัน|ไว้ก่อน/.test(said)) return;
+      r.ask = (r.ask || []).filter(q => !/วันไหน/.test(q.q || ''));
+      const it = T[0], w = String(it.text).replace(/\s*[—-].*$/, '').slice(0, 40);
+      r.ask.push({ q: `${w} — ทำวันไหน?`, options: ['พรุ่งนี้', 'มะรืน', 'สัปดาห์หน้า', 'ยังไม่กำหนด'] });
     }
     function chRemPlot(items, txt, r) {
       const hist = chat.msgs.slice(-3).map(m => m.t || '').join(' '), t = (String(txt || '') + ' ' + hist).replace(/\s+/g, '');
@@ -9165,6 +9257,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         // เตือนตอนรับรถกลับ (23 พ.ย. 69) — ไม่มีวัน รอกด "รับรถกลับแล้ว"
         const pk = String(it.on_pickup || '').trim(), pa = pk && (gData.assets || []).find(a => a.category !== 'Worker' && (a.name === pk || eqS(a.name) === pk));
         if (pa) { it.on_pickup = pa.name; it.date = ''; it.repeat = ''; it.lead_days = 0; return it.text ? it : null; } else delete it.on_pickup;
+        // งานรอทำ ยังไม่มีวัน ("ค่อยเอารถสับ") — 25 พ.ย. 69 เดิมหายเพราะนัดต้องมีวัน
+        if (it.todo && !/^\d{4}-\d{2}-\d{2}$/.test(it.date || '')) { it.todo = true; it.date = ''; it.repeat = ''; it.lead_days = 0; return it.text ? it : null; }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(it.date || '')) delete it.todo;
         return it.text && /^\d{4}-\d{2}-\d{2}$/.test(it.date || '') ? it : null;
       }
       if (it.type === 'fuel_give') {
@@ -9299,7 +9394,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         else if (a.type === 'thought') ops.push({ fn: 'note', id: a.nid, p: { text: a.text, cat: a.cat, kind: 'idea', tags: a.tags, date: a.date } });
         else if (a.type === 'note' && (a.replace && ops.push({ fn: 'notedel', id: a.replace }), true)) for (let d = a.date, k = 0; d <= (a.date_to || a.date) && k < 31; d = isoAdd(d, 1), k++) ops.push({ fn: 'note', id: a.nid + (k ? '-' + k : ''), p: { text: a.text, amount: k ? 0 : a.amount, shop: a.shop || '', date: d, photo_ids: k ? [] : (a.photo_ids || []), workers: a.workers.join(' + ') } }); // หลายวัน = วันละแถว (นับวันคนงาน)
         else if (a.type === 'rem_done') ops.push({ fn: 'remdone', id: a.id });
-        else if (a.type === 'reminder') { if (!remDupOf(a)) ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days, on_event: a.on_pickup ? 'รับรถ:' + a.on_pickup : undefined } }); }
+        else if (a.type === 'reminder') { if (!remDupOf(a)) ops.push({ fn: 'rem', id: a.rid, p: { text: a.text, date: a.date, time: a.time, repeat: a.repeat, lead_days: a.lead_days, todo: a.todo || undefined, on_event: a.on_pickup ? 'รับรถ:' + a.on_pickup : undefined } }); }
         else if (a.type === 'fuel_give') ops.push({ fn: 'fuel', id: a.fid, p: { item: a.item, qty: a.qty, team: a.team.join(' + '), date: isoToBE(a.date || todayISO()) } });
         else if (a.type === 'watch') ops.push({ fn: 'watch', plotIds: a.plots, reason: a.reason || 'ไปดูอาการ', note: a.note || '' });
         else if (a.type === 'add') ops.push({ fn: 'opt', category: a.category, name: a.name });
@@ -9357,6 +9452,22 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         + (open ? `<div class="ch-chips" style="margin:4px 0 6px">${all.map(w => `<button type="button" class="ch-chip${cur.includes(w) ? ' on' : ''}" onclick="chatWk(${mi},${i},'${qa(w)}')">${cur.includes(w) ? '✓ ' : ''}${esc(w)}</button>`).join('')}</div>` : '');
     }
     function chatWk(mi, i, w) { const it = chat.msgs[mi].items[i], a = it.workers || []; it.workers = a.includes(w) ? a.filter(x => x !== w) : a.concat(w); it.unsure = (it.unsure || []).filter(x => x !== 'workers'); chatSave(); chatRender(); }
+    // การ์ดเรียงเป็นกลุ่ม งานที่ทำ → นัด → รอทำ (25 พ.ย. 69: ข้อความจดงาน = วันนี้ทำอะไร ที่ไหน เสร็จไหม + นัดต่อ + รอทำ) · มีกลุ่มเดียวไม่ขึ้นหัว
+    const chGrp = it => it.type === 'reminder' ? (it.todo ? 2 : 1) : 0;
+    function chGroupHtml(m, mi, live) {
+      const G = [...new Set(m.items.map(chGrp))], hd = ['งานที่ทำ', 'นัด', 'รอทำ · ยังไม่มีวัน'];
+      return m.items.map((it, i) => (G.length > 1 && (i === 0 || chGrp(m.items[i - 1]) !== chGrp(it)) ? `<div class="ch-grp">${hd[chGrp(it)]}</div>` : '') + chItemHtml(it, i, mi, live)).join('');
+    }
+    // ฉีดรอบไร่ในการ์ด: รอบนี้เหลือแปลงไหน ยาพอไหม (นับงานในการ์ดที่ยังไม่บันทึกเป็นฉีดแล้ว + ตัดยา · ซื้อยาสูตรรอบไร่ก็บอกว่าพอกี่ถัง)
+    function chEdgeHtml(items) {
+      const sp = items.filter(it => it.type === 'activity' && it.group === 'ฉีดยา' && /รอบไร่|ขอบแปลง/.test((it.detail || '') + (it.note || '')) && !(it.date > todayISO()));
+      const add = {}; items.filter(it => (it.type === 'stock_in' || it.type === 'stock_count') && EDGE_MIX.includes(it.name)).forEach(it => { add[it.name] = it.type === 'stock_in' ? (add[it.name] || 0) + it.packs * it.ps : it.packs * it.ps - it.cur; }); // ซื้อเข้า = บวก · บอกยอดเหลือ = ส่วนต่าง
+      const rem = items.some(it => it.type === 'reminder' && /ฉีด/.test(it.text || '') && /รอบไร่|ขวา|ซ้าย|กล้วย/.test(it.text || ''));
+      if (!sp.length && !Object.keys(add).length && !rem) return '';
+      const R = edgeRound({ done: sp.flatMap(it => it.plots || []), used: sp.reduce((a, it) => a + (chTanks(it.quantity) || 0), 0), add });
+      const L = edgeLine(R); if (!L) return '';
+      return `<div class="ch-edge${R.short > 0 ? ' is-short' : ''}"><b>ฉีดรอบไร่ ${esc(R.loc)}</b> · ${esc(L)}${R.short > 0 && R.buy.length ? `<br>ควรซื้อเพิ่ม: ${esc(R.buy.join(' · '))}` : ''}</div>`;
+    }
     function chItemHtml(it, i, mi, live) {
       const pn = ids => (ids || []).map(id => (chPlot(id) || { plot_name: id }).plot_name).join(', ');
       const un = k => it.unsure.includes(k);
@@ -9393,7 +9504,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const d0 = remDupOf(it), w = d0.on_event && /^รับรถ:/.test(d0.on_event) ? 'ตอนรับรถกลับ' : d0.date ? calLbl(beToISO(d0.date)) : '';
         h = `<div class="ch-t" style="color:#6B736E">🔔 มีเตือนนี้อยู่แล้ว — ไม่ลงซ้ำ</div>` + row('เรื่อง', d0.text) + row('เตือนเมื่อ', w);
       } else if (it.type === 'reminder') {
-        if (it.on_pickup) h = `<div class="ch-t">🔔 เตือนตอนรับรถกลับ</div>` + row('เรื่อง', it.text) + row('เตือนเมื่อ', `กด "รับรถกลับแล้ว" ${eqS(it.on_pickup)}`) + `<div class="ch-cn">ยังไม่รู้วัน — ขึ้นในหน้ารถคันนี้ และเด้งเตือนตอนรับรถกลับ</div>`;
+        if (it.todo) h = `<div class="ch-t">📝 รอทำ · ยังไม่มีวัน</div>` + row('เรื่อง', it.text) + `<div class="ch-cn">ขึ้นใน "รอทำ" หน้าวันนี้ · ได้วันแล้วแตะเลือกวันได้</div>`;
+        else if (it.on_pickup) h = `<div class="ch-t">🔔 เตือนตอนรับรถกลับ</div>` + row('เรื่อง', it.text) + row('เตือนเมื่อ', `กด "รับรถกลับแล้ว" ${eqS(it.on_pickup)}`) + `<div class="ch-cn">ยังไม่รู้วัน — ขึ้นในหน้ารถคันนี้ และเด้งเตือนตอนรับรถกลับ</div>`;
         else h = `<div class="ch-t">🔔 นัด/เตือน</div>` + row('เรื่อง', it.text) + row('วันที่', calLbl(it.date) + (/^[ก-๙]+$/.test(calLbl(it.date)) ? ` (${thDate(it.date)})` : ''))
           + row('เวลา', it.time ? it.time + ' น.' : '') + row('ซ้ำ', it.repeat ? repTxt(it.repeat) : '') + row('เตือนล่วงหน้า', it.lead_days ? leadTxt(it.lead_days) : '')
           + (it.date < todayISO() ? `<div class="ch-warn">วันที่นี้ผ่านไปแล้ว — ถ้าทำไปแล้วให้จดเป็นงานแทน</div>` : '');
@@ -9520,7 +9632,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           else if (m.state === 'cancel') h += `<div class="ch-old">ยกเลิกแล้ว · ไม่ได้บันทึก</div>`;
           else {
             h += `<div class="ch-card${m.state === 'saved' ? ' ch-saved' : ''}"><div class="ch-hd"><span>${m.state === 'saved' ? `✅ บันทึกแล้ว · ${m.savedAt}` : 'ตรวจก่อนบันทึก'}</span><span>${m.items.length} รายการ</span></div>`
-              + m.items.map((it, i) => chItemHtml(it, i, mi, live)).join('');
+              + chGroupHtml(m, mi, live) + (m.state === 'draft' ? chEdgeHtml(m.items) : '');
             if (m.state === 'draft' && !m.items.some(it => it.type !== 'bill')) {
               h += `<div class="ch-acts"><button type="button" class="btn btn-light flex-fill" onclick="chatCancel(${mi})">ปิดรายการนี้</button></div>`;
             } else if (m.state === 'draft') {
@@ -13374,6 +13486,7 @@ Export.table.toDrive({
       st: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/></svg>',
       pl: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
       pn: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 6 14 4 20 10 16 20 5 17"/></svg>',
+      cl: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg>',
       fl: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>' };
     const fm5Row = (ic, cls, t, sub, act) => `<button type="button" class="status-row is-clickable" onclick="${act}"><div class="status-row-left"><span class="status-icon-box ${cls}" aria-hidden="true">${ic}</span><div class="status-info"><div class="status-title">${t}</div>${sub ? `<div class="status-sub">${sub}</div>` : ''}</div></div>${FM5I.chev}</button>`;
     function fm5ToolsRow() { const left = gData.plots.filter(p => !p.boundary).length; return fm5Row(FM5I.to, 'is-muted', 'เครื่องมือ', 'วาดขอบแปลง · วัดที่ดิน · นำเข้า' + (left ? ` · ยังไม่วาด ${left}` : ''), 'fmTools=true;fmPanel()'); }

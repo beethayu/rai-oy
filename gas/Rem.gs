@@ -22,7 +22,7 @@ function remAdd_(ss, p, id) {
   if (kz(p.text) && f0.d.some((r, i) => i > 0 && r[st] === 'open' && kz(r[ti]) === kz(p.text))) return false;
   const rep = remRepOk_(String(p.repeat || '').trim()) ? String(p.repeat).trim() : '';
   const ev = /^(รับรถ|อยู่ร้าน):.+/.test(String(p.on_event || '')) ? String(p.on_event).slice(0, 80) : '', pk = /^รับรถ:/.test(ev);
-  appendRows_(sh, [[String(id), getTodayStr(), pk && !p.date ? '' : remBE_(p.date), String(p.time || '').slice(0, 5), String(p.text || '').slice(0, /^⚠️ แชตเข้าใจผิด/.test(String(p.text || '')) ? 1500 : 200), pk ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);
+  appendRows_(sh, [[String(id), getTodayStr(), (pk || p.todo) && !p.date ? '' : remBE_(p.date), /* todo = งานรอทำ ยังไม่มีวัน (25 พ.ย. 69) */ String(p.time || '').slice(0, 5), String(p.text || '').slice(0, /^⚠️ แชตเข้าใจผิด/.test(String(p.text || '')) ? 1500 : 200), pk ? '' : rep, Math.max(0, Math.round(Number(p.lead_days) || 0)), 'open', '', ev]]);
   return true;
 }
 // จดเรื่องรถคันนี้ (แวะร้าน/ช่างบอกอะไร/เข้าร้าน) = ได้ติดต่อร้านแล้ว → เตือน "โทรเช็คร้าน" ที่ถึงวันแล้ว เลื่อนไปสัปดาห์หน้า

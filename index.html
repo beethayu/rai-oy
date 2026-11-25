@@ -8833,7 +8833,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chRemPlot(items, txt, r); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chRemPlot(items, txt, r); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt); chFutAct(items);
           const ask = (r.ask || []).filter(q => !(/ถัง/.test(q.q || '') && items.some(it => it.group === 'ฉีดยา') && items.every(it => it.group !== 'ฉีดยา' || chTanks(it.quantity)))); // รู้ถังแล้ว (เช่น คิดจากลิตร) ไม่ถามซ้ำ
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -8906,7 +8906,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const ids = gData.plots.filter(p => String(p.plot_name).includes('(' + w + ')')).map(p => p.plot_id);
         if (ids.length < 2) return;
         const rl = recentLocs(3), cont = ids.filter(id => rl.has(plotLoc(pn(id)))); // ไล่ทำอยู่พื้นที่เดียว (เช่น ฉีดรอบไร่หนองกระทู้ 2 วันติด) = ใช้พื้นที่นั้น ติด ? ให้ดู
-        if (cont.length === 1) { items.forEach(it => { if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { it.plots = [...new Set(it.plots.map(id => ids.includes(id) ? cont[0] : id))]; if (!(it.unsure || []).includes('plots')) it.unsure = (it.unsure || []).concat('plots'); } }); return; }
+        if (cont.length === 1) { ids.filter(id => id !== cont[0]).forEach(id => { r.reply = String(r.reply || '').split(pn(id)).join(pn(cont[0])).split(plotLoc(pn(id))).join(plotLoc(pn(cont[0]))); }); // คำตอบต้องตรงการ์ด
+          items.forEach(it => { if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { it.plots = [...new Set(it.plots.map(id => ids.includes(id) ? cont[0] : id))]; if (!(it.unsure || []).includes('plots')) it.unsure = (it.unsure || []).concat('plots'); } }); return; }
         let hit = false;
         for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { items.splice(i, 1); hit = true; } }
         if (!hit) return;
@@ -8943,6 +8944,13 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     }
     // 25 พ.ย. 69 ผู้ใช้: "พรุ่งนี้ ฉีด ฝั่งขวาใน" ลงนัดเป็นคำย่อ ไม่รู้แปลงไหน (มีทั้งสำนักแจง/หนองกระทู้) → นัดต้องมีชื่อแปลงเต็ม
     // หาพื้นที่จาก: ข้อความนี้/ที่เพิ่งคุย → แปลงของงานอื่นในข้อความเดียวกัน → งานที่ทำในพื้นที่นั้น 3 วันหลัง (ไล่ฉีดต่อเนื่อง) · ยังกำกวม = ถาม
+    // งานที่ลงวันข้างหน้า ("พรุ่งนี้ ฉีด ขวาใน") = แผน ไม่ใช่งานที่ทำแล้ว → เปลี่ยนเป็นนัด ชื่อแปลงเต็ม (25 พ.ย. 69 AI ลงเป็นงานฉีดวันพรุ่งนี้)
+    function chFutAct(items) {
+      const t0 = todayISO(), pn = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id;
+      items.forEach((it, i) => { if (it.type !== 'activity' || !(it.date > t0) || it.group === 'ฝนตก') return;
+        const what = (it.unsure || []).includes('chems') || !it.detail ? it.group : it.detail, q = chTanks(it.quantity) ? ' ' + it.quantity : '';
+        items[i] = chatNorm({ type: 'reminder', text: `${what} ${(it.plots || []).map(pn).join(', ')}${q}${(it.workers || []).length ? ' (' + it.workers.join(', ') + ')' : ''}`.trim(), date: it.date, time: '', repeat: '', lead_days: 0 }) || it; });
+    }
     function chRemPlot(items, txt, r) {
       const hist = chat.msgs.slice(-3).map(m => m.t || '').join(' '), t = (String(txt || '') + ' ' + hist).replace(/\s+/g, '');
       const P = gData.plots || [], alias = p => (/\((.+)\)\s*$/.exec(p.plot_name) || [])[1];

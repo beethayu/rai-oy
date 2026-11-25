@@ -8618,6 +8618,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         fuel: fuelTeams().map(t => fuelBal(t)).filter(Boolean).map(b => ({ team: b.team.join(' + '), text: fuelLine(b), per_day_l: r1(b.perDay), warn: b.st })),
         soil_checks: (gData.soilChecks || []).slice(-10).map(c => ({ date: beToISO(c.date), area: c.area, state: c.state, model_pct: c.model_pct, note: c.note || undefined })),
         areas: (() => { const A = {}; (gData.plots || []).forEach(p => { const l = plotLoc(p.plot_name); (A[l] = A[l] || []).push(p.plot_name); }); Object.keys(A).forEach(l => { A[l] = `${A[l].length} แปลง: ${A[l].join(', ')}`; }); return A; })(),
+        recent: (() => { const d5 = isoAdd(todayISO(), -5), pn = id => ((gData.plots || []).find(p => p.plot_id === id) || {}).plot_name || id; return (gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && beToISO(a.timestamp) >= d5).slice(0, 25).map(a => ({ date: beToISO(a.timestamp), plot: pn(a.plot_id), job: a.activity_group + ' · ' + a.activity_detail, qty: a.quantity !== '-' ? a.quantity : undefined, workers: a.operator || undefined })); })(), // งาน 5 วันหลัง: ไล่ฉีด/ทำต่อเนื่องในพื้นที่เดียวกัน (25 พ.ย. 69)
         reminders: (gData.reminders || []).map(r => ({ id: r.rem_id, text: r.text, date: beToISO(r.date), repeat: r.repeat || undefined, on_pickup: r.on_event ? r.on_event.replace(/^รับรถ:/, '') : undefined })),
         guards: (gData.guards || []).slice(-12).map(g => { const st = guardStat(g); return { area: g.area, plots: guardPlots(g), workers: g.workers, start: st.s, part: g.start_part, end: st.open ? '' : st.e, nights: st.nights, days: st.days, open: st.open }; }),
         draft: last ? last.items.map(it => { const c = { ...it }; delete c.areas; delete c.sel; delete c.photo_ids; delete c.known; delete c.exists; return c; }) : null,
@@ -8832,7 +8833,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
           chat.msgs.forEach(m => { if (m.ai && m.state === 'draft') m.state = 'old'; });
           const ph = r.photos || [], th = pics.length ? pics.map(p => p.th) : (reuse ? reuse.th : []);
           const items = (r.items || []).map(it => chatNorm(it, ph)).filter(Boolean);
-          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt);
+          chatDateFix(items, txt); chAssetGuard(items, txt, r, pics.length || (reuse ? 1 : 0)); chAddGuard(items, txt); chFixPlots(items, txt); chRemPlot(items, txt, r); chFinMerge(items); chPlotGuard(items, prevDraft.length ? chat.msgs.filter(m => m.me).slice(-4).map(m => String(m.t || '').split('→').pop()).join(' ') : txt, r); /* แก้การ์ดต่อ/ตอบชิป: ชื่อแปลงอยู่ในข้อความก่อน ๆ (เดิมถาม "ฉีดแปลงไหน" ซ้ำ) */ chJobGuard(items, txt, r); chArea(items, txt); items.forEach(chSpray); chSprayMerge(items); chChemTanks(items, chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').reverse()); chKeepDraft(items, prevDraft, txt); chOngoing(items, txt);
           const ask = (r.ask || []).filter(q => !(/ถัง/.test(q.q || '') && items.some(it => it.group === 'ฉีดยา') && items.every(it => it.group !== 'ฉีดยา' || chTanks(it.quantity)))); // รู้ถังแล้ว (เช่น คิดจากลิตร) ไม่ถามซ้ำ
           if (items.some(it => it.type === 'activity' && it.group === 'ฉีดยา' && !chTanks(it.quantity)) && !ask.some(q => /ถัง/.test(q.q || '')))
             ask.push({ q: 'ฉีดกี่ถัง?', options: ['2 ถัง', '3 ถัง', '4 ถัง', '6 ถัง', '8 ถัง'] }); // ไม่เดาถัง
@@ -8886,6 +8887,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const out = { exact: [], fuzzy: [] };
       (gData.plots || []).forEach(p => { const n0 = String(p.plot_name || ''), m = /^(.*?)\s*\((.+)\)\s*$/.exec(n0), n = n0.replace(/\s+/g, ''), al = (m ? m[2] : n0).replace(/\s+/g, ''), area = m ? m[1].replace(/\s+/g, '') : '';
         if (t.includes(n) || t.includes(al)) out.exact.push(p.plot_id); else if (near(al)) out.fuzzy.push(p.plot_id); else if (area && t.includes(area) ) out.area = (out.area || []).concat(p.plot_id); });
+      // 25 พ.ย. 69: "หนองกระทู้ … ฝั่งขวาใน" เดิมได้ทั้งสำนักแจง (ขวาใน) และหนองกระทู้ (ขวาใน) → บอกพื้นที่แล้ว ตัดแปลงชื่อซ้ำของพื้นที่อื่นออก
+      const said = new Set((gData.plots || []).map(p => plotLoc(p.plot_name)).filter(l => l && t.includes(String(l).replace(/\s+/g, ''))));
+      if (said.size) ['exact', 'fuzzy'].forEach(k => { out[k] = out[k].filter(id => { const p = gData.plots.find(q => q.plot_id === id); return said.has(plotLoc(p.plot_name)) || t.includes(String(p.plot_name).replace(/\s+/g, '')); }); });
       return out;
     }
     // 23 พ.ย. 69 ทดสอบแชตด้วยข้อความจริง 15 ข้อ AI พลาด 3 แบบ → ด่านนี้แก้ให้แน่นอน (ไม่พึ่งกฎ prompt อย่างเดียว)
@@ -8929,6 +8933,24 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         if (named.length) { it.plots = named.slice(); mark(); return; }
         if (it.plots.every(pid => { const og = chOg(pid); return og && og.activity_group === it.group; })) return; // ทำงานค้างต่อ ไม่ต้องบอกชื่อแปลง
         mark(); r.ask = (r.ask || []).concat({ q: `${it.group === 'ฉีดยา' ? 'ฉีด' : 'ทำ'}แปลงไหนครับ? (ยังไม่เห็นชื่อแปลงในข้อความ)` });
+      });
+    }
+    // 25 พ.ย. 69 ผู้ใช้: "พรุ่งนี้ ฉีด ฝั่งขวาใน" ลงนัดเป็นคำย่อ ไม่รู้แปลงไหน (มีทั้งสำนักแจง/หนองกระทู้) → นัดต้องมีชื่อแปลงเต็ม
+    // หาพื้นที่จาก: ข้อความนี้/ที่เพิ่งคุย → แปลงของงานอื่นในข้อความเดียวกัน → งานที่ทำในพื้นที่นั้น 3 วันหลัง (ไล่ฉีดต่อเนื่อง) · ยังกำกวม = ถาม
+    function chRemPlot(items, txt, r) {
+      const hist = chat.msgs.slice(-3).map(m => m.t || '').join(' '), t = (String(txt || '') + ' ' + hist).replace(/\s+/g, '');
+      const P = gData.plots || [], alias = p => (/\((.+)\)\s*$/.exec(p.plot_name) || [])[1];
+      items.filter(it => it.type === 'reminder' && it.text).forEach(it => {
+        const tx = it.text.replace(/\s+/g, '');
+        if (P.some(p => tx.includes(String(p.plot_name).replace(/\s+/g, '')))) return; // มีชื่อเต็มแล้ว
+        const al = [...new Set(P.map(alias).filter(a => a && tx.includes(a.replace(/\s+/g, ''))))].sort((a, b) => b.length - a.length)[0];
+        if (!al) return;
+        let c = P.filter(p => alias(p) === al);
+        if (c.length > 1) { const k = c.filter(p => t.includes(String(plotLoc(p.plot_name)).replace(/\s+/g, ''))); if (k.length) c = k; }
+        if (c.length > 1) { const near = new Set(items.flatMap(x => Array.isArray(x.plots) ? x.plots : []).map(id => plotLoc((P.find(p => p.plot_id === id) || {}).plot_name || ''))); const k = c.filter(p => near.has(plotLoc(p.plot_name))); if (k.length) c = k; }
+        if (c.length > 1) { const d3 = isoAdd(todayISO(), -3), near = new Set((gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && beToISO(a.timestamp) >= d3).map(a => plotLoc((P.find(p => p.plot_id === a.plot_id) || {}).plot_name || ''))); const k = c.filter(p => near.has(plotLoc(p.plot_name))); if (k.length) c = k; }
+        if (c.length === 1) { it.text = it.text.replace(new RegExp('(ฝั่ง\\s*)?' + al.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), c[0].plot_name); return; }
+        if (!(r.ask || []).some(q => String(q.q || '').includes(al))) r.ask = (r.ask || []).concat({ q: `นัด "${it.text}" — ${al} ที่ไหนครับ?`, options: c.map(p => p.plot_name) });
       });
     }
     function chFixPlots(items, txt) {

@@ -8882,13 +8882,17 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
     }
     // แปลงในงานต้องมาจากที่ผู้ใช้พูด (18 พ.ย.: "นายดำ เสร็จ" → AI ใส่ 90 วา/สะเดา/ข้างสระ ที่เสร็จไปเมื่อวาน)
     // ชื่อแปลงที่พูด: ชื่อเต็ม / ชื่อในวงเล็บ / ชื่อพื้นที่ / สะกดผิด 1 ตัว (นายดำ ≈ ยายดำ) · พูดแต่ AI ใส่แปลงอื่น = แทน · ไม่พูดเลยและไม่ใช่งานค้าง = ถาม
+    // พื้นที่ถูกเอ่ยถึงไหม: ชื่อเต็ม หรือคำย่อที่ผู้ใช้พิมพ์ ("กระทู้" = หนองกระทู้ · "แจง" = สำนักแจง) — 25 พ.ย. 69
+    const locSaid = (t, loc) => { const l = String(loc || '').replace(/\s+/g, ''); if (!l) return false; if (t.includes(l)) return true; const sh = l.replace(/^(หนอง|สำนัก|บ้าน)/, ''); return sh !== l && sh.length >= 3 && t.includes(sh); };
+    // พื้นที่ที่ไล่ทำงานอยู่ (ไม่นับฝน) ใน k วันหลัง → ใช้ตัดสิน "ขวาใน/ขวาถนน" ที่ไม่บอกพื้นที่
+    const recentLocs = (k) => { const d0 = isoAdd(todayISO(), -k); return new Set((gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && beToISO(a.timestamp) >= d0).map(a => plotLoc(((gData.plots || []).find(p => p.plot_id === a.plot_id) || {}).plot_name || ''))); };
     function chSaidPlots(txt) {
       const t = String(txt || '').split('→').pop().replace(/\s+/g, ''), near = (a) => { if (a.length < 4) return false; for (let i = 0; i + a.length <= t.length; i++) { let d = 0; for (let j = 0; j < a.length && d < 2; j++) if (t[i + j] !== a[j]) d++; if (d <= 1) return true; } return false; };
       const out = { exact: [], fuzzy: [] };
       (gData.plots || []).forEach(p => { const n0 = String(p.plot_name || ''), m = /^(.*?)\s*\((.+)\)\s*$/.exec(n0), n = n0.replace(/\s+/g, ''), al = (m ? m[2] : n0).replace(/\s+/g, ''), area = m ? m[1].replace(/\s+/g, '') : '';
         if (t.includes(n) || t.includes(al)) out.exact.push(p.plot_id); else if (near(al)) out.fuzzy.push(p.plot_id); else if (area && t.includes(area) ) out.area = (out.area || []).concat(p.plot_id); });
       // 25 พ.ย. 69: "หนองกระทู้ … ฝั่งขวาใน" เดิมได้ทั้งสำนักแจง (ขวาใน) และหนองกระทู้ (ขวาใน) → บอกพื้นที่แล้ว ตัดแปลงชื่อซ้ำของพื้นที่อื่นออก
-      const said = new Set((gData.plots || []).map(p => plotLoc(p.plot_name)).filter(l => l && t.includes(String(l).replace(/\s+/g, ''))));
+      const said = new Set((gData.plots || []).map(p => plotLoc(p.plot_name)).filter(l => locSaid(t, l)));
       if (said.size) ['exact', 'fuzzy'].forEach(k => { out[k] = out[k].filter(id => { const p = gData.plots.find(q => q.plot_id === id); return said.has(plotLoc(p.plot_name)) || t.includes(String(p.plot_name).replace(/\s+/g, '')); }); });
       return out;
     }
@@ -8901,6 +8905,8 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         if (!t.includes(w) || /แจง|กระทู้/.test(t + ' ' + hist)) return;
         const ids = gData.plots.filter(p => String(p.plot_name).includes('(' + w + ')')).map(p => p.plot_id);
         if (ids.length < 2) return;
+        const rl = recentLocs(3), cont = ids.filter(id => rl.has(plotLoc(pn(id)))); // ไล่ทำอยู่พื้นที่เดียว (เช่น ฉีดรอบไร่หนองกระทู้ 2 วันติด) = ใช้พื้นที่นั้น ติด ? ให้ดู
+        if (cont.length === 1) { items.forEach(it => { if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { it.plots = [...new Set(it.plots.map(id => ids.includes(id) ? cont[0] : id))]; if (!(it.unsure || []).includes('plots')) it.unsure = (it.unsure || []).concat('plots'); } }); return; }
         let hit = false;
         for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (Array.isArray(it.plots) && it.plots.some(id => ids.includes(id))) { items.splice(i, 1); hit = true; } }
         if (!hit) return;
@@ -8946,9 +8952,9 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         const al = [...new Set(P.map(alias).filter(a => a && tx.includes(a.replace(/\s+/g, ''))))].sort((a, b) => b.length - a.length)[0];
         if (!al) return;
         let c = P.filter(p => alias(p) === al);
-        if (c.length > 1) { const k = c.filter(p => t.includes(String(plotLoc(p.plot_name)).replace(/\s+/g, ''))); if (k.length) c = k; }
+        if (c.length > 1) { const k = c.filter(p => locSaid(t, plotLoc(p.plot_name))); if (k.length) c = k; }
         if (c.length > 1) { const near = new Set(items.flatMap(x => Array.isArray(x.plots) ? x.plots : []).map(id => plotLoc((P.find(p => p.plot_id === id) || {}).plot_name || ''))); const k = c.filter(p => near.has(plotLoc(p.plot_name))); if (k.length) c = k; }
-        if (c.length > 1) { const d3 = isoAdd(todayISO(), -3), near = new Set((gData.activities || []).filter(a => a.activity_group !== 'ฝนตก' && beToISO(a.timestamp) >= d3).map(a => plotLoc((P.find(p => p.plot_id === a.plot_id) || {}).plot_name || ''))); const k = c.filter(p => near.has(plotLoc(p.plot_name))); if (k.length) c = k; }
+        if (c.length > 1) { const near = recentLocs(3); const k = c.filter(p => near.has(plotLoc(p.plot_name))); if (k.length) c = k; }
         if (c.length === 1) { it.text = it.text.replace(new RegExp('(ฝั่ง\\s*)?' + al.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), c[0].plot_name); return; }
         if (!(r.ask || []).some(q => String(q.q || '').includes(al))) r.ask = (r.ask || []).concat({ q: `นัด "${it.text}" — ${al} ที่ไหนครับ?`, options: c.map(p => p.plot_name) });
       });

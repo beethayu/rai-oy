@@ -8852,7 +8852,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       return { v, why, age, cov, wait: Math.max(0, needD - dr) };
     }
     const SOIL_Q = /(รถ|ไถ|เข้า).*(ได้|ยัง|ไหม|มั้ย)|แห้ง(แล้ว)?(หรือ)?(ยัง|ไหม|มั้ย)|แฉะ(ไหม|มั้ย|อยู่ไหม)|ดิน.*(ยัง|ไหม|มั้ย|\?)/;
-    const isSoilQ = t => SOIL_Q.test(t) && /ยัง|ไหม|มั้ย|\?|หรือเปล่า|ได้หรือ/.test(t) && !/^(หน้างาน|ดูแล้ว)/.test(t.trim());
+    const isSoilQ = t => SOIL_Q.test(t) && /ยัง|ไหม|มั้ย|\?|หรือเปล่า|ได้หรือ/.test(t) && !/^(หน้างาน|ดูแล้ว)/.test(t.trim()) && !t.includes(' → '); // คำตอบชิป ("เอารถสับ … ทำวันไหน? → ยังไม่กำหนด") ไม่ใช่คำถามดิน (26 พ.ย. 69)
     function soilAnswer(txt) {
       if (!soilWx) return 'ยังโหลดข้อมูลฝนไม่ได้ ลองถามใหม่อีกครั้งครับ (หรือเดินดูหน้างาน)';
       const P = gData.plots || [], areas = [...new Set(P.map(p => plotLoc(p.plot_name)))];
@@ -8897,6 +8897,7 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       if (typed) { box.value = ''; box.style.height = 'auto'; chatPics = []; chatPvRender(); }
       const mine = { me: true, t: txt }; if (pics.length) mine.th = pics.map(p => p.th);
       chat.msgs.push(mine); chatBusy = true; chatSave(); chatRender(true);
+      if (!pics.length && chTodoAnswer(txt)) { chatBusy = false; chatSave(); chatRender(true); return; } // ตอบชิป "ทำวันไหน?" ในเครื่อง ไม่ต้องถาม AI
       if (!pics.length && chLocalEdit(txt)) { chatBusy = false; chatSave(); chatRender(true); return; } // แก้การ์ดแบบง่ายในเครื่องเลย ไม่ผ่าน AI (24 พ.ย. 69)
       if (isSoilQ(txt) && !pics.length) { // รถเข้าแปลงได้ไหม = แอปคำนวณตอบเอง ครบทุกแปลง
         new Promise(res => { if (soilWx) return res(); let done = false; const tm = setTimeout(() => { done = true; res(); }, 8000); soilLoad(() => { if (!done) { clearTimeout(tm); res(); } }); })
@@ -9038,6 +9039,18 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
         items[i] = chatNorm({ type: 'reminder', text: `${what} ${(it.plots || []).map(pn).join(', ')}${q}${(it.workers || []).length ? ' (' + it.workers.join(', ') + ')' : ''}`.trim(), date: it.date, time: '', repeat: '', lead_days: 0 }) || it; });
     }
     // รอทำที่ยังไม่มีวัน ถามข้อเดียว (ตอบ "ยังไม่กำหนด" = จดเป็นรอทำ ไม่ถามซ้ำ)
+    // ตอบชิป "… — ทำวันไหน? → X" แก้การ์ดเดิมในเครื่อง (26 พ.ย. 69: ส่งไป AI แล้วโดนตีเป็นคำถามดิน "รถ…ยัง")
+    function chTodoAnswer(txt) {
+      const m = /^(.+?) — ทำวันไหน\? → (.+)$/.exec(String(txt).trim()); if (!m) return false;
+      const ai = [...chat.msgs].reverse().find(x => x.ai && x.state === 'draft'); if (!ai) return false;
+      const it = (ai.items || []).find(x => x.type === 'reminder' && x.todo && String(x.text).startsWith(m[1].trim())); if (!it) return false;
+      const t0 = todayISO(), d = { 'พรุ่งนี้': isoAdd(t0, 1), 'มะรืน': isoAdd(t0, 2), 'สัปดาห์หน้า': isoAdd(t0, 7) }[m[2].trim()];
+      if (d) { it.date = d; delete it.todo; } // ยังไม่กำหนด = คงเป็นรอทำ
+      ai.ask = (ai.ask || []).filter(q => !String(q.q).startsWith(m[1].trim()));
+      ai.items.sort((a, b) => chGrp(a) - chGrp(b));
+      chat.msgs.push({ ai: true, t: d ? `ลงนัด ${calLbl(d)} ให้แล้ว (${m[1].trim()}) · ตรวจแล้วกดบันทึกในการ์ดเดิม` : 'จดเป็นรอทำไว้ ได้วันแล้วค่อยแตะเลือกวันในหน้าวันนี้ · ตรวจแล้วกดบันทึกในการ์ดเดิม', items: [], ask: [], state: 'info' });
+      return true;
+    }
     function chTodoAsk(items, txt, r) {
       const T = items.filter(it => it.type === 'reminder' && it.todo); if (!T.length) return;
       const said = chat.msgs.filter(m => m.me).slice(-3).map(m => m.t || '').join(' ') + ' ' + txt;
@@ -9051,7 +9064,12 @@ body.tabS.tabLog.logChat .hd-bk{display:inline-flex}
       const P = gData.plots || [], alias = p => (/\((.+)\)\s*$/.exec(p.plot_name) || [])[1];
       items.filter(it => it.type === 'reminder' && it.text).forEach(it => {
         const tx = it.text.replace(/\s+/g, '');
-        if (P.some(p => tx.includes(String(p.plot_name).replace(/\s+/g, '')))) return; // มีชื่อเต็มแล้ว
+        const full = P.find(p => tx.includes(String(p.plot_name).replace(/\s+/g, '')));
+        if (full) { // มีชื่อเต็มแล้ว — แต่ AI เลือกผิดพื้นที่ได้ (26 พ.ย. 69: ข้อความบอกหนองกระทู้ ได้ "สำนักแจง (ขวาใน)") → ข้อความเอ่ยแค่อีกพื้นที่ที่มีแปลงชื่อย่อยเดียวกัน = สลับ
+          const al0 = alias(full), loc0 = plotLoc(full.plot_name), tt = String(txt || '').replace(/\s+/g, '');
+          if (al0 && !locSaid(tt, loc0)) { const k = P.filter(p => p !== full && alias(p) === al0 && locSaid(tt, plotLoc(p.plot_name))); if (k.length === 1) it.text = it.text.replace(full.plot_name, k[0].plot_name); }
+          return;
+        }
         const al = [...new Set(P.map(alias).filter(a => a && tx.includes(a.replace(/\s+/g, ''))))].sort((a, b) => b.length - a.length)[0];
         if (!al) return;
         let c = P.filter(p => alias(p) === al);
